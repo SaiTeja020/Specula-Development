@@ -58,6 +58,7 @@
 | 2026-07-28 | `README.md` | Created comprehensive project README documenting pipeline architecture, components, startup commands, and outputs | Verified |
 | 2026-07-28 | `pytest.ini`, `tests/conftest.py`, `src/ingestion/preservation/integrity_checker.py` | Created `pytest.ini` test configuration, `conftest.py` fixtures, and `integrity_checker.py` | Verified |
 | 2026-07-28 | `tests/ingestion/preservation.py`, `tests/ingestion/schemas.py` | Executed full test suite via `pytest tests/`. All 23 tests passed in 2.71s (10 preservation tests + 13 schema tests). | Verified |
+| 2026-07-28 | `.gitignore`, `.git` | Initialized git repository, configured `.gitignore`, set remote origin `https://github.com/SaiTeja020/Specula-Development.git`, and committed initial codebase on `main`. | Verified |
 
 ---
 
