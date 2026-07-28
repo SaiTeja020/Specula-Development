@@ -1,0 +1,29 @@
+# Specula Ingestion Pipeline Requirements
+# Generated from specula_ingestion_final_plan.md §10
+
+# Base Pydantic models for OCSF
+pydantic>=2.5.0
+
+# Confluent Kafka Client with Schema Registry support
+# NOTE: Requires librdkafka-dev installed on the host machine natively
+confluent-kafka[schema-registry]>=2.3.0
+
+# Redis client for ActiveCasesCache
+redis>=5.0.1
+
+# Drain3 for parametric log abstraction
+drain3>=0.9.11
+
+# HTTP requests for Rebuff and Quickwit
+requests>=2.31.0
+
+# Date parsing for TimeNormalizer
+python-dateutil>=2.8.2
+
+# Testing framework
+pytest>=7.0.0
+
+# Stubbed dependencies (uncomment when fully implementing)
+# qdrant-client>=1.7.0
+# sentence-transformers>=2.2.2
+# neo4j>=5.14.1

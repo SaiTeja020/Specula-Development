@@ -1,0 +1,24 @@
+# Environment & Virtualenvs
+venv/
+.venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Agent Files & Rules
+.agents/skills/
+.agents/rules/rules.md
+.agents.zip
+
+# Large Data & Extracted Artifacts
+data/extracted_logs/
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db

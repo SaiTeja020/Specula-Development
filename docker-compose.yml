@@ -1,0 +1,86 @@
+# Specula Ingestion Pipeline Infrastructure
+# Reference: specula_ingestion_final_plan.md §10.2
+
+version: '3.8'
+
+services:
+  # 1. Confluent Kafka Broker (KRaft mode, no Zookeeper for simplicity in dev)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    container_name: specula-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      CLUSTER_ID: 'specula-cluster-1'
+
+  # 2. Confluent Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.3
+    container_name: specula-schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  # 3. Redis (Active Cases Cache & Consumer Checkpoints)
+  redis:
+    image: redis:7.2-alpine
+    container_name: specula-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+
+  # 4. Quickwit (Tier 1 Append-Only Preservation)
+  quickwit:
+    image: quickwit/quickwit:0.7.2
+    container_name: specula-quickwit
+    ports:
+      - "7280:7280"
+    environment:
+      - QW_DISABLE_TELEMETRY=1
+    command: ["run"]
+
+  # 5. Neo4j (DFKG)
+  neo4j:
+    image: neo4j:5.14.0
+    container_name: specula-neo4j
+    ports:
+      - "7474:7474" # HTTP Browser
+      - "7687:7687" # Bolt
+    environment:
+      - NEO4J_AUTH=none
+      # Required for v6 §8.3 Triggers
+      - NEO4J_apoc_trigger_enabled=true 
+    volumes:
+      - ./data/neo4j/plugins:/plugins
+    # In a real deployment, APOC needs to be downloaded into /plugins before startup
+
+  # 6. Qdrant (Unstructured Vector Index)
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: specula-qdrant
+    ports:
+      - "6333:6333"
+
+  # 7. Rebuff (Prompt Injection Detection - Self-hosted)
+  # Assuming standard rebuff container or API mock for dev
+  rebuff:
+    image: rebuff/rebuff:latest
+    container_name: specula-rebuff
+    ports:
+      - "8080:8080"
