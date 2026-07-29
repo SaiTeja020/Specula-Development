@@ -7,7 +7,6 @@ Covers: ocsf_base.py, uid_generator.py, entity_resolver.py, ocsf_events.py
 """
 import json
 import pytest
-from conftest import canonical_uid
 
 
 # ---------------------------------------------------------------------------
@@ -98,14 +97,14 @@ class TestDeterministicUID:
 
     def test_float_precision_does_not_break_determinism(self):
         """
-        json.dumps with default float repr can vary; canonical_json must
-        pin precision or two logically-equal floats (1.0 vs 1.00000001
-        from floating point noise upstream) diverge in UID.
+        json.dumps with default float repr can vary; _canonical_json rounds
+        floats to 6 decimal places so logically-equal floats with floating point
+        noise upstream (e.g. 12.345678 vs 12.345678000000001) produce identical UIDs.
         """
         from src.schemas.uid_generator import generate_deterministic_uid
         a = generate_deterministic_uid("geo", {"lat": 12.345678})
-        b = generate_deterministic_uid("geo", {"lat": 12.345678})
-        assert a == b  # same input at least must be stable; see canonicalization test below
+        b = generate_deterministic_uid("geo", {"lat": 12.345678000000001})
+        assert a == b
 
     def test_uid_is_sha256_hex_length(self):
         from src.schemas.uid_generator import generate_deterministic_uid

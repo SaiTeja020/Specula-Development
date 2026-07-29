@@ -59,6 +59,7 @@
 | 2026-07-28 | `pytest.ini`, `tests/conftest.py`, `src/ingestion/preservation/integrity_checker.py` | Created `pytest.ini` test configuration, `conftest.py` fixtures, and `integrity_checker.py` | Verified |
 | 2026-07-28 | `tests/ingestion/preservation.py`, `tests/ingestion/schemas.py` | Executed full test suite via `pytest tests/`. All 23 tests passed in 2.71s (10 preservation tests + 13 schema tests). | Verified |
 | 2026-07-28 | `.gitignore`, `.git` | Initialized git repository, configured `.gitignore`, set remote origin `https://github.com/SaiTeja020/Specula-Development.git`, and committed initial codebase on `main`. | Verified |
+| 2026-07-29 | `tests/ingestion/schemas.py` | Fixed `test_float_precision_does_not_break_determinism` to test float representation noise (`12.345678` vs `12.345678000000001`). Removed unused `canonical_uid` import. Verified all 23 tests pass cleanly with `pytest tests/ -v`. | Verified |
 
 ---
 
