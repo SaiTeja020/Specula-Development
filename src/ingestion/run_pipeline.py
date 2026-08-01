@@ -124,7 +124,8 @@ def run_pipeline_on_event(raw_event: dict, vct_chain: VCTAtomicChain, resolver: 
     validated_evt = validate_event(ocsf_evt.model_dump(mode="json"), ProcessActivity)
     
     # 5. DFKG Knowledge Graph Cypher Builder
-    cypher_query, cypher_params = CypherBuilder.build_process_creation(validated_evt.model_dump(mode="json"))
+    event_dict = ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, "model_dump") else ocsf_evt
+    cypher_query, cypher_params = CypherBuilder.build_process_creation(event_dict)
     
     return validated_evt, cypher_query
 
@@ -200,13 +201,22 @@ def main():
         logger.info(f"--- Processing Category: {channel_name} ({len(log_list)} records) ---")
         for event in log_list:
             validated_evt, _ = run_pipeline_on_event(event, vct_chain, resolver, time_normalizer)
-            ocsf_outputs.append(validated_evt.model_dump(mode="json"))
+            evt_obj = getattr(validated_evt, "event", validated_evt)
+            evt_dict = evt_obj.model_dump(mode="json") if hasattr(evt_obj, "model_dump") else (evt_obj.__dict__ if hasattr(evt_obj, "__dict__") else evt_obj)
+            ocsf_outputs.append(evt_dict)
 
     # Save processed OCSF events to disk
-    ocsf_path = os.path.join(out_dir, "ocsf_system_events.json")
+    ocsf_path = os.path.abspath(os.path.join(out_dir, "ocsf_system_events.json"))
     with open(ocsf_path, "w") as f:
         json.dump(ocsf_outputs, f, indent=2)
     logger.info(f"Saved {len(ocsf_outputs)} validated OCSF events to: {ocsf_path}")
+
+    print("\n==========================================================================")
+    print("SPECULA LOG INGESTION COMPLETE")
+    print("==========================================================================")
+    print(f"RAW telemetry logs stored at: {os.path.abspath(raw_path)}")
+    print(f"VALIDATED OCSF logs stored at: {ocsf_path}")
+    print("==========================================================================")
 
 
 if __name__ == "__main__":

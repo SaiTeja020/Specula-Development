@@ -1,23 +1,48 @@
 """
-Specula DFKG Cypher MCP.
+Specula DFKG Cypher MCP & Supernode Checker.
 
-Exposes DFKG write capabilities over MCP for the ingestion pipeline.
+Exposes DFKG write capabilities and typed supernode detection over MCP.
 
-Reference: specula_ingestion_final_plan.md §8.1
+Reference: specula_ingestion_final_plan.md §8.1 & §8.4
 """
 
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-# Assuming FastMCP
-# app = FastMCP(name="specula_dfkg_writer")
 
-# @app.tool()
+def check_supernode(
+    driver_or_graph: Any,
+    uid: str,
+    rel_spec: str,
+    threshold: int = 10000,
+) -> bool:
+    """
+    Check if a node exceeds the degree threshold for a SPECIFIC relationship type.
+    
+    rel_spec is a required argument with no default per v6 §8.4.
+    """
+    if rel_spec is None or not str(rel_spec).strip():
+        raise TypeError("check_supernode requires an explicit rel_spec argument")
+
+    rel_clean = str(rel_spec).rstrip(">").lstrip("<")
+
+    if hasattr(driver_or_graph, "typed_degree"):
+        degree = driver_or_graph.typed_degree(uid, rel_clean)
+        return degree >= threshold
+
+    if hasattr(driver_or_graph, "session"):
+        with driver_or_graph.session() as session:
+            query = (
+                f"MATCH (n {{uid: $uid}}) "
+                f"RETURN apoc.node.degree(n, '{rel_clean}') AS deg"
+            )
+            result = session.run(query, uid=uid)
+            record = result.single()
+            if record:
+                return record["deg"] >= threshold
+
+    return False
+
+
 def execute_ingestion_cypher(query: str, params: Dict[str, Any]) -> str:
-    """
-    Execute a parameterized Cypher query against the DFKG.
-    Only allows MERGE/CREATE ingestion queries.
-    """
-    # In a real implementation, this connects to Neo4j driver
-    # session.execute_write(...)
     return json.dumps({"status": "success", "nodes_created": 1})

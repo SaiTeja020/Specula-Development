@@ -3,7 +3,7 @@ venv/
 .venv/
 env/
 
-# Python Cache
+# Python Cache & IDE
 __pycache__/
 *.pyc
 *.pyo
@@ -15,9 +15,13 @@ __pycache__/
 .agents/rules/rules.md
 .agents.zip
 
-# Large Data & Extracted Artifacts
-data/extracted_logs/
+# Large Data, Extracted Artifacts & State Files
+data/
+quarantine/
+dist/
+*.zip
 *.log
+*.bin
 
 # OS Metadata
 .DS_Store

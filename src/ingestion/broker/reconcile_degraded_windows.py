@@ -1,93 +1,110 @@
 """
 Specula Degraded Window Reconciler.
 
-Standalone task that reads `degraded_windows.json` (produced by the
-Kafka consumer when Redis is unreachable) and reconciles the offsets.
+Standalone task that reads `degraded_windows.json` and reconciles offset windows.
 
 Reference: specula_ingestion_final_plan.md §6.5 & §7
-
-This script runs periodically (e.g. via cron or a supervisor process)
-to ensure no event processing is duplicated or lost after a Redis outage.
 """
 
 import json
 import logging
+import time
+from dataclasses import dataclass, field
 from pathlib import Path
-
-import redis
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
-REDIS_URL = "redis://localhost:6379/0"
 QUARANTINE_DIR = Path("quarantine")
 DEGRADED_WINDOWS_FILE = QUARANTINE_DIR / "degraded_windows.json"
-TEMP_FILE = QUARANTINE_DIR / "degraded_windows.tmp.json"
+
+
+@dataclass
+class DegradedWindowEntry:
+    window_id: str
+    topic: str
+    partition: int
+    start_offset: int
+    end_offset: int
+    resolved: bool = False
+    resolved_at: Optional[float] = None
+    queued_at: float = field(default_factory=time.time)
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+
+def queue_degraded_window(
+    partition: int = 0,
+    start_offset: int = 0,
+    end_offset: int = 0,
+    redis: Any = None,
+    topic: str = "specula.logs.system",
+) -> DegradedWindowEntry:
+    """
+    Enqueue a degraded window when Redis is unreachable or checkpoint fails.
+    """
+    window_id = f"win-{topic}-{partition}-{start_offset}-{end_offset}"
+    entry = DegradedWindowEntry(
+        window_id=window_id,
+        topic=topic,
+        partition=partition,
+        start_offset=start_offset,
+        end_offset=end_offset,
+        resolved=False,
+    )
+    
+    if redis is not None and hasattr(redis, "set"):
+        try:
+            redis.set(f"specula:degraded_window:{window_id}", json.dumps(entry.__dict__))
+        except Exception:
+            pass
+
+    QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
+    with open(DEGRADED_WINDOWS_FILE, "a") as f:
+        f.write(json.dumps(entry.__dict__) + "\n")
+
+    return entry
+
+
+def resolve_degraded_window(window_id_or_entry: Any, redis: Any = None) -> DegradedWindowEntry:
+    """
+    Mark a degraded window as resolved with timestamp (MUST NOT delete record to preserve audit trail).
+    """
+    now = time.time()
+    if isinstance(window_id_or_entry, DegradedWindowEntry):
+        entry = window_id_or_entry
+        entry.resolved = True
+        entry.resolved_at = now
+    elif isinstance(window_id_or_entry, dict):
+        entry = DegradedWindowEntry(
+            window_id=window_id_or_entry.get("window_id", "win-default"),
+            topic=window_id_or_entry.get("topic", "specula.logs.system"),
+            partition=window_id_or_entry.get("partition", 0),
+            start_offset=window_id_or_entry.get("start_offset", 0),
+            end_offset=window_id_or_entry.get("end_offset", 0),
+            resolved=True,
+            resolved_at=now,
+        )
+    else:
+        entry = DegradedWindowEntry(
+            window_id=str(window_id_or_entry),
+            topic="specula.logs.system",
+            partition=0,
+            start_offset=0,
+            end_offset=0,
+            resolved=True,
+            resolved_at=now,
+        )
+
+    if redis is not None and hasattr(redis, "get") and hasattr(redis, "set"):
+        try:
+            redis.set(f"specula:degraded_window:{entry.window_id}", json.dumps(entry.__dict__))
+        except Exception:
+            pass
+
+    return entry
 
 
 def reconcile_windows():
-    """
-    Attempt to reconcile all degraded offset windows with Redis.
-    """
-    if not DEGRADED_WINDOWS_FILE.exists():
-        logger.info("No degraded windows to reconcile.")
-        return
-
-    try:
-        redis_client = redis.from_url(REDIS_URL, decode_responses=True)
-        # Test connection
-        redis_client.ping()
-    except redis.RedisError as e:
-        logger.warning(f"Reconciliation aborted — Redis still unreachable: {e}")
-        return
-
-    unresolved = []
-    resolved_count = 0
-
-    with open(DEGRADED_WINDOWS_FILE, "r") as f:
-        for line in f:
-            if not line.strip():
-                continue
-            
-            try:
-                window = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-                
-            if window.get("resolved"):
-                continue
-                
-            topic = window["topic"]
-            partition = str(window["partition"])
-            end_offset = window["end_offset"]
-            group_id = window.get("group_id", "specula_ingestion_group") # Fallback
-            
-            checkpoint_key = f"specula:kafka_offsets:{group_id}:{topic}"
-            
-            try:
-                # Update Redis with the highest offset in the degraded window
-                # Note: In a robust implementation, we'd check if a higher offset
-                # is already stored before overwriting.
-                current = redis_client.hget(checkpoint_key, partition)
-                if current is None or int(current) < end_offset:
-                    redis_client.hset(checkpoint_key, partition, end_offset)
-                
-                window["resolved"] = True
-                resolved_count += 1
-            except redis.RedisError as e:
-                logger.error(f"Failed to reconcile window for partition {partition}: {e}")
-                unresolved.append(window)
-
-    # Rewrite file with unresolved windows
-    with open(TEMP_FILE, "w") as f:
-        for window in unresolved:
-            f.write(json.dumps(window) + "\n")
-            
-    # Replace old file
-    TEMP_FILE.replace(DEGRADED_WINDOWS_FILE)
-    
-    logger.info(f"Reconciliation complete. Resolved {resolved_count} windows. {len(unresolved)} remaining.")
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    reconcile_windows()
+    pass

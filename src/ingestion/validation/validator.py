@@ -10,8 +10,9 @@ Reference: specula_ingestion_final_plan.md §6.2
 
 import json
 import logging
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 
 from pydantic import ValidationError
 
@@ -27,26 +28,32 @@ class IngestionError(Exception):
     pass
 
 
-def validate_event(raw_event: Dict[str, Any], model_class: Type[OCSFBaseEvent]) -> OCSFBaseEvent:
+@dataclass
+class ValidationResult:
+    valid: bool
+    quarantined: bool = False
+    error_reason: Optional[str] = None
+    event: Optional[OCSFBaseEvent] = None
+
+
+def validate_event(
+    raw_event: Dict[str, Any],
+    model_class: Type[OCSFBaseEvent] = OCSFBaseEvent,
+) -> ValidationResult:
     """
     Validate a raw dictionary against the expected Pydantic model.
-    
-    Args:
-        raw_event: The parsed, pre-normalized event dictionary.
-        model_class: The Pydantic model class to validate against.
-        
-    Returns:
-        The validated Pydantic model instance.
-        
-    Raises:
-        IngestionError: If validation fails, triggering quarantine.
     """
     try:
         validated_event = model_class.model_validate(raw_event)
-        return validated_event
+        return ValidationResult(valid=True, quarantined=False, event=validated_event)
     except ValidationError as e:
-        _quarantine_event(raw_event, str(e), model_class.__name__)
-        raise IngestionError(f"Event failed schema validation: {e}") from e
+        error_msg = str(e)
+        _quarantine_event(raw_event, error_msg, model_class.__name__)
+        return ValidationResult(valid=False, quarantined=True, error_reason=error_msg)
+    except Exception as e:
+        error_msg = str(e)
+        _quarantine_event(raw_event, error_msg, model_class.__name__)
+        return ValidationResult(valid=False, quarantined=True, error_reason=error_msg)
 
 
 def _quarantine_event(raw_event: Dict[str, Any], error_msg: str, schema_name: str) -> None:
@@ -55,8 +62,6 @@ def _quarantine_event(raw_event: Dict[str, Any], error_msg: str, schema_name: st
     """
     QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
     
-    # In a real system this might be a DLT topic or S3 bucket,
-    # but the plan specifies a quarantine/ directory path.
     trace_id = raw_event.get("trace_id", "UNKNOWN_TRACE")
     uid = raw_event.get("uid", "UNKNOWN_UID")
     

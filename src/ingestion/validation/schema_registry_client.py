@@ -7,13 +7,20 @@ versioned OCSF JSON schemas at the wire level.
 Reference: specula_ingestion_final_plan.md §6.1
 """
 
-from confluent_kafka.schema_registry import SchemaRegistryClient
+from typing import Any
 
-# Default Confluent Schema Registry endpoint
-SCHEMA_REGISTRY_URL = "http://localhost:8081"
 
-def get_schema_registry_client(url: str = SCHEMA_REGISTRY_URL) -> SchemaRegistryClient:
+class SchemaRegistryError(Exception):
+    """Raised when wire-level schema registry validation or encoding fails."""
+    pass
+
+
+def get_schema_registry_client(url: str = "http://localhost:8081") -> Any:
     """
     Get a configured Confluent Schema Registry Client.
     """
-    return SchemaRegistryClient({"url": url})
+    try:
+        from confluent_kafka.schema_registry import SchemaRegistryClient
+        return SchemaRegistryClient({"url": url})
+    except Exception as e:
+        raise SchemaRegistryError(f"Failed to connect to schema registry at {url}: {e}") from e

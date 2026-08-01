@@ -7,39 +7,24 @@
 
 // 1. Unique Constraints (Enforces entity uniqueness)
 
-// Canonical Host constraint
-CREATE CONSTRAINT host_uid_unique IF NOT EXISTS
-FOR (h:Host) REQUIRE h.uid IS UNIQUE;
-
-// Process entity constraint
-CREATE CONSTRAINT process_uid_unique IF NOT EXISTS
-FOR (p:Process) REQUIRE p.uid IS UNIQUE;
-
-// Network Endpoint constraint
-CREATE CONSTRAINT endpoint_uid_unique IF NOT EXISTS
-FOR (e:Endpoint) REQUIRE e.uid IS UNIQUE;
-
-// User Identity constraint
-CREATE CONSTRAINT user_uid_unique IF NOT EXISTS
-FOR (u:User) REQUIRE u.uid IS UNIQUE;
-
-// File/Artifact constraint
-CREATE CONSTRAINT file_uid_unique IF NOT EXISTS
-FOR (f:File) REQUIRE f.uid IS UNIQUE;
+CREATE CONSTRAINT host_uid_unique IF NOT EXISTS FOR (h:Host) REQUIRE h.uid IS UNIQUE;
+CREATE CONSTRAINT process_uid_unique IF NOT EXISTS FOR (p:Process) REQUIRE p.uid IS UNIQUE;
+CREATE CONSTRAINT endpoint_uid_unique IF NOT EXISTS FOR (e:NetworkEndpoint) REQUIRE e.uid IS UNIQUE;
+CREATE CONSTRAINT user_uid_unique IF NOT EXISTS FOR (u:User) REQUIRE u.uid IS UNIQUE;
+CREATE CONSTRAINT file_uid_unique IF NOT EXISTS FOR (f:File) REQUIRE f.uid IS UNIQUE;
 
 
-// 2. Indexes (For read query performance)
+// 2. Composite Indexes for Backfill Performance & Case Isolation
 
-// Index on case_id to quickly isolate a case subgraph
-CREATE INDEX case_id_index IF NOT EXISTS
-FOR (n:Entity) ON (n.case_id);
+CREATE INDEX process_composite_idx IF NOT EXISTS FOR (n:Process) ON (n.canonical_host_id, n.timestamp);
+CREATE INDEX host_composite_idx IF NOT EXISTS FOR (n:Host) ON (n.canonical_host_id, n.timestamp);
+CREATE INDEX file_composite_idx IF NOT EXISTS FOR (n:File) ON (n.canonical_host_id, n.timestamp);
+CREATE INDEX user_composite_idx IF NOT EXISTS FOR (n:User) ON (n.canonical_host_id, n.timestamp);
+CREATE INDEX endpoint_composite_idx IF NOT EXISTS FOR (n:NetworkEndpoint) ON (n.canonical_host_id, n.timestamp);
 
-// Text indexes for pattern matching
-CREATE TEXT INDEX process_name_text_index IF NOT EXISTS
-FOR (p:Process) ON (p.process_name);
 
-CREATE TEXT INDEX command_line_text_index IF NOT EXISTS
-FOR (p:Process) ON (p.command_line);
+// 3. Text Indexes for Pattern Matching
 
-CREATE TEXT INDEX filename_text_index IF NOT EXISTS
-FOR (f:File) ON (f.file_name);
+CREATE TEXT INDEX process_name_text_index IF NOT EXISTS FOR (p:Process) ON (p.process_name);
+CREATE TEXT INDEX command_line_text_index IF NOT EXISTS FOR (p:Process) ON (p.command_line);
+CREATE TEXT INDEX filename_text_index IF NOT EXISTS FOR (f:File) ON (f.file_name);

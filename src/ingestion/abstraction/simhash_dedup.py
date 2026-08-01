@@ -1,52 +1,110 @@
 """
-Specula SimHash Deduplication.
+Specula SimHash Deduplication & Anti-Poisoning.
 
-Groups parametrically identical events occurring within the same
-temporal window into a single representative event + occurrence count,
-drastically cutting down noise (e.g. 10,000 failed logins in 5s).
+Groups parametrically identical and near-duplicate events occurring within the
+same temporal window into a single representative event + occurrence count,
+defeating adversarial near-duplicate cluster poisoning.
 
 Reference: specula_ingestion_final_plan.md §7.2
 """
 
-from typing import List, Dict, Any, Tuple
+import hashlib
+import re
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Tuple, Union
 
-# Note: In a production system, we would use simhash library.
-# We stub it out for Phase 1 with exact-hash match grouping, as
-# exact parametric equality + time-window bounds achieves the same effect
-# for strictly structured OCSF events.
+
+@dataclass
+class SimHashCluster:
+    family_id: str
+    rep_hash: int
+    representative: Any
+    events: List[Any] = field(default_factory=list)
+    uids: List[str] = field(default_factory=list)
+    count: int = 1
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+
+class SimHashResult(list):
+    """
+    List subclass of clusters containing n_distinct_clusters property.
+    """
+    def __init__(self, clusters: List[SimHashCluster]):
+        super().__init__(clusters)
+        self.clusters = clusters
+
+    @property
+    def n_distinct_clusters(self) -> int:
+        return len(self.clusters)
+
+
+def _compute_simhash(text: str) -> int:
+    tokens = re.findall(r"\w+", text.lower())
+    if not tokens:
+        return 0
+    v = [0] * 64
+    for token in tokens:
+        token_hash = int(hashlib.md5(token.encode("utf-8")).hexdigest()[:16], 16)
+        for i in range(64):
+            if (token_hash >> i) & 1:
+                v[i] += 1
+            else:
+                v[i] -= 1
+    fingerprint = 0
+    for i in range(64):
+        if v[i] > 0:
+            fingerprint |= (1 << i)
+    return fingerprint
+
+
+def simhash_similarity(text1: str, text2: str) -> float:
+    h1 = _compute_simhash(text1)
+    h2 = _compute_simhash(text2)
+    hamming_dist = bin(h1 ^ h2).count("1")
+    return 1.0 - (hamming_dist / 64.0)
+
+
+def cluster_near_duplicates(events: List[Union[Dict[str, Any], str]], distance_threshold: int = 25) -> SimHashResult:
+    clusters: List[SimHashCluster] = []
+
+    for event in events:
+        if isinstance(event, str):
+            text = event
+            uid = f"uid-{hashlib.sha256(event.encode()).hexdigest()[:16]}"
+        else:
+            text = event.get("raw_text") or event.get("command_line") or event.get("message") or str(event)
+            uid = event.get("uid", "")
+
+        event_hash = _compute_simhash(text)
+        matched = False
+
+        for cluster in clusters:
+            if bin(event_hash ^ cluster.rep_hash).count("1") <= distance_threshold:
+                cluster.events.append(event)
+                cluster.uids.append(uid)
+                cluster.count += 1
+                matched = True
+                break
+
+        if not matched:
+            clusters.append(SimHashCluster(
+                family_id=f"simhash-{len(clusters)+1}",
+                rep_hash=event_hash,
+                representative=event,
+                events=[event],
+                uids=[uid],
+                count=1,
+            ))
+
+    return SimHashResult(clusters)
+
+
+def detect_near_duplicates(events: List[Union[Dict[str, Any], str]]) -> SimHashResult:
+    return cluster_near_duplicates(events)
+
 
 def group_similar_events(events: List[Dict[str, Any]], window_seconds: int = 5) -> List[Tuple[Dict[str, Any], int]]:
-    """
-    Group events based on parametric similarity within a time window.
-    
-    Args:
-        events: List of validated OCSF event dictionaries.
-        window_seconds: Time window for temporal clustering.
-        
-    Returns:
-        List of tuples: (representative_event_dict, occurrence_count).
-    """
-    if not events:
-        return []
-        
-    # Phase 1 Simplification: Group by class_uid + activity_id + signature/template
-    # This acts as a proxy for simhash on structured OCSF.
-    
-    groups: Dict[str, Tuple[Dict[str, Any], int]] = {}
-    
-    for event in events:
-        class_uid = event.get("class_uid", 0)
-        activity_id = event.get("activity_id", 0)
-        uid = event.get("uid", "")
-        
-        # In full implementation, we hash the parametric features here.
-        # For now, simulate grouping.
-        group_key = f"{class_uid}_{activity_id}_{uid}"
-        
-        if group_key in groups:
-            rep, count = groups[group_key]
-            groups[group_key] = (rep, count + 1)
-        else:
-            groups[group_key] = (event, 1)
-            
-    return list(groups.values())
+    clusters = cluster_near_duplicates(events)
+    return [(c.representative, c.count) for c in clusters]

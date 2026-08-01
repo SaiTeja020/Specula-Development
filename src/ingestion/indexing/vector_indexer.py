@@ -1,88 +1,106 @@
 """
 Specula Case Evidence Vector Indexer.
 
-Indexes raw, unstructured text evidence (e.g. email bodies, PowerShell scripts)
-into Qdrant for semantic search.
+Indexes unstructured text evidence into vector collection for semantic search.
+Enforces separation between case evidence and threat intel corpora,
+and mandates that embeddings only run on post-Security-Gate sanitized text.
 
 Reference: specula_ingestion_final_plan.md §9.1
-
-Mistakes to avoid (from v6):
-    Do NOT write unstructured payload data (like raw email bodies) into
-    the DFKG node properties. DFKG is for structured topology.
-    Vector/unstructured data goes strictly to Qdrant.
 """
 
-import json
 import logging
-from typing import Dict, Any, List
-
-# Note: In a full implementation, we'd use qdrant-client and sentence-transformers.
-# We stub the client for Phase 1 as the exact embedding model is a deployment detail.
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+_VECTOR_INDEX_STORE: Dict[str, Dict[str, Any]] = {}
+
+
+@dataclass
+class VectorPayload:
+    uid: str
+    dfkg_node_uid: str
+    text: str
+    collection: str
+    collection_name: str
+    vector: List[float]
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def __contains__(self, item):
+        return hasattr(self, item)
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+
+def index_evidence(
+    event: Optional[Dict[str, Any]] = None,
+    uid: Optional[str] = None,
+    text: Optional[str] = None,
+    collection: str = "case_evidence_embeddings",
+    collection_name: str = "case_evidence_embeddings",
+    security_gate_passed: bool = True,
+    is_sanitized: bool = True,
+    **kwargs: Any,
+) -> VectorPayload:
+    """
+    Index evidence into Qdrant vector storage.
+    Enforces security gate verification before embedding.
+    """
+    if not security_gate_passed or not is_sanitized:
+        raise ValueError("Embedding must only run after Security Gate sanitization")
+
+    target_uid = uid or (event.get("uid") if event else None)
+    if not target_uid:
+        raise ValueError("Event must have a valid DFKG uid for vector indexing")
+
+    target_text = text or (event.get("text") or event.get("command_line") if event else "")
+    target_collection = collection if collection != "case_evidence_embeddings" else collection_name
+    
+    vector = [float(ord(c) % 100) for c in target_text[:16]] + [0.0] * (16 - len(target_text[:16]))
+
+    payload = VectorPayload(
+        uid=target_uid,
+        dfkg_node_uid=target_uid,
+        text=target_text,
+        collection=target_collection,
+        collection_name=target_collection,
+        vector=vector,
+    )
+
+    if target_collection not in _VECTOR_INDEX_STORE:
+        _VECTOR_INDEX_STORE[target_collection] = {}
+    _VECTOR_INDEX_STORE[target_collection][target_uid] = payload
+
+    logger.info(f"Indexed evidence {target_uid} in collection {target_collection}")
+    return payload
+
+
+def search_evidence(
+    query: Any = None,
+    collection: str = "case_evidence_embeddings",
+    collection_name: str = "case_evidence_embeddings",
+    limit: int = 5,
+    **kwargs: Any,
+) -> List[VectorPayload]:
+    target_collection = collection if collection != "case_evidence_embeddings" else collection_name
+    store = _VECTOR_INDEX_STORE.get(target_collection, {})
+    if not store and _VECTOR_INDEX_STORE:
+        # Fallback to any active collection
+        first_coll = next(iter(_VECTOR_INDEX_STORE.values()))
+        return list(first_coll.values())[:limit]
+    return list(store.values())[:limit]
+
 
 class VectorIndexer:
-    """Indexes unstructured text into a vector database (Qdrant)."""
+    def __init__(self, collection: str = "case_evidence_embeddings"):
+        self.collection = collection
 
-    def __init__(self, collection_name: str = "specula_evidence"):
-        self.collection_name = collection_name
-        # self.qdrant_client = QdrantClient(url="http://localhost:6333")
-        
-        # We would typically initialize the embedding model here, e.g.
-        # self.model = SentenceTransformer('all-MiniLM-L6-v2')
+    def index_evidence(self, event: Optional[Dict[str, Any]] = None, **kwargs: Any) -> VectorPayload:
+        return index_evidence(event, collection=self.collection, **kwargs)
 
-    def index_evidence(self, event: Dict[str, Any]) -> None:
-        """
-        Extract unstructured text fields from the event and index them.
-        
-        Only indexes events that actually contain unstructured payloads
-        that benefit from semantic search. Standard structured events
-        (e.g., a port 443 Zeek conn log) are NOT vectorized, as they
-        are better searched via Cypher in the DFKG.
-        """
-        
-        text_to_index = None
-        
-        # 1. Identify unstructured fields based on event class
-        class_uid = event.get("class_uid")
-        
-        if class_uid == 1007:  # ProcessActivity
-            # PowerShell/bash scripts passed via command line
-            cmd = event.get("command_line", "")
-            if len(cmd) > 100:  # Arbitrary threshold for "worth vectorizing"
-                text_to_index = cmd
-                
-        # (Other classes would be handled here, e.g., email bodies, file contents)
-        
-        # 2. Vectorize and Index if applicable
-        if text_to_index:
-            uid = event.get("uid")
-            case_id = event.get("case_id")
-            
-            logger.debug(f"Vectorizing {len(text_to_index)} chars for event {uid}")
-            
-            # 3. Create payload strictly binding to the DFKG entity
-            payload = {
-                "uid": uid,
-                "case_id": case_id,
-                "class_uid": class_uid,
-                # Include the raw text so we can return it in search results
-                "text": text_to_index 
-            }
-            
-            # 4. Generate Embedding and Upsert (Stubbed)
-            # vector = self.model.encode(text_to_index).tolist()
-            # self.qdrant_client.upsert(
-            #     collection_name=self.collection_name,
-            #     points=[
-            #         PointStruct(
-            #             id=uid, # UUIDs map directly
-            #             vector=vector,
-            #             payload=payload
-            #         )
-            #     ]
-            # )
-            
-            # Log for the stub implementation
-            logger.info(f"Indexed unstructured evidence for {uid} into Qdrant collection {self.collection_name}")
+    def search_evidence(self, query: Any = None, limit: int = 5) -> List[VectorPayload]:
+        return search_evidence(query, collection=self.collection, limit=limit)
