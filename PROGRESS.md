@@ -56,7 +56,7 @@
 | 2026-07-31 | `tests/conftest.py`, `tests/ingestion/*` | Merged all 8 component test suites from `additional tests/` into `tests/ingestion/`. Updated `conftest.py` with mock fixtures (`FakeRedisPersistent`, `FakeQuickwit`, `FakeNeo4j`, `synthetic_evtx_batch`, `poison_cluster`). | Verified |
 | 2026-07-31 | `dist/Specula_Ingestion_Pipeline_and_Tests.zip` | Packaged complete source pipeline (`src/`), full test suite (`tests/`), `PROGRESS.md`, `pytest.ini`, and `specula_ingestion_final_plan.md` into zip archive without altering source files. | Verified |
 | 2026-08-01 | `.gitignore`, `src/*`, `tests/*` | Updated `.gitignore` (excluding `data/`, `quarantine/`, `dist/`, `*.bin`, `*.zip`) and committed all implementation modules and 99/99 passing unit tests to local Git (`main`). | Committed (`42690bf`) |
-| 2026-08-04 | `src/ingestion/*`, `src/mcp/*`, `tests/*` | Addressed production review items: fixed `VCTAtomicChain` trace_id/uid preservation, `CompactUIDList` full auditability with >=90% byte compression KPI, parameterized Cypher `rel_type`, Redis exception warning logging, and strengthened vector search assertions. Verified 100/100 tests passing. | Verified (100/100 Passed) |
+| 2026-08-04 | `src/ingestion/*`, `src/mcp/*`, `tests/*` | Refactored `kafka_producer` serialization validation, removed dead code in `drain3_parser`, tuned 64-bit SimHash clustering distance threshold (12 bits), and added cross-platform file locking (`msvcrt`/`fcntl`) to `reconcile_degraded_windows`. Verified 100/100 tests passing. | Committed (`6ba3bd2`) |
 
 ---
 

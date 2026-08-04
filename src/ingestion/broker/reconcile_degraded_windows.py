@@ -8,6 +8,8 @@ Reference: specula_ingestion_final_plan.md §6.5 & §7
 
 import json
 import logging
+import os
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -34,6 +36,32 @@ class DegradedWindowEntry:
         return getattr(self, item)
 
 
+def _safe_append_entry(file_path: Path, entry_dict: dict) -> None:
+    """
+    Safely append JSON entry with platform-specific file locking.
+    """
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(entry_dict) + "\n"
+    
+    with open(file_path, "a") as f:
+        try:
+            if sys.platform == "win32":
+                import msvcrt
+                msvcrt.locking(f.fileno(), msvcrt.LK_LOCK, len(payload.encode("utf-8")))
+                f.write(payload)
+                f.flush()
+                msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, len(payload.encode("utf-8")))
+            else:
+                import fcntl
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX)
+                f.write(payload)
+                f.flush()
+                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+        except Exception:
+            f.write(payload)
+            f.flush()
+
+
 def queue_degraded_window(
     partition: int = 0,
     start_offset: int = 0,
@@ -57,13 +85,10 @@ def queue_degraded_window(
     if redis is not None and hasattr(redis, "set"):
         try:
             redis.set(f"specula:degraded_window:{window_id}", json.dumps(entry.__dict__))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Redis degraded window queue write failed: {e}")
 
-    QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
-    with open(DEGRADED_WINDOWS_FILE, "a") as f:
-        f.write(json.dumps(entry.__dict__) + "\n")
-
+    _safe_append_entry(DEGRADED_WINDOWS_FILE, entry.__dict__)
     return entry
 
 
@@ -100,8 +125,8 @@ def resolve_degraded_window(window_id_or_entry: Any, redis: Any = None) -> Degra
     if redis is not None and hasattr(redis, "get") and hasattr(redis, "set"):
         try:
             redis.set(f"specula:degraded_window:{entry.window_id}", json.dumps(entry.__dict__))
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Redis degraded window resolve write failed: {e}")
 
     return entry
 

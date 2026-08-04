@@ -45,7 +45,6 @@ def mine_templates(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Mine templates across a list of events using Drain3.
     """
-    mined_events = []
     templates_seen = {}
 
     for e in events:
@@ -61,8 +60,7 @@ def mine_templates(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             templates_seen[template] = []
         templates_seen[template].append(event_copy)
 
-    # Return grouped templates
-    return mined_events or [
+    return [
         {
             "template": t,
             "shared_template": t,
