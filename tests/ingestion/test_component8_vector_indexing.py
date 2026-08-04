@@ -17,14 +17,6 @@ class TestVectorIndexing:
 
     @pytest.mark.regression
     def test_case_evidence_collection_distinct_from_threat_intel_index(self):
-        """
-        Regression guard: case-specific evidence embeddings must never be
-        merged into the same collection/index as the fixed MITRE ATT&CK
-        /CVE/NIST threat-intel corpus used by Threat Attribution. These
-        serve different purposes (semantic search over THIS case's
-        evidence vs. retrieval over a shared, fixed corpus) and merging
-        them "for simplicity" breaks that separation.
-        """
         from src.ingestion.indexing.vector_indexer import index_evidence
         result = index_evidence(uid="uid-1", text="some evidence text")
         assert result.collection != "attck_cve_corpus"
@@ -32,12 +24,6 @@ class TestVectorIndexing:
 
     @pytest.mark.regression
     def test_embedding_only_runs_after_security_gate_not_on_raw_text(self):
-        """
-        Regression guard: embedding raw, unsanitized text risks the same
-        injection surface the security gate exists to close, just moved
-        to a different consumer (the embedding model, or anything that
-        later reads embedded text back out).
-        """
         from src.ingestion.indexing.vector_indexer import index_evidence
 
         with pytest.raises(ValueError):
@@ -54,4 +40,5 @@ class TestVectorIndexing:
         hits = search_evidence(query="pass the hash attack", top_k=5)
 
         matching_uids = [h.uid for h in hits if h.uid == "uid-42"]
-        assert len(matching_uids) <= 1  # zero or one, never duplicated
+        assert len(matching_uids) == 1
+        assert matching_uids[0] == "uid-42"

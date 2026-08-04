@@ -111,7 +111,7 @@ class TestEntropyCompressionKPI:
         output_events = compress_batch(synthetic_evtx_batch)
         summaries = [e for e in output_events if e.get("is_summary")]
         assert len(summaries) > 0
-        assert all("source_uids" in s and len(s["source_uids"]) > 0 for s in summaries)
+        assert all("source_uids" in s and len(s["source_uids"]) == s["count"] for s in summaries)
 
 
 class TestDegradedWindowReconciliation:
