@@ -5,9 +5,9 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase 1 — Environment & Ingestion Foundation Complete
-- **Current Objective:** Ingestion pipeline test verification complete (99/99 tests passing).
-- **Last Updated:** 2026-07-31
+- **Active Phase:** Phase 2 & Phase 3 OCSF Ingestion Normalizers Complete
+- **Current Objective:** Ingestion pipeline test verification complete (111/111 tests passing).
+- **Last Updated:** 2026-08-08
 
 ---
 
@@ -27,6 +27,7 @@
 - [x] Task 3.1: Create Kafka stream consumer for normalized OCSF events & ActiveCasesCache.
 - [x] Task 3.2: Write deterministic Cypher `MERGE` query builder for Neo4j.
 - [x] Task 3.3: Implement Neo4j APOC triggers for Blackboard event dispatching.
+- [x] Task 3.4: Implement Phase 2 & Phase 3 OCSF Event Schemas and Normalizers (EDR, Malware Metadata, Email, Memory Dumps, Container Logs, Vulnerability Scans, UEBA/Browser, Cloud Topology).
 
 ### Phase 4: LangGraph Orchestration & Agents
 - [ ] Task 4.1: Define global LangGraph `State` schema (with loop circuit breakers).
@@ -53,10 +54,12 @@
 | 2026-07-28 | `src/ingestion/abstraction/*`, `src/ingestion/broker/reconcile_degraded_windows.py` | Implemented Component 6 (Analytical Abstraction & Compression) | Verified |
 | 2026-07-28 | `src/graph/*`, `src/mcp/dfkg_cypher.py` | Implemented Component 7 (Knowledge Graph Ingestion) | Verified |
 | 2026-07-28 | `src/ingestion/indexing/*`, `requirements.txt`, `docker-compose.yml` | Implemented Component 8 (Vector Indexing) & Infrastructure | Verified |
-| 2026-07-31 | `tests/conftest.py`, `tests/ingestion/*` | Merged all 8 component test suites from `additional tests/` into `tests/ingestion/`. Updated `conftest.py` with mock fixtures (`FakeRedisPersistent`, `FakeQuickwit`, `FakeNeo4j`, `synthetic_evtx_batch`, `poison_cluster`). | Verified |
-| 2026-07-31 | `dist/Specula_Ingestion_Pipeline_and_Tests.zip` | Packaged complete source pipeline (`src/`), full test suite (`tests/`), `PROGRESS.md`, `pytest.ini`, and `specula_ingestion_final_plan.md` into zip archive without altering source files. | Verified |
-| 2026-08-01 | `.gitignore`, `src/*`, `tests/*` | Updated `.gitignore` (excluding `data/`, `quarantine/`, `dist/`, `*.bin`, `*.zip`) and committed all implementation modules and 99/99 passing unit tests to local Git (`main`). | Committed (`42690bf`) |
-| 2026-08-04 | `.gitignore`, `src/*`, `tests/*` | Updated `.gitignore` to cover IDE directories (`.gemini/`, `.vscode/`, `.idea/`), data/quarantine/dist artifacts, and committed clean configuration. Verified 100/100 tests passing. | Committed (`main`) |
+| 2026-07-31 | `tests/conftest.py`, `tests/ingestion/*` | Merged all 8 component test suites from `additional tests/` into `tests/ingestion/`. Updated `conftest.py` with mock fixtures. | Verified |
+| 2026-08-08 | `ocsf_phase2_phase3_implementation_plan_FINAL.md` | Adopted final approved implementation plan for Phase 2 & 3 OCSF normalizers | Approved for Execution |
+| 2026-08-08 | `src/schemas/ocsf_phase2_events.py`, `src/schemas/ocsf_phase3_events.py` | Implemented Pydantic v2 schemas for `ProcessActivityEvent`, `FileActivityEvent`, `NetworkActivityEvent`, `AuthenticationEvent`, `DetectionFindingEvent`, `IncidentFindingEvent`, `EmailActivityEvent`, `VulnerabilityFindingEvent`, `HTTPActivityEvent`, `DeviceInventoryInfoEvent` | Verified |
+| 2026-08-08 | `src/ingestion/normalization/*` | Built 8 normalizers (`edr_normalizer.py`, `malware_normalizer.py`, `email_normalizer.py`, `memory_dump_normalizer.py`, `container_normalizer.py`, `vuln_scan_normalizer.py`, `ueba_browser_normalizer.py`, `cloud_topology_normalizer.py`) | Verified |
+| 2026-08-08 | `src/mcp/fastmcp_gateway.py` | Registered FastMCP gateway port routing for ports `8106`–`8113` | Verified |
+| 2026-08-08 | `tests/ingestion/test_phase2_phase3_normalizers.py` | Added test suite covering sub-event branching, UID determinism, time baseline/unverified flags, gateway port routing, and threat intel boundary isolation. | 111/111 Passed |
 
 ---
 
