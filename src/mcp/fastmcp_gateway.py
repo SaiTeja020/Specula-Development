@@ -25,6 +25,7 @@ Phase 2 & Phase 3 Gateway Ports:
   - 8111: Vulnerability Scans
   - 8112: UEBA & Browser Artifacts
   - 8113: Cloud Topology Maps
+  - 8114: Vector Retrieval MCP Server
 """
 
 import json
