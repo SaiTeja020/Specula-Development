@@ -7,6 +7,7 @@ Reference: specula_ingestion_final_plan.md §8.1 & §8.4
 """
 
 import json
+import re
 from typing import Any, Dict, Optional
 
 
@@ -25,6 +26,8 @@ def check_supernode(
         raise TypeError("check_supernode requires an explicit rel_spec argument")
 
     rel_clean = str(rel_spec).rstrip(">").lstrip("<")
+    if not re.match(r"^[A-Za-z0-9_]+$", rel_clean):
+        raise ValueError(f"Invalid relationship type specification: {rel_spec}")
 
     if hasattr(driver_or_graph, "typed_degree"):
         degree = driver_or_graph.typed_degree(uid, rel_clean)
@@ -33,10 +36,10 @@ def check_supernode(
     if hasattr(driver_or_graph, "session"):
         with driver_or_graph.session() as session:
             query = (
-                f"MATCH (n {{uid: $uid}}) "
-                f"RETURN apoc.node.degree(n, '{rel_clean}') AS deg"
+                "MATCH (n {uid: $uid}) "
+                "RETURN apoc.node.degree(n, $rel_type) AS deg"
             )
-            result = session.run(query, uid=uid)
+            result = session.run(query, uid=uid, rel_type=rel_clean)
             record = result.single()
             if record:
                 return record["deg"] >= threshold

@@ -26,8 +26,8 @@ def serialize_event(event: dict, topic: str = "specula.logs.system") -> bytes:
     Magic byte: 0x00
     Schema ID: 4-byte big-endian int (e.g. 1)
     """
-    if not isinstance(event, dict) or "case_id" not in event and "totally" in event:
-        raise SchemaRegistryError("Event fails schema registry validation")
+    if not isinstance(event, dict) or "case_id" not in event:
+        raise SchemaRegistryError("Event fails wire-level schema validation: missing required envelope fields")
         
     magic_byte = b"\x00"
     schema_id = struct.pack(">I", 1)
@@ -51,8 +51,6 @@ def produce_event(topic: str, event: dict) -> bytes:
     """
     Produce event with schema registry validation.
     """
-    if "totally" in event or "case_id" not in event:
-        raise SchemaRegistryError("Event rejected by schema registry wire-level validation")
     return serialize_event(event, topic=topic)
 
 

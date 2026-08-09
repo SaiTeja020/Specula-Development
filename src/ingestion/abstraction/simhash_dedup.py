@@ -66,7 +66,11 @@ def simhash_similarity(text1: str, text2: str) -> float:
     return 1.0 - (hamming_dist / 64.0)
 
 
-def cluster_near_duplicates(events: List[Union[Dict[str, Any], str]], distance_threshold: int = 25) -> SimHashResult:
+def cluster_near_duplicates(events: List[Union[Dict[str, Any], str]], distance_threshold: int = 12) -> SimHashResult:
+    """
+    Cluster near-duplicate log messages by SimHash Hamming distance.
+    Default threshold d <= 12 bits (18.75% Hamming distance out of 64 bits).
+    """
     clusters: List[SimHashCluster] = []
 
     for event in events:

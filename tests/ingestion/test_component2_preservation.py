@@ -107,5 +107,12 @@ class TestIntegrityCheckerAndVCT:
         chain = VCTAtomicChain()
         chain.register("digest-1")
         chain.register("digest-2")
-        chain._links[0] = ("tampered", chain._links[0][1])  # simulate corruption
+        chain._links[0] = ("tampered", chain._links[0][1], "trace-default", "uid-default")
         assert chain.verify_chain() is False
+
+    def test_vct_chain_preserves_custom_trace_and_uid(self):
+        from src.ingestion.preservation.vct_atomic_chain import VCTAtomicChain
+        chain = VCTAtomicChain()
+        chain.register_hash("digest-1", trace_id="trace-100", uid="uid-host-100")
+        chain.register_hash("digest-2", trace_id="trace-101", uid="uid-host-101")
+        assert chain.verify_chain() is True
