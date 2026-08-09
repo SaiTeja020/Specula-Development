@@ -1,6 +1,6 @@
 # PROGRESS.md — Specula Development Tracker
 
-> **Notice to AI Agent:** Update this file **immediately** whenever a task status changes, code is added/modified, or dependencies are flagged.
+> **Notice to AI Agent:** Update this file **immediately** whenever a task status changes, code is added/modified, or dependencies are flagged. Make sure the logs are brief and understandable.
 
 ---
 
