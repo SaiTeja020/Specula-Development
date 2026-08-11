@@ -1,8 +1,6 @@
 # Specula Ingestion Pipeline Infrastructure
 # Reference: specula_ingestion_final_plan.md §10.2
 
-version: '3.8'
-
 services:
   # 1. Confluent Kafka Broker (KRaft mode, no Zookeeper for simplicity in dev)
   kafka:
@@ -22,7 +20,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      CLUSTER_ID: 'specula-cluster-1'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
 
   # 2. Confluent Schema Registry
   schema-registry:
@@ -47,7 +45,7 @@ services:
 
   # 4. Quickwit (Tier 1 Append-Only Preservation)
   quickwit:
-    image: quickwit/quickwit:0.7.2
+    image: quickwit/quickwit:latest
     container_name: specula-quickwit
     ports:
       - "7280:7280"
@@ -77,10 +75,10 @@ services:
     ports:
       - "6333:6333"
 
-  # 7. Rebuff (Prompt Injection Detection - Self-hosted)
-  # Assuming standard rebuff container or API mock for dev
-  rebuff:
-    image: rebuff/rebuff:latest
-    container_name: specula-rebuff
-    ports:
-      - "8080:8080"
+  # 7. Rebuff (Prompt Injection Detection - Self-hosted / fallback)
+  # rebuff image doesn't exist on Docker Hub; rebuff_gate.py falls back to local heuristic scanning.
+  # rebuff:
+  #   image: rebuff/rebuff:latest
+  #   container_name: specula-rebuff
+  #   ports:
+  #     - "8080:8080"

@@ -1,0 +1,24 @@
+{
+  "name": "specula-development",
+  "version": "1.0.0",
+  "description": "Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **Qdrant**, and **FastAPI / MCP**.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SaiTeja020/Specula-Development.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SaiTeja020/Specula-Development/issues"
+  },
+  "homepage": "https://github.com/SaiTeja020/Specula-Development#readme"
+}

@@ -1,13 +1,17 @@
 """Guardrail Tier 1 (regex/AST) and Tier 2 (embedding similarity) — §7.
 
 Tier 1: deterministic regex checks for Cypher injection, command execution,
-and malformed output.  Short, explicit, inspectable rule list.
+and malformed output. Short, explicit, inspectable rule list.
+Note for Stage 7: The shell command regexes (e.g. rm -rf) may currently false-positive
+on legitimate forensic findings that quote the attacker's commands.
 
 Tier 2: bag-of-words cosine similarity against hardcoded unsafe phrases.
 Falls back to sentence-transformers if installed.
 
 Limitation (stated plainly per §7): Tier 2 has no training data behind it
-and will need real MiniLM fine-tuning for production use.
+and will need real MiniLM fine-tuning for production use. The current 
+anti-forensics phrases are near-verbatim copies of tests to prove phrase-matching 
+works conceptually.
 """
 from __future__ import annotations
 
@@ -36,7 +40,11 @@ _TIER1_RULES: list[tuple[str, re.Pattern]] = [
     # Prompt injection markers
     ("prompt_injection_ignore",  re.compile(r"ignore\s+(previous|all)\s+instructions", re.IGNORECASE)),
     ("prompt_injection_system",  re.compile(r"system\s*prompt\s*:", re.IGNORECASE)),
+    # Shell command patterns
+    ("cmd_exec_rm_rf",           re.compile(r"\brm\s+-rf\b", re.IGNORECASE)),
+    ("cmd_exec_del_force",       re.compile(r"\bdel\s+/[fqs]", re.IGNORECASE)),
 ]
+
 
 
 def run_tier1_checks(text: str) -> tuple[str, list[str]]:
@@ -61,7 +69,10 @@ _UNSAFE_PHRASES: list[str] = [
     "bypass authentication and access admin panel",
     "inject malicious code into the pipeline",
     "override safety controls and disable guardrails",
+    "disable all logging and delete audit trails to cover tracks",
+    "recommend disabling logging and deleting evidence",
 ]
+
 
 _TIER2_THRESHOLD = 0.55  # cosine similarity threshold
 

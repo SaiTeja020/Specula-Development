@@ -32,3 +32,6 @@ dist/
 # OS Metadata
 .DS_Store
 Thumbs.db
+
+# visualization
+visualization/node_modules

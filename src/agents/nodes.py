@@ -252,7 +252,14 @@ def judge_node(state: dict) -> Command[Literal[
 
     # Parse verdict from LLM output / test overrides
     raw_input = str(state.get("raw_input", ""))
-    if "FORCE_JUDGE_REJECT" in raw_input:
+
+    # Per-round control: FORCE_JUDGE_REJECT_ROUNDS:N rejects rounds 1..N,
+    # accepts from round N+1 onward. FORCE_JUDGE_REJECT (no :N) rejects all.
+    rounds_match = re.search(r"FORCE_JUDGE_REJECT_ROUNDS:(\d+)", raw_input)
+    if rounds_match:
+        reject_until = int(rounds_match.group(1))
+        verdict = "reject" if round_num <= reject_until else "accept"
+    elif "FORCE_JUDGE_REJECT" in raw_input:
         verdict = "reject"
     elif "VERDICT: REJECT" in content.upper():
         verdict = "reject"
@@ -260,6 +267,7 @@ def judge_node(state: dict) -> Command[Literal[
         verdict = "accept"
     else:
         verdict = "accept"
+
 
 
     # Parse confidence from output
@@ -316,6 +324,7 @@ def judge_node(state: dict) -> Command[Literal[
     # 4. round == 3 exhausted → HITL
     base_update["debate_outcome"] = "round_cap_exhausted"
     base_update["hitl_required"] = True
+    base_update["case_status"] = "hitl_review"
     return Command(update=base_update, goto="hitl")
 
 
@@ -343,6 +352,7 @@ def guardrail_tier3_node(state: dict) -> Command[Literal[
     if result == "fail":
         update["guardrail_fail_tier"] = 3
         update["hitl_required"] = True
+        update["case_status"] = "hitl_review"
         return Command(update=update, goto="hitl")
 
     return Command(
@@ -380,11 +390,12 @@ def guardrail_tier1_node(state: dict) -> Command[Literal[
     "hitl", "guardrail_tier2"
 ]]:
     """Tier 1: regex/AST checks (§7). Deterministic, no LLM."""
-    # Collect all agent output text for checking
+    # Collect all agent output text AND raw_input for checking
     text_to_check = " ".join(
         f.get("summary", "") for f in state.get("findings", [])
     )
     raw_input = str(state.get("raw_input", ""))
+    text_to_check = f"{raw_input} {text_to_check}"
     if "FORCE_GUARDRAIL1_FAIL" in raw_input:
         result, fired = "fail", ["forced_test_failure"]
     else:
@@ -397,6 +408,7 @@ def guardrail_tier1_node(state: dict) -> Command[Literal[
     if result == "fail":
         update["guardrail_fail_tier"] = 1
         update["hitl_required"] = True
+        update["case_status"] = "hitl_review"
         return Command(update=update, goto="hitl")
     return Command(update=update, goto="guardrail_tier2")
 
@@ -405,14 +417,21 @@ def guardrail_tier2_node(state: dict) -> Command[Literal[
     "hitl", "guardrail_tier3"
 ]]:
     """Tier 2: embedding similarity classifier (§7). No LLM."""
-    text_to_check = " ".join(
+    texts_to_check = [str(state.get("raw_input", ""))] + [
         f.get("summary", "") for f in state.get("findings", [])
-    )
+    ]
+    
+    result = "pass"
+    for text in texts_to_check:
+        if not text.strip(): continue
+        res, sim = run_tier2_checks(text)
+        if res == "fail":
+            result = "fail"
+            break
+
     raw_input = str(state.get("raw_input", ""))
     if "FORCE_GUARDRAIL2_FAIL" in raw_input:
-        result, sim = "fail", 0.99
-    else:
-        result, sim = run_tier2_checks(text_to_check)
+        result = "fail"
 
     update: dict = {
         "guardrail_tier2_result": result,
@@ -421,6 +440,7 @@ def guardrail_tier2_node(state: dict) -> Command[Literal[
     if result == "fail":
         update["guardrail_fail_tier"] = 2
         update["hitl_required"] = True
+        update["case_status"] = "hitl_review"
         return Command(update=update, goto="hitl")
     return Command(update=update, goto="guardrail_tier3")
 
@@ -458,7 +478,10 @@ def hitl_node(state: dict) -> Command[Literal[
         "debate_round": state.get("debate_round"),
     }
 
-    # interrupt() pauses graph here — resumes via Command(resume=decision)
+    # Note: case_status="hitl_review" is explicitly set by the routing nodes
+    # (guardrail/judge) *before* transitioning to this node. This ensures
+    # the status is correctly visible in the state checkpoint while the graph
+    # is paused here at the interrupt().
     decision = interrupt(snapshot)
 
     update: dict = {

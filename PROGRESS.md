@@ -5,9 +5,9 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** LangGraph Orchestration Skeleton (Phase 4)
-- **Current Objective:** 23-node orchestration skeleton implemented. Awaiting dependency install + test verification.
-- **Last Updated:** 2026-08-09
+- **Active Phase:** Visualization Layer (Phase 5)
+- **Current Objective:** Build real-time LangGraph visualization using React Flow and FastAPI WebSockets.
+- **Last Updated:** 2026-08-11
 
 ---
 
@@ -41,6 +41,12 @@
 - [x] Task 4.8: Create FastAPI HITL endpoint on uvicorn (§8).
 - [x] Task 4.9: Write verification test suite (§11).
 - [x] Task 4.10: Run test suite after dependency install.
+
+### Phase 5: Visualization Layer
+- [ ] Task 5.1: Create `src/agents/visualizer_api.py` standalone FastAPI on port 8300.
+- [ ] Task 5.2: Implement WebSocket streaming of LangGraph data flow.
+- [ ] Task 5.3: Scaffold Vite + React application with React Flow.
+- [ ] Task 5.4: Verify real-time tracking of graph execution in UI.
 
 ---
 
@@ -78,10 +84,18 @@
 | 2026-08-09 | `src/agents/*` | Built full 23-node LangGraph orchestration skeleton: state schema (state.py), 16 agent configs (config.py), guardrails T1/T2 (guardrails.py), Kafka utils (kafka_utils.py), all node functions (nodes.py), graph assembly (graph.py), HITL API (hitl_api.py). | Code Complete |
 | 2026-08-09 | `tests/test_skeleton_graph.py` | Verification suite: 10 test classes covering normal/dead-end paths, debate loop, guardrail failures, HITL dual-entry routing. | 19/19 Passed |
 | 2026-08-09 | `requirements.txt`, `schema_constraints.cypher` | Added langgraph/fastapi/neo4j/google-genai deps. Added Entity.uid uniqueness constraint (§5.2). | Updated |
+| 2026-08-11 | `src/agents/nodes.py`, `src/agents/guardrails.py` | Fixed Judge node loop-back (`FORCE_JUDGE_REJECT_ROUNDS:N`), HITL `case_status` pre-interrupt persistence, and Guardrail BoW chunk evaluation. Added shell regex and anti-forensic semantic phrases to Guardrails. | Verified |
+| 2026-08-11 | `tests/test_skeleton_graph.py`, `tests/test_skeleton_integration.py` | Applied corrected unit tests with short-circuit/round-cap assertions (28/28 passing). Added separate integration suite for Kafka/Neo4j/cross-process HITL (skipped locally via `-m "not integration"`). | Verified |
+| 2026-08-11 | `implementation_plan.md`, `task.md` | Created implementation plan for distinct real-time visualization layer using Vite/React and FastAPI WebSockets. | Approved for Execution |
 
+| 2026-08-11 | `docker-compose.yml` | Fixed Kafka KRaft `CLUSTER_ID` base64 UUID, updated Quickwit image tag to `quickwit/quickwit:latest`. | Verified |
+| 2026-08-11 | `src/agents/checkpointer.py` | Added stopgap Redis `RedisSaver` checkpointer for cross-process HITL state persistence testing. Added pending_writes and list() notes. | 4/4 Integration Passed |
 
 ---
 
-## Known Blockers & Bugs
-- *None currently logged.*
+## Known Blockers, Bugs & Carry-Forward Tracking Items
+1. **Stage 3 Checkpointer Refactor:** `src/agents/checkpointer.py` is a Stage 1 test-support stopgap using `pickle`. Replace with `langgraph-checkpoint-redis` / `langgraph-checkpoint-postgres` or add safe serialization (JSON/msgpack) before production use. Note: current `pending_writes` implementation assumes sequential interrupt nodes (safe for Stage 1 topology, must handle mid-fanout writes in Stage 3).
+2. **Kafka Integration CI Retention:** Set short retention policy or per-run topic suffixes on `findings.*` Kafka topics before running integration test suite in automated CI.
+3. **Stage 7 Guardrail Fine-Tuning:** The `rm -rf` Tier 1 regex will false-positive on findings quoting attacker commands. Fine-tune Tier 2 embedding model with real MiniLM training data beyond phrase matching in Stage 7.
+
 
