@@ -26,6 +26,7 @@ pytest>=7.0.0
 # Stubbed dependencies (uncomment when fully implementing)
 # qdrant-client>=1.7.0
 # sentence-transformers>=2.2.2
-# neo4j>=5.14.1
+# neo4j driver for DFKG graph writes
+neo4j>=5.14.1
 chromadb>=0.4.22
 

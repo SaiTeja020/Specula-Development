@@ -3,11 +3,11 @@ Specula Pipeline Runner.
 
 Extracts local Windows System/Security event logs (via PowerShell Get-WinEvent)
 and passes them end-to-end through the Specula ingestion pipeline:
-1. Preservation (SHA-256 + VCT chain + Quickwit append-only commit)
+1. Preservation  (SHA-256 + VCT chain + Quickwit append-only commit)
 2. Security Gate (Sanitization + Rebuff injection scan)
 3. OCSF Normalization (Dual timestamp baseline + EVTX mapping)
 4. Validation & Canonical Entity Resolution
-5. DFKG Knowledge Graph Cypher query generation
+5. DFKG Knowledge Graph write (Neo4j MERGE via parameterized Cypher)
 
 Reference: specula_ingestion_final_plan.md
 """
@@ -45,6 +45,15 @@ logger = logging.getLogger("SpeculaPipeline")
 # so local dev without Docker still works.
 # ---------------------------------------------------------------------------
 QUICKWIT_ENABLED: bool = os.environ.get("SPECULA_QUICKWIT_ENABLED", "false").lower() == "true"
+
+# ---------------------------------------------------------------------------
+# Neo4j feature flag.
+# Set SPECULA_NEO4J_ENABLED=true when the docker-compose stack is running.
+# When false, Cypher is built but not executed (logged as a warning).
+# Neo4j write failure is NON-FATAL — unlike Quickwit, graph nodes can be
+# replayed from raw evidence. Losing preservation is permanent; graph is not.
+# ---------------------------------------------------------------------------
+NEO4J_ENABLED: bool = os.environ.get("SPECULA_NEO4J_ENABLED", "false").lower() == "true"
 
 # Maps channel/category names to OCSF-style source_type labels
 _SOURCE_TYPE_MAP: dict[str, str] = {
@@ -94,8 +103,9 @@ def run_pipeline_on_event(
     vct_chain: VCTAtomicChain,
     resolver: CanonicalEntityResolver,
     time_normalizer: TimeNormalizer,
-    qw_client: QuickwitClient | None = None,
+    qw_client: "QuickwitClient | None" = None,
     source_type: str = "evtx",
+    neo4j_client=None,
 ):
     """Pass a single raw extracted log through the pipeline stages."""
     trace_id = f"trace-{uuid.uuid4().hex[:12]}"
@@ -165,11 +175,20 @@ def run_pipeline_on_event(
     # 4. Schema Validation
     validated_evt = validate_event(ocsf_evt.model_dump(mode="json"), ProcessActivity)
     
-    # 5. DFKG Knowledge Graph Cypher Builder
+    # 5. DFKG Knowledge Graph — build Cypher and execute against Neo4j
     event_dict = ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, "model_dump") else ocsf_evt
     cypher_query, cypher_params = CypherBuilder.build_process_creation(event_dict)
-    
-    return validated_evt, cypher_query
+
+    neo4j_result = None
+    if neo4j_client is not None:
+        try:
+            neo4j_result = neo4j_client.execute(cypher_query, cypher_params)
+            logger.debug(f"Neo4j MERGE executed: trace_id={trace_id}")
+        except Exception as e:
+            # Non-fatal: log and continue. Graph can be replayed from Quickwit.
+            logger.warning(f"Neo4j write failed (non-fatal): {e} | trace_id={trace_id}")
+
+    return validated_evt, cypher_query, neo4j_result
 
 
 def main():
@@ -238,7 +257,7 @@ def main():
     time_normalizer = TimeNormalizer(dc_anchor_skew_ms=0)
 
     # Quickwit: ensure index exists (idempotent) and create client once
-    qw_client: QuickwitClient | None = None
+    qw_client = None
     if QUICKWIT_ENABLED:
         qw_client = QuickwitClient()
         try:
@@ -254,20 +273,48 @@ def main():
             "Do not use this mode for production or evidentiary runs."
         )
 
+    # Neo4j: apply schema constraints and create client once
+    neo4j_client = None
+    if NEO4J_ENABLED:
+        try:
+            from src.graph.neo4j_client import Neo4jClient, Neo4jClientError
+            neo4j_client = Neo4jClient()
+            schema_path = os.path.abspath("src/graph/schema_constraints.cypher")
+            if os.path.exists(schema_path):
+                neo4j_client.apply_schema(schema_path)
+            logger.info("Neo4j connected and schema applied. Graph writes are ACTIVE.")
+        except Exception as e:
+            logger.error(f"Neo4j startup failed — graph writes disabled: {e}")
+            neo4j_client = None  # Non-fatal: degrade to no-graph mode
+    else:
+        logger.warning(
+            "SPECULA_NEO4J_ENABLED is not set. "
+            "Neo4j graph writes are DISABLED. "
+            "Events are normalized and validated but not written to the DFKG."
+        )
+
+    neo4j_write_count = 0
     ocsf_outputs = []
 
     for channel_name, log_list in all_extracted_events.items():
         source_type = _SOURCE_TYPE_MAP.get(channel_name, "evtx")
         logger.info(f"--- Processing Category: {channel_name} (source_type={source_type}, {len(log_list)} records) ---")
         for event in log_list:
-            validated_evt, _ = run_pipeline_on_event(
+            validated_evt, _, neo4j_result = run_pipeline_on_event(
                 event, vct_chain, resolver, time_normalizer,
                 qw_client=qw_client,
                 source_type=source_type,
+                neo4j_client=neo4j_client,
             )
+            if neo4j_result is not None:
+                neo4j_write_count += 1
             evt_obj = getattr(validated_evt, "event", validated_evt)
             evt_dict = evt_obj.model_dump(mode="json") if hasattr(evt_obj, "model_dump") else (evt_obj.__dict__ if hasattr(evt_obj, "__dict__") else evt_obj)
             ocsf_outputs.append(evt_dict)
+
+    # Close Neo4j driver cleanly
+    if neo4j_client is not None:
+        neo4j_client.close()
 
     # Save processed OCSF events to disk
     ocsf_path = os.path.abspath(os.path.join(out_dir, "ocsf_system_events.json"))
@@ -278,8 +325,9 @@ def main():
     print("\n==========================================================================")
     print("SPECULA LOG INGESTION COMPLETE")
     print("==========================================================================")
-    print(f"RAW telemetry logs stored at: {os.path.abspath(raw_path)}")
-    print(f"VALIDATED OCSF logs stored at: {ocsf_path}")
+    print(f"RAW telemetry logs stored at:    {os.path.abspath(raw_path)}")
+    print(f"VALIDATED OCSF logs stored at:   {ocsf_path}")
+    print(f"Neo4j graph nodes written:       {neo4j_write_count} / {len(ocsf_outputs)}")
     print("==========================================================================")
 
 

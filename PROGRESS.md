@@ -5,8 +5,8 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Quickwit Preservation Layer — Fully Integrated
-- **Current Objective:** Quickwit wired into run_pipeline.py, live integration tests added, integrity checker updated.
+- **Active Phase:** Neo4j DFKG Integration — Fully Wired
+- **Current Objective:** Neo4jClient created, schema applied at startup, Cypher executed per-event, live tests added.
 - **Last Updated:** 2026-08-11
 
 ---
@@ -38,10 +38,12 @@
 ---
 
 ## Pending Dependency Requests (Awaiting Human Action)
-- Optional: `pip install chromadb>=0.4.22` for live ChromaDB integration runs (in-memory zero-dependency fallback is fully functional).
+- Optional: `pip install chromadb>=0.4.22` for live ChromaDB integration runs.
 - **Required for live Quickwit tests**: `docker-compose up -d quickwit` then `python scripts/quickwit_setup.py`
-- **Required for redis/drain3 tests**: `pip install redis>=5.0.1 drain3>=0.9.11` (pre-existing failures, unrelated to this session)
+- **Required for Neo4j**: `pip install "neo4j>=5.14.1"` then `docker-compose up -d neo4j` then `python scripts/neo4j_setup.py`
+- **Required for redis/drain3 tests**: `pip install redis>=5.0.1 drain3>=0.9.11` (pre-existing failures)
 - **Run live Quickwit tests**: `pytest tests/ingestion/test_quickwit_live.py -m live_infra -v`
+- **Run live Neo4j tests**: `pytest tests/ingestion/test_neo4j_live.py -m live_infra -v`
 
 ---
 
@@ -70,6 +72,12 @@
 | 2026-08-11 | `src/ingestion/run_pipeline.py` | Wired `QuickwitClient` into pipeline: `SPECULA_QUICKWIT_ENABLED` env flag, `_SOURCE_TYPE_MAP` for channel classification, `ensure_index()` at startup, `commit_raw_evidence()` per-event before sanitization. | Verified |
 | 2026-08-11 | `scripts/quickwit_setup.py` | Created standalone index setup script (idempotent, CLI args for endpoint/index override). | Verified |
 | 2026-08-11 | `tests/ingestion/test_quickwit_live.py` | Added `@pytest.mark.live_infra` integration test suite: roundtrip commit/retrieve, integrity checker against real Quickwit, tamper detection, fatal error on wrong port, idempotent ensure_index. | Pending live run |
+| 2026-08-11 | `src/graph/neo4j_client.py` | **[NEW]** Created `Neo4jClient` wrapper: `execute()`, `execute_read()`, `apply_schema()`, `health_check()`, context manager, lazy neo4j import, auth/no-auth dual mode. | Verified |
+| 2026-08-11 | `src/mcp/dfkg_cypher.py` | Replaced `execute_ingestion_cypher()` stub with real implementation. Duck-types for `Neo4jClient.execute()` vs `FakeNeo4j`. Raises `RuntimeError` when no client provided (no silent fake success). | Verified |
+| 2026-08-11 | `src/ingestion/run_pipeline.py` | Added `SPECULA_NEO4J_ENABLED` env flag, `neo4j_client` param to `run_pipeline_on_event()`, actual non-fatal Cypher execution per event, `apply_schema()` at startup, `close()` on exit, write count in summary. | Verified |
+| 2026-08-11 | `scripts/neo4j_setup.py` | **[NEW]** Created standalone setup script: applies schema_constraints.cypher and apoc_triggers.cypher, idempotent, APOC failures are non-fatal warnings. | Verified |
+| 2026-08-11 | `requirements.txt` | Uncommented `neo4j>=5.14.1` from stubbed dependencies. | Verified |
+| 2026-08-11 | `tests/ingestion/test_neo4j_live.py` | **[NEW]** Added `@pytest.mark.live_infra` suite: health check, idempotent schema, process creation graph roundtrip, duplicate node prevention via MERGE, non-fatal failure in pipeline. | Pending live run |
 
 ---
 
