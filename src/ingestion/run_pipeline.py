@@ -3,7 +3,7 @@ Specula Pipeline Runner.
 
 Extracts local Windows System/Security event logs (via PowerShell Get-WinEvent)
 and passes them end-to-end through the Specula ingestion pipeline:
-1. Preservation (SHA-256 + VCT chain + Quickwit commit stub)
+1. Preservation (SHA-256 + VCT chain + Quickwit append-only commit)
 2. Security Gate (Sanitization + Rebuff injection scan)
 3. OCSF Normalization (Dual timestamp baseline + EVTX mapping)
 4. Validation & Canonical Entity Resolution
@@ -26,6 +26,7 @@ from src.schemas.entity_resolver import CanonicalEntityResolver
 from src.schemas.uid_generator import generate_deterministic_uid
 from src.ingestion.preservation.sha256_hasher import compute_sha256_bytes
 from src.ingestion.preservation.vct_atomic_chain import VCTAtomicChain
+from src.ingestion.preservation.quickwit_client import QuickwitClient, QuickwitClientError
 from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
@@ -36,6 +37,27 @@ from src.graph.cypher_builder import CypherBuilder
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("SpeculaPipeline")
+
+# ---------------------------------------------------------------------------
+# Quickwit feature flag.
+# Set SPECULA_QUICKWIT_ENABLED=true in your environment when the docker-compose
+# stack is running. When false, preservation is logged as a warning and skipped
+# so local dev without Docker still works.
+# ---------------------------------------------------------------------------
+QUICKWIT_ENABLED: bool = os.environ.get("SPECULA_QUICKWIT_ENABLED", "false").lower() == "true"
+
+# Maps channel/category names to OCSF-style source_type labels
+_SOURCE_TYPE_MAP: dict[str, str] = {
+    "System": "evtx",
+    "Security": "evtx",
+    "Application": "evtx",
+    "Microsoft-Windows-PowerShell/Operational": "evtx",
+    "Microsoft-Windows-Windows Defender/Operational": "evtx",
+    "Microsoft-Windows-TaskScheduler/Operational": "evtx",
+    "Microsoft-Windows-Sysmon/Operational": "evtx",
+    "NTFS_MFT_Sample": "mft",
+    "CloudTrail_Sample": "cloudtrail",
+}
 
 
 def extract_windows_events(log_name: str, max_events: int = 50) -> list[dict]:
@@ -67,15 +89,35 @@ def extract_windows_events(log_name: str, max_events: int = 50) -> list[dict]:
         return []
 
 
-def run_pipeline_on_event(raw_event: dict, vct_chain: VCTAtomicChain, resolver: CanonicalEntityResolver, time_normalizer: TimeNormalizer):
+def run_pipeline_on_event(
+    raw_event: dict,
+    vct_chain: VCTAtomicChain,
+    resolver: CanonicalEntityResolver,
+    time_normalizer: TimeNormalizer,
+    qw_client: QuickwitClient | None = None,
+    source_type: str = "evtx",
+):
     """Pass a single raw extracted log through the pipeline stages."""
     trace_id = f"trace-{uuid.uuid4().hex[:12]}"
     
     # 1. Preservation & Integrity
+    # Raw bytes are captured BEFORE any sanitization or parsing — chain of custody requires this.
     raw_bytes = json.dumps(raw_event).encode("utf-8")
     sha256_digest = compute_sha256_bytes(raw_bytes)
     vct_hash = vct_chain.register_hash(sha256_digest, trace_id, "TEMP_UID")
-    
+
+    # 1b. Quickwit append-only commit (fatal if enabled and Quickwit is down)
+    if qw_client is not None:
+        # sha256_digest is the content-addressable uid for raw evidence in Quickwit
+        qw_client.commit_raw_evidence(
+            uid=sha256_digest,
+            trace_id=trace_id,
+            sha256_digest=sha256_digest,
+            raw_bytes=raw_bytes,
+            source_type=source_type,
+        )
+        logger.debug(f"Quickwit preservation committed: trace_id={trace_id} sha256={sha256_digest[:12]}...")
+
     # 2. Security Gate
     message_text = raw_event.get("Message", "") or raw_event.get("FileName", "") or raw_event.get("eventName", "") or ""
     sanitized_msg, has_homoglyphs = sanitize_text(message_text)
@@ -195,12 +237,34 @@ def main():
     resolver = CanonicalEntityResolver()
     time_normalizer = TimeNormalizer(dc_anchor_skew_ms=0)
 
+    # Quickwit: ensure index exists (idempotent) and create client once
+    qw_client: QuickwitClient | None = None
+    if QUICKWIT_ENABLED:
+        qw_client = QuickwitClient()
+        try:
+            qw_client.ensure_index()
+            logger.info("Quickwit index verified/created. Preservation is ACTIVE.")
+        except QuickwitClientError as e:
+            logger.error(f"Quickwit startup failed — cannot guarantee chain of custody: {e}")
+            raise
+    else:
+        logger.warning(
+            "SPECULA_QUICKWIT_ENABLED is not set. "
+            "Quickwit preservation is DISABLED. "
+            "Do not use this mode for production or evidentiary runs."
+        )
+
     ocsf_outputs = []
 
     for channel_name, log_list in all_extracted_events.items():
-        logger.info(f"--- Processing Category: {channel_name} ({len(log_list)} records) ---")
+        source_type = _SOURCE_TYPE_MAP.get(channel_name, "evtx")
+        logger.info(f"--- Processing Category: {channel_name} (source_type={source_type}, {len(log_list)} records) ---")
         for event in log_list:
-            validated_evt, _ = run_pipeline_on_event(event, vct_chain, resolver, time_normalizer)
+            validated_evt, _ = run_pipeline_on_event(
+                event, vct_chain, resolver, time_normalizer,
+                qw_client=qw_client,
+                source_type=source_type,
+            )
             evt_obj = getattr(validated_evt, "event", validated_evt)
             evt_dict = evt_obj.model_dump(mode="json") if hasattr(evt_obj, "model_dump") else (evt_obj.__dict__ if hasattr(evt_obj, "__dict__") else evt_obj)
             ocsf_outputs.append(evt_dict)

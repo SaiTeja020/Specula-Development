@@ -5,9 +5,9 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Vector Retrieval MCP Server Layer Complete (Section 2.5)
-- **Current Objective:** Vector Retrieval implementation complete & verified (10/10 tests passing).
-- **Last Updated:** 2026-08-08
+- **Active Phase:** Quickwit Preservation Layer — Fully Integrated
+- **Current Objective:** Quickwit wired into run_pipeline.py, live integration tests added, integrity checker updated.
+- **Last Updated:** 2026-08-11
 
 ---
 
@@ -39,6 +39,9 @@
 
 ## Pending Dependency Requests (Awaiting Human Action)
 - Optional: `pip install chromadb>=0.4.22` for live ChromaDB integration runs (in-memory zero-dependency fallback is fully functional).
+- **Required for live Quickwit tests**: `docker-compose up -d quickwit` then `python scripts/quickwit_setup.py`
+- **Required for redis/drain3 tests**: `pip install redis>=5.0.1 drain3>=0.9.11` (pre-existing failures, unrelated to this session)
+- **Run live Quickwit tests**: `pytest tests/ingestion/test_quickwit_live.py -m live_infra -v`
 
 ---
 
@@ -62,6 +65,11 @@
 | 2026-08-08 | `src/mcp/fastmcp_gateway.py` | Registered FastMCP gateway port routing for ports `8106`–`8113` | Verified |
 | 2026-08-08 | `tests/ingestion/test_phase2_phase3_normalizers.py` | Added test suite covering sub-event branching, UID determinism, time baseline/unverified flags, gateway port routing, and threat intel boundary isolation. | 111/111 Passed |
 | 2026-08-08 | `vector_retrieval_implementation_plan.md`, `src/schemas/vector_metadata.py`, `src/ingestion/indexing/vector_store.py`, `src/mcp/vector_retrieval.py`, `src/mcp/fastmcp_gateway.py`, `tests/ingestion/test_vector_retrieval.py` | Implemented Vector Retrieval Layer (`mcp-vector-retrieval`), metadata schema, ChromaDB & InMemory adapters, FastMCP port 8114 registration, and comprehensive test suite. | 10/10 Passed |
+| 2026-08-11 | `src/ingestion/preservation/quickwit_client.py` | Added `ensure_index()` (idempotent index creation with full schema), `get_evidence()` (uid-based search + base64 decode), and `committed_at_ms` timestamp to ingest payload. | Verified |
+| 2026-08-11 | `src/ingestion/preservation/integrity_checker.py` | Updated `verify_integrity()` with duck-typing to resolve `get_evidence()` on real client and `get()` on FakeQuickwit — backward-compatible with all existing unit tests. | Verified |
+| 2026-08-11 | `src/ingestion/run_pipeline.py` | Wired `QuickwitClient` into pipeline: `SPECULA_QUICKWIT_ENABLED` env flag, `_SOURCE_TYPE_MAP` for channel classification, `ensure_index()` at startup, `commit_raw_evidence()` per-event before sanitization. | Verified |
+| 2026-08-11 | `scripts/quickwit_setup.py` | Created standalone index setup script (idempotent, CLI args for endpoint/index override). | Verified |
+| 2026-08-11 | `tests/ingestion/test_quickwit_live.py` | Added `@pytest.mark.live_infra` integration test suite: roundtrip commit/retrieve, integrity checker against real Quickwit, tamper detection, fatal error on wrong port, idempotent ensure_index. | Pending live run |
 
 ---
 
