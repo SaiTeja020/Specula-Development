@@ -13,6 +13,11 @@ CREATE CONSTRAINT endpoint_uid_unique IF NOT EXISTS FOR (e:NetworkEndpoint) REQU
 CREATE CONSTRAINT user_uid_unique IF NOT EXISTS FOR (u:User) REQUIRE u.uid IS UNIQUE;
 CREATE CONSTRAINT file_uid_unique IF NOT EXISTS FOR (f:File) REQUIRE f.uid IS UNIQUE;
 
+// §5.2: Entity-level uniqueness for DFKG consumer writes (skeleton phase)
+// Prevents duplicate nodes from Kafka consumer retries / message replays.
+CREATE CONSTRAINT entity_uid_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.uid IS UNIQUE;
+
+
 
 // 2. Composite Indexes for Backfill Performance & Case Isolation
 

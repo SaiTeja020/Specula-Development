@@ -2,6 +2,7 @@
 venv/
 .venv/
 env/
+.env
 
 # Python Cache & IDE
 __pycache__/
@@ -18,6 +19,7 @@ __pycache__/
 .agents/rules/rules.md
 .agents.zip
 .agents/
+.agents-zip.zip
 
 # Large Data, Extracted Artifacts & State Files
 data/

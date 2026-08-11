@@ -5,9 +5,9 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Vector Retrieval MCP Server Layer Complete (Section 2.5)
-- **Current Objective:** Vector Retrieval implementation complete & verified (10/10 tests passing).
-- **Last Updated:** 2026-08-08
+- **Active Phase:** LangGraph Orchestration Skeleton (Phase 4)
+- **Current Objective:** 23-node orchestration skeleton implemented. Awaiting dependency install + test verification.
+- **Last Updated:** 2026-08-09
 
 ---
 
@@ -30,15 +30,25 @@
 - [x] Task 3.4: Implement Phase 2 & Phase 3 OCSF Event Schemas and Normalizers.
 - [x] Task 3.5: Implement Vector Retrieval Layer (`mcp-vector-retrieval`), ChromaDB/InMemory adapter, metadata validation, and RBAC tools.
 
-### Phase 4: LangGraph Orchestration & Agents
-- [ ] Task 4.1: Define global LangGraph `State` schema (with loop circuit breakers).
-- [ ] Task 4.2: Implement Blackboard Listener pattern for Specialist Agents.
-- [ ] Task 4.3: Implement Supervisor Governance Agent (HITL, ACH, Quality Control).
+### Phase 4: LangGraph Orchestration Skeleton
+- [x] Task 4.1: Define SpeculaState schema with append-reducers for parallel fan-out (§2).
+- [x] Task 4.2: Implement 16 ReAct-stub LLM agent nodes with config-driven model mapping (§3, §6).
+- [x] Task 4.3: Implement Guardrail Tier 1 (regex), Tier 2 (embedding similarity), Tier 3 (LLM) (§7).
+- [x] Task 4.4: Implement HITL interrupt/resume with dual-entry routing (§8).
+- [x] Task 4.5: Wire 23-node StateGraph with Send fan-out, Command routing, debate loop (§4).
+- [x] Task 4.6: Implement Kafka topic layout, producer helpers, DFKG consumer (§5.1).
+- [x] Task 4.7: Add Entity.uid uniqueness constraint (§5.2).
+- [x] Task 4.8: Create FastAPI HITL endpoint on uvicorn (§8).
+- [x] Task 4.9: Write verification test suite (§11).
+- [x] Task 4.10: Run test suite after dependency install.
 
 ---
 
 ## Pending Dependency Requests (Awaiting Human Action)
-- Optional: `pip install chromadb>=0.4.22` for live ChromaDB integration runs (in-memory zero-dependency fallback is fully functional).
+- **Required:** `pip install langgraph langchain-core langchain-google-genai python-dotenv neo4j fastapi uvicorn httpx` for LangGraph skeleton with Gemini.
+- Optional: `pip install chromadb>=0.4.22` for live ChromaDB integration runs.
+- Optional: `pip install sentence-transformers` for neural Tier 2 guardrail.
+
 
 ---
 
@@ -65,6 +75,10 @@
 | 2026-08-08 | `tests/ingestion/test_phase2_phase3_normalizers.py` | Added test suite covering sub-event branching, UID determinism, time baseline/unverified flags, gateway port routing, and threat intel boundary isolation. | 111/111 Passed |
 | 2026-08-08 | `vector_retrieval_implementation_plan.md`, `src/schemas/vector_metadata.py`, `src/ingestion/indexing/vector_store.py`, `src/mcp/vector_retrieval.py`, `src/mcp/fastmcp_gateway.py`, `tests/ingestion/test_vector_retrieval.py` | Implemented Vector Retrieval Layer (`mcp-vector-retrieval`), metadata schema, ChromaDB & InMemory adapters, FastMCP port 8114 registration, and comprehensive test suite. | 10/10 Passed |
 | 2026-08-09 | `docs/*`, `.gitignore` | Reorganized documentation files into `docs/` folder, updated `.gitignore` to ignore `.agents/`, staged, and pushed changes to remote `main`. | Pushed |
+| 2026-08-09 | `src/agents/*` | Built full 23-node LangGraph orchestration skeleton: state schema (state.py), 16 agent configs (config.py), guardrails T1/T2 (guardrails.py), Kafka utils (kafka_utils.py), all node functions (nodes.py), graph assembly (graph.py), HITL API (hitl_api.py). | Code Complete |
+| 2026-08-09 | `tests/test_skeleton_graph.py` | Verification suite: 10 test classes covering normal/dead-end paths, debate loop, guardrail failures, HITL dual-entry routing. | 19/19 Passed |
+| 2026-08-09 | `requirements.txt`, `schema_constraints.cypher` | Added langgraph/fastapi/neo4j/google-genai deps. Added Entity.uid uniqueness constraint (§5.2). | Updated |
+
 
 ---
 
