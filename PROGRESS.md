@@ -1,6 +1,6 @@
 # PROGRESS.md — Specula Development Tracker
 
-> **Notice to AI Agent:** Update this file **immediately** whenever a task status changes, code is added/modified, or dependencies are flagged.
+> **Notice to AI Agent:** Update this file **immediately** whenever a task status changes, code is added/modified, or dependencies are flagged. Make sure the logs are brief and understandable.
 
 ---
 
@@ -60,24 +60,15 @@
 | 2026-07-28 | `src/ingestion/abstraction/*`, `src/ingestion/broker/reconcile_degraded_windows.py` | Implemented Component 6 (Analytical Abstraction & Compression) | Verified |
 | 2026-07-28 | `src/graph/*`, `src/mcp/dfkg_cypher.py` | Implemented Component 7 (Knowledge Graph Ingestion) | Verified |
 | 2026-07-28 | `src/ingestion/indexing/*`, `requirements.txt`, `docker-compose.yml` | Implemented Component 8 (Vector Indexing) & Infrastructure | Verified |
-| 2026-07-31 | `tests/conftest.py`, `tests/ingestion/*` | Merged all 8 component test suites from `additional tests/` into `tests/ingestion/`. Updated `conftest.py` with mock fixtures. | Verified |
+| 2026-07-31 | `tests/conftest.py`, `tests/ingestion/*` | Merged all 8 component test suites from `additional tests/` into `tests/ingestion/`. Updated `conftest.py` with mock fixtures (`FakeRedisPersistent`, `FakeQuickwit`, `FakeNeo4j`, `synthetic_evtx_batch`, `poison_cluster`). | Verified |
+| 2026-07-31 | `dist/Specula_Ingestion_Pipeline_and_Tests.zip` | Packaged complete source pipeline (`src/`), full test suite (`tests/`), `PROGRESS.md`, `pytest.ini`, and `specula_ingestion_final_plan.md` into zip archive without altering source files. | Verified |
+| 2026-08-01 | `.gitignore`, `src/*`, `tests/*` | Updated `.gitignore` (excluding `data/`, `quarantine/`, `dist/`, `*.bin`, `*.zip`) and committed all implementation modules and 99/99 passing unit tests to local Git (`main`). | Committed (`42690bf`) |
 | 2026-08-08 | `ocsf_phase2_phase3_implementation_plan_FINAL.md` | Adopted final approved implementation plan for Phase 2 & 3 OCSF normalizers | Approved for Execution |
 | 2026-08-08 | `src/schemas/ocsf_phase2_events.py`, `src/schemas/ocsf_phase3_events.py` | Implemented Pydantic v2 schemas for `ProcessActivityEvent`, `FileActivityEvent`, `NetworkActivityEvent`, `AuthenticationEvent`, `DetectionFindingEvent`, `IncidentFindingEvent`, `EmailActivityEvent`, `VulnerabilityFindingEvent`, `HTTPActivityEvent`, `DeviceInventoryInfoEvent` | Verified |
 | 2026-08-08 | `src/ingestion/normalization/*` | Built 8 normalizers (`edr_normalizer.py`, `malware_normalizer.py`, `email_normalizer.py`, `memory_dump_normalizer.py`, `container_normalizer.py`, `vuln_scan_normalizer.py`, `ueba_browser_normalizer.py`, `cloud_topology_normalizer.py`) | Verified |
 | 2026-08-08 | `src/mcp/fastmcp_gateway.py` | Registered FastMCP gateway port routing for ports `8106`–`8113` | Verified |
 | 2026-08-08 | `tests/ingestion/test_phase2_phase3_normalizers.py` | Added test suite covering sub-event branching, UID determinism, time baseline/unverified flags, gateway port routing, and threat intel boundary isolation. | 111/111 Passed |
 | 2026-08-08 | `vector_retrieval_implementation_plan.md`, `src/schemas/vector_metadata.py`, `src/ingestion/indexing/vector_store.py`, `src/mcp/vector_retrieval.py`, `src/mcp/fastmcp_gateway.py`, `tests/ingestion/test_vector_retrieval.py` | Implemented Vector Retrieval Layer (`mcp-vector-retrieval`), metadata schema, ChromaDB & InMemory adapters, FastMCP port 8114 registration, and comprehensive test suite. | 10/10 Passed |
-| 2026-08-11 | `src/ingestion/preservation/quickwit_client.py` | Added `ensure_index()` (idempotent index creation with full schema), `get_evidence()` (uid-based search + base64 decode), and `committed_at_ms` timestamp to ingest payload. | Verified |
-| 2026-08-11 | `src/ingestion/preservation/integrity_checker.py` | Updated `verify_integrity()` with duck-typing to resolve `get_evidence()` on real client and `get()` on FakeQuickwit — backward-compatible with all existing unit tests. | Verified |
-| 2026-08-11 | `src/ingestion/run_pipeline.py` | Wired `QuickwitClient` into pipeline: `SPECULA_QUICKWIT_ENABLED` env flag, `_SOURCE_TYPE_MAP` for channel classification, `ensure_index()` at startup, `commit_raw_evidence()` per-event before sanitization. | Verified |
-| 2026-08-11 | `scripts/quickwit_setup.py` | Created standalone index setup script (idempotent, CLI args for endpoint/index override). | Verified |
-| 2026-08-11 | `tests/ingestion/test_quickwit_live.py` | Added `@pytest.mark.live_infra` integration test suite: roundtrip commit/retrieve, integrity checker against real Quickwit, tamper detection, fatal error on wrong port, idempotent ensure_index. | Pending live run |
-| 2026-08-11 | `src/graph/neo4j_client.py` | **[NEW]** Created `Neo4jClient` wrapper: `execute()`, `execute_read()`, `apply_schema()`, `health_check()`, context manager, lazy neo4j import, auth/no-auth dual mode. | Verified |
-| 2026-08-11 | `src/mcp/dfkg_cypher.py` | Replaced `execute_ingestion_cypher()` stub with real implementation. Duck-types for `Neo4jClient.execute()` vs `FakeNeo4j`. Raises `RuntimeError` when no client provided (no silent fake success). | Verified |
-| 2026-08-11 | `src/ingestion/run_pipeline.py` | Added `SPECULA_NEO4J_ENABLED` env flag, `neo4j_client` param to `run_pipeline_on_event()`, actual non-fatal Cypher execution per event, `apply_schema()` at startup, `close()` on exit, write count in summary. | Verified |
-| 2026-08-11 | `scripts/neo4j_setup.py` | **[NEW]** Created standalone setup script: applies schema_constraints.cypher and apoc_triggers.cypher, idempotent, APOC failures are non-fatal warnings. | Verified |
-| 2026-08-11 | `requirements.txt` | Uncommented `neo4j>=5.14.1` from stubbed dependencies. | Verified |
-| 2026-08-11 | `tests/ingestion/test_neo4j_live.py` | **[NEW]** Added `@pytest.mark.live_infra` suite: health check, idempotent schema, process creation graph roundtrip, duplicate node prevention via MERGE, non-fatal failure in pipeline. | Pending live run |
 
 ---
 

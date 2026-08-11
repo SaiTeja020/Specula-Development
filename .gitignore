@@ -17,6 +17,7 @@ __pycache__/
 .agents/skills/
 .agents/rules/rules.md
 .agents.zip
+.agents/
 
 # Large Data, Extracted Artifacts & State Files
 data/
