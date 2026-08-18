@@ -7,30 +7,45 @@
 ## Current Build Status
 - **Active Phase:** Visualization Layer (Phase 5)
 - **Current Objective:** Build real-time LangGraph visualization using React Flow and FastAPI WebSockets.
-- **Last Updated:** 2026-08-11
+- **Last Updated:** 2026-08-14
+
+---
+
+## Architectural Decisions (ADRs)
+Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md).
+
+| ADR ID | Title | Status | Governed Phase |
+| :--- | :--- | :--- | :--- |
+| [ADR-001](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-001-blackboard-coordination--supervisor-governance-model) | Blackboard Coordination + Supervisor Governance Model | Accepted | Phase 4 |
+| [ADR-002](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-002-ingestion-pipeline-bifurcation-preservation-vs-abstraction) | Ingestion Pipeline Bifurcation (Preservation vs. Abstraction) | Accepted | Phase 1 |
+| [ADR-003](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-003-model-distribution--deployment-topology) | Model Distribution & Deployment Topology | Accepted | Phase 4 & Phase 5 |
+| [ADR-004](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-004-three-tier-cryptographic-provenance-architecture-vct) | Three-Tier Cryptographic Provenance Architecture (VCT) | Accepted | Phase 1 & Phase 2 |
+| [ADR-005](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-005-adversarial-quality-control-via-ach-debate-loop) | Adversarial Quality Control via ACH Debate Loop | Accepted | Phase 4 |
+| [ADR-006](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-006-dynamic-attack-graph-weighting-via-negative-log-transformation) | Dynamic Attack Graph Weighting via Negative Log Transformation | Accepted | Phase 2 & Phase 3 |
+| [ADR-007](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-007-mcp-integration-scope) | MCP Integration Scope | Accepted | Phase 5 |
 
 ---
 
 ## Task Roadmap & Status
 
-### Phase 1: Local Sandbox & Data Schemas
+### Phase 1: Local Sandbox & Data Schemas (`ADR-002`, `ADR-004`)
 - [x] Task 1.1: Create `docker-compose.yml` (Neo4j, Kafka/Redpanda, Redis, Quickwit, Qdrant).
 - [x] Task 1.2: Define base Pydantic schemas for OCSF/OSSEM log ingestion.
 - [x] Task 1.3: Create mock log pump (`mock_telemetry_pump.py`) for synthetic events.
 
-### Phase 2: Forensic Preservation & VCT Layer
+### Phase 2: Forensic Preservation & VCT Layer (`ADR-004`, `ADR-006`)
 - [x] Task 2.1: Implement atomic hashing for incoming raw logs (Preservation Layer).
 - [x] Task 2.2: Implement Merkle tree generation for VCT session roots.
 - [x] Task 2.3: Build immutable append-only WORM datastore handler.
 
-### Phase 3: Graph Streaming, Ingestion & Vector Retrieval
+### Phase 3: Graph Streaming, Ingestion & Vector Retrieval (`ADR-006`)
 - [x] Task 3.1: Create Kafka stream consumer for normalized OCSF events & ActiveCasesCache.
 - [x] Task 3.2: Write deterministic Cypher `MERGE` query builder for Neo4j.
 - [x] Task 3.3: Implement Neo4j APOC triggers for Blackboard event dispatching.
 - [x] Task 3.4: Implement Phase 2 & Phase 3 OCSF Event Schemas and Normalizers.
 - [x] Task 3.5: Implement Vector Retrieval Layer (`mcp-vector-retrieval`), ChromaDB/InMemory adapter, metadata validation, and RBAC tools.
 
-### Phase 4: LangGraph Orchestration Skeleton
+### Phase 4: LangGraph Orchestration Skeleton (`ADR-001`, `ADR-003`, `ADR-005`)
 - [x] Task 4.1: Define SpeculaState schema with append-reducers for parallel fan-out (§2).
 - [x] Task 4.2: Implement 16 ReAct-stub LLM agent nodes with config-driven model mapping (§3, §6).
 - [x] Task 4.3: Implement Guardrail Tier 1 (regex), Tier 2 (embedding similarity), Tier 3 (LLM) (§7).
@@ -42,7 +57,7 @@
 - [x] Task 4.9: Write verification test suite (§11).
 - [x] Task 4.10: Run test suite after dependency install.
 
-### Phase 5: Visualization Layer
+### Phase 5: Visualization Layer (`ADR-003`, `ADR-007`)
 - [ ] Task 5.1: Create `src/agents/visualizer_api.py` standalone FastAPI on port 8300.
 - [ ] Task 5.2: Implement WebSocket streaming of LangGraph data flow.
 - [ ] Task 5.3: Scaffold Vite + React application with React Flow.
@@ -90,6 +105,8 @@
 
 | 2026-08-11 | `docker-compose.yml` | Fixed Kafka KRaft `CLUSTER_ID` base64 UUID, updated Quickwit image tag to `quickwit/quickwit:latest`. | Verified |
 | 2026-08-11 | `src/agents/checkpointer.py` | Added stopgap Redis `RedisSaver` checkpointer for cross-process HITL state persistence testing. Added pending_writes and list() notes. | 4/4 Integration Passed |
+| 2026-08-14 | `.agents/rules/rules.md` | Added session start (clock in) and session end (clock out) rules to operational directives. | Updated |
+| 2026-08-14 | `DECISIONS.md`, `PROGRESS.md` | Created central ADR repository (`DECISIONS.md`) with baseline ADRs 001-007; established bidirectional links with `PROGRESS.md`. | Verified |
 
 ---
 
