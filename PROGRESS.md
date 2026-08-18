@@ -6,8 +6,9 @@
 
 ## Current Build Status
 - **Active Phase:** Visualization Layer (Phase 5)
+
 - **Current Objective:** Build real-time LangGraph visualization using React Flow and FastAPI WebSockets.
-- **Last Updated:** 2026-08-14
+- **Last Updated:** 2026-08-18
 
 ---
 
@@ -23,6 +24,8 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | [ADR-005](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-005-adversarial-quality-control-via-ach-debate-loop) | Adversarial Quality Control via ACH Debate Loop | Accepted | Phase 4 |
 | [ADR-006](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-006-dynamic-attack-graph-weighting-via-negative-log-transformation) | Dynamic Attack Graph Weighting via Negative Log Transformation | Accepted | Phase 2 & Phase 3 |
 | [ADR-007](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-007-mcp-integration-scope) | MCP Integration Scope | Accepted | Phase 5 |
+
+
 
 ---
 
@@ -69,6 +72,11 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Required:** `pip install langgraph langchain-core langchain-google-genai python-dotenv neo4j fastapi uvicorn httpx` for LangGraph skeleton with Gemini.
 - Optional: `pip install chromadb>=0.4.22` for live ChromaDB integration runs.
 - Optional: `pip install sentence-transformers` for neural Tier 2 guardrail.
+- **Required for live Quickwit tests**: `docker-compose up -d quickwit` then `python scripts/quickwit_setup.py`
+- **Required for Neo4j**: `pip install "neo4j>=5.14.1"` then `docker-compose up -d neo4j` then `python scripts/neo4j_setup.py`
+- **Required for redis/drain3 tests**: `pip install redis>=5.0.1 drain3>=0.9.11` (pre-existing failures)
+- **Run live Quickwit tests**: `pytest tests/ingestion/test_quickwit_live.py -m live_infra -v`
+- **Run live Neo4j tests**: `pytest tests/ingestion/test_neo4j_live.py -m live_infra -v`
 
 
 ---
@@ -102,11 +110,11 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-11 | `src/agents/nodes.py`, `src/agents/guardrails.py` | Fixed Judge node loop-back (`FORCE_JUDGE_REJECT_ROUNDS:N`), HITL `case_status` pre-interrupt persistence, and Guardrail BoW chunk evaluation. Added shell regex and anti-forensic semantic phrases to Guardrails. | Verified |
 | 2026-08-11 | `tests/test_skeleton_graph.py`, `tests/test_skeleton_integration.py` | Applied corrected unit tests with short-circuit/round-cap assertions (28/28 passing). Added separate integration suite for Kafka/Neo4j/cross-process HITL (skipped locally via `-m "not integration"`). | Verified |
 | 2026-08-11 | `implementation_plan.md`, `task.md` | Created implementation plan for distinct real-time visualization layer using Vite/React and FastAPI WebSockets. | Approved for Execution |
-
 | 2026-08-11 | `docker-compose.yml` | Fixed Kafka KRaft `CLUSTER_ID` base64 UUID, updated Quickwit image tag to `quickwit/quickwit:latest`. | Verified |
 | 2026-08-11 | `src/agents/checkpointer.py` | Added stopgap Redis `RedisSaver` checkpointer for cross-process HITL state persistence testing. Added pending_writes and list() notes. | 4/4 Integration Passed |
 | 2026-08-14 | `.agents/rules/rules.md` | Added session start (clock in) and session end (clock out) rules to operational directives. | Updated |
 | 2026-08-14 | `DECISIONS.md`, `PROGRESS.md` | Created central ADR repository (`DECISIONS.md`) with baseline ADRs 001-007; established bidirectional links with `PROGRESS.md`. | Verified |
+| 2026-08-18 | `faiss_threat_intel_implementation_plan.md`, `src/schemas/threat_intel_metadata.py`, `src/ingestion/indexing/threat_intel_sources.py`, `src/ingestion/indexing/threat_intel_index.py`, `src/mcp/threat_intel_mcp.py`, `scripts/build_threat_intel_index.py`, `tests/ingestion/test_threat_intel.py`, `requirements.txt` | Implemented FAISS IndexIVFPQ threat-intel corpus: ATT&CK STIX + NVD CVE fetchers, in-process ThreatIntelIndex with atomic hot-reload, ThreatIntelMCPServer exposing query_attack_techniques/groups/cves/health_check, offline build script with rate-limited NVD API (NVD_API_KEY env var for key injection), and full 5-category test suite (golden-fixture, training-skip guard, reload, filter-after-search, staleness). | 29/29 Passed |
 
 ---
 
@@ -114,5 +122,4 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 1. **Stage 3 Checkpointer Refactor:** `src/agents/checkpointer.py` is a Stage 1 test-support stopgap using `pickle`. Replace with `langgraph-checkpoint-redis` / `langgraph-checkpoint-postgres` or add safe serialization (JSON/msgpack) before production use. Note: current `pending_writes` implementation assumes sequential interrupt nodes (safe for Stage 1 topology, must handle mid-fanout writes in Stage 3).
 2. **Kafka Integration CI Retention:** Set short retention policy or per-run topic suffixes on `findings.*` Kafka topics before running integration test suite in automated CI.
 3. **Stage 7 Guardrail Fine-Tuning:** The `rm -rf` Tier 1 regex will false-positive on findings quoting attacker commands. Fine-tune Tier 2 embedding model with real MiniLM training data beyond phrase matching in Stage 7.
-
 
