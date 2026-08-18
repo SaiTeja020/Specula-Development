@@ -25,7 +25,21 @@ pytest>=7.0.0
 
 # Stubbed dependencies (uncomment when fully implementing)
 # qdrant-client>=1.7.0
-# sentence-transformers>=2.2.2
-# neo4j>=5.14.1
+# sentence-transformers>=2.2.2  # Optional: Tier 2 guardrail neural embeddings
 chromadb>=0.4.22
 
+# LangGraph Orchestration Skeleton (§3-§8)
+langgraph>=0.4.0
+langchain-core>=0.3.0
+langchain-openai>=0.3.0
+langchain-google-genai>=2.0.0
+python-dotenv>=1.0.1
+
+
+# Neo4j driver for DFKG writes (§5.2)
+neo4j>=5.14.1
+
+# HITL API (§8) — runs on uvicorn per AGENTS.md
+fastapi>=0.110.0
+uvicorn>=0.27.0
+httpx>=0.27.0
