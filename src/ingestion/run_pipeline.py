@@ -27,7 +27,7 @@ from src.schemas.uid_generator import generate_deterministic_uid
 from src.ingestion.preservation.sha256_hasher import compute_sha256_bytes
 from src.ingestion.preservation.vct_atomic_chain import VCTAtomicChain
 from src.ingestion.security_gate.sanitizer import sanitize_text
-from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
+from src.ingestion.security_gate.pipeline import run_security_gate
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
 from src.ingestion.normalization.evtx_normalizer import normalize_evtx_process_creation
 from src.ingestion.validation.validator import validate_event
@@ -76,10 +76,19 @@ def run_pipeline_on_event(raw_event: dict, vct_chain: VCTAtomicChain, resolver: 
     sha256_digest = compute_sha256_bytes(raw_bytes)
     vct_hash = vct_chain.register_hash(sha256_digest, trace_id, "TEMP_UID")
     
-    # 2. Security Gate
+    # 2. Security Gate (sanitize + injection scan per Stage 2 §3 Step 2)
     message_text = raw_event.get("Message", "") or raw_event.get("FileName", "") or raw_event.get("eventName", "") or ""
-    sanitized_msg, has_homoglyphs = sanitize_text(message_text)
-    is_injection, is_degraded = detect_prompt_injection(sanitized_msg)
+    raw_msg_bytes = message_text.encode("utf-8")
+    gate_result = run_security_gate("text", raw_msg_bytes)
+
+    if gate_result.injection_blocked:
+        logger.warning(f"Event blocked by Security Gate — injection detected (trace={trace_id})")
+        return None, None
+
+    sanitized_msg = gate_result.sanitized_fields[0] if gate_result.sanitized_fields else ""
+    has_homoglyphs = False  # Homoglyph flag is on the SanitizerResult, not needed here
+    is_injection = gate_result.injection_blocked
+    is_degraded = False
 
     # 3. OCSF Normalization
     time_str = raw_event.get("TimeCreated", "") or raw_event.get("LastRecordChange", "") or raw_event.get("eventTime", "")
@@ -201,6 +210,9 @@ def main():
         logger.info(f"--- Processing Category: {channel_name} ({len(log_list)} records) ---")
         for event in log_list:
             validated_evt, _ = run_pipeline_on_event(event, vct_chain, resolver, time_normalizer)
+            if validated_evt is None:
+                logger.info("Event blocked by Security Gate — skipping.")
+                continue
             evt_obj = getattr(validated_evt, "event", validated_evt)
             evt_dict = evt_obj.model_dump(mode="json") if hasattr(evt_obj, "model_dump") else (evt_obj.__dict__ if hasattr(evt_obj, "__dict__") else evt_obj)
             ocsf_outputs.append(evt_dict)

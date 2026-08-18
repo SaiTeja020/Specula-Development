@@ -4,7 +4,11 @@ Specula Kafka Consumer.
 Consumes validated OCSF events from Kafka, enforcing wire-level schemas,
 with explicit degraded fallback handling for checkpointing.
 
-Reference: specula_ingestion_final_plan.md §6.5
+Stage 2: deserialize_event() uses Confluent JSONDeserializer when available,
+falling back to manual 5-byte-strip + JSON parse for environments without
+the confluent_kafka package.
+
+Reference: specula_ingestion_final_plan.md §6.5, Stage 2 §3 Step 4
 """
 
 import json
@@ -16,6 +20,18 @@ from typing import Any, Callable, Optional
 logger = logging.getLogger(__name__)
 
 QUARANTINE_DIR = Path("quarantine")
+
+# Try to build a reusable JSONDeserializer at import time
+_json_deserializer = None
+try:
+    from src.ingestion.validation.schema_registry_client import (
+        OCSF_BASE_JSON_SCHEMA,
+    )
+    from confluent_kafka.schema_registry.json_schema import JSONDeserializer
+    _json_deserializer = JSONDeserializer(OCSF_BASE_JSON_SCHEMA)
+    logger.info("Kafka consumer: using Confluent JSONDeserializer")
+except Exception:
+    logger.info("Kafka consumer: confluent_kafka unavailable; using manual JSON fallback")
 
 
 @dataclass
@@ -34,8 +50,21 @@ class CheckpointResult:
 
 def deserialize_event(wire_bytes: bytes, topic: str = "specula.logs.system") -> dict:
     """
-    Deserialize Confluent Wire Format (skip 5-byte header if present).
+    Deserialize a Kafka message payload.
+
+    Primary path: Confluent JSONDeserializer (handles magic byte, schema ID,
+    and schema validation automatically).
+    Fallback: manual 5-byte header strip + JSON parse (for unit tests without
+    the confluent_kafka library).
     """
+    if _json_deserializer is not None:
+        try:
+            return _json_deserializer(wire_bytes, None)
+        except Exception:
+            # JSONDeserializer may fail on non-registry payloads; fall through
+            pass
+
+    # Manual fallback: skip 5-byte Confluent Wire Format header if present
     if len(wire_bytes) > 5 and wire_bytes[0] == 0x00:
         json_bytes = wire_bytes[5:]
     else:

@@ -4,9 +4,10 @@
 # Base Pydantic models for OCSF
 pydantic>=2.5.0
 
-# Confluent Kafka Client with Schema Registry support
+# Confluent Kafka Client with Schema Registry + JSON Schema support
 # NOTE: Requires librdkafka-dev installed on the host machine natively
-confluent-kafka[schema-registry]>=2.3.0
+confluent-kafka[schema-registry,json]>=2.3.0
+jsonschema>=4.18.0
 
 # Redis client for ActiveCasesCache
 redis>=5.0.1

@@ -5,9 +5,9 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Visualization Layer (Phase 5)
-- **Current Objective:** Build real-time LangGraph visualization using React Flow and FastAPI WebSockets.
-- **Last Updated:** 2026-08-14
+- **Active Phase:** Real Ingestion Pipeline Integration (Stage 2)
+- **Current Objective:** Wire real ingestion pipeline, in-process Security Gate, and Kafka case-open consumer to LangGraph orchestration.
+- **Last Updated:** 2026-08-18
 
 ---
 
@@ -107,6 +107,8 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-11 | `src/agents/checkpointer.py` | Added stopgap Redis `RedisSaver` checkpointer for cross-process HITL state persistence testing. Added pending_writes and list() notes. | 4/4 Integration Passed |
 | 2026-08-14 | `.agents/rules/rules.md` | Added session start (clock in) and session end (clock out) rules to operational directives. | Updated |
 | 2026-08-14 | `DECISIONS.md`, `PROGRESS.md` | Created central ADR repository (`DECISIONS.md`) with baseline ADRs 001-007; established bidirectional links with `PROGRESS.md`. | Verified |
+| 2026-08-18 | `src/ingestion/security_gate/injection_detector.py`, `src/ingestion/broker/case_open_consumer.py`, `tests/ingestion/test_stage2_ingestion_pipeline.py` | Created in-process injection detector, Kafka case-open dispatcher, and Stage 2 fixture test suite. Initial component work; Security Gate not yet wired to block, Kafka serialization simulated. | 15/15 Passed (unit-level only) |
+| 2026-08-18 | `src/ingestion/security_gate/pipeline.py`, `src/ingestion/broker/kafka_producer.py`, `src/ingestion/broker/kafka_consumer.py`, `src/ingestion/validation/schema_registry_client.py`, `src/ingestion/run_pipeline.py`, `docker-compose.yml`, `requirements.txt`, `tests/ingestion/test_stage2_e2e_flow.py` | **Gap fixes:** (1) Wired `scan_for_injection()` into `run_security_gate()` — malicious payloads now blocked with `injection_blocked=True`. (2) Replaced hardcoded schema ID with `jsonschema` validation against OCSF JSON Schema; `EventProducer` uses real `SerializingProducer` when broker available. (3) Added 7-step e2e flow test (SHA-256 → Gate → OCSF → wire → deser → Cypher → vector). (4) Replaced Qdrant with ChromaDB in docker-compose. | 15/15 Fixtures + 2/2 E2E + 28/28 Skeleton |
 
 ---
 
