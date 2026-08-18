@@ -30,3 +30,10 @@ pytest>=7.0.0
 neo4j>=5.14.1
 chromadb>=0.4.22
 
+# FAISS threat-intel corpus (CPU-only; GPU variant: faiss-gpu)
+faiss-cpu>=1.7.4
+
+# NVD API key (optional — increases rate limit from 5 to 50 req/30 s)
+# Set environment variable NVD_API_KEY=<your-key> to activate.
+# No code change needed — NvdCveFetcher reads it automatically via os.environ.
+

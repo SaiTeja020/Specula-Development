@@ -69,9 +69,9 @@
 | 2026-08-08 | `src/mcp/fastmcp_gateway.py` | Registered FastMCP gateway port routing for ports `8106`–`8113` | Verified |
 | 2026-08-08 | `tests/ingestion/test_phase2_phase3_normalizers.py` | Added test suite covering sub-event branching, UID determinism, time baseline/unverified flags, gateway port routing, and threat intel boundary isolation. | 111/111 Passed |
 | 2026-08-08 | `vector_retrieval_implementation_plan.md`, `src/schemas/vector_metadata.py`, `src/ingestion/indexing/vector_store.py`, `src/mcp/vector_retrieval.py`, `src/mcp/fastmcp_gateway.py`, `tests/ingestion/test_vector_retrieval.py` | Implemented Vector Retrieval Layer (`mcp-vector-retrieval`), metadata schema, ChromaDB & InMemory adapters, FastMCP port 8114 registration, and comprehensive test suite. | 10/10 Passed |
+| 2026-08-18 | `faiss_threat_intel_implementation_plan.md`, `src/schemas/threat_intel_metadata.py`, `src/ingestion/indexing/threat_intel_sources.py`, `src/ingestion/indexing/threat_intel_index.py`, `src/mcp/threat_intel_mcp.py`, `scripts/build_threat_intel_index.py`, `tests/ingestion/test_threat_intel.py`, `requirements.txt` | Implemented FAISS IndexIVFPQ threat-intel corpus: ATT&CK STIX + NVD CVE fetchers, in-process ThreatIntelIndex with atomic hot-reload, ThreatIntelMCPServer exposing query_attack_techniques/groups/cves/health_check, offline build script with rate-limited NVD API (NVD_API_KEY env var for key injection), and full 5-category test suite (golden-fixture, training-skip guard, reload, filter-after-search, staleness). | Pending faiss-cpu install |
 
 ---
 
 ## Known Blockers & Bugs
 - *None currently logged.*
-
