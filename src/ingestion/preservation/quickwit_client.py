@@ -127,7 +127,7 @@ class QuickwitClient:
                     {"name": "source_type", "type": "text", "tokenizer": "raw",
                      "record": "basic", "fast": True},
                     # raw bytes stored as base64 — not indexed (too large / not useful to search)
-                    {"name": "raw_data_b64", "type": "text", "tokenizer": "raw",
+                    {"name": "raw_data_b64", "type": "text",
                      "indexed": False, "stored": True},
                     # epoch-ms timestamp for ordering and range queries
                     {"name": "committed_at_ms", "type": "i64",
@@ -151,8 +151,8 @@ class QuickwitClient:
                 headers={"Content-Type": "application/json"},
                 timeout=10.0,
             )
-            # 200/201 = created; 400 with "already exists" body = idempotent success
-            if response.status_code == 400 and "already exists" in response.text.lower():
+            # 200/201 = created; 400/409 with "already exist" in body = idempotent success
+            if response.status_code in (400, 409) and "already exist" in response.text.lower():
                 logger.debug(f"Quickwit index '{self.index_name}' already exists — skipping creation.")
                 return
             response.raise_for_status()
