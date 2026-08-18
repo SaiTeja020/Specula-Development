@@ -1,0 +1,9 @@
+evidence_collection_generation:
+  model: Qwen2.5-7B-Instruct
+  provider: Novita/Together via HF
+  rationale: >
+    Mostly tool-calling/fetching against DFKG + classification against a
+    deterministic rule table, low reasoning load — cheapest model
+    reliable at function calling. Matches Master doc §2.5 Agent-Model
+    Rationale Matrix exactly; do not upgrade the model tier without
+    updating that matrix too, or the two documents diverge silently.
