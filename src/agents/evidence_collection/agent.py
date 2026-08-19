@@ -4,19 +4,18 @@ from src.agents.evidence_collection.kafka_publisher import build_finding, publis
 from src.agents.evidence_collection.agent_verdict import AgentVerdict
 
 
-def run_evidence_collection(state: EvidenceCollectionState, deps) -> EvidenceCollectionState:
+def run_evidence_collection_triage(state: EvidenceCollectionState, deps) -> EvidenceCollectionState:
     """
-    Single entrypoint. `deps` bundles the mcp-dfkg-cypher client and the
-    Kafka producer — injected, not constructed inside this function, so
-    the node is testable against fakes (matches FakeNeo4j / FakeKafkaTopic
-    fixtures already established in tests/conftest.py).
-
+    Deterministic evidence-relevance triage filter, not a ReAct agent.
+    
+    Classifies DFKG events as KEEP, ESCALATE, or DISCARD (v1: DISCARD disabled).
+    Does not invoke any LLM; this is a utility component, not an agent role.
+    
     Enforces:
       - exactly one case_id per invocation (raises otherwise)
-      - loop budget: state["iteration_count"] must not exceed
-        state["max_iterations"]; on exceeding, return partial results
-        with dead_end=True rather than looping unboundedly (runtime
-        harness §9.5's "graceful timeout returning a partial observation").
+      - loop budget: state["iteration_count"] must not exceed state["max_iterations"];
+        on exceeding, return partial results with dead_end=True rather than 
+        looping unboundedly (runtime harness §9.5).
     """
     case_ids_in_batch = {deps.lookup_case_id(uid) for uid in state["batch_uids"]}
     if len(case_ids_in_batch) > 1:
@@ -26,7 +25,20 @@ def run_evidence_collection(state: EvidenceCollectionState, deps) -> EvidenceCol
             f"bug — one case per invocation, no exceptions."
         )
 
-    ctx = deps.load_case_context(state["case_id"])  # bounded DFKG query, §3.1
+    # NEW: Enforce single-host batches so partition key is unambiguous
+    # Using deps.fetch_event since lookup_host_id might not be implemented
+    host_ids_in_batch = {getattr(deps.fetch_event(uid), "canonical_host_id", None) for uid in state["batch_uids"]}
+    if len(host_ids_in_batch) > 1:
+        raise ValueError(
+            f"EvidenceCollectionAgent invoked with a batch spanning multiple hosts: "
+            f"{host_ids_in_batch}. Supervisor dispatch bug — one host per batch. "
+            f"Evidence-collection triage must preserve per-host ordering; split into "
+            f"per-host batches at the dispatch boundary."
+        )
+
+    # Loads all hosts tagged with this case_id via indexed MATCH query.
+    # NOT a bounded BFS (which is for multi-hop context). This is a flat lookup.
+    ctx = deps.load_case_context(state["case_id"])
 
     for uid in state["batch_uids"]:
         if state["iteration_count"] >= state["max_iterations"]:

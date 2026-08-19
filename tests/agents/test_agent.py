@@ -1,5 +1,5 @@
 import pytest
-from src.agents.evidence_collection.agent import run_evidence_collection
+from src.agents.evidence_collection.agent import run_evidence_collection_triage
 from src.agents.evidence_collection.state import EvidenceCollectionState
 from src.agents.evidence_collection.relevance_filter import CaseContext
 
@@ -62,7 +62,7 @@ def test_batch_spanning_multiple_case_ids_raises():
     state = create_initial_state(["evt1", "evt2"])
     
     with pytest.raises(ValueError, match="multiple case_ids"):
-        run_evidence_collection(state, deps)
+        run_evidence_collection_triage(state, deps)
 
 
 def test_max_iterations_truncates_and_flags_dead_end():
@@ -77,7 +77,7 @@ def test_max_iterations_truncates_and_flags_dead_end():
     # Batch size 3, max iterations 2
     state = create_initial_state(["evt1", "evt2", "evt3"], max_iterations=2)
     
-    result_state = run_evidence_collection(state, deps)
+    result_state = run_evidence_collection_triage(state, deps)
     
     assert result_state["dead_end"] is True
     assert result_state["iteration_count"] == 2
@@ -94,7 +94,7 @@ def test_deps_substitutable_with_fakes():
     )
     state = create_initial_state(["evt1"])
     
-    result_state = run_evidence_collection(state, deps)
+    result_state = run_evidence_collection_triage(state, deps)
     
     assert result_state["status"] == "complete"
     assert len(deps.kafka_producer.produced_messages) == 1
