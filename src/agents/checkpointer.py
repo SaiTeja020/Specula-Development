@@ -13,6 +13,12 @@ import os
 import json
 import redis
 import pickle
+
+from src.agents.redis_keys import (
+    checkpoint_key,
+    checkpoint_latest_key,
+    writes_key,
+)
 from langgraph.checkpoint.base import (
     BaseCheckpointSaver, 
     Checkpoint, 
@@ -28,11 +34,11 @@ class RedisSaver(BaseCheckpointSaver):
     def put(self, config: dict, checkpoint: Checkpoint, metadata: CheckpointMetadata, new_versions: dict) -> dict:
         thread_id = config["configurable"]["thread_id"]
         checkpoint_id = checkpoint["id"]
-        key = f"checkpoint:{thread_id}:{checkpoint_id}"
+        key = checkpoint_key(thread_id, checkpoint_id)
         
         data = pickle.dumps((checkpoint, metadata))
         self.r.set(key, data)
-        self.r.set(f"checkpoint:{thread_id}:latest", key)
+        self.r.set(checkpoint_latest_key(thread_id), key)
         
         return {
             "configurable": {
@@ -45,7 +51,7 @@ class RedisSaver(BaseCheckpointSaver):
     def put_writes(self, config: dict, writes: Sequence[Tuple[str, Any]], task_id: str) -> None:
         thread_id = config["configurable"]["thread_id"]
         checkpoint_id = config["configurable"]["checkpoint_id"]
-        key = f"writes:{thread_id}:{checkpoint_id}:{task_id}"
+        key = writes_key(thread_id, checkpoint_id, task_id)
         data = pickle.dumps(writes)
         self.r.set(key, data)
 
@@ -54,12 +60,12 @@ class RedisSaver(BaseCheckpointSaver):
         checkpoint_id = config["configurable"].get("checkpoint_id")
         
         if not checkpoint_id:
-            key_bytes = self.r.get(f"checkpoint:{thread_id}:latest")
+            key_bytes = self.r.get(checkpoint_latest_key(thread_id))
             if not key_bytes:
                 return None
             key = key_bytes.decode('utf-8')
         else:
-            key = f"checkpoint:{thread_id}:{checkpoint_id}"
+            key = checkpoint_key(thread_id, checkpoint_id)
             
         data = self.r.get(key)
         if not data:
