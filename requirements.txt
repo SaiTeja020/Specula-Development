@@ -4,9 +4,10 @@
 # Base Pydantic models for OCSF
 pydantic>=2.5.0
 
-# Confluent Kafka Client with Schema Registry support
+# Confluent Kafka Client with Schema Registry + JSON Schema support
 # NOTE: Requires librdkafka-dev installed on the host machine natively
-confluent-kafka[schema-registry]>=2.3.0
+confluent-kafka[schema-registry,json]>=2.3.0
+jsonschema>=4.18.0
 
 # Redis client for ActiveCasesCache
 redis>=5.0.1
@@ -35,7 +36,6 @@ langchain-openai>=0.3.0
 langchain-google-genai>=2.0.0
 python-dotenv>=1.0.1
 
-
 # Neo4j driver for DFKG writes (§5.2)
 neo4j>=5.14.1
 
@@ -43,3 +43,11 @@ neo4j>=5.14.1
 fastapi>=0.110.0
 uvicorn>=0.27.0
 httpx>=0.27.0
+
+# FAISS threat-intel corpus (CPU-only; GPU variant: faiss-gpu)
+faiss-cpu>=1.7.4
+
+# NVD API key (optional — increases rate limit from 5 to 50 req/30 s)
+# Set environment variable NVD_API_KEY=<your-key> to activate.
+# No code change needed — NvdCveFetcher reads it automatically via os.environ.
+
