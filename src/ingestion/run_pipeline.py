@@ -227,17 +227,31 @@ def main():
             logger.info(f"Channel {channel}: No events found or insufficient permissions.")
 
     # 2. Add sample records for non-EVTX categories (MFT, Network, AD Auth, CloudTrail)
-    sample_mft = {
-        "LastRecordChange": "2026-07-28T12:00:00Z",
-        "FileName": "ntds.dit",
-        "ParentPath": "C:\\Windows\\NTDS",
-        "Created0x10": "2026-07-28T12:00:00Z",
-        "Created0x30": "2026-07-28T10:00:00Z", # Timestomped mismatch sample
-        "UsnReasonCode": 2,
-        "TimestampPrecision": 7
-    }
-    all_extracted_events["NTFS_MFT_Sample"] = [sample_mft]
-    total_count += 1
+    # Extract real MFT/USN records using a UAC-prompted PowerShell script
+    logger.info("Triggering UAC prompt to extract real MFT/USN journal records...")
+    mft_out_file = os.path.abspath("data/extracted_logs/temp_mft.json")
+    script_path = os.path.abspath("src/ingestion/extractors/usn_extractor.ps1")
+    
+    ps_cmd = f"Start-Process powershell -Verb RunAs -Wait -ArgumentList '-NoProfile -ExecutionPolicy Bypass -File \"{script_path}\" -OutputPath \"{mft_out_file}\"'"
+    
+    try:
+        subprocess.run(["powershell", "-NoProfile", "-Command", ps_cmd], check=True)
+        if os.path.exists(mft_out_file):
+            with open(mft_out_file, "r", encoding="utf-8-sig") as f:
+                content = f.read()
+                if content.strip():
+                    mft_events = json.loads(content)
+                    if isinstance(mft_events, dict):
+                        mft_events = [mft_events]
+                    all_extracted_events["NTFS_MFT_Sample"] = mft_events
+                    total_count += len(mft_events)
+                    logger.info(f"Extracted {len(mft_events)} real events from USN Journal.")
+            # Clean up the temp file
+            os.remove(mft_out_file)
+        else:
+            logger.warning("UAC prompt declined or extraction failed. Skipping MFT extraction.")
+    except Exception as e:
+        logger.error(f"Failed to execute USN extraction script: {e}")
 
     sample_cloud = {
         "eventTime": "2026-07-28T12:05:00Z",
