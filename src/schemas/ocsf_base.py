@@ -113,6 +113,20 @@ class OCSFBaseEvent(BaseModel):
         description="Deterministic content-hash UID. See uid_generator.py.",
     )
 
+    # --- Optional fields for downstream agent consumption ---
+    canonical_host_id: Optional[str] = Field(
+        default=None,
+        description="Resolved canonical host identifier.",
+    )
+    is_summary: bool = Field(
+        default=False,
+        description="Flag indicating if event is an entropy summary.",
+    )
+    status: Optional[str] = Field(
+        default=None,
+        description="Status of the event (e.g. Success, Failure).",
+    )
+
     @field_validator("case_id", mode="before")
     @classmethod
     def case_id_must_not_be_none(cls, v: Optional[str]) -> str:

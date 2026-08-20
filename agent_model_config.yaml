@@ -1,0 +1,2 @@
+# REMOVED: evidence_collection_generation (this component is deterministic, not LLM-based)
+# See Evidence Collection Agent plan §5.2 revision and C2 implementation corrections.
