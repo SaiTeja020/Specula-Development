@@ -147,6 +147,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/`
   - **Acceptance Criteria:** 12/12 agent tests passing; strict multi-host isolation and 4-part discard conjunction logic verified.
 
+- **Task ID:** `TASK-4.7`
+  - **Description:** Implement Supervisor Agent (Orchestrator) graph and Kafka Consumer.
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/orchestration/test_supervisor.py`
+  - **Acceptance Criteria:** Supervisor graph built and routes according to specifications.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -193,3 +199,5 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-18 | Stage 2 Ingestion Gaps | Wired injection detector into security gate; added 7-step e2e test | 15/15 + 2/2 Passed |
 | 2026-08-20 | `TASK-4.6` | Verified pulled Evidence Collection Agent & Relevance Filter tests | 12/12 Passed (`tests/agents/`) |
 | 2026-08-20 | Harness Upgrade | Updated `AGENTS.md`, `.agents/rules/rules.md`, and restructured `PROGRESS.md` to WIP=2 state machine | Verified |
+| 2026-08-21 | `TASK-4.7` | Created `supervisor_agent.py`, `supervisor_graph.py`, and `kafka_consumer.py` per build spec | 2/2 Passed (`tests/orchestration/test_supervisor.py`) |
+| 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
