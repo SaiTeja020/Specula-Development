@@ -296,3 +296,28 @@ class CloudAudit(OCSFBaseEvent):
             "May be None for account-level events with no specific host."
         ),
     )
+
+
+# ─── Generic Event (OCSF class 99) ───────────────────────────────────
+
+
+class GenericEvent(OCSFBaseEvent):
+    """
+    Generic OCSF event for heuristic fallbacks when a specific normalizer
+    is unavailable or the log type is unsupported.
+    """
+
+    class_uid: int = Field(default=99, frozen=True)
+    category_uid: int = Field(default=0, frozen=True)  # Unknown/Other
+
+    # Generic fields
+    raw_data: Optional[str] = Field(
+        default=None, description="Stringified dump of raw event fields."
+    )
+    event_name: Optional[str] = Field(
+        default=None, description="Heuristically extracted event name."
+    )
+    canonical_host_id: Optional[str] = Field(
+        default=None,
+        description="Canonical host UID from entity resolver.",
+    )

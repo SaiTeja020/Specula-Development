@@ -70,7 +70,7 @@ services:
 
   # 6. ChromaDB (Case Evidence Vector Index — Stage 2 §3 Step 7)
   chromadb:
-    image: chromadb/chroma:0.4.22
+    image: chromadb/chroma:latest
     container_name: specula-chromadb
     ports:
       - "8000:8000"
