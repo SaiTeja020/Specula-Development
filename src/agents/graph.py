@@ -12,7 +12,6 @@ from langgraph.types import Send
 from .nodes import (
     case_closed_rejected_node,
     critic_node,
-    evidence_collection_node,
     final_output_join_node,
     guardrail_tier1_node,
     guardrail_tier2_node,
@@ -22,11 +21,10 @@ from .nodes import (
     insider_threat_node,
     judge_node,
     log_analysis_node,
-
     malware_stylometry_node,
     memory_forensics_node,
     network_forensics_node,
-    primary_tier_join_node,
+    make_primary_tier_join_node,  # D1: factory replaces the no-op node
     proponent_node,
     report_generation_node,
     specialist_join_node,
@@ -35,6 +33,7 @@ from .nodes import (
     timeline_artifact_generation_node,
     timeline_reconstruction_node,
 )
+from .evidence_collection_agent import make_evidence_collection_node  # B1: factory
 from .state import SpeculaState
 
 
@@ -82,13 +81,20 @@ def _dead_end_route(state: dict) -> str | list[Send]:
 # Graph builder
 # ===================================================================
 
-def build_graph(*, checkpointer=None):
+def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
     """Assemble and compile the full 23-node orchestration graph.
 
     Args:
-        checkpointer: LangGraph checkpointer instance. Required for HITL
-                      interrupt/resume. Use InMemorySaver for tests,
-                      Redis-backed for production (§5.3).
+        checkpointer:  LangGraph checkpointer instance. Required for HITL
+                       interrupt/resume. Use InMemorySaver for tests,
+                       Redis-backed for production (§5.3).
+        redis_client:  redis.Redis instance for the dead-end heuristic and
+                       evidence-collection scratchpad. None is safe for unit
+                       tests — degrades gracefully (test_control injection
+                       still works; real heuristic is skipped).
+        neo4j_driver:  neo4j.Driver for DFKG queries from evidence_collection.
+                       None is safe for tests — DFKG tool degrades to
+                       NotYetImplementedTool with a clear observation message.
     """
     builder = StateGraph(SpeculaState)
 
@@ -96,7 +102,8 @@ def build_graph(*, checkpointer=None):
 
     # 16 ReAct-stub LLM agent nodes
     builder.add_node("supervisor", supervisor_node)
-    builder.add_node("evidence_collection", evidence_collection_node)
+    # B1: evidence_collection gets the real ReAct loop; factory closes over infra clients
+    builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", log_analysis_node)
     builder.add_node("network_forensics", network_forensics_node)
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
@@ -120,7 +127,8 @@ def build_graph(*, checkpointer=None):
     builder.add_node("hitl", hitl_node)
 
     # 4 control-only nodes
-    builder.add_node("primary_tier_join", primary_tier_join_node)
+    # D1: primary_tier_join is now a factory node with real detect_dead_end logic
+    builder.add_node("primary_tier_join", make_primary_tier_join_node(redis_client))
     builder.add_node("specialist_join", specialist_join_node)
     builder.add_node("final_output_join", final_output_join_node)
     builder.add_node("case_closed_rejected", case_closed_rejected_node)

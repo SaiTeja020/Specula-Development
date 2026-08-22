@@ -10,7 +10,7 @@
   1. `TASK-5.1` (Create `src/agents/visualizer_api.py` standalone FastAPI on port 8300)
   2. `TASK-5.2` (Implement WebSocket streaming of LangGraph data flow)
 - **Active WIP Count:** 2 (`|active| = 2 / 2`)
-- **Last Updated:** 2026-08-20
+- **Last Updated:** 2026-08-22
 
 ---
 
@@ -233,6 +233,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-21 | `TASK-4.7` | Created `supervisor_agent.py`, `supervisor_graph.py`, and `kafka_consumer.py` per build spec | 2/2 Passed (`tests/orchestration/test_supervisor.py`) |
 | 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
 | 2026-08-21 | Ingestion Fix | Fixed MFT USN casting crash & heuristic timestamp bug; refactored container extraction to pull from live Docker endpoints | 212/212 Nodes Written |
+| 2026-08-22 | `docs/imp_plan.md` fixes (A1–D4) | **A1/B1:** `make_evidence_collection_node` factory fixes node signature; wired in `build_graph()`. **A2:** `_llm_call` extracts `.content` with `hasattr` guard. **A3:** `test_control: Optional[dict]` added to `SpeculaState`. **B2:** EC node uses `KafkaPublishFindingTool`-only publish (no `_run_agent`, no double-publish). **C1:** `TrackingDFKGQueryTool` populates `dfkg_refs` from DFKG query results. **D1:** Dead-end detection moved to `primary_tier_join_node` via `make_primary_tier_join_node` factory; `supervisor_node` strips DEAD_END: regex; tests updated to `test_control` injection. **D2:** Portable `load_dotenv()` auto-discovery replaces hardcoded Windows path in `config.py`. **D3:** `_RESOLVED_GEMINI_MODEL` module-level cache prevents re-querying Google API per call. **D4:** `StubLLM` receives `case_id` at construction; `get_llm()` and `_run_agent()` pass it explicitly. Promoted `dead_end_detector.py`, `react_tools.py`, `evidence_collection_agent.py` to `src/agents/`. | 28/28 + 44/44 Passed |
 
 ---
 
