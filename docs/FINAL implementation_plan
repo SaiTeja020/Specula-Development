@@ -1,0 +1,152 @@
+# Specula Current-Phase Fixes — Implementation Plan
+
+## WIP: 1 | VCR: 0.0 (0/13 tasks complete)
+
+---
+
+## Background
+
+The `files/` folder contains 4 code files (`react_engine.py`, `react_tools.py`, `evidence_collection_agent.py`, `dead_end_detector.py`) plus a specification doc (`Specula_Current_Phase_Fixes.md`) defining 7 fixes. The code files were "built from fragments and reasonable assumptions" — several of which are silently wrong. This plan identifies every silent-break assumption and defines each fix with completion evidence.
+
+---
+
+## Analysis of Silent Bugs in the 4 Code Files
+
+### 1. `react_engine.py` — imports `from src.agents.redis_keys import SCRATCHPAD_PREFIX`
+**Bug**: `redis_keys.py` doesn't exist yet. This import will fail at runtime.
+**Fix**: Create `redis_keys.py` (Fix 2 from the spec).
+
+### 2. `react_tools.py` — `publish_finding(topic, payload)` signature mismatch
+**Bug**: The real `kafka_utils.publish_finding()` has signature `publish_finding(topic, finding, trace_id=None)` — the tool calls it with `publish_finding(topic, payload)` which works by positional args BUT then also calls `flush_producer(timeout=5.0)` while the real signature is `flush_producer(timeout=2.0)`. The `timeout` param is keyword so 5.0 works fine — but the subtle issue is that `flush_producer` defaults to 2.0 in the existing code. This is actually fine.
+**Real Bug**: The `Tool.run()` base method signature is `run(self, **kwargs)` but `RelevanceCheckTool.run()` takes `run(self, event: dict)` — a positional arg. When the ReAct engine calls `tool.run(**action_input)`, this means the LLM must produce `{"event": {...}}` not just `{...}`. This is consistent but fragile — **not actually a silent bug**, just a design coupling.
+
+### 3. `evidence_collection_agent.py` — `_llm_call` returns raw string
+**Bug**: `get_llm()` returns a `StubLLM` that returns `_StubResponse` objects (with `.content` attribute), not raw strings. But `_llm_call` calls `llm.invoke(...)` and the `run_react_loop` expects `LLMCallFn = Callable[[str, list[ReActStep]], str]`. The function does `return llm.invoke(...)` which returns a `_StubResponse` object, NOT a string. Then `parse_llm_output` calls `.strip()` and `.upper()` on this object — **this will crash silently or produce wrong results**.
+**Fix**: Extract `.content` from the response.
+
+### 4. `evidence_collection_agent.py` — `tool_calls_used` incremented even for unknown tools
+**Bug**: In `react_engine.py` line 201: `tool_calls_used += 1` is inside the `else` block (when tool IS found), but it increments even if the tool raised an exception. This is actually correct behavior — the tool was called, it just failed.
+**However**: Unknown tool hits DO NOT increment the counter (line 194 returns observation but doesn't increment). This is correct.
+
+### 5. `dead_end_detector.py` — uses `time.time()` for idle comparison against Redis value also written with `time.time()`
+**Bug**: `record_progress` uses `time.time()` and `detect_dead_end` compares with `time.time()`. Both are wall-clock — consistent. **Not a bug.**
+
+### 6. `evidence_collection_agent.py` — single-host constraint from existing `agent.py`
+**Bug per Fix 1**: The existing `agent.py` (line 30-37) enforces single-host batches using `canonical_host_id`, but Cloud Audit entities have `resolution_status: "unresolved"` with NO `canonical_host_id` — so the constraint fires spuriously on every cloud audit batch. The new `evidence_collection_agent.py` in `files/` does NOT implement the partition-key fix from Fix 1 at all — it uses the ReAct pattern but doesn't carry over the batch validation.
+
+---
+
+## Task Breakdown with Completion Evidence
+
+| # | Task | Completion Evidence |
+|---|------|-------------------|
+| T1 | **Fix 2: Create `redis_keys.py`** — single source of truth for Redis prefixes | File exists at `src/agents/redis_keys.py` with all 4 prefixes + helper functions. Import succeeds. |
+| T2 | **Fix 2: Update `checkpointer.py`** to import keys from `redis_keys.py` | No hardcoded `"checkpoint:"` or `"writes:"` strings remain in `checkpointer.py`. Tests pass. |
+| T3 | **Deploy `react_engine.py`** to `src/agents/react_engine.py` | File exists, imports resolve (depends on T1), unit test of loop mechanics passes. |
+| T4 | **Deploy `react_tools.py`** to `src/agents/react_tools.py` (fix signature issues) | File exists, imports resolve, unit test passes. |
+| T5 | **Fix `evidence_collection_agent.py`** — fix `_llm_call` return type bug, deploy to `src/agents/` | `_llm_call` extracts `.content` from response. File at `src/agents/evidence_collection_agent.py`. Unit test passes. |
+| T6 | **Fix 1: Partition key generalization** — update existing `agent.py` and `kafka_publisher.py` | `_partition_key()` handles both resolved and unresolved entities. `ValueError` fires only on mixed partition keys. Test with unresolved entities passes. |
+| T7 | **Deploy `dead_end_detector.py`** to `src/agents/dead_end_detector.py` | File exists, imports resolve (depends on T1). Unit test passes. |
+| T8 | **Fix 4: Add `test_control` field to `OCSFBaseEvent`** | Field exists in `ocsf_base.py` as `dict | None = None`. Existing tests still pass. |
+| T9 | **Fix 5: UID scheme integration** — add `generate_entity_uid()` to `uid_generator.py` | Function exists, uses `resolved_entity.canonical_host_id` as `device_id`. Unit test passes. |
+| T10 | **Fix 6: Kafka topic retention in `docker-compose.yml`** | `retention.ms=604800000` set on relevant topics. YAML parses correctly. |
+| T11 | **Fix 7: Test-only `cases.opened` publisher** | File at `tests/helpers/test_case_publisher.py`. Marked TEST-ONLY in docstring. |
+| T12 | **Fix 3: Binary-native security gate test fixture** | Fixture file + test assertion exist. Test passes. |
+| T13 | **Run full test suite** | All tests pass (`pytest` exit code 0). |
+
+---
+
+## Proposed Changes
+
+### Redis Keys Module (Fix 2) — Foundation dependency for T3, T7
+
+#### [NEW] [redis_keys.py](file:///c:/PS/Specula-Development/src/agents/redis_keys.py)
+Single source of truth for all Redis key prefixes: `CHECKPOINT_PREFIX`, `WRITES_PREFIX`, `ACTIVE_CASE_PREFIX`, `SCRATCHPAD_PREFIX`, plus helper functions `checkpoint_key()`, `active_case_key()`.
+
+#### [MODIFY] [checkpointer.py](file:///c:/PS/Specula-Development/src/agents/checkpointer.py)
+Replace hardcoded `"checkpoint:"` and `"writes:"` strings with imports from `redis_keys.py`.
+
+---
+
+### ReAct Engine & Tools (T3, T4)
+
+#### [NEW] [react_engine.py](file:///c:/PS/Specula-Development/src/agents/react_engine.py)
+Deploy from `files/react_engine.py` as-is (depends on `redis_keys.py` from T1).
+
+#### [NEW] [react_tools.py](file:///c:/PS/Specula-Development/src/agents/react_tools.py)
+Deploy from `files/react_tools.py` as-is.
+
+---
+
+### Evidence Collection Agent (T5, T6)
+
+#### [NEW] [evidence_collection_agent.py](file:///c:/PS/Specula-Development/src/agents/evidence_collection_agent.py)
+Deploy from `files/evidence_collection_agent.py` with critical fix: `_llm_call` must extract `.content` from the StubLLM response object.
+
+#### [MODIFY] [agent.py](file:///c:/PS/Specula-Development/src/agents/evidence_collection/agent.py)
+Replace single-host constraint with partition-key generalization per Fix 1.
+
+#### [MODIFY] [kafka_publisher.py](file:///c:/PS/Specula-Development/src/agents/evidence_collection/kafka_publisher.py)
+Update partition key computation to use `_partition_key()` instead of requiring `canonical_host_id`.
+
+---
+
+### Dead-End Detector (T7)
+
+#### [NEW] [dead_end_detector.py](file:///c:/PS/Specula-Development/src/agents/dead_end_detector.py)
+Deploy from `files/dead_end_detector.py` as-is (depends on `redis_keys.py` from T1).
+
+---
+
+### Schema Fixes (T8, T9)
+
+#### [MODIFY] [ocsf_base.py](file:///c:/PS/Specula-Development/src/schemas/ocsf_base.py)
+Add `test_control: dict | None = Field(default=None, ...)` per Fix 4.
+
+#### [MODIFY] [uid_generator.py](file:///c:/PS/Specula-Development/src/schemas/uid_generator.py)
+Add `generate_entity_uid()` function per Fix 5.
+
+---
+
+### Infrastructure (T10)
+
+#### [MODIFY] [docker-compose.yml](file:///c:/PS/Specula-Development/docker-compose.yml)
+Add Kafka topic retention configuration for `findings.*`, `dfkg.*`, `cases.opened`.
+
+---
+
+### Test Helpers & Fixtures (T11, T12)
+
+#### [NEW] [test_case_publisher.py](file:///c:/PS/Specula-Development/tests/helpers/test_case_publisher.py)
+Test-only `cases.opened` publisher per Fix 7.
+
+#### [NEW] [injection_in_filename.bin](file:///c:/PS/Specula-Development/tests/fixtures/ntfs/injection_in_filename.bin)
+Synthetic `$MFT` record with prompt injection in filename per Fix 3.
+
+#### [NEW] [test_security_gate_binary.py](file:///c:/PS/Specula-Development/tests/test_security_gate_binary.py)
+Test asserting structural extraction before Rebuff heuristic layer.
+
+---
+
+### Comprehensive Tests (T13)
+
+#### [NEW] [test_current_phase_fixes.py](file:///c:/PS/Specula-Development/tests/test_current_phase_fixes.py)
+Tests for all 7 fixes: partition keys, redis key isolation, binary gate, test_control, UID integration, and test publisher.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+```bash
+# Run all non-integration tests
+python -m pytest tests/ -v -m "not integration" --tb=short
+
+# Run only the new fix tests  
+python -m pytest tests/test_current_phase_fixes.py -v --tb=short
+```
+
+### Manual Verification
+- Verify `docker-compose.yml` parses correctly
+- Verify no hardcoded Redis prefixes remain outside `redis_keys.py`
+- Verify `_llm_call` bug is fixed (extract `.content`)

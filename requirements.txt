@@ -23,6 +23,7 @@ python-dateutil>=2.8.2
 
 # Testing framework
 pytest>=7.0.0
+pytest-asyncio>=0.21.0
 
 # Stubbed dependencies (uncomment when fully implementing)
 # qdrant-client>=1.7.0

@@ -64,6 +64,13 @@ def normalize_mft_record(
     if raw_fn_created:
         fn_dt, _, _ = time_normalizer.normalize(raw_fn_created)
         
+    raw_reason = raw_parsed_record.get("UsnReasonCode", None)
+    if isinstance(raw_reason, str):
+        try:
+            raw_reason = int(raw_reason)
+        except ValueError:
+            raw_reason = None
+
     # --- 4. OCSF Construction ---
     return FileActivity(
         trace_id=trace_id,
@@ -80,6 +87,6 @@ def normalize_mft_record(
         # NTFS Timestomping required fields
         si_created=si_dt,
         fn_created=fn_dt,
-        usn_reason_code=raw_parsed_record.get("UsnReasonCode", None),
+        usn_reason_code=raw_reason,
         timestamp_precision_bitmask=raw_parsed_record.get("TimestampPrecision", None),
     )
