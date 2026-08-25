@@ -10,6 +10,7 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+.pytest-tmp*/
 .vscode/
 .idea/
 .gemini/

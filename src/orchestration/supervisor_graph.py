@@ -6,8 +6,15 @@ from src.agents.supervisor_agent import (
     dispatch_specialist_tier,
     dispatch_synthesis,
     handoff_to_debate,
-    hitl_feedback_loop
+    hitl_feedback_loop,
+    route_nl_query
 )
+
+def _start_router(state: SupervisorState):
+    if state.get("nl_query"):
+        return "route_nl_query"
+    return "dispatch_primary_tier"
+
 
 def _dead_end_router(state: SupervisorState):
     if state.get("dead_end_detected"):
@@ -36,6 +43,7 @@ def build_supervisor_graph():
     
     # Add nodes
     builder.add_node("dispatch_primary_tier", dispatch_primary_tier)
+    builder.add_node("route_nl_query", route_nl_query)
     builder.add_node("evaluate_dead_end", evaluate_dead_end)
     builder.add_node("dispatch_specialist_tier", dispatch_specialist_tier)
     builder.add_node("dispatch_synthesis", dispatch_synthesis)
@@ -43,8 +51,18 @@ def build_supervisor_graph():
     builder.add_node("hitl_feedback_loop", hitl_feedback_loop)
     
     # Edges
-    builder.add_edge(START, "dispatch_primary_tier")
+    builder.add_conditional_edges(
+        START,
+        _start_router,
+        {
+            "route_nl_query": "route_nl_query",
+            "dispatch_primary_tier": "dispatch_primary_tier"
+        }
+    )
+    
+    builder.add_edge("route_nl_query", "dispatch_synthesis")
     builder.add_edge("dispatch_primary_tier", "evaluate_dead_end")
+
     
     builder.add_conditional_edges(
         "evaluate_dead_end",

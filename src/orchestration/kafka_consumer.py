@@ -36,7 +36,11 @@ class SupervisorKafkaConsumer:
                         elif flag.startswith('FORCE_GUARDRAIL_FAIL_TIER:'):
                             tier = flag.split(':')[1]
                             control_flags['FORCE_GUARDRAIL_FAIL_TIER'] = tier
+                        elif flag.startswith('DEPLOYED_MODEL_TIER:'):
+                            tier = flag.split(':')[1]
+                            control_flags['DEPLOYED_MODEL_TIER'] = tier
                 except Exception as e:
+
                     logger.error(f"Error parsing test_control header: {e}")
         return control_flags
 
@@ -62,6 +66,7 @@ class SupervisorKafkaConsumer:
                     case_id = payload.get('case_id')
                     trace_id = payload.get('trace_id')
                     dfkg_uri = payload.get('dfkg_uri')
+                    nl_query = payload.get('query')
                     
                     if not case_id or not trace_id or not dfkg_uri:
                         logger.warning(f"Invalid payload format, missing required fields: {payload}")
@@ -84,8 +89,12 @@ class SupervisorKafkaConsumer:
                         "completed_agents": [],
                         "dead_end_detected": False,
                         "hitl_attempt_count": 0,
-                        "terminal_state": ""
+                        "terminal_state": "",
+                        "nl_query": nl_query,
+                        "query_routing_decision": None,
+                        "degraded_capability_mode": False
                     }
+
 
                     # Invoke Graph
                     logger.info(f"Invoking Supervisor Graph for case {case_id}")

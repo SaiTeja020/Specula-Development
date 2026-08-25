@@ -10,13 +10,15 @@ def init_state(**kwargs):
     s.update(kwargs)
     return s
 
-def test_tr_ta_wait_condition_is_enforced_not_advisory():
+@pytest.mark.asyncio
+async def test_tr_ta_wait_condition_is_enforced_not_advisory():
     """Regression Guard: Ensure synthesis dispatch physically raises NotReadyError if agents are running, not just logging a warning."""
     state = init_state(dispatched_agents=["a1", "a2"], completed_agents=["a1"])
     with pytest.raises(NotReadyError):
-        dispatch_synthesis(state)
+        await dispatch_synthesis(state)
 
-def test_hitl_cycle_cap_is_enforced_not_advisory():
+@pytest.mark.asyncio
+async def test_hitl_cycle_cap_is_enforced_not_advisory():
     """Regression Guard: Ensure HITL cycle cap of 3 strictly transitions state to MANUAL_OVERRIDE_REQUIRED without exception."""
     state = init_state(hitl_attempt_count=2)
     result = hitl_feedback_loop(state)
