@@ -22,8 +22,11 @@ def dispatch_primary_tier(state: SupervisorState) -> SupervisorState:
     """Dispatches Evidence Collection, Log Analysis, and Network Forensics agents."""
     state['active_tier'] = 'PRIMARY'
     state['dispatched_agents'] = ['evidence_collection', 'log_analysis', 'network_forensics']
-    state['completed_agents'] = []
-    
+    # BUG-4 FIX: Skeleton stubs complete synchronously. Mark all dispatched agents as
+    # completed immediately so dispatch_synthesis readiness check passes in graph flow.
+    # In the real system, completed_agents is populated by agent callback messages.
+    state['completed_agents'] = list(state['dispatched_agents'])
+
     # Simulate execution where one agent times out if configured in control flags
     if state.get("control_flags", {}).get("PRIMARY_TIMEOUT"):
         # For testing, represent timeout in state or return partial
@@ -48,7 +51,8 @@ def dispatch_specialist_tier(state: SupervisorState) -> SupervisorState:
     """Dispatches Memory, Identity, Malware, and Insider Threat agents."""
     state['active_tier'] = 'SPECIALIST'
     state['dispatched_agents'] = ['memory_forensics', 'identity_cloud', 'malware_stylometry', 'insider_threat']
-    state['completed_agents'] = []
+    # BUG-4 FIX: Same as primary — skeleton stubs complete immediately.
+    state['completed_agents'] = list(state['dispatched_agents'])
     return state
 
 
@@ -67,27 +71,54 @@ def dispatch_synthesis(state: SupervisorState) -> SupervisorState:
 
 
 def handoff_to_debate(state: SupervisorState) -> SupervisorState:
-    """Transitions control to the ACH Debate Tier."""
-    state['active_tier'] = 'DEBATE'
-    state['dispatched_agents'] = ['proponent', 'critic', 'judge']
-    state['completed_agents'] = []
+    """Transitions control to the ACH Debate Tier.
+
+    Routing priority (highest to lowest):
+      1. HITL safety thresholds (confidence, containment, blast radius) — always escalate.
+      2. Debate non-convergence after max rounds — escalate to human.
+      3. Debate converged (low delta, past round 0) — resolve autonomously.
+      4. Default — debate is starting or ongoing, continue.
+
+    BUG-2 FIX: debate_state (uid refs) is always prepared for the Blackboard pattern, but
+    dispatched_agents is only set to debate agents when we are actually entering the DEBATE
+    tier. On HITL paths, those agents were never dispatched and must not appear in state.
+    """
+    # Always prepare the debate payload — uid-only references per ADR-001 Blackboard pattern.
     state['debate_state'] = {"proponent_argument_ref": "uid_prop", "critic_argument_ref": "uid_crit"}
 
-    # Simulate debate loop
     round_num = state.get("debate_round", 0)
     confidence_delta = state.get("confidence_delta", 1.0)
-    
-    if round_num >= 3 and confidence_delta > 0.05:
+
+    # --- Priority 1: Safety thresholds always require human oversight (intentional design). ---
+    hitl_threshold_triggered = (
+        state.get("confidence", 1.0) < 0.7
+        or state.get("containment_proposed")
+        or state.get("blast_radius", 0) > 100
+    )
+
+    if hitl_threshold_triggered:
+        # Intentional: human must review high-risk or low-confidence outcomes.
         state['active_tier'] = 'HITL'
         state['hitl_payload'] = {"trace_id": state.get("trace_id")}
-    else:
+        # Do NOT set dispatched_agents to debate agents — they were never sent out.
+
+    elif round_num >= 3 and confidence_delta > 0.05:
+        # --- Priority 2: Debate did not converge after max rounds — escalate. ---
+        state['active_tier'] = 'HITL'
+        state['hitl_payload'] = {"trace_id": state.get("trace_id")}
+
+    elif round_num > 0 and confidence_delta <= 0.05:
+        # --- Priority 3: Debate converged, resolve autonomously. ---
         state['active_tier'] = 'RESOLVED'
-        
-    # Check HITL thresholds directly
-    if state.get("confidence", 1.0) < 0.7 or state.get("containment_proposed") or state.get("blast_radius", 0) > 100:
-        state['active_tier'] = 'HITL'
-        state['hitl_payload'] = {"trace_id": state.get("trace_id")}
-        
+        state['dispatched_agents'] = ['proponent', 'critic', 'judge']
+        state['completed_agents'] = []
+
+    else:
+        # --- Priority 4: Debate is starting or mid-flight, continue. ---
+        state['active_tier'] = 'DEBATE'
+        state['dispatched_agents'] = ['proponent', 'critic', 'judge']
+        state['completed_agents'] = []
+
     return state
 
 

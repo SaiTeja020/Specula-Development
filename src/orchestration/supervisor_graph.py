@@ -15,9 +15,16 @@ def _dead_end_router(state: SupervisorState):
     return "dispatch_synthesis"
 
 def _hitl_router(state: SupervisorState):
+    """Routes after human-in-the-loop feedback.
+
+    BUG-3 FIX: The previous fallback returned 'dispatch_synthesis', which caused an immediate
+    NotReadyError crash because dispatched_agents contained debate agents while completed_agents
+    was empty. The correct retry target is handoff_to_debate — re-enter the debate with the
+    human's updated context until either APPROVE or MANUAL_OVERRIDE_REQUIRED is reached.
+    """
     if state.get("terminal_state") in ["MANUAL_OVERRIDE_REQUIRED", "RESOLVED"]:
         return END
-    return "dispatch_synthesis"
+    return "handoff_to_debate"
 
 def _debate_router(state: SupervisorState):
     if state.get("active_tier") == "HITL":
@@ -65,7 +72,7 @@ def build_supervisor_graph():
         _hitl_router,
         {
             END: END,
-            "dispatch_synthesis": "dispatch_synthesis"
+            "handoff_to_debate": "handoff_to_debate"  # BUG-3 FIX: retry via debate, not synthesis
         }
     )
     
