@@ -2,10 +2,43 @@
 
 Keys match Master_doc §2.5 role names. Every role points at one cheap model
 for now; swapping to real per-agent matrix later is a config change only.
+
+Environment variables are loaded from a .env file discovered by walking up
+from this file's location to the repository root. No hardcoded user paths.
 """
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Portable .env discovery
+# Walks up from this file's directory until it finds a .env file or hits
+# the filesystem root. Silently skips if .env does not exist (safe for CI).
+# ---------------------------------------------------------------------------
+
+def _find_dotenv() -> Path | None:
+    """Return the first .env file found by walking up from this file."""
+    current = Path(__file__).resolve().parent
+    for parent in [current, *current.parents]:
+        candidate = parent / ".env"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _load_env() -> None:
+    """Load .env into os.environ. No-op if file is absent or dotenv not installed."""
+    try:
+        from dotenv import load_dotenv  # type: ignore[import-untyped]
+        dotenv_path = _find_dotenv()
+        if dotenv_path:
+            load_dotenv(dotenv_path, override=False)
+    except ImportError:
+        pass  # python-dotenv not installed; rely on shell environment
+
+
+_load_env()
 
 
 # ---------------------------------------------------------------------------
@@ -225,9 +258,9 @@ def _get_gemini_model() -> str:
 
     D3: Called only once; subsequent calls return the cached result so model
     name cannot drift mid-investigation and the API is not re-hit per agent.
-    D2: Portable — uses standard dotenv auto-discovery (searches CWD upward)
-    instead of a hardcoded Windows path.
-    Falls back to a standard default if the query fails.
+    Reads GEMINI_API_KEY from os.environ (already populated by _load_env() at
+    module import — no repeated dotenv calls inside this function).
+    Falls back to gemini-2.5-flash if the key is absent or the API is unreachable.
     """
     global _RESOLVED_GEMINI_MODEL
     if _RESOLVED_GEMINI_MODEL is not None:
@@ -236,16 +269,10 @@ def _get_gemini_model() -> str:
     import json
     import urllib.request
 
-    # D2: auto-discovery from CWD upward — no hardcoded path
-    try:
-        from dotenv import load_dotenv as _ld
-        _ld()  # finds .env searching upward from CWD, silent if not found
-    except ImportError:
-        pass
-
+    # _load_env() already populated os.environ at module import — read directly.
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"
+        _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"  # D3: cache the default too
         return _RESOLVED_GEMINI_MODEL
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
@@ -259,7 +286,7 @@ def _get_gemini_model() -> str:
             if lite_models:
                 chosen = lite_models[-1]
                 _RESOLVED_GEMINI_MODEL = chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
-                return _RESOLVED_GEMINI_MODEL
+                return _RESOLVED_GEMINI_MODEL  # D3: cache on every successful resolution
             flash_models = [n for n in names if "gemini" in n.lower() and "flash" in n.lower()]
             if flash_models:
                 chosen = flash_models[-1]
@@ -279,19 +306,15 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
       stub   — deterministic, no API key (default)
       gemini — langchain_google_genai.ChatGoogleGenerativeAI
 
-    D2: dotenv loaded via auto-discovery (no hardcoded path).
+    Environment is loaded once at module import via _load_env() — no repeated
+    dotenv calls here. Set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
     D4: case_id passed through to StubLLM so report stubs can fill {case_id}
         without regex-extracting it back out of the formatted prompt.
     """
     backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
 
     if backend == "gemini":
-        # D2: auto-discovery — load_dotenv() searches CWD upward, silent if absent
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-        except ImportError:
-            pass
+        # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
         if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
             os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
 
