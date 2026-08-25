@@ -202,3 +202,4 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-21 | `TASK-4.7` | Created `supervisor_agent.py`, `supervisor_graph.py`, and `kafka_consumer.py` per build spec | 2/2 Passed (`tests/orchestration/test_supervisor.py`) |
 | 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
 | 2026-08-21 | Ingestion Fix | Fixed MFT USN casting crash & heuristic timestamp bug; refactored container extraction to pull from live Docker endpoints | 212/212 Nodes Written |
+| 2026-08-22 | `TASK-6.1` Log Analysis Agent | Built `src/agents/log_analysis/` package: config, signatures YAML, finding_builder, detection_rules, anomaly_detector, dedup, llm_reasoner, agent. Added RBAC grant in vector_retrieval.py. | 71/71 Passed (`tests/agents/log_analysis/`) |

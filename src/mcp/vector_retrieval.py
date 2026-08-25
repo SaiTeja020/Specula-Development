@@ -30,6 +30,9 @@ READ_ONLY_EVENT_ROLES = {
     "Report-Agent",
     "System",
     "TestRunner",
+    # [RESOLVED item #44] Log-Analysis-Agent: event-level read + retrieve_similar_events only.
+    # NOT granted case-level read (READ_ONLY_CASE_ROLES) or any write permission.
+    "Log-Analysis-Agent",
 }
 
 READ_ONLY_CASE_ROLES = {
