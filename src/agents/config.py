@@ -2,10 +2,43 @@
 
 Keys match Master_doc §2.5 role names. Every role points at one cheap model
 for now; swapping to real per-agent matrix later is a config change only.
+
+Environment variables are loaded from a .env file discovered by walking up
+from this file's location to the repository root. No hardcoded user paths.
 """
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Portable .env discovery
+# Walks up from this file's directory until it finds a .env file or hits
+# the filesystem root. Silently skips if .env does not exist (safe for CI).
+# ---------------------------------------------------------------------------
+
+def _find_dotenv() -> Path | None:
+    """Return the first .env file found by walking up from this file."""
+    current = Path(__file__).resolve().parent
+    for parent in [current, *current.parents]:
+        candidate = parent / ".env"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _load_env() -> None:
+    """Load .env into os.environ. No-op if file is absent or dotenv not installed."""
+    try:
+        from dotenv import load_dotenv  # type: ignore[import-untyped]
+        dotenv_path = _find_dotenv()
+        if dotenv_path:
+            load_dotenv(dotenv_path, override=False)
+    except ImportError:
+        pass  # python-dotenv not installed; rely on shell environment
+
+
+_load_env()
 
 
 # ---------------------------------------------------------------------------
@@ -221,33 +254,15 @@ class StubLLM:
 def _get_gemini_model() -> str:
     """Check available Gemini models and choose a flash or flash-lite model.
 
-    Falls back to a standard default if query fails.
+    Reads GEMINI_API_KEY from os.environ (already populated by _load_env()).
+    Falls back to gemini-2.5-flash if the key is absent or the API is unreachable.
     """
     import json
     import urllib.request
 
-    # Check environment variable
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        # Try loading .env manually
-        project_env = r"c:\Users\S Srirama Mithilesh\Specula\Specula-Development\.env"
-        if os.path.exists(project_env):
-            try:
-                with open(project_env, "r") as f:
-                    for line in f:
-                        if line.strip().startswith("GEMINI_API_KEY"):
-                            parts = line.split("=", 1)
-                            if len(parts) == 2:
-                                val = parts[1].strip()
-                                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                                    val = val[1:-1]
-                                api_key = val
-                                break
-            except Exception:
-                pass
-
-    if not api_key:
-        return "gemini-2.5-flash"  # Reasonable default
+        return "gemini-2.5-flash"  # No key — return safe default
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
     try:
@@ -258,10 +273,8 @@ def _get_gemini_model() -> str:
             # Prioritise flash-lite models, then normal flash
             lite_models = [n for n in names if "gemini" in n.lower() and "flash-lite" in n.lower()]
             if lite_models:
-                # Strip models/ prefix if present
                 chosen = lite_models[-1]
                 return chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
-            
             flash_models = [n for n in names if "gemini" in n.lower() and "flash" in n.lower()]
             if flash_models:
                 chosen = flash_models[-1]
@@ -278,16 +291,17 @@ def get_llm(agent_role: str):
     Backends:
       stub   — deterministic, no API key (default)
       gemini — langchain_google_genai.ChatGoogleGenerativeAI
+
+    Environment is loaded once at module import via _load_env().
+    No hardcoded paths — set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
     """
     backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
 
     if backend == "gemini":
-        from dotenv import load_dotenv
-        # Ensure env is loaded
-        load_dotenv(r"c:\Users\S Srirama Mithilesh\Specula\Specula-Development\.env")
+        # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
         if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
             os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
-            
+
         from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
         model_name = _get_gemini_model()
         return ChatGoogleGenerativeAI(model=model_name, temperature=0)
