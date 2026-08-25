@@ -1,4 +1,4 @@
-﻿"""
+"""
 Pydantic v2 metadata schema for FAISS threat-intel corpus records.
 
 Deliberately parallel to -- but distinct from -- vector_metadata.py.

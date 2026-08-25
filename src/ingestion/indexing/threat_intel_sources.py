@@ -1,4 +1,4 @@
-﻿"""
+"""
 Threat-Intel Source Fetchers: MITRE ATT&CK STIX + NVD CVE.
 
 Downloads, parses, and normalises external threat-intelligence feeds into a
