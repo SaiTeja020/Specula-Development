@@ -135,7 +135,7 @@ def run_pipeline_on_event(
 
     if gate_result.injection_blocked:
         logger.warning(f"Event blocked by Security Gate — injection detected (trace={trace_id})")
-        return None, None
+        return None, None, None  # BUG-E FIX: caller unpacks 3 values (validated_evt, cypher_query, neo4j_result)
 
     sanitized_msg = gate_result.sanitized_fields[0] if gate_result.sanitized_fields else ""
     has_homoglyphs = False  # Homoglyph flag is on the SanitizerResult, not needed here
