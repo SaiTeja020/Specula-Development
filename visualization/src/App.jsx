@@ -113,13 +113,13 @@ function SpeculaNode({ data }) {
   );
 }
 
+const nodeTypes = { specula: SpeculaNode };
+
 export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [caseStatus, setCaseStatus] = useState('Idle');
   const [logs, setLogs] = useState([]);
-
-  const nodeTypes = useMemo(() => ({ specula: SpeculaNode }), []);
 
   // Fetch initial topology and calculate positions once
   useEffect(() => {

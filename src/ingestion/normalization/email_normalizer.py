@@ -44,7 +44,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
             uid=uid,
             sender=raw_payload.get("sender"),
             recipients=raw_payload.get("recipients") if isinstance(raw_payload.get("recipients"), list) else [raw_payload.get("recipient")] if raw_payload.get("recipient") else None,
-            subject=sanitized_subject,
+            subject=sanitized_subject if sanitized_subject else None,
             message_id=raw_payload.get("message_id"),
             attachments=raw_payload.get("attachments"),
             canonical_host_id=raw_payload.get("canonical_host_id"),

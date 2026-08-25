@@ -1,4 +1,4 @@
-﻿"""
+"""
 FAISS IndexIVFPQ Threat-Intel Corpus Index.
 
 Loads, queries, and hot-reloads the pre-built FAISS index for ATT&CK
@@ -153,7 +153,8 @@ class ThreatIntelIndex:
             fetch_k = top_k * 3 if record_type else top_k
 
             eff_nprobe = nprobe if nprobe is not None else self.default_nprobe
-            self._faiss_index.nprobe = eff_nprobe
+            if hasattr(self._faiss_index, "nprobe"):
+                self._faiss_index.nprobe = eff_nprobe
 
             distances, indices = self._faiss_index.search(query_vec, fetch_k)
 

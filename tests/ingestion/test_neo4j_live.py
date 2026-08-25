@@ -217,7 +217,7 @@ class TestNeo4jLiveIntegration:
         }
 
         # Must not raise — Neo4j write failure is non-fatal
-        validated_evt, cypher_query, neo4j_result = run_pipeline_on_event(
+        results = run_pipeline_on_event(
             raw_event,
             VCTAtomicChain(),
             CanonicalEntityResolver(),
@@ -226,6 +226,7 @@ class TestNeo4jLiveIntegration:
             source_type="evtx",
             neo4j_client=AlwaysFailingClient(),
         )
+        validated_evt, cypher_query, neo4j_result = results[0]
 
         assert validated_evt is not None
         assert neo4j_result is None  # write failed, result is None — pipeline continued

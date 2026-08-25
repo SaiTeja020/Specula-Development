@@ -48,7 +48,8 @@ def _normalize_floats(obj: Any) -> Any:
     serialization. Leaves all other types untouched.
     """
     if isinstance(obj, float):
-        return round(obj, 6)
+        # Convert to fixed formatting string and back to float to guarantee standard decimal representation
+        return float(f"{obj:.6f}")
     if isinstance(obj, dict):
         return {k: _normalize_floats(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
@@ -83,6 +84,7 @@ def generate_deterministic_uid(domain: str, attributes: dict) -> str:
         dict insertion order MUST produce the identical uid.
     """
     # sorted() on items() ensures insertion-order independence.
-    canonical_attrs = _canonical_json(dict(sorted(attributes.items())))
+    # Pass the list of tuples to _canonical_json to avoid intermediate dict serialization issues.
+    canonical_attrs = _canonical_json(sorted(attributes.items()))
     payload = f"{domain}|{canonical_attrs}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()

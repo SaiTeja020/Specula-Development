@@ -12,7 +12,7 @@ All models inherit from OCSFBaseEvent (ocsf_base.py).
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from src.schemas.ocsf_base import OCSFBaseEvent
 from src.schemas.ocsf_phase2_events import DetectionFindingEvent  # Reused for UEBA anomaly flags
@@ -34,6 +34,16 @@ class VulnerabilityFindingEvent(OCSFBaseEvent):
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
 
 
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
+
 class HTTPActivityEvent(OCSFBaseEvent):
     """
     OCSF HTTP Activity event (class_uid 4002, category_uid 4).
@@ -48,6 +58,16 @@ class HTTPActivityEvent(OCSFBaseEvent):
     referrer: Optional[str] = Field(default=None, description="Referrer URL.")
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
 
+
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
 
 class DeviceInventoryInfoEvent(OCSFBaseEvent):
     """
@@ -65,3 +85,13 @@ class DeviceInventoryInfoEvent(OCSFBaseEvent):
     account_id: Optional[str] = Field(default=None, description="Cloud account ID.")
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Raw inventory attributes.")
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
+
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v

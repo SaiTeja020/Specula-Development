@@ -39,6 +39,12 @@ active_connections: set[WebSocket] = set()
 checkpointer = InMemorySaver()
 specula_graph = build_graph(checkpointer=checkpointer)
 
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    """Health check endpoint to verify API is active."""
+    return {"status": "ok"}
+
+
 @app.get("/api/graph/topology")
 async def get_topology() -> dict[str, Any]:
     """Extract and return the graph's nodes and edges in a format suitable for React Flow."""

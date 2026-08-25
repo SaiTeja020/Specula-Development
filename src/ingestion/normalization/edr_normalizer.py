@@ -17,10 +17,11 @@ from src.schemas.ocsf_phase2_events import (
     NetworkActivityEvent,
     ProcessActivityEvent,
 )
+from src.schemas.entity_resolver import CanonicalEntityResolver
 from src.schemas.uid_generator import generate_deterministic_uid
 
 
-def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[OCSFBaseEvent]:
+def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str, entity_resolver: CanonicalEntityResolver) -> List[OCSFBaseEvent]:
     """
     Normalize raw EDR JSON payload into concrete OCSF Phase 2 events.
     """
@@ -37,11 +38,22 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
 
     event_type = str(raw_payload.get("event_type", "")).lower()
     
+    # Try to resolve IP to host
+    host_name_raw = raw_payload.get("host_name") or "LOCAL_HOST"
+    ip = raw_payload.get("src_ip")
+    try:
+        # Prioritize IP resolution via DHCP mapping if present
+        canonical_host_id = entity_resolver.resolve_any(ip=ip, hostname=host_name_raw, event_timestamp=utc_time)
+        if not canonical_host_id:
+            canonical_host_id = f"host-{host_name_raw}"
+    except Exception:
+        canonical_host_id = f"host-{host_name_raw}"
+    
     # Generate deterministic UID for EDR event
     uid_attrs = {
         "event_type": event_type,
         "timestamp": raw_timestamp,
-        "host": raw_payload.get("host_name"),
+        "host": canonical_host_id,
         "raw_payload": raw_payload,
     }
     uid = generate_deterministic_uid("edr", uid_attrs)
@@ -49,6 +61,25 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
     # 1. Branch by main sub-event type
     if event_type in ("process_create", "process_terminate", "process_exec"):
         sanitized_cmd, _ = sanitize_text(raw_payload.get("command_line", ""))
+        
+        proc_pid = int(raw_payload.get("process_pid", 0))
+        proc_name = raw_payload.get("process_name", "unknown")
+        
+        parent_proc_pid = int(raw_payload.get("parent_process_pid") or 0)
+        parent_proc_name = raw_payload.get("parent_process_name")
+        
+        proc_uid = generate_deterministic_uid("process", {
+            "process_name": proc_name,
+            "pid": proc_pid,
+            "host_id": canonical_host_id
+        })
+        
+        parent_proc_uid = generate_deterministic_uid("process", {
+            "process_name": parent_proc_name or "unknown",
+            "pid": parent_proc_pid,
+            "host_id": canonical_host_id
+        })
+        
         events.append(
             ProcessActivityEvent(
                 case_id=case_id,
@@ -59,16 +90,17 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 raw_source_timestamp=raw_timestamp,
                 clock_skew_offset_ms=skew_ms,
                 clock_skew_unverified=unverified,
-                uid=uid,
-                process_name=raw_payload.get("process_name", "unknown"),
-                process_pid=int(raw_payload.get("process_pid", 0)),
-                parent_process_name=raw_payload.get("parent_process_name"),
-                parent_process_pid=raw_payload.get("parent_process_pid"),
-                command_line=sanitized_cmd,
-                file_path=raw_payload.get("file_path"),
-                user_name=raw_payload.get("user_name"),
-                host_name=raw_payload.get("host_name"),
-                canonical_host_id=raw_payload.get("canonical_host_id"),
+                uid=proc_uid,
+                process_name=proc_name,
+                process_pid=proc_pid,
+                parent_process_name=parent_proc_name,
+                parent_process_pid=parent_proc_pid,
+                parent_process_uid=parent_proc_uid,
+                command_line=sanitized_cmd if sanitized_cmd else None,
+                file_path=raw_payload.get("file_path") if raw_payload.get("file_path") else None,
+                user_name=raw_payload.get("user_name") if raw_payload.get("user_name") else None,
+                host_name=host_name_raw,
+                canonical_host_id=canonical_host_id,
             )
         )
     elif event_type in ("file_write", "file_delete", "file_modify"):
@@ -87,7 +119,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 file_path=raw_payload.get("file_path"),
                 file_hash_sha256=raw_payload.get("file_hash_sha256"),
                 user_name=raw_payload.get("user_name"),
-                canonical_host_id=raw_payload.get("canonical_host_id"),
+                canonical_host_id=canonical_host_id,
             )
         )
     elif event_type in ("network_connection", "net_conn"):
@@ -107,7 +139,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 src_port=raw_payload.get("src_port"),
                 dst_port=raw_payload.get("dst_port"),
                 protocol=raw_payload.get("protocol"),
-                canonical_host_id=raw_payload.get("canonical_host_id"),
+                canonical_host_id=canonical_host_id,
             )
         )
     elif event_type in ("logon", "logoff"):
@@ -126,7 +158,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 auth_protocol=raw_payload.get("auth_protocol"),
                 src_ip=raw_payload.get("src_ip"),
                 status=raw_payload.get("status", "Success"),
-                canonical_host_id=raw_payload.get("canonical_host_id"),
+                canonical_host_id=canonical_host_id,
             )
         )
 
@@ -147,7 +179,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 finding_title=raw_payload.get("alert_title") or raw_payload.get("title") or "EDR Alert",
                 analytic_name=raw_payload.get("rule_name"),
                 confidence=str(raw_payload.get("confidence", "High")),
-                canonical_host_id=raw_payload.get("canonical_host_id"),
+                canonical_host_id=canonical_host_id,
                 details=raw_payload.get("details"),
             )
         )

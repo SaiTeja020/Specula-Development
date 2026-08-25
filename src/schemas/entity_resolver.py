@@ -174,7 +174,11 @@ class CanonicalEntityResolver:
                     "time-bounded DHCP lookup requires a timestamp.",
                     ip,
                 )
-                return None
-            return self.resolve_ip(ip, event_timestamp)
+            else:
+                result = self.resolve_ip(ip, event_timestamp)
+                if result:
+                    return result
 
+        if hostname:
+            return f"host-{hostname.strip().upper()}"
         return None

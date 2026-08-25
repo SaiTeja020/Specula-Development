@@ -30,9 +30,20 @@ from src.ingestion.preservation.quickwit_client import QuickwitClient, QuickwitC
 from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.security_gate.pipeline import run_security_gate
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
-from src.ingestion.normalization.evtx_normalizer import normalize_evtx_process_creation
+from src.ingestion.normalization.evtx_normalizer import (
+    normalize_evtx_process_creation, normalize_evtx_auth,
+    normalize_evtx_network, normalize_evtx_file_access,
+    normalize_evtx_defense_evasion, normalize_evtx_detection_finding
+)
+from src.ingestion.normalization.mft_usn_normalizer import normalize_mft_record
+from src.ingestion.normalization.cloud_normalizer import normalize_cloudtrail
 from src.ingestion.validation.validator import validate_event
-from src.schemas.ocsf_events import ProcessActivity
+from src.schemas.ocsf_events import ProcessActivity, GenericEvent, FileActivity, CloudAudit
+from src.ingestion.normalization.edr_normalizer import normalize as normalize_edr
+from src.ingestion.normalization.malware_normalizer import normalize as normalize_malware
+from src.ingestion.normalization.memory_dump_normalizer import normalize as normalize_memory
+from src.ingestion.normalization.ueba_browser_normalizer import normalize as normalize_ueba
+from src.ingestion.normalization.vuln_scan_normalizer import normalize as normalize_vuln
 from src.graph.cypher_builder import CypherBuilder
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -66,19 +77,31 @@ _SOURCE_TYPE_MAP: dict[str, str] = {
     "Microsoft-Windows-Sysmon/Operational": "evtx",
     "NTFS_MFT_Sample": "mft",
     "CloudTrail_Sample": "cloudtrail",
+    "EDR_Telemetry": "edr",
+    "Malware_Sandbox": "malware",
+    "Memory_Dump": "memory",
+    "UEBA_Browser": "ueba",
+    "Vulnerability_Scan": "vuln_scan"
 }
 
 
-def extract_windows_events(log_name: str, max_events: int = 50) -> list[dict]:
+def extract_windows_events(log_name: str, start_time: str = None, end_time: str = None, max_events: int = 50) -> list[dict]:
     """
     Extract Windows Event Logs for a given log channel using PowerShell Get-WinEvent.
     Returns parsed JSON dictionaries.
     """
-    ps_command = (
-        f"Get-WinEvent -LogName '{log_name}' -MaxEvents {max_events} -ErrorAction SilentlyContinue | "
-        "Select-Object Id, TimeCreated, ProviderName, Message | "
-        "ConvertTo-Json -Compress"
-    )
+    if start_time and end_time:
+        ps_command = (
+            f"Get-WinEvent -FilterHashtable @{{LogName='{log_name}'; StartTime='{start_time}'; EndTime='{end_time}'}} -ErrorAction SilentlyContinue | "
+            "Select-Object Id, TimeCreated, ProviderName, Message | "
+            "ConvertTo-Json -Compress"
+        )
+    else:
+        ps_command = (
+            f"Get-WinEvent -LogName '{log_name}' -MaxEvents {max_events} -ErrorAction SilentlyContinue | "
+            "Select-Object Id, TimeCreated, ProviderName, Message | "
+            "ConvertTo-Json -Compress"
+        )
     
     try:
         res = subprocess.run(
@@ -103,46 +126,33 @@ def run_pipeline_on_event(
     vct_chain: VCTAtomicChain,
     resolver: CanonicalEntityResolver,
     time_normalizer: TimeNormalizer,
-    qw_client: "QuickwitClient | None" = None,
+    qw_client: QuickwitClient = None,
     source_type: str = "evtx",
-    neo4j_client=None,
-):
-    """Pass a single raw extracted log through the pipeline stages."""
-    trace_id = f"trace-{uuid.uuid4().hex[:12]}"
+    neo4j_client = None,
+) -> list:
+    trace_id = raw_event.get("trace_id", str(uuid.uuid4()))
+    raw_event["trace_id"] = trace_id
     
-    # 1. Preservation & Integrity
-    # Raw bytes are captured BEFORE any sanitization or parsing — chain of custody requires this.
-    raw_bytes = json.dumps(raw_event).encode("utf-8")
-    sha256_digest = compute_sha256_bytes(raw_bytes)
-    vct_hash = vct_chain.register_hash(sha256_digest, trace_id, "TEMP_UID")
-    
-    # 1b. Quickwit append-only commit (fatal if enabled and Quickwit is down)
     if qw_client is not None:
-        # sha256_digest is the content-addressable uid for raw evidence in Quickwit
-        qw_client.commit_raw_evidence(
-            uid=sha256_digest,
-            trace_id=trace_id,
-            sha256_digest=sha256_digest,
-            raw_bytes=raw_bytes,
-            source_type=source_type,
-        )
-        logger.debug(f"Quickwit preservation committed: trace_id={trace_id} sha256={sha256_digest[:12]}...")
+        raw_event["vct_merkle_root"] = vct_chain.get_current_root()
+        sha256_hash = compute_sha256_bytes(json.dumps(raw_event, sort_keys=True).encode("utf-8"))
+        raw_event["sha256_hash"] = sha256_hash
+        vct_chain.add_leaf(sha256_hash)
+        
+        try:
+            qw_result = qw_client.ingest_event(raw_event)
+        except QuickwitClientError as e:
+            logger.error(f"Preservation failure for trace {trace_id}: {e}")
+            qw_result = None
+    else:
+        qw_result = None
 
-    # 2. Security Gate (sanitize + injection scan per Stage 2 §3 Step 2)
-    message_text = raw_event.get("Message", "") or raw_event.get("FileName", "") or raw_event.get("eventName", "") or ""
-    raw_msg_bytes = message_text.encode("utf-8")
+    raw_msg_bytes = json.dumps(raw_event, sort_keys=True).encode("utf-8")
     gate_result = run_security_gate("text", raw_msg_bytes)
-
     if gate_result.injection_blocked:
         logger.warning(f"Event blocked by Security Gate — injection detected (trace={trace_id})")
-        return None, None, None  # BUG-E FIX: caller unpacks 3 values (validated_evt, cypher_query, neo4j_result)
+        return []
 
-    sanitized_msg = gate_result.sanitized_fields[0] if gate_result.sanitized_fields else ""
-    has_homoglyphs = False  # Homoglyph flag is on the SanitizerResult, not needed here
-    is_injection = gate_result.injection_blocked
-    is_degraded = False
-
-    # 3. OCSF Normalization
     time_str = raw_event.get("TimeCreated", "") or raw_event.get("LastRecordChange", "") or raw_event.get("eventTime", "")
     if time_str and "/Date(" in str(time_str):
         ms = int(time_str.split("(")[1].split(")")[0])
@@ -152,57 +162,109 @@ def run_pipeline_on_event(
         
     utc_time, skew_offset, skew_unverified = time_normalizer.normalize(str(time_str))
     
-    # Generate deterministic entity UID
-    provider = raw_event.get("ProviderName", raw_event.get("FileName", raw_event.get("eventSource", "Windows")))
-    event_id = raw_event.get("Id", 0)
+    ocsf_evts = []
     
-    entity_uid = generate_deterministic_uid("process", {
-        "event_id": event_id,
-        "provider": provider,
-        "timestamp": utc_time.isoformat()
-    })
+    if source_type == "evtx":
+        event_id = raw_event.get("Id", raw_event.get("System", {}).get("EventID", 0))
+        if isinstance(event_id, str):
+            try:
+                event_id = int(event_id)
+            except ValueError:
+                event_id = 0
+                
+        provider = raw_event.get("ProviderName") or raw_event.get("System", {}).get("Provider", {}).get("Name", "")
+        is_security = "Security-Auditing" in provider
+        is_sysmon = "Sysmon" in provider
+        
+        ocsf_evt = None
+        if event_id in [4688, 1] or (event_id in [4104, 4103] and "PowerShell" in provider):
+            ocsf_evt = normalize_evtx_process_creation(raw_event, time_normalizer, resolver, trace_id)
+        elif (event_id in [1116, 1150, 1151, 5007] and "Defender" in provider) or (event_id in [8003, 8004] and "AppLocker" in provider):
+            ocsf_evt = normalize_evtx_detection_finding(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id in [104, 1102]:
+            ocsf_evt = normalize_evtx_defense_evasion(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id in (4624, 4625, 4768, 4769, 4771, 4776, 4648) and is_security:
+            ocsf_evt = normalize_evtx_auth(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id == 5156 and is_security:
+            ocsf_evt = normalize_evtx_network(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id in (3, 22) and is_sysmon:
+            ocsf_evt = normalize_evtx_network(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id == 4663 and is_security:
+            ocsf_evt = normalize_evtx_file_access(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id in (11, 2) and is_sysmon:
+            ocsf_evt = normalize_evtx_file_access(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id in [4698, 106, 140]:
+            ocsf_evt = normalize_evtx_process_creation(raw_event, time_normalizer, resolver, trace_id)
+        elif event_id in [1000, 1001, 1002] and "Application" in provider:
+            ocsf_evt = normalize_evtx_detection_finding(raw_event, time_normalizer, resolver, trace_id)
+        else:
+            logger.warning(f"EVTX event dropped (unsupported EventID {event_id} from {provider})")
+        
+        if ocsf_evt:
+            ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
+            ocsf_evts.append(ocsf_evt)
+            
+    elif source_type == "mft":
+        ocsf_evt = normalize_mft_record(raw_event, time_normalizer, trace_id)
+        ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
+        if not ocsf_evt.canonical_host_id:
+            ocsf_evt.canonical_host_id = resolver.resolve_any(hostname="LOCAL_HOST") or "host-LOCAL_HOST"
+        ocsf_evts.append(ocsf_evt)
+    elif source_type == "cloudtrail":
+        ocsf_evt = normalize_cloudtrail(raw_event, time_normalizer, trace_id)
+        ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
+        if not ocsf_evt.canonical_host_id:
+            ocsf_evt.canonical_host_id = resolver.resolve_any(cloud_device_id=ocsf_evt.cloud_account_id)
+        ocsf_evts.append(ocsf_evt)
+    elif source_type == "edr":
+        ocsf_evts.extend(normalize_edr(raw_event, trace_id, "UNASSIGNED_CONTINUOUS", resolver))
+    elif source_type == "malware":
+        ocsf_evts.extend(normalize_malware(raw_event, trace_id, "UNASSIGNED_CONTINUOUS"))
+    elif source_type == "memory":
+        ocsf_evts.extend(normalize_memory(raw_event, trace_id, "UNASSIGNED_CONTINUOUS"))
+    elif source_type == "ueba":
+        ocsf_evts.extend(normalize_ueba(raw_event, trace_id, "UNASSIGNED_CONTINUOUS"))
+    elif source_type == "vuln_scan":
+        ocsf_evts.extend(normalize_vuln(raw_event, trace_id, "UNASSIGNED_CONTINUOUS"))
+    else:
+        logger.warning(f"Event dropped (unsupported source type {source_type})")
     
-    # Construct OCSF ProcessActivity event
-    ocsf_evt = ProcessActivity(
-        trace_id=trace_id,
-        case_id="UNASSIGNED_CONTINUOUS",
-        activity_id=1,
-        severity_id=1,
-        time=utc_time,
-        raw_source_timestamp=str(time_str),
-        clock_skew_offset_ms=skew_offset,
-        clock_skew_unverified=skew_unverified,
-        security_scan_degraded=is_degraded,
-        uid=entity_uid,
-        process_name=sanitize_text(str(provider))[0],
-        process_pid=int(event_id) if isinstance(event_id, int) else 0,
-        command_line=sanitized_msg[:200],
-        host_name="LOCAL_HOST",
-        canonical_host_id="uuid-local-host"
-    )
-    
-    # 4. Schema Validation
-    validated_evt = validate_event(ocsf_evt.model_dump(mode="json"), ProcessActivity)
-    
-    # 5. DFKG Knowledge Graph — build Cypher and execute against Neo4j
-    event_dict = ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, "model_dump") else ocsf_evt
-    cypher_query, cypher_params = CypherBuilder.build_process_creation(event_dict)
+    results = []
+    for ocsf_evt in ocsf_evts:
+        validated_evt = validate_event(ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, 'model_dump') else ocsf_evt, type(ocsf_evt))
+        event_dict = ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, "model_dump") else ocsf_evt
+        cypher_query, cypher_params = CypherBuilder.dispatch_event(event_dict)
 
-    neo4j_result = None
-    if neo4j_client is not None:
-        try:
-            neo4j_result = neo4j_client.execute(cypher_query, cypher_params)
-            logger.debug(f"Neo4j MERGE executed: trace_id={trace_id}")
-        except Exception as e:
-            # Non-fatal: log and continue. Graph can be replayed from Quickwit.
-            logger.warning(f"Neo4j write failed (non-fatal): {e} | trace_id={trace_id}")
+        neo4j_result = None
+        if neo4j_client is not None and cypher_query:
+            try:
+                neo4j_result = neo4j_client.execute(cypher_query, cypher_params)
+                logger.debug(f"Neo4j MERGE executed: trace_id={trace_id}")
+            except Exception as e:
+                logger.warning(f"Neo4j write failed (non-fatal): {e} | trace_id={trace_id}")
 
-    return validated_evt, cypher_query, neo4j_result
+        results.append((validated_evt, cypher_query, neo4j_result))
 
+    return results
+
+import argparse
 
 def main():
-    logger.info("Extracting logs across all available system channels and categories...")
-    
+    parser = argparse.ArgumentParser(description="Run the Specula ingestion pipeline.")
+    parser.add_argument("start_time", nargs="?", help="Start date and time (e.g., '2026-08-25T00:00:00')")
+    parser.add_argument("end_time", nargs="?", help="End date and time (e.g., '2026-08-25T12:00:00'). Defaults to current date and time if start_time is provided.")
+    args = parser.parse_args()
+
+    start_time = args.start_time
+    end_time = args.end_time
+    if start_time and not end_time:
+        end_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+    if start_time:
+        logger.info(f"Extracting logs from {start_time} to {end_time}...")
+    else:
+        logger.info("Extracting logs across all available system channels and categories...")
+
     # 1. Available Windows Event Log Channels
     channels = [
         "System",
@@ -218,7 +280,7 @@ def main():
     total_count = 0
     
     for channel in channels:
-        events = extract_windows_events(channel, max_events=20)
+        events = extract_windows_events(channel, start_time=start_time, end_time=end_time, max_events=20)
         if events:
             all_extracted_events[channel] = events
             total_count += len(events)
@@ -305,6 +367,10 @@ def main():
             schema_path = os.path.abspath("src/graph/schema_constraints.cypher")
             if os.path.exists(schema_path):
                 neo4j_client.apply_schema(schema_path)
+            
+            logger.info("Temporarily clearing Neo4j database...")
+            neo4j_client.execute("MATCH (n) DETACH DELETE n", {})
+            
             logger.info("Neo4j connected and schema applied. Graph writes are ACTIVE.")
         except Exception as e:
             logger.error(f"Neo4j startup failed — graph writes disabled: {e}")
@@ -323,20 +389,23 @@ def main():
         source_type = _SOURCE_TYPE_MAP.get(channel_name, "evtx")
         logger.info(f"--- Processing Category: {channel_name} (source_type={source_type}, {len(log_list)} records) ---")
         for event in log_list:
-            validated_evt, _, neo4j_result = run_pipeline_on_event(
+            results = run_pipeline_on_event(
                 event, vct_chain, resolver, time_normalizer,
                 qw_client=qw_client,
                 source_type=source_type,
                 neo4j_client=neo4j_client,
             )
-            if validated_evt is None:
-                logger.info("Event blocked by Security Gate — skipping.")
+            if not results:
+                logger.info("Event blocked or dropped.")
                 continue
-            if neo4j_result is not None:
-                neo4j_write_count += 1
-            evt_obj = getattr(validated_evt, "event", validated_evt)
-            evt_dict = evt_obj.model_dump(mode="json") if hasattr(evt_obj, "model_dump") else (evt_obj.__dict__ if hasattr(evt_obj, "__dict__") else evt_obj)
-            ocsf_outputs.append(evt_dict)
+            for validated_evt, _, neo4j_result in results:
+                if validated_evt is None:
+                    continue
+                if neo4j_result is not None:
+                    neo4j_write_count += 1
+                evt_obj = getattr(validated_evt, "event", validated_evt)
+                evt_dict = evt_obj.model_dump(mode="json") if hasattr(evt_obj, "model_dump") else (evt_obj.__dict__ if hasattr(evt_obj, "__dict__") else evt_obj)
+                ocsf_outputs.append(evt_dict)
 
     # Close Neo4j driver cleanly
     if neo4j_client is not None:
