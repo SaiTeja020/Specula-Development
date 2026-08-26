@@ -170,7 +170,7 @@ class ChromaVectorStore(VectorStoreAdapter):
     is not installed on the system.
     """
 
-    def __init__(self, collection_name: str = "specula_dfkg_vectors", persist_dir: Optional[str] = None):
+    def __init__(self, collection_name: str = "case_evidence_embeddings", persist_dir: Optional[str] = None):
         self.collection_name = collection_name
         self.fallback = None
         self.collection = None

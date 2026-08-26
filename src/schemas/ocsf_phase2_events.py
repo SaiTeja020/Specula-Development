@@ -55,6 +55,12 @@ class FileActivityEvent(OCSFBaseEvent):
     user_name: Optional[str] = Field(default=None, description="User who performed file op.")
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
     container: Optional[Dict[str, Any]] = Field(default=None, description="Container context metadata.")
+    
+    # Forensic / NTFS fields for F17 timestomping detection
+    si_created: Optional[str] = Field(default=None, description="$STANDARD_INFORMATION creation time.")
+    fn_created: Optional[str] = Field(default=None, description="$FILE_NAME creation time.")
+    usn_reason_code: Optional[int] = Field(default=None, description="USN Journal reason code.")
+    timestamp_precision_bitmask: Optional[int] = Field(default=None, description="Timestamp precision flags.")
 
 
 class NetworkActivityEvent(OCSFBaseEvent):

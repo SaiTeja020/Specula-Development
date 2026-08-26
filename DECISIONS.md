@@ -124,3 +124,19 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Mandating MCP as strict prerequisite for core algorithms:* Creates architectural bloat, increases debugging complexity, hinders isolated unit testing.
 - **Forensic & Research Consequences:** Clear separation of concerns; fast execution; modular testing without external server overhead.
 - **Link to Progress.md:** [PROGRESS.md -> Phase 5 (MCP & Skill Development)](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-5-visualization-layer)
+
+---
+
+### ADR-008: PCAP Ingestion and Binary Parsing
+- **Status:** Accepted
+- **Context & Problem Statement:** Raw network packet captures (PCAPs) are critical forensic evidence but are binary files. They cannot be fed directly into text-based normalizers or LLMs, yet they must be preserved immutably and analyzed for lateral movement or C2 beacons.
+- **Decision & Tech Choice:** PCAP ingestion follows a strict 4-step pipeline:
+  1. *Capture:* Sourced from network sensors (tcpdump/Zeek) or manual uploads via the React dashboard.
+  2. *Preservation:* Binary bytes are immediately SHA-256 hashed via Go/Rust SIMD and stored immutably in Quickwit (appended to the VCT ledger).
+  3. *Binary Dissection:* Raw PCAPs are dissected using libraries (e.g., dpkt or scapy) to extract structural metadata (IPs, ports, payload).
+  4. *Sanitization & Normalization:* Extracted fields pass through the Security Gate for NFKC/prompt-injection checks, then route to etwork_normalizer.py\ for mapping to OCSF NetworkActivity (Class 4001).
+- **Alternatives Considered & Rejected:**
+  - *Direct text parsing of PCAPs:* Impossible due to binary format, leads to data corruption.
+  - *Storing parsed JSON instead of raw PCAP:* Destroys chain of custody; raw evidence must be preserved before parsing.
+- **Forensic & Research Consequences:** Ensures legal admissibility of network captures while providing safe, standardized OCSF telemetry for the Network Forensics Agent.
+- **Link to Progress.md:** [PROGRESS.md -> Phase 3](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-3-graph-streaming-ingestion--vector-retrieval)
