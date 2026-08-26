@@ -199,11 +199,10 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase 5: Visualization Layer & Agent Integration
+- **Active Phase:** Technical Debt & Blockers
 - **Active Tasks (WIP=2):**
-  1. `TASK-5.3` (Build Vite + React frontend dashboard with React Flow graph visualizer)
-  2. `TASK-5.4` (End-to-end integration of frontend visualizer with backend WebSocket streaming)
-- **Active WIP Count:** 2 (`|active| = 2 / 2`)
+  - None (Pending Selection)
+- **Active WIP Count:** 0 (`|active| = 0 / 2`)
 - **Last Updated:** 2026-08-26
 
 ---
@@ -365,13 +364,13 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 
 - **Task ID:** `TASK-5.3`
   - **Description:** Build Vite + React frontend dashboard with React Flow graph visualizer for 23 orchestration nodes.
-  - **Status:** `active`
+  - **Status:** `not_started`
   - **Verification Command:** `npm test --prefix visualization`
   - **Acceptance Criteria:** React component renders 23 graph nodes with active status highlighting.
 
 - **Task ID:** `TASK-5.4`
   - **Description:** End-to-end integration of frontend visualizer with backend WebSocket streaming.
-  - **Status:** `active`
+  - **Status:** `not_started`
   - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_visualization_e2e.py`
   - **Acceptance Criteria:** Live graph run updates node colors and emits findings timeline in frontend.
 
@@ -395,13 +394,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-26 | `src/ingestion/normalization/network_normalizer.py`, `src/ingestion/run_pipeline.py` | Implemented binary PCAP dissection using dpkt, passing packet payloads through Security Gate prompt injection check and routing to OCSF NetworkActivity schema. (ADR-008) | Verified (83/83 OCSF events parsed) |
 | 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/graph/cypher_builder.py` | Fixed time boundary filtering (using FilterHashtable) and parsed CLI arguments for start/end time. Addressed Neo4j graph pollution by only executing Process MERGE for true Process Creation events (Sysmon EID 1, Security EID 4688). | Verified (2/4219 Process nodes generated) |
 | 2026-08-26 | `TASK-5.1`, `TASK-5.2` | Implemented FastAPI visualizer and WebSocket streaming. | Verified |
+| 2026-08-26 | `src/agents/checkpointer.py` | Refactored Checkpointer to use official `langgraph-checkpoint-redis` with native serialization, replacing unsafe `pickle`. | Verified (28/28 tests passed) |
+| 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py` | Decoupled synchronous ingestion pipeline into distinct Kafka Producer and Consumer. Extracted inline normalization to dedicated modules, fixed hardcoded host logic, and implemented structured semantic text embeddings for ChromaDB vector isolation. | Verified |
+| 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py`, `src/ingestion/broker/kafka_consumer.py` | Fixed execution ordering invariant: implemented EventConsumer.consume_loop(), moved specula.cases.opened triggering into ingestion_consumer.py after Distillation -> Cypher -> ChromaDB completes, ensuring Supervisor wakes up to a fully populated graph. | Verified |
 
 ---
 
 ## Known Blockers, Bugs & Carry-Forward Tracking Items
-1. **Stage 3 Checkpointer Refactor:** `src/agents/checkpointer.py` is a Stage 1 test-support stopgap using `pickle`. Replace with `langgraph-checkpoint-redis` / `langgraph-checkpoint-postgres` or add safe serialization (JSON/msgpack) before production use. Note: current `pending_writes` implementation assumes sequential interrupt nodes (safe for Stage 1 topology, must handle mid-fanout writes in Stage 3).
-2. **Kafka Integration CI Retention:** Set short retention policy or per-run topic suffixes on `findings.*` Kafka topics before running integration test suite in automated CI.
-3. **Stage 7 Guardrail Fine-Tuning:** The `rm -rf` Tier 1 regex will false-positive on findings quoting attacker commands. Fine-tune Tier 2 embedding model with real MiniLM training data beyond phrase matching in Stage 7.
-|   2 0 2 6 - 0 8 - 2 6   |   \ s r c / i n g e s t i o n / r u n _ p i p e l i n e . p y \ ,   \ s r c / i n g e s t i o n / i n g e s t i o n _ c o n s u m e r . p y \   |   D e c o u p l e d   s y n c h r o n o u s   i n g e s t i o n   p i p e l i n e   i n t o   d i s t i n c t   K a f k a   P r o d u c e r   a n d   C o n s u m e r .   E x t r a c t e d   i n l i n e   n o r m a l i z a t i o n   t o   d e d i c a t e d   m o d u l e s ,   f i x e d   h a r d c o d e d   h o s t   l o g i c ,   a n d   i m p l e m e n t e d   s t r u c t u r e d   s e m a n t i c   t e x t   e m b e d d i n g s   f o r   C h r o m a D B   v e c t o r   i s o l a t i o n .   |   V e r i f i e d   |  
- |   2 0 2 6 - 0 8 - 2 6   |   \ s r c / i n g e s t i o n / r u n _ p i p e l i n e . p y \ ,   \ s r c / i n g e s t i o n / i n g e s t i o n _ c o n s u m e r . p y \ ,   \ s r c / i n g e s t i o n / b r o k e r / k a f k a _ c o n s u m e r . p y \   |   F i x e d   e x e c u t i o n   o r d e r i n g   i n v a r i a n t :   i m p l e m e n t e d   E v e n t C o n s u m e r . c o n s u m e _ l o o p ( ) ,   m o v e d   s p e c u l a . c a s e s . o p e n e d   t r i g g e r i n g   i n t o   i n g e s t i o n _ c o n s u m e r . p y   a f t e r   D i s t i l l a t i o n   - >   C y p h e r   - >   C h r o m a D B   c o m p l e t e s ,   e n s u r i n g   S u p e r v i s o r   w a k e s   u p   t o   a   f u l l y   p o p u l a t e d   g r a p h .   |   V e r i f i e d   |  
- 
+1. **Kafka Integration CI Retention:** Set short retention policy or per-run topic suffixes on `findings.*` Kafka topics before running integration test suite in automated CI.
+2. **Stage 7 Guardrail Fine-Tuning:** The `rm -rf` Tier 1 regex will false-positive on findings quoting attacker commands. Fine-tune Tier 2 embedding model with real MiniLM training data beyond phrase matching in Stage 7.
