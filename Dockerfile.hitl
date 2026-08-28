@@ -1,0 +1,30 @@
+# Specula HITL API -- Docker Image
+# Runs the FastAPI/uvicorn HITL gateway on port 8200.
+# Part of the specula-network; reaches kafka, neo4j, redis by service name.
+
+FROM python:3.10-slim
+
+# System deps: librdkafka required by confluent-kafka C extension
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    librdkafka-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python deps first (layer caches unless requirements.txt changes)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the full project source
+COPY src/ ./src/
+COPY agent_model_config.yaml .
+
+# Copy .env if present (falls back gracefully if missing at build time)
+COPY .env.example .env
+
+# Expose HITL API port
+EXPOSE 8200
+
+# Start uvicorn via module entry point
+CMD ["python", "-m", "src.agents.hitl_api"]
