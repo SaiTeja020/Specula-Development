@@ -31,7 +31,9 @@ FINDINGS_TOPIC: str = "findings.log_analysis"
 CONSUMER_GROUP: str = "log-analysis-agent"
 
 # ─── Model ────────────────────────────────────────────────────────────────────
-
+# [Master_doc §2.5 model specification]
+# NOTE: LangGraph skeleton dispatcher currently uses gemini-2.5-flash fallback
+# in src/agents/config.py. Import consolidation is target state upon endpoint release.
 MODEL_ID: str = "Qwen/Qwen2.5-72B-Instruct"
 
 # ─── Batch / tumbling-window parameters ──────────────────────────────────────
