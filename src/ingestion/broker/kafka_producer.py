@@ -139,7 +139,7 @@ class EventProducer:
     def produce_event(self, event: OCSFBaseEvent) -> None:
         """Serialize and produce an event to Kafka (or in-memory buffer)."""
         canonical_host_id = getattr(event, "canonical_host_id", None)
-        if canonical_host_id:
+        if canonical_host_id and self.active_cases_cache:
             event.case_id = self.active_cases_cache.get_case_for_host(canonical_host_id)
 
         event_dict = (

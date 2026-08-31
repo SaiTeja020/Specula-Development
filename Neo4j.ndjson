@@ -1,0 +1,4548 @@
+{
+  "identity": 0,
+  "labels": [
+    "Host"
+  ],
+  "properties": {
+    "uid": "UNKNOWN_HOST",
+    "hostname": "DESKTOP-N08P1L3",
+    "first_seen": "2026-08-26T09:19:57.304000Z",
+    "last_seen": "2026-08-26T09:21:45.546000Z",
+    "case_id": "UNASSIGNED_CONTINUOUS"
+  },
+  "elementId": "0"
+}
+{
+  "identity": 1,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4a6f432ebc2c5330ddb5f8525ff1615d86f66aa74c2c9ddfa8030a662ab81062",
+    "start_time": "2026-08-26T09:19:57.304000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:19:57.254
+ProcessGuid: {ba408481-afbd-6a8e-353a-010000005501}
+ProcessId: 20856
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "1"
+}
+{
+  "identity": 2,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "1677c0cdf09bc397e83c1e604bee11c524226923c22ca3347e91ae4b5b7334f9",
+    "start_time": "2026-08-26T09:19:57.278000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:19:57.219
+ProcessGuid: {ba408481-afbd-6a8e-2f3a-010000005501}
+ProcessId: 20036
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "2"
+}
+{
+  "identity": 3,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "28e50bcb37ac7e04be986ec5a722cebb4f6b8ba5fdfbc04ffb968242d750f107",
+    "start_time": "2026-08-26T09:19:57.246000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:19:57.200
+ProcessGuid: {ba408481-afbd-6a8e-2c3a-010000005501}
+ProcessId: 28228
+Image: C:\Users\DELL\AppData\Local\Programs\cursor\resources\app"
+  },
+  "elementId": "3"
+}
+{
+  "identity": 4,
+  "labels": [
+    "User"
+  ],
+  "properties": {
+    "uid": "DESKTOP-N08P1L3$",
+    "first_seen": "2026-08-26T09:17:23.781000Z",
+    "last_seen": "2026-08-26T07:14:35.673000Z"
+  },
+  "elementId": "4"
+}
+{
+  "identity": 5,
+  "labels": [
+    "NetworkEndpoint"
+  ],
+  "properties": {
+    "uid": "UNKNOWN_IP",
+    "first_seen": "2026-08-26T09:17:23.781000Z",
+    "last_seen": "2026-08-26T07:14:35.673000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "ip": "UNKNOWN_IP"
+  },
+  "elementId": "5"
+}
+{
+  "identity": 6,
+  "labels": [
+    "User"
+  ],
+  "properties": {
+    "uid": "DELL",
+    "first_seen": "2026-08-26T07:17:44.155000Z",
+    "last_seen": "2026-08-26T07:11:43.349000Z"
+  },
+  "elementId": "6"
+}
+{
+  "identity": 7,
+  "labels": [
+    "NetworkEndpoint"
+  ],
+  "properties": {
+    "uid": "::1",
+    "first_seen": "2026-08-26T07:17:44.155000Z",
+    "last_seen": "2026-08-26T07:11:43.349000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "ip": "::1"
+  },
+  "elementId": "7"
+}
+{
+  "identity": 8,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b15f6cc536cb3cc1adaf84b8994af849664cce481f17873892ded087cec288c7",
+    "start_time": "2026-08-26T09:24:37.250000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:24:37.244
+ProcessGuid: {ba408481-b0d5-6a8e-b73c-010000005501}
+ProcessId: 30216
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "8"
+}
+{
+  "identity": 9,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "237b0a2bcbe3908d28a191784fbf2f399ca521a3cbc626ddbe06fb444f7d2d82",
+    "start_time": "2026-08-26T09:24:28.087000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:24:28.041
+ProcessGuid: {ba408481-b0cc-6a8e-b03c-010000005501}
+ProcessId: 44288
+Image: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+"
+  },
+  "elementId": "9"
+}
+{
+  "identity": 10,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "24397c9197c580845eded96de05a243be4422df2f057c643fce5775da4911489",
+    "start_time": "2026-08-26T09:23:57.095000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:23:57.080
+ProcessGuid: {ba408481-b0ad-6a8e-923c-010000005501}
+ProcessId: 37188
+Image: C:\Program Files (x86)\Microsoft\EdgeWebView\Application\1"
+  },
+  "elementId": "10"
+}
+{
+  "identity": 11,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "75faff2ece066a8908987d3e10358bf3c4093520eb5fd9e912583c9083f20fe6",
+    "start_time": "2026-08-26T09:22:37.128000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:37.119
+ProcessGuid: {ba408481-b05d-6a8e-613c-010000005501}
+ProcessId: 21280
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "11"
+}
+{
+  "identity": 12,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2530cf9bb8ca0e52b2db6090bc7b4ed44d731e42c67fc5b9b46547a16898c784",
+    "start_time": "2026-08-26T09:22:37.122000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:37.115
+ProcessGuid: {ba408481-b05d-6a8e-603c-010000005501}
+ProcessId: 41496
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "12"
+}
+{
+  "identity": 13,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c85e44ff15c12f31b3bc476cbd6161daf431eee3c321b1a8594c17aee9b21728",
+    "start_time": "2026-08-26T09:22:37.117000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:37.115
+ProcessGuid: {ba408481-b05d-6a8e-5f3c-010000005501}
+ProcessId: 44092
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "13"
+}
+{
+  "identity": 14,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2dd7ba73c608bc371a85ae86de8d6107c4c119a7da574fadce84b922a72287ab",
+    "start_time": "2026-08-26T09:22:37.114000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:37.110
+ProcessGuid: {ba408481-b05d-6a8e-5e3c-010000005501}
+ProcessId: 21836
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "14"
+}
+{
+  "identity": 15,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "e51574bdb2398d4050451630c98755500e0a18b96c4765a6ea8a3da8c5a37428",
+    "start_time": "2026-08-26T09:22:27.129000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:27.121
+ProcessGuid: {ba408481-b053-6a8e-593c-010000005501}
+ProcessId: 23636
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "15"
+}
+{
+  "identity": 16,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "aad9c59aa7b9ce06b87663cd85e14322cee3fbd44bb7b5f7ca17c3c2b72bdee7",
+    "start_time": "2026-08-26T09:22:27.126000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:27.115
+ProcessGuid: {ba408481-b053-6a8e-583c-010000005501}
+ProcessId: 41856
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "16"
+}
+{
+  "identity": 17,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ca35b32f62f838ee11812ed46cf3811933eae962811cb4c1d72e1053d455923f",
+    "start_time": "2026-08-26T09:22:27.122000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:27.110
+ProcessGuid: {ba408481-b053-6a8e-563c-010000005501}
+ProcessId: 16768
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "17"
+}
+{
+  "identity": 18,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c9165c96cbd3df9aab4cd3e9f6ed5af196f46b0ebc6b600d129fbe43fa1d3dcb",
+    "start_time": "2026-08-26T09:22:27.118000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:27.115
+ProcessGuid: {ba408481-b053-6a8e-573c-010000005501}
+ProcessId: 24472
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "18"
+}
+{
+  "identity": 19,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c93e9fb147f1fb4117300aece0e5fc8251c1ec0945713586f43b2ab448664f36",
+    "start_time": "2026-08-26T09:22:27.114000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:27.110
+ProcessGuid: {ba408481-b053-6a8e-553c-010000005501}
+ProcessId: 40872
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "19"
+}
+{
+  "identity": 20,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5bb58df64b5998391b5ca761ecfbfd9f70b819dd5b5846eb26c9d7515fbc10eb",
+    "start_time": "2026-08-26T09:22:27.107000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:27.105
+ProcessGuid: {ba408481-b053-6a8e-543c-010000005501}
+ProcessId: 13688
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "20"
+}
+{
+  "identity": 21,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c9ca9d4d92ab8e7de3c2e9f63ed5e122dd85beb2b9d270ada9408cc0817466b0",
+    "start_time": "2026-08-26T09:22:17.267000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.261
+ProcessGuid: {ba408481-b049-6a8e-533c-010000005501}
+ProcessId: 2100
+Image: C:\Program Files\BraveSoftware\Brave-Browser\Application\br"
+  },
+  "elementId": "21"
+}
+{
+  "identity": 22,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2fa6dd00ee249187f8d327e7e5d6df4593dae6e6ce64aff01d9e8e347afe5dea",
+    "start_time": "2026-08-26T09:22:17.131000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.120
+ProcessGuid: {ba408481-b049-6a8e-523c-010000005501}
+ProcessId: 10188
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "22"
+}
+{
+  "identity": 23,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "03cb3a67c943b42fc4e622462768040edf5907fbf1e8199917b72b3ac1447175",
+    "start_time": "2026-08-26T09:22:17.127000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.113
+ProcessGuid: {ba408481-b049-6a8e-513c-010000005501}
+ProcessId: 25164
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "23"
+}
+{
+  "identity": 24,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "07aa2183a7fb782b83f1d73f1f9bc4fd28fe88a11623c7ff375a397d2fc1d99e",
+    "start_time": "2026-08-26T09:22:17.117000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.106
+ProcessGuid: {ba408481-b049-6a8e-4f3c-010000005501}
+ProcessId: 29420
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "24"
+}
+{
+  "identity": 25,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8a2fb8fc6699abbfcdb357e91e8468b71ad5e8cf8f8fc9e47a6d6f46b6a49a53",
+    "start_time": "2026-08-26T09:22:17.114000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.111
+ProcessGuid: {ba408481-b049-6a8e-503c-010000005501}
+ProcessId: 41124
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "25"
+}
+{
+  "identity": 26,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4f4f41b6dcf4a453c0fa410b568c779f3e070dee787bc976197ef656aeaded3b",
+    "start_time": "2026-08-26T09:22:17.108000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.105
+ProcessGuid: {ba408481-b049-6a8e-4e3c-010000005501}
+ProcessId: 17704
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "26"
+}
+{
+  "identity": 27,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "64c4bb921941e354f7ccc9c46b341115184255c28ec798554474625905fa0328",
+    "start_time": "2026-08-26T09:22:17.103000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:17.099
+ProcessGuid: {ba408481-b049-6a8e-4d3c-010000005501}
+ProcessId: 44244
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "27"
+}
+{
+  "identity": 28,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "11b27946f0a3401f4b647fe237abe2fd8d3fc6b6736dba4c8a87e26c2de73a03",
+    "start_time": "2026-08-26T09:22:15.546000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:15.536
+ProcessGuid: {ba408481-b047-6a8e-4c3c-010000005501}
+ProcessId: 40648
+Image: C:\Program Files\BraveSoftware\Brave-Browser\Application\b"
+  },
+  "elementId": "28"
+}
+{
+  "identity": 29,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "6bf376844253762156a67c2cd09c2c8b5687f4cb2c0b755b3d9333434b3d5878",
+    "start_time": "2026-08-26T09:22:11.518000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:11.515
+ProcessGuid: {ba408481-b043-6a8e-4b3c-010000005501}
+ProcessId: 40740
+Image: C:\Windows\System32\wbem\WmiPrvSE.exe
+FileVersion: 10.0.2"
+  },
+  "elementId": "29"
+}
+{
+  "identity": 30,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "de610333af76816094987b836d6552af25aae170c057c3fb8f1e4bfdc53097ab",
+    "start_time": "2026-08-26T09:22:07.120000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:07.112
+ProcessGuid: {ba408481-b03f-6a8e-4a3c-010000005501}
+ProcessId: 39228
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "30"
+}
+{
+  "identity": 31,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2ee2e17c9838af067f861d640b2f4f5faac7a65600296c7034477f244fc53660",
+    "start_time": "2026-08-26T09:22:07.117000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:07.107
+ProcessGuid: {ba408481-b03f-6a8e-493c-010000005501}
+ProcessId: 41572
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "31"
+}
+{
+  "identity": 32,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b23e61dd037f81d998b1dca1c59880836f494b85734fee61b9aa4d6018952e65",
+    "start_time": "2026-08-26T09:22:07.110000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:07.102
+ProcessGuid: {ba408481-b03f-6a8e-473c-010000005501}
+ProcessId: 10868
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "32"
+}
+{
+  "identity": 33,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c86df24ab92b9fc352e16769bb14ee20a0982d6f08667c898b7ea1091e88cf90",
+    "start_time": "2026-08-26T09:22:07.109000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:07.107
+ProcessGuid: {ba408481-b03f-6a8e-483c-010000005501}
+ProcessId: 44920
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "33"
+}
+{
+  "identity": 34,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f3f1f02bef21e03ae886ef1629ba54a34ca763b4f087023ce23e976eb4280a4a",
+    "start_time": "2026-08-26T09:22:07.106000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:07.101
+ProcessGuid: {ba408481-b03f-6a8e-463c-010000005501}
+ProcessId: 42064
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "34"
+}
+{
+  "identity": 35,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2b338eaf913247685e9127e9b0b1c7df6010f9c28f13ef64e139e73e6d737708",
+    "start_time": "2026-08-26T09:22:07.099000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:07.096
+ProcessGuid: {ba408481-b03f-6a8e-453c-010000005501}
+ProcessId: 29860
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "35"
+}
+{
+  "identity": 36,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8020802004723d73298ffcda6b095341d17b33611b6ee404c7a77de94bc614c3",
+    "start_time": "2026-08-26T09:21:57.130000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:57.118
+ProcessGuid: {ba408481-b035-6a8e-443c-010000005501}
+ProcessId: 32752
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "36"
+}
+{
+  "identity": 37,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b0810a1c42d236cb3a47d85ced378f18b65dc35c367be21ed24a4264e49e85e9",
+    "start_time": "2026-08-26T09:21:57.119000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:57.103
+ProcessGuid: {ba408481-b035-6a8e-423c-010000005501}
+ProcessId: 16564
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "37"
+}
+{
+  "identity": 38,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "abcf8d0fc7163a96aecce3f6ad1aa3d9f79dd212c30746a456c702b91e824948",
+    "start_time": "2026-08-26T09:21:57.108000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:57.104
+ProcessGuid: {ba408481-b035-6a8e-433c-010000005501}
+ProcessId: 44748
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "38"
+}
+{
+  "identity": 39,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "31d2ddfc0f1cc23e3846d65133a615a0d66e33c664176bc91bc6bd82c9f73a63",
+    "start_time": "2026-08-26T09:21:57.103000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:57.095
+ProcessGuid: {ba408481-b035-6a8e-403c-010000005501}
+ProcessId: 21460
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "39"
+}
+{
+  "identity": 40,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7dcd7703f5f75ae5f998f206bd86c45ab44278a45b2fa5c089a4f35530a986e4",
+    "start_time": "2026-08-26T09:21:57.099000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:57.095
+ProcessGuid: {ba408481-b035-6a8e-413c-010000005501}
+ProcessId: 27708
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "40"
+}
+{
+  "identity": 41,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "348a62912e9813cb1d1f91c45abd2eec8c68ad82145a4967779478f4487a6899",
+    "start_time": "2026-08-26T09:21:57.092000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:57.087
+ProcessGuid: {ba408481-b035-6a8e-3f3c-010000005501}
+ProcessId: 40876
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "41"
+}
+{
+  "identity": 42,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ea738eb2953265404c45fe5c02cf5c2373a125f75310cda856d3328f0853285e",
+    "start_time": "2026-08-26T09:21:54.969000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.965
+ProcessGuid: {ba408481-b032-6a8e-3d3c-010000005501}
+ProcessId: 40340
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "42"
+}
+{
+  "identity": 43,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "66ad7ff6388940f0c1f47a2198ddd3aa737442635d0181c4a1a4627a017d74d1",
+    "start_time": "2026-08-26T09:21:54.921000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.916
+ProcessGuid: {ba408481-b032-6a8e-3a3c-010000005501}
+ProcessId: 42264
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "43"
+}
+{
+  "identity": 44,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "65ab3cc2f8c56a3dd1c83f4919e5060a0ab3e1451bcfd366979e472fcae09846",
+    "start_time": "2026-08-26T09:21:54.880000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.876
+ProcessGuid: {ba408481-b032-6a8e-373c-010000005501}
+ProcessId: 42200
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "44"
+}
+{
+  "identity": 45,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "3a652e4156f3245864fee897bd613f3a830603dadc948d0fe0291fda6b8d9f59",
+    "start_time": "2026-08-26T09:21:54.837000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.833
+ProcessGuid: {ba408481-b032-6a8e-333c-010000005501}
+ProcessId: 10100
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "45"
+}
+{
+  "identity": 46,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "49ec02283ab34e695e6bd1f37abbded3ee824b260dd971f61af9a7a082dab186",
+    "start_time": "2026-08-26T09:21:54.834000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.827
+ProcessGuid: {ba408481-b032-6a8e-323c-010000005501}
+ProcessId: 41440
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "46"
+}
+{
+  "identity": 47,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "763bdf7b9e6f85838b2900ea6e50596175ab97d68840e352d2a1ddd828693ed8",
+    "start_time": "2026-08-26T09:21:54.769000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.759
+ProcessGuid: {ba408481-b032-6a8e-2e3c-010000005501}
+ProcessId: 45040
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "47"
+}
+{
+  "identity": 48,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "9cf6c90241253af0b4bfbad21cd92ac4b6c45f0e577a1151cd03cb1a62a44285",
+    "start_time": "2026-08-26T09:21:54.716000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.708
+ProcessGuid: {ba408481-b032-6a8e-2b3c-010000005501}
+ProcessId: 13720
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "48"
+}
+{
+  "identity": 49,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "573f8473338c9efabe1f6cd7a89a7f60b2cac2d22e099215dae6d8bc7e0e0f51",
+    "start_time": "2026-08-26T09:21:54.650000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.640
+ProcessGuid: {ba408481-b032-6a8e-283c-010000005501}
+ProcessId: 23144
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "49"
+}
+{
+  "identity": 50,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8cee1041ec57f78aa29d7559fcb3483d06e5f1bcf8ed7602c6a15cf1b85f7062",
+    "start_time": "2026-08-26T09:21:50.592000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:50.579
+ProcessGuid: {ba408481-b02e-6a8e-253c-010000005501}
+ProcessId: 28264
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "50"
+}
+{
+  "identity": 51,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5f0044cf68770173da118b57376e5a0e4c1c5a92eb1651f2f1098f2a227ddef5",
+    "start_time": "2026-08-26T09:21:50Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.995
+ProcessGuid: {ba408481-b02d-6a8e-223c-010000005501}
+ProcessId: 27564
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "51"
+}
+{
+  "identity": 52,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "702974f480e2c2487ab5b1d8662c0532a41db4c7928248257ad46bf8c8978aad",
+    "start_time": "2026-08-26T09:21:49.944000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.932
+ProcessGuid: {ba408481-b02d-6a8e-1f3c-010000005501}
+ProcessId: 3852
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.89"
+  },
+  "elementId": "52"
+}
+{
+  "identity": 53,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "53441f06774d7bda65c0e249bcef8dca9d600af9e62ca73c864df6550cfd1fe4",
+    "start_time": "2026-08-26T09:21:49.575000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.566
+ProcessGuid: {ba408481-b02d-6a8e-1b3c-010000005501}
+ProcessId: 22796
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "53"
+}
+{
+  "identity": 54,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "26069d5384ad2d926dacae1576a92c8101a5fccad24588f42593ad3e99a5ec04",
+    "start_time": "2026-08-26T09:21:49.572000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.562
+ProcessGuid: {ba408481-b02d-6a8e-1a3c-010000005501}
+ProcessId: 5168
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.89"
+  },
+  "elementId": "54"
+}
+{
+  "identity": 55,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c3b66872182993e4445c495173193895e7fc0ed1f77200305b159df93f3f55e2",
+    "start_time": "2026-08-26T09:21:49.515000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.507
+ProcessGuid: {ba408481-b02d-6a8e-153c-010000005501}
+ProcessId: 22628
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "55"
+}
+{
+  "identity": 56,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "238eb5e2aacdb38f5a99aa7decdfd844926c8138541e38f2c21a2fed3e7383ed",
+    "start_time": "2026-08-26T09:21:49.508000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.502
+ProcessGuid: {ba408481-b02d-6a8e-133c-010000005501}
+ProcessId: 33144
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "56"
+}
+{
+  "identity": 57,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "758968b5604db82b611e2e77eff1408d3037aee64a578729b1a7f2013bce7722",
+    "start_time": "2026-08-26T09:21:48.041000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:48.029
+ProcessGuid: {ba408481-b02c-6a8e-103c-010000005501}
+ProcessId: 14088
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "57"
+}
+{
+  "identity": 58,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "517b9f3fd4a776ed61256e59930d6c0e8941283942654491e703105c740cfbba",
+    "start_time": "2026-08-26T09:21:48.029000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:48.026
+ProcessGuid: {ba408481-b02c-6a8e-0f3c-010000005501}
+ProcessId: 9884
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.89"
+  },
+  "elementId": "58"
+}
+{
+  "identity": 59,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "a0513b0d0d7012ad44e14fd609bfb26ad8eace077d2f8019f2e34d8e3ead5d55",
+    "start_time": "2026-08-26T09:21:48.025000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:48.022
+ProcessGuid: {ba408481-b02c-6a8e-0d3c-010000005501}
+ProcessId: 36308
+Image: C:\Windows\System32\NETSTAT.EXE
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "59"
+}
+{
+  "identity": 60,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "47a5d25b0828111e4a98e306824c7553849ccc45a5078b8e0501499bbfbd1150",
+    "start_time": "2026-08-26T09:21:47.963000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.954
+ProcessGuid: {ba408481-b02b-6a8e-0b3c-010000005501}
+ProcessId: 39752
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "60"
+}
+{
+  "identity": 61,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "726cdd580bb23e2860578f929ba7bb7ca60fa5e86d7f0c498797dfce4a418016",
+    "start_time": "2026-08-26T09:21:47.890000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.876
+ProcessGuid: {ba408481-b02b-6a8e-083c-010000005501}
+ProcessId: 31472
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "61"
+}
+{
+  "identity": 62,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4b1fbea1ab6927fdc8c8bc0ba97f7b9a468c47a60a5caa4976e3259ab6824081",
+    "start_time": "2026-08-26T09:21:47.718000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.711
+ProcessGuid: {ba408481-b02b-6a8e-053c-010000005501}
+ProcessId: 31864
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "62"
+}
+{
+  "identity": 63,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "21957359a4cb8ab4d1975b65f3729e44b912013fc15dbf16d65ec3e20fe68073",
+    "start_time": "2026-08-26T09:21:47.662000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.651
+ProcessGuid: {ba408481-b02b-6a8e-023c-010000005501}
+ProcessId: 42044
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "63"
+}
+{
+  "identity": 64,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "cd6c89862773b8ce031d141fab18317d785407c90a4d86d0eb49c7a4de060a61",
+    "start_time": "2026-08-26T09:21:47.588000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.576
+ProcessGuid: {ba408481-b02b-6a8e-ff3b-010000005501}
+ProcessId: 36232
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "64"
+}
+{
+  "identity": 65,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "541e37ef1dd16e538f54b80ff91d7de5cac46da1fff2785da3969f2aed8c5098",
+    "start_time": "2026-08-26T09:22:36.566000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:36.556
+ProcessGuid: {ba408481-b05c-6a8e-5d3c-010000005501}
+ProcessId: 33972
+Image: C:\Program Files (x86)\Microsoft\EdgeWebView\Application\1"
+  },
+  "elementId": "65"
+}
+{
+  "identity": 66,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "adc2d56a81ee8e283b8149d4fb4c0326e86fabaf392f8804f16a8298ec974ac1",
+    "start_time": "2026-08-26T09:21:54.987000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.981
+ProcessGuid: {ba408481-b032-6a8e-3e3c-010000005501}
+ProcessId: 43856
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "66"
+}
+{
+  "identity": 67,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "3752f322dd276b7ad276c23c03f03782c6bb062bde04a20823185c1e7c0bb894",
+    "start_time": "2026-08-26T09:21:54.964000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.959
+ProcessGuid: {ba408481-b032-6a8e-3c3c-010000005501}
+ProcessId: 10964
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "67"
+}
+{
+  "identity": 68,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "62af79ce4397882938c82c42137613c117318ed28b8d3bbdd9742796cebaef99",
+    "start_time": "2026-08-26T09:21:54.936000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.932
+ProcessGuid: {ba408481-b032-6a8e-3b3c-010000005501}
+ProcessId: 15412
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "68"
+}
+{
+  "identity": 69,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "3c722447bdb000c7cbfdfe4000e36bb7624a3e201a83c8060f54195d1a2210bf",
+    "start_time": "2026-08-26T09:21:54.916000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.912
+ProcessGuid: {ba408481-b032-6a8e-393c-010000005501}
+ProcessId: 21408
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "69"
+}
+{
+  "identity": 70,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "d3cbcccd2e15edfe8fd6317c9497df5248f4f9f0e45a2ee3163bc767fa57bfcf",
+    "start_time": "2026-08-26T09:21:54.895000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.891
+ProcessGuid: {ba408481-b032-6a8e-383c-010000005501}
+ProcessId: 44264
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "70"
+}
+{
+  "identity": 71,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "033febc19a5ad04f6f9cb7d326264b305f5709a70e6311313c50309121f327db",
+    "start_time": "2026-08-26T09:21:54.875000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.871
+ProcessGuid: {ba408481-b032-6a8e-363c-010000005501}
+ProcessId: 41728
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "71"
+}
+{
+  "identity": 72,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "664e08f9ab626421a29a38858cd702c22b041b737adb0763d7916a2bafa72595",
+    "start_time": "2026-08-26T09:21:54.854000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.850
+ProcessGuid: {ba408481-b032-6a8e-353c-010000005501}
+ProcessId: 22056
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "72"
+}
+{
+  "identity": 73,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "300dc23bace3f94e77cfccf83895c09012cdf641ddb5b9b0e95ad06922915135",
+    "start_time": "2026-08-26T09:21:54.849000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.845
+ProcessGuid: {ba408481-b032-6a8e-343c-010000005501}
+ProcessId: 20856
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "73"
+}
+{
+  "identity": 74,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "e5cc35432eb50c8eff8eddb84c342fa933a7094e4f8f10724ef3818411e687eb",
+    "start_time": "2026-08-26T09:21:54.831000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.827
+ProcessGuid: {ba408481-b032-6a8e-313c-010000005501}
+ProcessId: 23428
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "74"
+}
+{
+  "identity": 75,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8e7f300e5fb8b92c227e7164670657f5daeb7a2da3bbe26da3f7550f6aa83adb",
+    "start_time": "2026-08-26T09:21:54.826000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.821
+ProcessGuid: {ba408481-b032-6a8e-303c-010000005501}
+ProcessId: 43884
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "75"
+}
+{
+  "identity": 76,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "0edf6b1a955e0ff0812659b00b6c8ff51541466b50915dfbae93d91f4fdc8da1",
+    "start_time": "2026-08-26T09:21:54.797000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.785
+ProcessGuid: {ba408481-b032-6a8e-2f3c-010000005501}
+ProcessId: 38380
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "76"
+}
+{
+  "identity": 77,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "74ecb64d00f50e9bd6c8053d15456cfab73f45d231116511e9e8bef741b5ce97",
+    "start_time": "2026-08-26T09:21:54.758000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.752
+ProcessGuid: {ba408481-b032-6a8e-2d3c-010000005501}
+ProcessId: 27216
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "77"
+}
+{
+  "identity": 78,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "acef5a5bf7332f9363c8897fd3a1a80c4e00e258a332d8eb9b54ea0b2305d27c",
+    "start_time": "2026-08-26T09:21:54.734000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.729
+ProcessGuid: {ba408481-b032-6a8e-2c3c-010000005501}
+ProcessId: 40272
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "78"
+}
+{
+  "identity": 79,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "a7575cf805f25706e6216b2a0aea653aad7fca539bfb345080e7550eee0e3c2d",
+    "start_time": "2026-08-26T09:21:54.707000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.699
+ProcessGuid: {ba408481-b032-6a8e-2a3c-010000005501}
+ProcessId: 21704
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "79"
+}
+{
+  "identity": 80,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ce58933ec368ae12ba31f09aba60d4c13c4467e583491e90bade333f4bb417a8",
+    "start_time": "2026-08-26T09:21:54.676000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.668
+ProcessGuid: {ba408481-b032-6a8e-293c-010000005501}
+ProcessId: 17328
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "80"
+}
+{
+  "identity": 81,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c7ccd7ba18648e012cafabd89d690552e6816db518bb9311d235fe3fcd40a7f7",
+    "start_time": "2026-08-26T09:21:54.637000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:54.630
+ProcessGuid: {ba408481-b032-6a8e-273c-010000005501}
+ProcessId: 11216
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "81"
+}
+{
+  "identity": 82,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7c08a573188c32579f55427ad174dcb8b7c8e3c098d4b34f5a9229906cbec12a",
+    "start_time": "2026-08-26T09:21:50.621000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:50.614
+ProcessGuid: {ba408481-b02e-6a8e-263c-010000005501}
+ProcessId: 43848
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "82"
+}
+{
+  "identity": 83,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "789eb021c14046509444a873c31d60d1da86ee47a2ab93a1ea51cbc76f97f700",
+    "start_time": "2026-08-26T09:21:50.577000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:50.571
+ProcessGuid: {ba408481-b02e-6a8e-243c-010000005501}
+ProcessId: 3712
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.windo"
+  },
+  "elementId": "83"
+}
+{
+  "identity": 84,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "6b04c7963596a5e853ac1a5fab82c67463b857359dab1fcfe2dbae57d9349fbe",
+    "start_time": "2026-08-26T09:21:50.019000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:50.013
+ProcessGuid: {ba408481-b02e-6a8e-233c-010000005501}
+ProcessId: 16704
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "84"
+}
+{
+  "identity": 85,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "77dcfb416fa7d9f81d953d14d4b94f8e1ff22ae8293686aaa6b705bd54ce6114",
+    "start_time": "2026-08-26T09:21:49.994000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.992
+ProcessGuid: {ba408481-b02d-6a8e-213c-010000005501}
+ProcessId: 30152
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "85"
+}
+{
+  "identity": 86,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "41f1f04ab42e0c6368d648072ba13100b8ae689783f6c4ccd761f24cf1c94963",
+    "start_time": "2026-08-26T09:21:49.969000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.962
+ProcessGuid: {ba408481-b02d-6a8e-203c-010000005501}
+ProcessId: 39212
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "86"
+}
+{
+  "identity": 87,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "0e1112d24443f13fe625681955080a1be5650e283bf84ea150173a73b89b5b72",
+    "start_time": "2026-08-26T09:21:49.927000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.922
+ProcessGuid: {ba408481-b02d-6a8e-1e3c-010000005501}
+ProcessId: 19380
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "87"
+}
+{
+  "identity": 88,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b5c91f4fc4aafde58ab836e09d2d133028aee7fd3ba052b937051bf59a09fe49",
+    "start_time": "2026-08-26T09:21:49.594000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.586
+ProcessGuid: {ba408481-b02d-6a8e-1c3c-010000005501}
+ProcessId: 28240
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "88"
+}
+{
+  "identity": 89,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "a8b6421ae1d3f8a897265e69faedd21472566378d2a3b0cbcbaa24a4d54770a3",
+    "start_time": "2026-08-26T09:21:49.592000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.586
+ProcessGuid: {ba408481-b02d-6a8e-1d3c-010000005501}
+ProcessId: 7764
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.49"
+  },
+  "elementId": "89"
+}
+{
+  "identity": 90,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "033348bcd827e9a74eb0e7d4c23bc95067139a0f95b8195ed07c9dc744127c00",
+    "start_time": "2026-08-26T09:21:49.565000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.562
+ProcessGuid: {ba408481-b02d-6a8e-193c-010000005501}
+ProcessId: 5332
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.windo"
+  },
+  "elementId": "90"
+}
+{
+  "identity": 91,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "932884c6b58d4e137b07d1a92c402d24d82f86b6eca15dcf0ce4a1b96c6f07bb",
+    "start_time": "2026-08-26T09:21:49.562000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.559
+ProcessGuid: {ba408481-b02d-6a8e-183c-010000005501}
+ProcessId: 31344
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "91"
+}
+{
+  "identity": 92,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5d79e0e473d92488c426e9c8b3a018079bcdf5bfacf4c0e9875d437e0a033803",
+    "start_time": "2026-08-26T09:21:49.535000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.530
+ProcessGuid: {ba408481-b02d-6a8e-173c-010000005501}
+ProcessId: 12292
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "92"
+}
+{
+  "identity": 93,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "53e01b143f42566ae5f8dbc350460ffe6a8bb7181a27213dbe5cd450e9760c29",
+    "start_time": "2026-08-26T09:21:49.529000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.523
+ProcessGuid: {ba408481-b02d-6a8e-163c-010000005501}
+ProcessId: 40208
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "93"
+}
+{
+  "identity": 94,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "57961d63bcc5015876d6f24e7af60a06ba9faa80b7f0fe83c25f5c4fb705c126",
+    "start_time": "2026-08-26T09:21:49.505000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.502
+ProcessGuid: {ba408481-b02d-6a8e-143c-010000005501}
+ProcessId: 44436
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "94"
+}
+{
+  "identity": 95,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7fce69be0b81c97e360370dbfa92f96863ba2de3db809d04da91f988bd47f096",
+    "start_time": "2026-08-26T09:21:49.501000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:49.499
+ProcessGuid: {ba408481-b02d-6a8e-123c-010000005501}
+ProcessId: 44184
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "95"
+}
+{
+  "identity": 96,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "18370efc29abd73d5393f94fa530f41a2dfe3b5c432e52bd1d4cd32de522d473",
+    "start_time": "2026-08-26T09:21:48.059000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:48.053
+ProcessGuid: {ba408481-b02c-6a8e-113c-010000005501}
+ProcessId: 4444
+Image: C:\Program Files\WSL\wsl.exe
+FileVersion: 2.6.3.0
+Descrip"
+  },
+  "elementId": "96"
+}
+{
+  "identity": 97,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "398ceec1fc0626ebcaf445c27c06171ba96088b767452a99bff6f1e37fa64061",
+    "start_time": "2026-08-26T09:21:48.028000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:48.025
+ProcessGuid: {ba408481-b02c-6a8e-0e3c-010000005501}
+ProcessId: 6072
+Image: C:\Windows\System32\wsl.exe
+FileVersion: 10.0.26100.8972 ("
+  },
+  "elementId": "97"
+}
+{
+  "identity": 98,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "15454d77831f538ff6eea17f68e1c41ca3974c8d2b3643c3b072864411b87c97",
+    "start_time": "2026-08-26T09:21:47.986000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.982
+ProcessGuid: {ba408481-b02b-6a8e-0c3c-010000005501}
+ProcessId: 8824
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.49"
+  },
+  "elementId": "98"
+}
+{
+  "identity": 99,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "de587941cdfd87f2080a82abd7c1ff932470796d5f1b4a11f0e47398648d8b4d",
+    "start_time": "2026-08-26T09:21:47.952000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.950
+ProcessGuid: {ba408481-b02b-6a8e-0a3c-010000005501}
+ProcessId: 19980
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "99"
+}
+{
+  "identity": 100,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "654ac319596cea37a6352375551dac311f92e42911d3a9ba32668334f11871a8",
+    "start_time": "2026-08-26T09:21:47.923000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.912
+ProcessGuid: {ba408481-b02b-6a8e-093c-010000005501}
+ProcessId: 30216
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "100"
+}
+{
+  "identity": 101,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8f76fe79862579d22f39a7e2ec9ab8130ca5631ab0d22bec980e328d99d8fb39",
+    "start_time": "2026-08-26T09:21:47.871000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.867
+ProcessGuid: {ba408481-b02b-6a8e-073c-010000005501}
+ProcessId: 19152
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "101"
+}
+{
+  "identity": 102,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "9ff096ae156edd88fc5b5d1f6f62c4e4c872152dbff62eee38fde5c45706aa1b",
+    "start_time": "2026-08-26T09:21:47.743000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.733
+ProcessGuid: {ba408481-b02b-6a8e-063c-010000005501}
+ProcessId: 32432
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "102"
+}
+{
+  "identity": 103,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ee52b11b975052378e502adb9712d0ef84e80b7f309d50795ac28659f4314572",
+    "start_time": "2026-08-26T09:21:47.709000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.706
+ProcessGuid: {ba408481-b02b-6a8e-043c-010000005501}
+ProcessId: 9128
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.windo"
+  },
+  "elementId": "103"
+}
+{
+  "identity": 104,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "3d5191e3899c173a2ebb0cbaa78b64e484b5a56483542c6c0a576dcaf727da23",
+    "start_time": "2026-08-26T09:21:47.685000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.675
+ProcessGuid: {ba408481-b02b-6a8e-033c-010000005501}
+ProcessId: 44732
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "104"
+}
+{
+  "identity": 105,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c94b898857ec426c485e75bf80f82fd09f9d0d2a0ae4b93d5ecee7d0a98e8864",
+    "start_time": "2026-08-26T09:21:47.649000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.640
+ProcessGuid: {ba408481-b02b-6a8e-013c-010000005501}
+ProcessId: 44520
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "105"
+}
+{
+  "identity": 106,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b9f3aa62867b7aa87d46540e98359414d0d7af4b7134373d67e9e5012f630da7",
+    "start_time": "2026-08-26T09:21:47.615000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.607
+ProcessGuid: {ba408481-b02b-6a8e-003c-010000005501}
+ProcessId: 14236
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "106"
+}
+{
+  "identity": 107,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "d1d67febe51a381098ec2e020989a1a21300a29619b5534b9e002dae137b224a",
+    "start_time": "2026-08-26T09:21:47.572000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.567
+ProcessGuid: {ba408481-b02b-6a8e-fe3b-010000005501}
+ProcessId: 40828
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "107"
+}
+{
+  "identity": 108,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "be462b4ce975a554bbd1e588628a07a8fd1223a4c746b5695113d73f1908226a",
+    "start_time": "2026-08-26T09:22:36.202000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:22:36.159
+ProcessGuid: {ba408481-b05c-6a8e-5c3c-010000005501}
+ProcessId: 19516
+Image: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+"
+  },
+  "elementId": "108"
+}
+{
+  "identity": 109,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b15252641f503cdd8a689fe48601f2376e27f1b81f9c4cb1b50df40443adebac",
+    "start_time": "2026-08-26T09:21:47.441000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.437
+ProcessGuid: {ba408481-b02b-6a8e-fd3b-010000005501}
+ProcessId: 42904
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git.exe
+Fil"
+  },
+  "elementId": "109"
+}
+{
+  "identity": 110,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "daac2f1e7880a8a1aed5b573016e4e32574537a3ba2f227356bea111976b5555",
+    "start_time": "2026-08-26T09:21:47.375000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.364
+ProcessGuid: {ba408481-b02b-6a8e-fc3b-010000005501}
+ProcessId: 19704
+Image: C:\Program Files\Git\mingw64\bin\git-credential-manager.ex"
+  },
+  "elementId": "110"
+}
+{
+  "identity": 111,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b8ec0c7cbbb075cca26e00b3d85d3808ee6a57319d9b099bdb976fd466047f4a",
+    "start_time": "2026-08-26T09:21:47.353000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.349
+ProcessGuid: {ba408481-b02b-6a8e-fb3b-010000005501}
+ProcessId: 16156
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git.exe
+Fil"
+  },
+  "elementId": "111"
+}
+{
+  "identity": 112,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b01d544a8d9df701b9c998a8cd706218fd2e081dc62bb54cf7a4791d71096625",
+    "start_time": "2026-08-26T09:21:47.092000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.082
+ProcessGuid: {ba408481-b02b-6a8e-f93b-010000005501}
+ProcessId: 31500
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "112"
+}
+{
+  "identity": 113,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "fcbc741813bf732727d1822ef0f28b04ae06cb927b892a1dbdc1a3babea635ed",
+    "start_time": "2026-08-26T09:21:47.089000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.077
+ProcessGuid: {ba408481-b02b-6a8e-f73b-010000005501}
+ProcessId: 16028
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "113"
+}
+{
+  "identity": 114,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5d4f96ca409a10cc3c365b381c570d89750a57c45cb7a35ef5b67801d7e6049c",
+    "start_time": "2026-08-26T09:21:47.080000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.077
+ProcessGuid: {ba408481-b02b-6a8e-f83b-010000005501}
+ProcessId: 35608
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "114"
+}
+{
+  "identity": 115,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "59b72936e78bdec56146d743f03fd82c5a2dcd4099f93b1a5c5db790887298e4",
+    "start_time": "2026-08-26T09:21:47.078000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.073
+ProcessGuid: {ba408481-b02b-6a8e-f63b-010000005501}
+ProcessId: 28800
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "115"
+}
+{
+  "identity": 116,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "69ee477b1bd089272b2a6cd819c1b3c6c2fa96e3bfc508c458cbb89de838773c",
+    "start_time": "2026-08-26T09:21:47.075000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.072
+ProcessGuid: {ba408481-b02b-6a8e-f53b-010000005501}
+ProcessId: 42976
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "116"
+}
+{
+  "identity": 117,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "11e56f9a3a0dde1c7d1adefe8f4cbc107d4ca8589747e803bd49897045073bea",
+    "start_time": "2026-08-26T09:21:47.071000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.068
+ProcessGuid: {ba408481-b02b-6a8e-f43b-010000005501}
+ProcessId: 27428
+Image: C:\Program Files\Docker\Docker\resources\bin\docker.exe
+F"
+  },
+  "elementId": "117"
+}
+{
+  "identity": 118,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "528d49e5e41ae6e0e89e8059a8efcc5d8956f758b55c0549dcf0798b41b6a090",
+    "start_time": "2026-08-26T09:21:46.950000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.943
+ProcessGuid: {ba408481-b02a-6a8e-f33b-010000005501}
+ProcessId: 18952
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git.exe
+Fil"
+  },
+  "elementId": "118"
+}
+{
+  "identity": 119,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f805585e64fbfb7ed53ade5f7d3b84a8800e260a1f0a95556dbf59b93658ddec",
+    "start_time": "2026-08-26T09:21:46.877000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.866
+ProcessGuid: {ba408481-b02a-6a8e-f23b-010000005501}
+ProcessId: 12776
+Image: C:\Program Files\Git\mingw64\bin\git-credential-manager.ex"
+  },
+  "elementId": "119"
+}
+{
+  "identity": 120,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "46ffcd96e856bd182d98ba5b658a306d4e62beb3e1c9ed4b87776d31f5400bac",
+    "start_time": "2026-08-26T09:21:46.854000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.848
+ProcessGuid: {ba408481-b02a-6a8e-f13b-010000005501}
+ProcessId: 44516
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git.exe
+Fil"
+  },
+  "elementId": "120"
+}
+{
+  "identity": 121,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b06c20c4c3053ad80ae4948b94c25b623f831c345b4aa39af796d0a18afc9fbf",
+    "start_time": "2026-08-26T09:21:46.661000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.657
+ProcessGuid: {ba408481-b02a-6a8e-ee3b-010000005501}
+ProcessId: 34792
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "121"
+}
+{
+  "identity": 122,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "778b2827d50d77ff2303151b0d829f99f652c3f62414c1778f8f0f169f1e9b98",
+    "start_time": "2026-08-26T09:21:46.621000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.617
+ProcessGuid: {ba408481-b02a-6a8e-eb3b-010000005501}
+ProcessId: 44532
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "122"
+}
+{
+  "identity": 123,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "635e275ec40110c82611eae927a1aabc323c1c1c46a36a8c490a9a4d447e250c",
+    "start_time": "2026-08-26T09:21:46.579000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.566
+ProcessGuid: {ba408481-b02a-6a8e-e83b-010000005501}
+ProcessId: 39568
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "123"
+}
+{
+  "identity": 124,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "9c05e43047e8edd582d913e12f0c01a40ac97209e0de948fba9ee86fa9983f56",
+    "start_time": "2026-08-26T09:21:46.479000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.475
+ProcessGuid: {ba408481-b02a-6a8e-e63b-010000005501}
+ProcessId: 29196
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git-remote-h"
+  },
+  "elementId": "124"
+}
+{
+  "identity": 125,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4cf8ec0e89d906924ea13104ed6b574bcc02c11255e077f9e74cb91048b4328e",
+    "start_time": "2026-08-26T09:21:46.466000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.461
+ProcessGuid: {ba408481-b02a-6a8e-e53b-010000005501}
+ProcessId: 15424
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git.exe
+Fil"
+  },
+  "elementId": "125"
+}
+{
+  "identity": 126,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "0723d3e687360100d2fd2caaa1a09a9cce6978b7e04b94542fa65fd3f54e2bb4",
+    "start_time": "2026-08-26T09:21:46.429000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.424
+ProcessGuid: {ba408481-b02a-6a8e-e33b-010000005501}
+ProcessId: 35848
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "126"
+}
+{
+  "identity": 127,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8332022148ea5725666abce467e6d20b607a8b77b561ae84d68b798efe2d08f5",
+    "start_time": "2026-08-26T09:21:46.384000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.375
+ProcessGuid: {ba408481-b02a-6a8e-e03b-010000005501}
+ProcessId: 20408
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "127"
+}
+{
+  "identity": 128,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7a51dbfb0731aab33b9222389b2b33690334e91552129a92eb74e531f2f99d83",
+    "start_time": "2026-08-26T09:21:46.323000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.316
+ProcessGuid: {ba408481-b02a-6a8e-dd3b-010000005501}
+ProcessId: 34640
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "128"
+}
+{
+  "identity": 129,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4bd7b957c43b424cda1ba64df7f8813b94bae8c557b441fc5072fe32cf235be3",
+    "start_time": "2026-08-26T09:21:46.262000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.250
+ProcessGuid: {ba408481-b02a-6a8e-da3b-010000005501}
+ProcessId: 42332
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "129"
+}
+{
+  "identity": 130,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "65ec0d6c103bae85885ad7d1ebff3cfad6351038c718d19b69ac3b0d3049ec0f",
+    "start_time": "2026-08-26T09:21:46.141000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.137
+ProcessGuid: {ba408481-b02a-6a8e-d73b-010000005501}
+ProcessId: 44396
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "130"
+}
+{
+  "identity": 131,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "05232d753d63370f8b22f974d533ae1b16fd2a24b32d44f6e808fb8966d4aca8",
+    "start_time": "2026-08-26T09:21:46.097000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.093
+ProcessGuid: {ba408481-b02a-6a8e-d43b-010000005501}
+ProcessId: 43508
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "131"
+}
+{
+  "identity": 132,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4c07de2e173d0fd40796fc981cfdd9f8628dc854f304f9c27be51514ae844d0c",
+    "start_time": "2026-08-26T09:21:46.056000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.051
+ProcessGuid: {ba408481-b02a-6a8e-d13b-010000005501}
+ProcessId: 22464
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "132"
+}
+{
+  "identity": 133,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b7edbeb608e8e91c14ca6695e33d9048d6d71f144f2d9cf68592aabf4b3b3e38",
+    "start_time": "2026-08-26T09:21:46.014000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.010
+ProcessGuid: {ba408481-b02a-6a8e-ce3b-010000005501}
+ProcessId: 21180
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "133"
+}
+{
+  "identity": 134,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b6da807d5d656aad5e076433103fa64b94edf3a9e4ed097c04a9e940363502d7",
+    "start_time": "2026-08-26T09:21:45.973000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.962
+ProcessGuid: {ba408481-b029-6a8e-c83b-010000005501}
+ProcessId: 21856
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "134"
+}
+{
+  "identity": 135,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b87fe8e5465a02bb5bfe5026b15e1cd203ae0ddd0ac1d25e4b272d2a63582601",
+    "start_time": "2026-08-26T09:21:45.971000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.966
+ProcessGuid: {ba408481-b029-6a8e-ca3b-010000005501}
+ProcessId: 21664
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "135"
+}
+{
+  "identity": 136,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c8ba81f5d35bd54ef7b43773e313ee1d9f71d6248f6ccbf7fd9e14012ad3f0a0",
+    "start_time": "2026-08-26T09:21:45.928000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.921
+ProcessGuid: {ba408481-b029-6a8e-c53b-010000005501}
+ProcessId: 26224
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "136"
+}
+{
+  "identity": 137,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c5db555e62a2e5b0cc84de201b2671cd85cde4046c9a65f443d70a6bc11dcf06",
+    "start_time": "2026-08-26T09:21:45.897000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.891
+ProcessGuid: {ba408481-b029-6a8e-c13b-010000005501}
+ProcessId: 19992
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "137"
+}
+{
+  "identity": 138,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5dbb46cf0f5ea0b627d22417c9c45c5c3ccb89237034f363e6b891a341f72b39",
+    "start_time": "2026-08-26T09:21:45.887000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.880
+ProcessGuid: {ba408481-b029-6a8e-bf3b-010000005501}
+ProcessId: 13032
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "138"
+}
+{
+  "identity": 139,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2b4abad7521d0c46f3a250ca29a0b118c6f41a4489ce932c3f1249ae8732ae39",
+    "start_time": "2026-08-26T09:21:45.846000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.841
+ProcessGuid: {ba408481-b029-6a8e-bc3b-010000005501}
+ProcessId: 42752
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "139"
+}
+{
+  "identity": 140,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "acbd01f96f1a359d2dd9e4868f9acbb8138c862ac63aa40ca6d4c9678fd17bdd",
+    "start_time": "2026-08-26T09:21:45.808000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.803
+ProcessGuid: {ba408481-b029-6a8e-b93b-010000005501}
+ProcessId: 44864
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "140"
+}
+{
+  "identity": 141,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7947c60486b5493909ba98f5e10eb8d76a820b4d9e6dcc11df0442ac9ab4b259",
+    "start_time": "2026-08-26T09:21:45.764000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.757
+ProcessGuid: {ba408481-b029-6a8e-b53b-010000005501}
+ProcessId: 37272
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "141"
+}
+{
+  "identity": 142,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "adaf38a153060cafdeb1759d0b8bb724a15541e1c469b2bbf600071f5f77b0d7",
+    "start_time": "2026-08-26T09:21:45.761000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.754
+ProcessGuid: {ba408481-b029-6a8e-b23b-010000005501}
+ProcessId: 11676
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "142"
+}
+{
+  "identity": 143,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f7c3cc5332cc99c17ae7a680c69146c29cfe4afc10e669e6bef8bd8c94c89d6a",
+    "start_time": "2026-08-26T09:21:45.745000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.741
+ProcessGuid: {ba408481-b029-6a8e-af3b-010000005501}
+ProcessId: 18088
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "143"
+}
+{
+  "identity": 144,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4190c982b8792120be4e1451d62bb9d6ad7800cc92637d79c7054b687c9cfaed",
+    "start_time": "2026-08-26T09:21:45.742000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.732
+ProcessGuid: {ba408481-b029-6a8e-ad3b-010000005501}
+ProcessId: 17704
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "144"
+}
+{
+  "identity": 145,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5c761d3ed206c22d7fbd8b9ac7135e05a63a05d39b671275e221879ec792b7a8",
+    "start_time": "2026-08-26T09:21:45.707000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.700
+ProcessGuid: {ba408481-b029-6a8e-a93b-010000005501}
+ProcessId: 1304
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.89"
+  },
+  "elementId": "145"
+}
+{
+  "identity": 146,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "bc2b064b8edf604d597b4c79722eb9157bac87053669a254e267a672811ece22",
+    "start_time": "2026-08-26T09:21:45.700000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.688
+ProcessGuid: {ba408481-b029-6a8e-a83b-010000005501}
+ProcessId: 20312
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "146"
+}
+{
+  "identity": 147,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2137f94ea240b0f7dd59cf994f43dcaffff85024398620cca6436fb3aae8f082",
+    "start_time": "2026-08-26T09:21:45.588000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.582
+ProcessGuid: {ba408481-b029-6a8e-a43b-010000005501}
+ProcessId: 12324
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "147"
+}
+{
+  "identity": 148,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "425049406ec74ad05e7f7dea7b19cf42314110c859b6f497ca35003c7166fb6f",
+    "start_time": "2026-08-26T09:21:45.555000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.550
+ProcessGuid: {ba408481-b029-6a8e-a23b-010000005501}
+ProcessId: 41628
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "148"
+}
+{
+  "identity": 149,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "dc6388cfe954e2d24cb01c527b39053b9b4738f54afa28520a383c9cc2d0c543",
+    "start_time": "2026-08-26T09:21:45.498000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.493
+ProcessGuid: {ba408481-b029-6a8e-9f3b-010000005501}
+ProcessId: 7284
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.89"
+  },
+  "elementId": "149"
+}
+{
+  "identity": 150,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "6fd8f0f7f2b02b282f1439fbb50ba922a022a7122aca5b1540a4a5285be6f115",
+    "start_time": "2026-08-26T09:21:45.472000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.466
+ProcessGuid: {ba408481-b029-6a8e-9d3b-010000005501}
+ProcessId: 20700
+Image: C:\Program Files\Git\mingw64\libexec\git-core\git.exe
+Fil"
+  },
+  "elementId": "150"
+}
+{
+  "identity": 151,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ed60d915963f68cad963c5e809dc797634e29d22188f4beda9933a8a6e5108d6",
+    "start_time": "2026-08-26T09:21:45.434000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.430
+ProcessGuid: {ba408481-b029-6a8e-9b3b-010000005501}
+ProcessId: 41804
+Image: C:\Windows\System32\conhost.exe
+FileVersion: 10.0.26100.8"
+  },
+  "elementId": "151"
+}
+{
+  "identity": 152,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7f2235ed3bce9db223c807107d107b47ef3ed4104767ec8a5c63dd27d690c18d",
+    "start_time": "2026-08-26T09:21:47.328000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:47.325
+ProcessGuid: {ba408481-b02b-6a8e-fa3b-010000005501}
+ProcessId: 14168
+Image: C:\Program Files\Git\usr\bin\sh.exe
+FileVersion: -
+Descr"
+  },
+  "elementId": "152"
+}
+{
+  "identity": 153,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ea88e04b73c521a5a730183ce1c8ec8da551b3d1f6fb58d29e2af2d2d5c39366",
+    "start_time": "2026-08-26T09:21:46.831000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.822
+ProcessGuid: {ba408481-b02a-6a8e-f03b-010000005501}
+ProcessId: 30572
+Image: C:\Program Files\Git\usr\bin\sh.exe
+FileVersion: -
+Descr"
+  },
+  "elementId": "153"
+}
+{
+  "identity": 154,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c6ed079a8b22020a53ec40259ef32ba1fc233f5f5533189f1b4fdf7b0cfe429e",
+    "start_time": "2026-08-26T09:21:46.679000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.673
+ProcessGuid: {ba408481-b02a-6a8e-ef3b-010000005501}
+ProcessId: 41704
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "154"
+}
+{
+  "identity": 155,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "eaa46a9caa10a29dd1f8baf8d10566d222c9e311180630cb05a93d4e8803b4c9",
+    "start_time": "2026-08-26T09:21:46.657000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.654
+ProcessGuid: {ba408481-b02a-6a8e-ed3b-010000005501}
+ProcessId: 44176
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "155"
+}
+{
+  "identity": 156,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "3575019a6f3711b932d47a7845be511d7dacd72e2eddca5467371a888455fcba",
+    "start_time": "2026-08-26T09:21:46.634000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.631
+ProcessGuid: {ba408481-b02a-6a8e-ec3b-010000005501}
+ProcessId: 41396
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "156"
+}
+{
+  "identity": 157,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "1f91f8daa69ca7d964d73fee0b76e3d51b0b354ea405d64e52e59188df916ac8",
+    "start_time": "2026-08-26T09:21:46.616000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.612
+ProcessGuid: {ba408481-b02a-6a8e-ea3b-010000005501}
+ProcessId: 41088
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "157"
+}
+{
+  "identity": 158,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "d80c3dc9e1a84fab0b2c10ef4cefca5936376efaf2db42390edadb23252559ce",
+    "start_time": "2026-08-26T09:21:46.596000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.592
+ProcessGuid: {ba408481-b02a-6a8e-e93b-010000005501}
+ProcessId: 33972
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "158"
+}
+{
+  "identity": 159,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "fbeb3fa504648d1e92d2b1b34d42c67e0d629113bbd3be78da6b80c0c044249b",
+    "start_time": "2026-08-26T09:21:46.563000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.560
+ProcessGuid: {ba408481-b02a-6a8e-e73b-010000005501}
+ProcessId: 39616
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "159"
+}
+{
+  "identity": 160,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "15fa1c572d703c7061aa510b636ef013abb70848ec6e7007bcbc85bc33015e08",
+    "start_time": "2026-08-26T09:21:46.450000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.441
+ProcessGuid: {ba408481-b02a-6a8e-e43b-010000005501}
+ProcessId: 1408
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.49"
+  },
+  "elementId": "160"
+}
+{
+  "identity": 161,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7f60498e2ec57c90940cb87f21ae03da2fc6287482a2ef1157b8bf43160abd46",
+    "start_time": "2026-08-26T09:21:46.423000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.421
+ProcessGuid: {ba408481-b02a-6a8e-e23b-010000005501}
+ProcessId: 44824
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "161"
+}
+{
+  "identity": 162,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "a0be40062e512011d5351b40d2aabecd00407a69c4753a6388676f8a14a607ac",
+    "start_time": "2026-08-26T09:21:46.401000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.397
+ProcessGuid: {ba408481-b02a-6a8e-e13b-010000005501}
+ProcessId: 21436
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "162"
+}
+{
+  "identity": 163,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7e2afc2d86cdd62950ceae0fda668eed01b0614008429814efc4bde21c5df608",
+    "start_time": "2026-08-26T09:21:46.375000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.371
+ProcessGuid: {ba408481-b02a-6a8e-df3b-010000005501}
+ProcessId: 25944
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "163"
+}
+{
+  "identity": 164,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "1a2f8f9e856f855b1c9cf4050d6f7633ed0d3f7488befd283123ca0dbe81ad6e",
+    "start_time": "2026-08-26T09:21:46.347000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.341
+ProcessGuid: {ba408481-b02a-6a8e-de3b-010000005501}
+ProcessId: 23664
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "164"
+}
+{
+  "identity": 165,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "cabcf6a3796e07925087415a31974a171015d6d8993a0903f2dc55562e791585",
+    "start_time": "2026-08-26T09:21:46.316000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.313
+ProcessGuid: {ba408481-b02a-6a8e-dc3b-010000005501}
+ProcessId: 19516
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "165"
+}
+{
+  "identity": 166,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4a5de83f2e55128198e0f0c238702526612ba992fad457ddeb07c2855d9cd63a",
+    "start_time": "2026-08-26T09:21:46.291000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.280
+ProcessGuid: {ba408481-b02a-6a8e-db3b-010000005501}
+ProcessId: 43124
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "166"
+}
+{
+  "identity": 167,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "c228ea967fe4c376b0f9e64954ae31209fd5646f5ce2778aa0fc6d0184252db4",
+    "start_time": "2026-08-26T09:21:46.249000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.246
+ProcessGuid: {ba408481-b02a-6a8e-d93b-010000005501}
+ProcessId: 35540
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "167"
+}
+{
+  "identity": 168,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "adf9bbe9087e80a567212d62e5404ffc9dfa756a7f1b80730dc86be4b0e7376b",
+    "start_time": "2026-08-26T09:21:46.156000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.152
+ProcessGuid: {ba408481-b02a-6a8e-d83b-010000005501}
+ProcessId: 39280
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "168"
+}
+{
+  "identity": 169,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "cad60b97e38388b3fa0192efe80c17e951ee792ee4022953c1f19cbc01702b1c",
+    "start_time": "2026-08-26T09:21:46.135000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.134
+ProcessGuid: {ba408481-b02a-6a8e-d63b-010000005501}
+ProcessId: 32220
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "169"
+}
+{
+  "identity": 170,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "db891a240c60b0611a02f97d9f377368396ad6467107a262c7c618b7d6d77ad1",
+    "start_time": "2026-08-26T09:21:46.112000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.108
+ProcessGuid: {ba408481-b02a-6a8e-d53b-010000005501}
+ProcessId: 34756
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "170"
+}
+{
+  "identity": 171,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "dc248bbd1f5ebb2566fe35900de20c8f03359903063a23c011feec8c977b3985",
+    "start_time": "2026-08-26T09:21:46.093000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.090
+ProcessGuid: {ba408481-b02a-6a8e-d33b-010000005501}
+ProcessId: 23112
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "171"
+}
+{
+  "identity": 172,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "727f4e364e2fb264aadd856ac8f3c93b427b1db05bc4930936195b68820e38ad",
+    "start_time": "2026-08-26T09:21:46.071000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.068
+ProcessGuid: {ba408481-b02a-6a8e-d23b-010000005501}
+ProcessId: 40168
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "172"
+}
+{
+  "identity": 173,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "df8cdddbaa6f25936c51a234e5d1ec336d5f355fae51bfa1810247b1420583a1",
+    "start_time": "2026-08-26T09:21:46.051000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.048
+ProcessGuid: {ba408481-b02a-6a8e-d03b-010000005501}
+ProcessId: 22532
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "173"
+}
+{
+  "identity": 174,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "cb9957deea9faa85c82e16cddeec6950305f395091ccb744889fbf4d471187ba",
+    "start_time": "2026-08-26T09:21:46.029000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.025
+ProcessGuid: {ba408481-b02a-6a8e-cf3b-010000005501}
+ProcessId: 13716
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "174"
+}
+{
+  "identity": 175,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "a497921724eef0e9178a020f806adbbc1491ac363df384ad75e7c49a97c7d1da",
+    "start_time": "2026-08-26T09:21:46.009000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:46.007
+ProcessGuid: {ba408481-b02a-6a8e-cd3b-010000005501}
+ProcessId: 27320
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "175"
+}
+{
+  "identity": 176,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f54eb8a1ae914171b2f440eb4b24fa407e468afefca5388e10915881cdb61eb0",
+    "start_time": "2026-08-26T09:21:45.990000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.983
+ProcessGuid: {ba408481-b029-6a8e-cb3b-010000005501}
+ProcessId: 26964
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "176"
+}
+{
+  "identity": 177,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "4fa09c7d230425431ef3decd50caf0077d86fb9b707c7e6b996983bdb97810a9",
+    "start_time": "2026-08-26T09:21:45.988000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.983
+ProcessGuid: {ba408481-b029-6a8e-cc3b-010000005501}
+ProcessId: 19332
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "177"
+}
+{
+  "identity": 178,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "1d4bcdd536053a21deb0f293440a0983dfac6dc7e0464d81fbbf23d7a3db9165",
+    "start_time": "2026-08-26T09:21:45.965000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.963
+ProcessGuid: {ba408481-b029-6a8e-c93b-010000005501}
+ProcessId: 38404
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "178"
+}
+{
+  "identity": 179,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8d36c8b5e55cb6e7e9dff862a1eaa373743c8efa46511459ea3e885db0d18d68",
+    "start_time": "2026-08-26T09:21:45.961000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.958
+ProcessGuid: {ba408481-b029-6a8e-c73b-010000005501}
+ProcessId: 36372
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "179"
+}
+{
+  "identity": 180,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5e9bc5ab9e947b6af6fbc5c418693c1336213128d7810eb563f46f232b77fe0b",
+    "start_time": "2026-08-26T09:21:45.945000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.941
+ProcessGuid: {ba408481-b029-6a8e-c63b-010000005501}
+ProcessId: 20696
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "180"
+}
+{
+  "identity": 181,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8a593fe899818111c3cf6503c5483f6f8b585217820e25368472c7b425e50dc8",
+    "start_time": "2026-08-26T09:21:45.921000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.918
+ProcessGuid: {ba408481-b029-6a8e-c43b-010000005501}
+ProcessId: 44936
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "181"
+}
+{
+  "identity": 182,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f1887d2f589456146872da7f7ab9bab8df67b651188ea3b6329b8fe4b1e9f391",
+    "start_time": "2026-08-26T09:21:45.911000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.906
+ProcessGuid: {ba408481-b029-6a8e-c33b-010000005501}
+ProcessId: 6920
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.49"
+  },
+  "elementId": "182"
+}
+{
+  "identity": 183,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "7d6a414a56dde5d4447096ed98b3450a3501465e22d08dfd51925d2efa753d3a",
+    "start_time": "2026-08-26T09:21:45.901000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.898
+ProcessGuid: {ba408481-b029-6a8e-c23b-010000005501}
+ProcessId: 16588
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "183"
+}
+{
+  "identity": 184,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "1ad7b417b49761c88cb9067ac49a95a3919b9c67908d8749a90496db8a4ba483",
+    "start_time": "2026-08-26T09:21:45.891000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.888
+ProcessGuid: {ba408481-b029-6a8e-c03b-010000005501}
+ProcessId: 12248
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "184"
+}
+{
+  "identity": 185,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ae22149ad192c27ad2c038e42dac1dc018e4a2f5af0095285ef14a0a54780c21",
+    "start_time": "2026-08-26T09:21:45.880000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.877
+ProcessGuid: {ba408481-b029-6a8e-be3b-010000005501}
+ProcessId: 29812
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "185"
+}
+{
+  "identity": 186,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b424b71ef903274328ca3df3faa9e861f1922238d007d3c78336f632295361e5",
+    "start_time": "2026-08-26T09:21:45.861000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.856
+ProcessGuid: {ba408481-b029-6a8e-bd3b-010000005501}
+ProcessId: 44792
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "186"
+}
+{
+  "identity": 187,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "039cd640a25eff0647cd8d2e1eaad7240664c003b80f2b85947ba5e92bb8cc50",
+    "start_time": "2026-08-26T09:21:45.840000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.838
+ProcessGuid: {ba408481-b029-6a8e-bb3b-010000005501}
+ProcessId: 40004
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "187"
+}
+{
+  "identity": 188,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "5ab4a042a75c0ff8ab766d8ec012b8df104bdc61ded438312ffe67d0e7af668b",
+    "start_time": "2026-08-26T09:21:45.823000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.819
+ProcessGuid: {ba408481-b029-6a8e-ba3b-010000005501}
+ProcessId: 24960
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "188"
+}
+{
+  "identity": 189,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "9f8c31ba6b910c9b0f7f22fb7da081e9742feab1eb51d710447ee54f29057387",
+    "start_time": "2026-08-26T09:21:45.802000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.800
+ProcessGuid: {ba408481-b029-6a8e-b83b-010000005501}
+ProcessId: 43108
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "189"
+}
+{
+  "identity": 190,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "ec0b4a89b66b2c2f1ee603df3ee8f9a08dc7a2fd58dfe1d215635da17e25058f",
+    "start_time": "2026-08-26T09:21:45.779000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.774
+ProcessGuid: {ba408481-b029-6a8e-b73b-010000005501}
+ProcessId: 15164
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "190"
+}
+{
+  "identity": 191,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "e8f0a247c27586c364859c287ef86ba22215874aea8eeb57a1dbfd7893d5adab",
+    "start_time": "2026-08-26T09:21:45.777000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.773
+ProcessGuid: {ba408481-b029-6a8e-b63b-010000005501}
+ProcessId: 3300
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.49"
+  },
+  "elementId": "191"
+}
+{
+  "identity": 192,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "6c6774873190fc625779b4c05072c65e50b504e0a1b7100daf20d2def6686d73",
+    "start_time": "2026-08-26T09:21:45.763000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.754
+ProcessGuid: {ba408481-b029-6a8e-b33b-010000005501}
+ProcessId: 18500
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "192"
+}
+{
+  "identity": 193,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "9df1d7c6b046eb73963d2a2d036f723c675fbbab9a344f5c5aa9277625c5f6d3",
+    "start_time": "2026-08-26T09:21:45.762000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.757
+ProcessGuid: {ba408481-b029-6a8e-b43b-010000005501}
+ProcessId: 35456
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "193"
+}
+{
+  "identity": 194,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "2b9d6fa632bedb1f7180deb0ac417aac5f9190ae9218d4b8d26f1aa00a268506",
+    "start_time": "2026-08-26T09:21:45.757000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.754
+ProcessGuid: {ba408481-b029-6a8e-b13b-010000005501}
+ProcessId: 34584
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "194"
+}
+{
+  "identity": 195,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "dcb0c9362ad4f402240c9233c78a640a6adb80826dcca0c248739554a89566c5",
+    "start_time": "2026-08-26T09:21:45.753000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.751
+ProcessGuid: {ba408481-b029-6a8e-b03b-010000005501}
+ProcessId: 34844
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "195"
+}
+{
+  "identity": 196,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "0e6b986e669d681494a147fe969f74162cac71071b4deb1a841fb70072bfc176",
+    "start_time": "2026-08-26T09:21:45.740000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.738
+ProcessGuid: {ba408481-b029-6a8e-ae3b-010000005501}
+ProcessId: 40508
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "196"
+}
+{
+  "identity": 197,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "532bf85fd834bbe54747dbd92885a66a44362082243621df6cf2f9045aaa690e",
+    "start_time": "2026-08-26T09:21:45.731000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.724
+ProcessGuid: {ba408481-b029-6a8e-ac3b-010000005501}
+ProcessId: 40772
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "197"
+}
+{
+  "identity": 198,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f30c517528160adf8220fb72bea4d60aa73415882fe51fd4f0fb9f5f88cbc7ad",
+    "start_time": "2026-08-26T09:21:45.722000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.718
+ProcessGuid: {ba408481-b029-6a8e-ab3b-010000005501}
+ProcessId: 15636
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "198"
+}
+{
+  "identity": 199,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "d6310940451ba5930b8cce1a0a9fc633ad308fde2549f6a57e74b4e8f09ea3da",
+    "start_time": "2026-08-26T09:21:45.718000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.713
+ProcessGuid: {ba408481-b029-6a8e-aa3b-010000005501}
+ProcessId: 44820
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "199"
+}
+{
+  "identity": 200,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "a6a1f577322ec8c6e0d1843f6682e5b57f95c611a51bd833dce801efcb584fc6",
+    "start_time": "2026-08-26T09:21:45.699000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.687
+ProcessGuid: {ba408481-b029-6a8e-a73b-010000005501}
+ProcessId: 29880
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "200"
+}
+{
+  "identity": 201,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "f4798eed5471ecab0a85f79e9f9fe06fa34f60f89ec73137775708885cb26870",
+    "start_time": "2026-08-26T09:21:45.688000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.684
+ProcessGuid: {ba408481-b029-6a8e-a63b-010000005501}
+ProcessId: 45008
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "201"
+}
+{
+  "identity": 202,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "491246eaaa48612840988af932d751bf8d8b7bfdf9229079d0d3822c771b2d16",
+    "start_time": "2026-08-26T09:21:45.603000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.600
+ProcessGuid: {ba408481-b029-6a8e-a53b-010000005501}
+ProcessId: 43940
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "202"
+}
+{
+  "identity": 203,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b0e41f75762e43adc671e215098e18c132f8c5f74480a38c193335f24090f58e",
+    "start_time": "2026-08-26T09:21:45.580000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.577
+ProcessGuid: {ba408481-b029-6a8e-a33b-010000005501}
+ProcessId: 41492
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "203"
+}
+{
+  "identity": 204,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "8b7b87e785c2f4518c9677ae50cd5c7f7bead9e37e7deb6a461d6d133869cd5e",
+    "start_time": "2026-08-26T09:21:45.518000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.513
+ProcessGuid: {ba408481-b029-6a8e-a03b-010000005501}
+ProcessId: 32496
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "204"
+}
+{
+  "identity": 205,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "203779f640c4885fa08b109010c09f7deb814cf2867fe88d3f090f1533f782e0",
+    "start_time": "2026-08-26T09:21:45.492000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.487
+ProcessGuid: {ba408481-b029-6a8e-9e3b-010000005501}
+ProcessId: 44908
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "205"
+}
+{
+  "identity": 206,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "b1b5f065cc90d4b14698d0d274652ee7f8646549427f5677da09cfba0b267215",
+    "start_time": "2026-08-26T09:21:45.453000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.445
+ProcessGuid: {ba408481-b029-6a8e-9c3b-010000005501}
+ProcessId: 25104
+Image: C:\Program Files\Git\mingw64\bin\git.exe
+FileVersion: 2.4"
+  },
+  "elementId": "206"
+}
+{
+  "identity": 207,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "d85511b2e3602f6424244d84c3aa290106f20da3568b5c8a09dcac678339b481",
+    "start_time": "2026-08-26T09:21:45.430000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.425
+ProcessGuid: {ba408481-b029-6a8e-9a3b-010000005501}
+ProcessId: 43748
+Image: C:\Program Files\Git\cmd\git.exe
+FileVersion: 2.49.0.wind"
+  },
+  "elementId": "207"
+}
+{
+  "identity": 208,
+  "labels": [
+    "Process"
+  ],
+  "properties": {
+    "uid": "576f83b73a3cea1c78503f67f1d995738af84b4de2f45e72c5c6cb402161fb92",
+    "start_time": "2026-08-26T09:21:45.546000Z",
+    "canonical_host_id": "UNKNOWN_HOST",
+    "process_name": "Microsoft-Windows-Sysmon",
+    "case_id": "UNASSIGNED_CONTINUOUS",
+    "pid": 0,
+    "command_line": "Process Create:
+RuleName: -
+UtcTime: 2026-08-26 09:21:45.541
+ProcessGuid: {ba408481-b029-6a8e-a13b-010000005501}
+ProcessId: 39424
+Image: C:\Users\DELL\AppData\Local\Programs\cursor\resources\app"
+  },
+  "elementId": "208"
+}

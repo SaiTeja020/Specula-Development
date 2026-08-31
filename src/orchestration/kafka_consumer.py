@@ -1,10 +1,12 @@
 import json
+import time
 import logging
 from typing import Dict, Any, Optional
 from confluent_kafka import Consumer, KafkaError
 
 from src.agents.supervisor_agent import SupervisorState
 from src.orchestration.supervisor_graph import build_supervisor_graph
+from src.ingestion.broker.kafka_consumer import deserialize_event
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +15,8 @@ class SupervisorKafkaConsumer:
         self.consumer = Consumer({
             'bootstrap.servers': bootstrap_servers,
             'group.id': group_id,
-            'auto.offset.reset': 'earliest'
+            'auto.offset.reset': 'earliest',
+            'topic.metadata.refresh.interval.ms': 3000
         })
         self.graph = build_supervisor_graph()
 
@@ -59,16 +62,16 @@ class SupervisorKafkaConsumer:
                         continue
                     else:
                         logger.error(f"Kafka Error: {msg.error()}")
-                        break
+                        time.sleep(1)
+                        continue
 
                 try:
-                    payload = json.loads(msg.value().decode('utf-8'))
+                    payload = deserialize_event(msg.value())
                     case_id = payload.get('case_id')
                     trace_id = payload.get('trace_id')
-                    dfkg_uri = payload.get('dfkg_uri')
                     nl_query = payload.get('query')
                     
-                    if not case_id or not trace_id or not dfkg_uri:
+                    if not case_id or not trace_id:
                         logger.warning(f"Invalid payload format, missing required fields: {payload}")
                         continue
 
@@ -98,7 +101,8 @@ class SupervisorKafkaConsumer:
 
                     # Invoke Graph
                     logger.info(f"Invoking Supervisor Graph for case {case_id}")
-                    final_state = self.graph.invoke(initial_state)
+                    import asyncio
+                    final_state = asyncio.run(self.graph.ainvoke(initial_state))
                     logger.info(f"Graph completed for case {case_id} with state {final_state.get('terminal_state', 'RESOLVED')}")
 
                 except json.JSONDecodeError:

@@ -54,3 +54,8 @@ faiss-cpu>=1.7.4
 # Set environment variable NVD_API_KEY=<your-key> to activate.
 # No code change needed — NvdCveFetcher reads it automatically via os.environ.
 
+
+dpkt==1.9.8
+
+# LangGraph Checkpointer
+langgraph-checkpoint-redis>=0.5.2
