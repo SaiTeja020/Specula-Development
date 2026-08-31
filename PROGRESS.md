@@ -153,6 +153,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/orchestration/test_supervisor.py`
   - **Acceptance Criteria:** Supervisor graph built and routes according to specifications.
 
+- **Task ID:** `TASK-4.8`
+  - **Description:** Build Log Analysis Agent Multi-Tier Ground-Truth Benchmark Suite with SHA-256 integrity lock and 3-tier scoring.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\python.exe scripts/evaluate_log_analysis_ground_truth.py`
+  - **Acceptance Criteria:** All 4 pre-committed SLA thresholds pass against frozen 50-event dataset and 100k-event baseline seed.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -236,6 +242,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-22 | `docs/imp_plan.md` fixes (A1–D4) | **A1/B1:** `make_evidence_collection_node` factory fixes node signature; wired in `build_graph()`. **A2:** `_llm_call` extracts `.content` with `hasattr` guard. **A3:** `test_control: Optional[dict]` added to `SpeculaState`. **B2:** EC node uses `KafkaPublishFindingTool`-only publish (no `_run_agent`, no double-publish). **C1:** `TrackingDFKGQueryTool` populates `dfkg_refs` from DFKG query results. **D1:** Dead-end detection moved to `primary_tier_join_node` via `make_primary_tier_join_node` factory; `supervisor_node` strips DEAD_END: regex; tests updated to `test_control` injection. **D2:** Portable `load_dotenv()` auto-discovery replaces hardcoded Windows path in `config.py`. **D3:** `_RESOLVED_GEMINI_MODEL` module-level cache prevents re-querying Google API per call. **D4:** `StubLLM` receives `case_id` at construction; `get_llm()` and `_run_agent()` pass it explicitly. Promoted `dead_end_detector.py`, `react_tools.py`, `evidence_collection_agent.py` to `src/agents/`. | 28/28 + 44/44 Passed |
 | 2026-08-22 | `TASK-6.1` Log Analysis Agent | Built `src/agents/log_analysis/` package: config, signatures YAML, finding_builder, detection_rules, anomaly_detector, dedup, llm_reasoner, agent. Added RBAC grant in vector_retrieval.py. | 71/71 Passed (`tests/agents/log_analysis/`) |
 | 2026-08-25 | `TASK-4.7` Extended | Integrated Natural Language Query Routing, Capability Fallback Governance, and Async Loop Budgets into Supervisor | 39/39 Passed (`tests/supervisor_test_suite/`) |
+| 2026-08-28 | `TASK-4.8` Log Analysis Benchmark | Created frozen 50-event GT fixture (`log_analysis_ground_truth_v1.json`), 100k-event baseline seed (`log_analysis_baseline_seed_v1.json`), and multi-tier benchmark runner (`evaluate_log_analysis_ground_truth.py`) with SHA-256 integrity locks and pre-committed SLA checks. | 4/4 SLA Passed (Near-Miss FP=0%, Clear Malicious Recall=100%, Overall Recall=88%, Overall Prec=100%) |
 
 ---
 
