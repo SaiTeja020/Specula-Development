@@ -127,6 +127,7 @@ class EventConsumer:
             consumer_conf["group.id"] = group_id
             consumer_conf["auto.offset.reset"] = "earliest"
             consumer_conf["enable.auto.commit"] = False
+            consumer_conf["topic.metadata.refresh.interval.ms"] = 3000
             
             self._real_consumer = Consumer(consumer_conf)
             self._real_consumer.subscribe([self.topic])

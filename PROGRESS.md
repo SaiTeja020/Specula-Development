@@ -248,6 +248,10 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py` | Decoupled synchronous ingestion pipeline into distinct Kafka Producer and Consumer. Extracted inline normalization to dedicated modules, fixed hardcoded host logic, and implemented structured semantic text embeddings for ChromaDB vector isolation. | Verified |
 | 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py`, `src/ingestion/broker/kafka_consumer.py` | Fixed execution ordering invariant: implemented EventConsumer.consume_loop(), moved specula.cases.opened triggering into ingestion_consumer.py after Distillation -> Cypher -> ChromaDB completes, ensuring Supervisor wakes up to a fully populated graph. | Verified |
 | 2026-08-28 | `TASK-4.8` Log Analysis Benchmark | Created frozen 50-event GT fixture (`log_analysis_ground_truth_v1.json`), 100k-event baseline seed (`log_analysis_baseline_seed_v1.json`), and multi-tier benchmark runner (`evaluate_log_analysis_ground_truth.py`) with SHA-256 integrity locks and pre-committed SLA checks. | 4/4 SLA Passed (Near-Miss FP=0%, Clear Malicious Recall=100%, Overall Recall=88%, Overall Prec=100%) |
+| 2026-08-31 | Bugfix | Fixed JSON decoding error in `src/orchestration/kafka_consumer.py` by using `deserialize_event` to handle Confluent wire format headers. | Verified (39/39 supervisor tests passed) |
+| 2026-08-31 | Bugfix | Removed strict `dfkg_uri` requirement in `SupervisorKafkaConsumer` to support synthetic OCSF trigger events lacking this field. | Verified (39/39 supervisor tests passed) |
+| 2026-08-31 | Bugfix | Fixed async invocation error in `SupervisorKafkaConsumer` by replacing `invoke()` with `asyncio.run(ainvoke())` for the LangGraph execution. | Verified (39/39 supervisor tests passed) |
+| 2026-08-31 | Enhancement | Reinstated `--start-time` and `--end-time` CLI argument parsing in `src/ingestion/run_pipeline.py` and threaded them through `scripts/start_full_pipeline.py`. | Verified |
 
 ---
 

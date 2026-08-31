@@ -13,6 +13,7 @@ import subprocess
 import sys
 import uuid
 import hashlib
+import argparse
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.abspath("."))
@@ -133,6 +134,12 @@ def run_pipeline_on_event(
     return None
 
 def main():
+    parser = argparse.ArgumentParser(description="Specula Pipeline Runner")
+    parser.add_argument("--start-time", type=str, help="Start time (e.g., '2026-08-31 00:00:00')", default=None)
+    parser.add_argument("--end-time", type=str, help="End time (e.g., '2026-08-31 23:59:59')", default=None)
+    parser.add_argument("--max-events", type=int, help="Max events per channel", default=2000)
+    args = parser.parse_args()
+
     logger.info("Extracting logs and running producer pipeline...")
     vct_chain = VCTAtomicChain()
     resolver = CanonicalEntityResolver()
@@ -158,7 +165,7 @@ def main():
 
     channels = ["System", "Security", "Microsoft-Windows-Sysmon/Operational"]
     for channel in channels:
-        events = extract_windows_events(channel)
+        events = extract_windows_events(channel, start_time=args.start_time, end_time=args.end_time, max_events=args.max_events)
         for event in events:
             ocsf_evt = run_pipeline_on_event(event, vct_chain, resolver, time_normalizer, qw_client)
             if ocsf_evt:

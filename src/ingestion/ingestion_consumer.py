@@ -159,7 +159,7 @@ def run_consumer_loop():
     
     # Run the consume loop a few times for the sake of the test / background execution
     try:
-        for _ in range(5):
+        while True:
             consumer.consume_loop(timeout=2.0, max_messages=100)
             pipeline.flush_batch()
     except KeyboardInterrupt:
