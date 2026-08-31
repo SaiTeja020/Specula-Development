@@ -92,7 +92,7 @@ def extract_windows_events(log_name: str, start_time: str = None, end_time: str 
     """
     if start_time and end_time:
         ps_command = (
-            f"Get-WinEvent -FilterHashtable @{{LogName='{log_name}'; StartTime='{start_time}'; EndTime='{end_time}'}} -ErrorAction SilentlyContinue | "
+            f"Get-WinEvent -FilterHashtable @{{LogName='{log_name}'; StartTime='{start_time}'; EndTime='{end_time}'}} -MaxEvents {max_events} -ErrorAction SilentlyContinue | "
             "Select-Object Id, TimeCreated, ProviderName, Message | "
             "ConvertTo-Json -Compress"
         )
@@ -134,13 +134,22 @@ def run_pipeline_on_event(
     raw_event["trace_id"] = trace_id
     
     if qw_client is not None:
-        raw_event["vct_merkle_root"] = vct_chain.get_current_root()
+        raw_event["vct_merkle_root"] = vct_chain.current_chain_hash
         sha256_hash = compute_sha256_bytes(json.dumps(raw_event, sort_keys=True).encode("utf-8"))
         raw_event["sha256_hash"] = sha256_hash
-        vct_chain.add_leaf(sha256_hash)
+        vct_chain.register(sha256_digest=sha256_hash, trace_id=trace_id)
         
         try:
-            qw_result = qw_client.ingest_event(raw_event)
+            uid = raw_event.get("uid", generate_deterministic_uid("raw_event", raw_event))
+            raw_bytes = json.dumps(raw_event, sort_keys=True).encode("utf-8")
+            qw_client.commit_raw_evidence(
+                uid=uid,
+                trace_id=trace_id,
+                sha256_digest=sha256_hash,
+                raw_bytes=raw_bytes,
+                source_type=source_type
+            )
+            qw_result = True
         except QuickwitClientError as e:
             logger.error(f"Preservation failure for trace {trace_id}: {e}")
             qw_result = None
@@ -251,8 +260,9 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description="Run the Specula ingestion pipeline.")
-    parser.add_argument("start_time", nargs="?", help="Start date and time (e.g., '2026-08-25T00:00:00')")
-    parser.add_argument("end_time", nargs="?", help="End date and time (e.g., '2026-08-25T12:00:00'). Defaults to current date and time if start_time is provided.")
+    parser.add_argument("--start-time", dest="start_time", type=str, default=None, help="Start date and time (e.g., '2026-08-25T00:00:00')")
+    parser.add_argument("--end-time", dest="end_time", type=str, default=None, help="End date and time (e.g., '2026-08-25T12:00:00'). Defaults to current date and time if start_time is provided.")
+    parser.add_argument("--max-events", dest="max_events", type=int, default=2000, help="Max events to extract per channel.")
     args = parser.parse_args()
 
     start_time = args.start_time
@@ -280,7 +290,7 @@ def main():
     total_count = 0
     
     for channel in channels:
-        events = extract_windows_events(channel, start_time=start_time, end_time=end_time, max_events=20)
+        events = extract_windows_events(channel, start_time=start_time, end_time=end_time, max_events=args.max_events)
         if events:
             all_extracted_events[channel] = events
             total_count += len(events)
@@ -428,9 +438,8 @@ def main():
         # --- ChromaDB Vectorization ---
         from src.ingestion.indexing.vector_store import ChromaVectorStore, EmbeddingGenerator
         import uuid
-        persist_path = os.path.abspath(os.path.join("data", "Specula_Chroma"))
-        os.makedirs(persist_path, exist_ok=True)
-        v_store = ChromaVectorStore(collection_name="specula_dfkg_embeddings", persist_dir=persist_path)
+        # Use the HttpClient to connect to the Docker container (default behavior when persist_dir is None)
+        v_store = ChromaVectorStore(collection_name="specula_dfkg_embeddings")
         embedder = EmbeddingGenerator()
         
         for dist_evt in distilled_batch:

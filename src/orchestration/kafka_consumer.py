@@ -98,7 +98,8 @@ class SupervisorKafkaConsumer:
 
                     # Invoke Graph
                     logger.info(f"Invoking Supervisor Graph for case {case_id}")
-                    final_state = self.graph.invoke(initial_state)
+                    import asyncio
+                    final_state = asyncio.run(self.graph.ainvoke(initial_state))
                     logger.info(f"Graph completed for case {case_id} with state {final_state.get('terminal_state', 'RESOLVED')}")
 
                 except json.JSONDecodeError:

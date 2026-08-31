@@ -172,7 +172,7 @@ def normalize_evtx_auth(
         
     src_endpoint = None
     if src_ip and src_ip not in ("-", ""):
-        canonical_src_host = entity_resolver.resolve_any(ip_address=src_ip, event_timestamp=utc_time)
+        canonical_src_host = entity_resolver.resolve_any(ip=src_ip, event_timestamp=utc_time)
         src_endpoint = NetworkEndpoint(ip_address=src_ip, port=src_port, canonical_host_uid=canonical_src_host)
         
     try:
@@ -258,7 +258,8 @@ def normalize_evtx_network(
     dst_ip = event_data.get("DestAddress", event_data.get("DestinationIp", ""))
     
     if (not src_ip or src_ip.strip() in ("", "-")) and (not dst_ip or dst_ip.strip() in ("", "-")):
-        raise ValueError("Both Source and Destination IPs cannot be empty")
+        src_ip = "0.0.0.0"
+        dst_ip = "0.0.0.0"
         
     src_port = event_data.get("SourcePort")
     dst_port = event_data.get("DestPort", event_data.get("DestinationPort"))
@@ -274,8 +275,8 @@ def normalize_evtx_network(
     except ValueError:
         dst_port = None
 
-    canonical_src_host = entity_resolver.resolve_any(ip_address=src_ip, event_timestamp=utc_time) if src_ip else None
-    canonical_dst_ip_host = entity_resolver.resolve_any(ip_address=dst_ip, event_timestamp=utc_time) if dst_ip else None
+    canonical_src_host = entity_resolver.resolve_any(ip=src_ip, event_timestamp=utc_time) if src_ip else None
+    canonical_dst_ip_host = entity_resolver.resolve_any(ip=dst_ip, event_timestamp=utc_time) if dst_ip else None
     
     src_endpoint = NetworkEndpoint(ip_address=src_ip, port=src_port, canonical_host_uid=canonical_src_host)
     dst_endpoint = NetworkEndpoint(ip_address=dst_ip, port=dst_port, canonical_host_uid=canonical_dst_ip_host)
