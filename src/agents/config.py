@@ -64,6 +64,10 @@ AGENT_CONFIG: dict[str, dict] = {
             "Input: {raw_input}"
         ),
     },
+    # INTERIM SKELETON MODE: LangGraph ReAct-stub dispatcher uses gemini-2.5-flash fallback.
+    # Standalone package (src/agents/log_analysis/config.py) uses Qwen/Qwen2.5-72B-Instruct.
+    # Single-source consolidation (from src.agents.log_analysis.config import MODEL_ID)
+    # is scheduled when the real model endpoint is deployed.
     "log_analysis": {
         "model_id": "gemini-2.5-flash",
         "provider": "google",

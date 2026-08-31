@@ -153,6 +153,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/orchestration/test_supervisor.py`
   - **Acceptance Criteria:** Supervisor graph built and routes according to specifications.
 
+- **Task ID:** `TASK-4.8`
+  - **Description:** Build Log Analysis Agent Multi-Tier Ground-Truth Benchmark Suite with SHA-256 integrity lock and 3-tier scoring.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\python.exe scripts/evaluate_log_analysis_ground_truth.py`
+  - **Acceptance Criteria:** All 4 pre-committed SLA thresholds pass against frozen 50-event dataset and 100k-event baseline seed.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -203,3 +209,5 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
 | 2026-08-21 | Ingestion Fix | Fixed MFT USN casting crash & heuristic timestamp bug; refactored container extraction to pull from live Docker endpoints | 212/212 Nodes Written |
 | 2026-08-22 | `TASK-6.1` Log Analysis Agent | Built `src/agents/log_analysis/` package: config, signatures YAML, finding_builder, detection_rules, anomaly_detector, dedup, llm_reasoner, agent. Added RBAC grant in vector_retrieval.py. | 71/71 Passed (`tests/agents/log_analysis/`) |
+| 2026-08-28 | `TASK-4.8` Log Analysis Benchmark | Created frozen 50-event GT fixture (`log_analysis_ground_truth_v1.json`), 100k-event baseline seed (`log_analysis_baseline_seed_v1.json`), and multi-tier benchmark runner (`evaluate_log_analysis_ground_truth.py`) with SHA-256 integrity locks and pre-committed SLA checks. | 4/4 SLA Passed (Near-Miss FP=0%, Clear Malicious Recall=100%, Overall Recall=88%, Overall Prec=100%) |
+
