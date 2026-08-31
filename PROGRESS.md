@@ -152,6 +152,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/orchestration/test_supervisor.py`
   - **Acceptance Criteria:** Supervisor graph built and routes according to specifications.
 
+- **Task ID:** `TASK-4.8`
+  - **Description:** Build Log Analysis Agent Multi-Tier Ground-Truth Benchmark Suite with SHA-256 integrity lock and 3-tier scoring.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\python.exe scripts/evaluate_log_analysis_ground_truth.py`
+  - **Acceptance Criteria:** All 4 pre-committed SLA thresholds pass against frozen 50-event dataset and 100k-event baseline seed.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -241,6 +247,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-26 | `src/agents/checkpointer.py` | Refactored Checkpointer to use official `langgraph-checkpoint-redis` with native serialization, replacing unsafe `pickle`. | Verified (28/28 tests passed) |
 | 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py` | Decoupled synchronous ingestion pipeline into distinct Kafka Producer and Consumer. Extracted inline normalization to dedicated modules, fixed hardcoded host logic, and implemented structured semantic text embeddings for ChromaDB vector isolation. | Verified |
 | 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py`, `src/ingestion/broker/kafka_consumer.py` | Fixed execution ordering invariant: implemented EventConsumer.consume_loop(), moved specula.cases.opened triggering into ingestion_consumer.py after Distillation -> Cypher -> ChromaDB completes, ensuring Supervisor wakes up to a fully populated graph. | Verified |
+| 2026-08-28 | `TASK-4.8` Log Analysis Benchmark | Created frozen 50-event GT fixture (`log_analysis_ground_truth_v1.json`), 100k-event baseline seed (`log_analysis_baseline_seed_v1.json`), and multi-tier benchmark runner (`evaluate_log_analysis_ground_truth.py`) with SHA-256 integrity locks and pre-committed SLA checks. | 4/4 SLA Passed (Near-Miss FP=0%, Clear Malicious Recall=100%, Overall Recall=88%, Overall Prec=100%) |
 
 ---
 

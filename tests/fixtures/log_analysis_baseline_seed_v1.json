@@ -1,0 +1,59 @@
+{
+  "provenance": {
+    "generator": "scripts/generate_synthetic_baseline_seed.py",
+    "description": "Synthetic Poisson/Gaussian event frequency distribution representing 100,000 routine baseline telemetry events across enterprise hosts",
+    "target_baseline_count": 100000
+  },
+  "baselines": {
+    "host-workstation-01:1007": {
+      "count": 100000,
+      "mean": 12.5,
+      "std": 1.2
+    },
+    "host-workstation-02:1007": {
+      "count": 100000,
+      "mean": 10.0,
+      "std": 1.0
+    },
+    "host-workstation-03:1007": {
+      "count": 100000,
+      "mean": 15.0,
+      "std": 1.5
+    },
+    "host-dev-01:1007": {
+      "count": 100000,
+      "mean": 25.0,
+      "std": 2.5
+    },
+    "host-dev-02:1007": {
+      "count": 100000,
+      "mean": 20.0,
+      "std": 2.0
+    },
+    "host-dc-01:1007": {
+      "count": 100000,
+      "mean": 50.0,
+      "std": 5.0
+    },
+    "host-server-01:1007": {
+      "count": 100000,
+      "mean": 30.0,
+      "std": 3.0
+    },
+    "host-server-02:1007": {
+      "count": 100000,
+      "mean": 35.0,
+      "std": 3.5
+    },
+    "host-db-01:1007": {
+      "count": 100000,
+      "mean": 18.0,
+      "std": 1.8
+    },
+    "host-linux-01:1001": {
+      "count": 100000,
+      "mean": 40.0,
+      "std": 4.0
+    }
+  }
+}
