@@ -1,4 +1,4 @@
-﻿"""
+"""
 FAISS IndexIVFPQ Threat-Intel Corpus Index.
 
 Loads, queries, and hot-reloads the pre-built FAISS index for ATT&CK

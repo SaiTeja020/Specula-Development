@@ -1,0 +1,129 @@
+# Specula Log Analysis Agent — Event Signature Map
+#
+# Version: 1
+# Hot-reloadable: yes — detection_rules.py loads this file at import time
+# (or via a passed-in loader for testability). Raw event-ID integers are
+# NEVER referenced directly in rule logic — always go through this map.
+#
+# Mutating this file is sufficient to change rule behavior; no Python
+# changes required. test_detection_rules.py verifies this by mutating a
+# YAML fixture and asserting that rule behavior changes accordingly.
+
+version: 1
+
+sysmon:
+  1: process_create
+  3: network_connect
+  7: image_load
+  11: file_create
+  12: registry_object_create_delete
+  13: registry_value_set
+  14: registry_object_rename
+  22: dns_query
+
+windows_security:
+  4624: logon_success
+  4625: logon_failure
+  4688: process_creation
+  4697: service_install
+  4720: account_created
+  4732: group_membership_change
+  5140: share_access
+
+linux_auditd:
+  SYSCALL_EXECVE: process_exec
+  USER_AUTH: authentication_event
+  ANOM_ABEND: abnormal_process_termination
+
+# ─── LOLBAS suspicious parent–child pairs ────────────────────────────────────
+# Used by _rule_unusual_parent in detection_rules.py.
+# Each entry: {parent: [list of suspicious children]}
+# This section is loaded by run_rule_layer; extend here without touching Python.
+
+lolbas_parent_child:
+  winword.exe:
+    - cmd.exe
+    - powershell.exe
+    - wscript.exe
+    - cscript.exe
+    - mshta.exe
+  excel.exe:
+    - cmd.exe
+    - powershell.exe
+    - wscript.exe
+    - cscript.exe
+    - mshta.exe
+  outlook.exe:
+    - cmd.exe
+    - powershell.exe
+    - wscript.exe
+    - cscript.exe
+  mshta.exe:
+    - cmd.exe
+    - powershell.exe
+    - wscript.exe
+    - cscript.exe
+    - regsvr32.exe
+    - rundll32.exe
+  wscript.exe:
+    - cmd.exe
+    - powershell.exe
+    - mshta.exe
+  cscript.exe:
+    - cmd.exe
+    - powershell.exe
+    - mshta.exe
+  svchost.exe:
+    - cmd.exe
+    - powershell.exe
+    - regsvr32.exe
+    - rundll32.exe
+    - mshta.exe
+  lsass.exe:
+    - cmd.exe
+    - powershell.exe
+    - net.exe
+    - procdump.exe
+    - mimikatz.exe
+  explorer.exe:
+    - wscript.exe
+    - cscript.exe
+    - mshta.exe
+    - regsvr32.exe
+
+# ─── Sensitive file path prefixes ─────────────────────────────────────────────
+# Used by _rule_sensitive_file_access in detection_rules.py.
+# Matches are case-insensitive prefix checks. Extend here without Python changes.
+
+sensitive_paths:
+  - "C:\\Windows\\System32\\lsass.exe"
+  - "C:\\Windows\\System32\\sam"
+  - "C:\\Windows\\System32\\config\\SAM"
+  - "C:\\Windows\\System32\\config\\SYSTEM"
+  - "C:\\Windows\\System32\\config\\SECURITY"
+  - "C:\\Windows\\NTDS"
+  - "/etc/shadow"
+  - "/etc/passwd"
+  - "/etc/sudoers"
+  - "/root/.ssh"
+  - "/home"
+
+# ─── Off-hours definition (used by _rule_offhours_service_install) ────────────
+# Hours outside [work_start, work_end) are flagged as off-hours.
+# Adjust per deployment time zone expectations.
+
+off_hours:
+  work_start: 8   # inclusive (08:00 local)
+  work_end: 18    # exclusive (18:00 local)
+  flag_weekends: true
+
+# ─── Non-admin user patterns (used by _rule_sensitive_file_access) ────────────
+# Usernames matching these prefixes/exact strings are considered non-admin.
+# Accounts NOT in this list are treated as potentially privileged.
+
+non_admin_user_prefixes:
+  - "user"
+  - "guest"
+  - "student"
+  - "intern"
+  - "contractor"

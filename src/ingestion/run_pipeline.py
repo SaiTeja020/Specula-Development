@@ -90,7 +90,7 @@ def run_pipeline_on_event(
     gate_result = run_security_gate("text", raw_msg_bytes)
 
     if gate_result.injection_blocked:
-        logger.warning(f"Event blocked by Security Gate (trace={trace_id})")
+        logger.warning(f"Event blocked by Security Gate — injection detected (trace={trace_id})")
         return None
 
     sanitized_msg = gate_result.sanitized_fields[0] if gate_result.sanitized_fields else ""

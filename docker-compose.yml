@@ -98,3 +98,25 @@ services:
   #   container_name: specula-rebuff
   #   ports:
   #     - "8080:8080"
+
+  # 9. Specula HITL API (FastAPI/uvicorn — §8)
+  hitl-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.hitl
+    container_name: specula-hitl-api
+    ports:
+      - "8200:8200"
+    depends_on:
+      - kafka
+      - neo4j
+      - redis
+    env_file:
+      - .env
+    environment:
+      # Internal broker address (container-to-container, not localhost:9092)
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    restart: on-failure

@@ -1,4 +1,4 @@
-﻿"""
+"""
 MCP Server: mcp-threat-intel
 
 Exposes the FAISS threat-intel corpus to the Threat Attribution Agent via
