@@ -49,6 +49,15 @@ from src.graph.cypher_builder import CypherBuilder
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("SpeculaPipeline")
 
+# Silence noisy third-party loggers
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("neo4j").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+_warned_evtx_ids = set()
+
 # ---------------------------------------------------------------------------
 # Quickwit feature flag.
 # Set SPECULA_QUICKWIT_ENABLED=true in your environment when the docker-compose
@@ -207,7 +216,9 @@ def run_pipeline_on_event(
         elif event_id in [1000, 1001, 1002] and "Application" in provider:
             ocsf_evt = normalize_evtx_detection_finding(raw_event, time_normalizer, resolver, trace_id)
         else:
-            logger.warning(f"EVTX event dropped (unsupported EventID {event_id} from {provider})")
+            if event_id not in _warned_evtx_ids:
+                logger.warning(f"EVTX event dropped (unsupported EventID {event_id} from {provider})")
+                _warned_evtx_ids.add(event_id)
         
         if ocsf_evt:
             ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
@@ -406,7 +417,7 @@ def main():
                 neo4j_client=neo4j_client,
             )
             if not results:
-                logger.info("Event blocked or dropped.")
+                logger.debug("Event blocked or dropped.")
                 continue
             for validated_evt, _, neo4j_result in results:
                 if validated_evt is None:
@@ -453,7 +464,7 @@ def main():
                 metadata={"case_id": dist_evt.get("case_id", "UNASSIGNED")}
             )
             
-        logger.info(f"Vectorization active: Successfully embedded {len(distilled_batch)} compressed nodes into ChromaDB (Persistent at {persist_path}).")
+        logger.info(f"Vectorization active: Successfully embedded {len(distilled_batch)} compressed nodes into ChromaDB.")
     except Exception as e:
         logger.error(f"Semantic Distillation or Vectorization failed: {e}")
 
