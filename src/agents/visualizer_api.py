@@ -113,57 +113,53 @@ async def broadcast_event(event_type: str, payload: dict):
         active_connections.remove(connection)
 
 
-@app.post("/api/graph/run_mock")
-async def trigger_mock_run():
-    """Trigger a mock execution to demonstrate real-time graph monitoring."""
+@app.post("/api/trigger_pipeline")
+async def trigger_pipeline(config: dict):
+    """Trigger a mock execution to demonstrate real-time graph monitoring from frontend."""
     
-    # We will simulate a flow traversing the graph so the UI can highlight active nodes.
-    # Normally this would hook into LangGraph's astream or a pub/sub topic.
-    
+    # Normally this would invoke `run_pipeline.py` or hit LangGraph directly.
+    # For now, it runs the mock sequence to populate the dashboard UI.
     mock_sequence = [
-        {"node": "__start__", "data": {"case_id": "C-1234"}},
+        {"node": "__start__", "data": {"case_id": config.get("case_id", "C-1234")}},
         {"node": "supervisor", "data": {"status": "routing"}},
-        # Fan out
         {"node": "evidence_collection", "data": {"status": "collecting", "findings": 2}},
         {"node": "log_analysis", "data": {"status": "parsing", "findings": 5}},
         {"node": "network_forensics", "data": {"status": "sniffing", "findings": 1}},
         {"node": "primary_tier_join", "data": {"status": "joined"}},
-        
-        # Dead end triggers specialists
         {"node": "memory_forensics", "data": {"status": "dump analysis"}},
         {"node": "specialist_join", "data": {"status": "specialists joined"}},
-        
         {"node": "timeline_reconstruction", "data": {"status": "building timeline"}},
         {"node": "threat_attribution", "data": {"status": "attributing actor"}},
-        
-        # Debate loop
         {"node": "proponent", "data": {"status": "proposing hypothesis"}},
         {"node": "critic", "data": {"status": "critiquing hypothesis"}},
         {"node": "judge", "data": {"status": "judging debate"}},
-        
-        # Guardrails
         {"node": "guardrail_tier1", "data": {"status": "checking tier 1"}},
         {"node": "guardrail_tier2", "data": {"status": "checking tier 2"}},
         {"node": "guardrail_tier3", "data": {"status": "checking tier 3"}},
-        
-        # Reports
+        {"node": "hitl", "data": {"status": "awaiting review"}},
         {"node": "report_generation", "data": {"status": "generating report"}},
         {"node": "timeline_artifact_generation", "data": {"status": "generating artifacts"}},
         {"node": "final_output_join", "data": {"status": "complete"}},
     ]
     
     async def simulate_run():
+        await broadcast_event("pipeline_started", {"case_id": config.get("case_id", "C-1234")})
+        await asyncio.sleep(1)
         for step in mock_sequence:
             await broadcast_event("node_active", step)
-            await asyncio.sleep(1.5) # Wait to allow visualizer to show passage
+            # simulate processing delay
+            await asyncio.sleep(1.5)
+            # simulate HITL pause
+            if step["node"] == "hitl":
+                await asyncio.sleep(3) 
             await broadcast_event("node_complete", {"node": step["node"]})
             
-        await broadcast_event("run_complete", {"case_id": "C-1234"})
+        await broadcast_event("run_complete", {"case_id": config.get("case_id", "C-1234")})
 
     # Fire and forget the simulation task
     asyncio.create_task(simulate_run())
     
-    return {"status": "mock run initiated"}
+    return {"status": "pipeline triggered", "config": config}
 
 
 if __name__ == "__main__":
