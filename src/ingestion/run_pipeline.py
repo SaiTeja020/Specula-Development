@@ -195,13 +195,13 @@ def run_pipeline_on_event(
         is_sysmon = "Sysmon" in provider
         
         ocsf_evt = None
-        if event_id in [4688, 1] or (event_id in [4104, 4103] and "PowerShell" in provider):
+        if event_id in [4688, 1, 7045] or (event_id in [4100, 4103, 4104] and "PowerShell" in provider):
             ocsf_evt = normalize_evtx_process_creation(raw_event, time_normalizer, resolver, trace_id)
-        elif (event_id in [1116, 1150, 1151, 5007] and "Defender" in provider) or (event_id in [8003, 8004] and "AppLocker" in provider):
+        elif (event_id in [1002, 1116, 1150, 1151, 5007] and "Defender" in provider) or (event_id in [8003, 8004] and "AppLocker" in provider):
             ocsf_evt = normalize_evtx_detection_finding(raw_event, time_normalizer, resolver, trace_id)
         elif event_id in [104, 1102]:
             ocsf_evt = normalize_evtx_defense_evasion(raw_event, time_normalizer, resolver, trace_id)
-        elif event_id in (4624, 4625, 4768, 4769, 4771, 4776, 4648) and is_security:
+        elif event_id in (4624, 4625, 4634, 4647, 4648, 4672, 4768, 4769, 4771, 4776) and is_security:
             ocsf_evt = normalize_evtx_auth(raw_event, time_normalizer, resolver, trace_id)
         elif event_id == 5156 and is_security:
             ocsf_evt = normalize_evtx_network(raw_event, time_normalizer, resolver, trace_id)
