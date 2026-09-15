@@ -60,6 +60,55 @@ const Legend = () => (
   </div>
 );
 
+const GraphStats = ({ nodes, edges, isPanelOpen }) => {
+  const nodeCounts = nodes.reduce((acc, n) => {
+    acc[n.data.neo4jLabel] = (acc[n.data.neo4jLabel] || 0) + 1;
+    return acc;
+  }, {});
+
+  const edgeCounts = edges.reduce((acc, e) => {
+    acc[e.label] = (acc[e.label] || 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div style={{
+      position: 'absolute', top: 20, right: isPanelOpen ? 420 : 20, zIndex: 10,
+      background: 'rgba(15, 23, 42, 0.8)', padding: '1rem',
+      borderRadius: '8px', border: '1px solid var(--sp-border-thin)',
+      backdropFilter: 'blur(8px)',
+      display: 'flex', flexDirection: 'column', gap: '1rem',
+      color: '#e2e8f0', minWidth: '180px',
+      transition: 'right 0.3s ease'
+    }}>
+      <div>
+        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Node Counts</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          {Object.entries(nodeCounts).map(([type, count]) => (
+            <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+              <span style={{ color: NODE_COLORS[type] || NODE_COLORS.Default }}>{type}</span>
+              <span style={{ fontWeight: 'bold' }}>{count}</span>
+            </div>
+          ))}
+          {nodes.length === 0 && <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>No nodes</div>}
+        </div>
+      </div>
+      <div>
+        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Relationships</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          {Object.entries(edgeCounts).map(([type, count]) => (
+            <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+              <span style={{ opacity: 0.8 }}>{type}</span>
+              <span style={{ fontWeight: 'bold' }}>{count}</span>
+            </div>
+          ))}
+          {edges.length === 0 && <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>No relationships</div>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const runForceLayout = (nodes, edges) => {
   const simNodes = nodes.map(n => ({ ...n, x: Math.random() * 800, y: Math.random() * 600 }));
   const simEdges = edges.map(e => ({ ...e, source: e.source, target: e.target }));
@@ -158,6 +207,7 @@ export default function Neo4jVisualizer() {
               <Controls />
             </ReactFlow>
             <Legend />
+            <GraphStats nodes={nodes} edges={edges} isPanelOpen={!!selectedNode} />
             {tooltip.show && tooltip.data && tooltip.data.properties && (
               <div style={{
                 position: 'fixed',
