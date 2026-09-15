@@ -1,0 +1,32 @@
+:root {
+  /* Brand Foundation (The Void) */
+  --sp-color-bg-void: #120E32;
+  --sp-color-bg-surface: #1C1844;
+  --sp-color-border-grid: #2D2859;
+
+  /* Typography Colors */
+  --sp-color-text-primary: #F8FAFC;
+  --sp-color-text-secondary: #B2B7BD;
+
+  /* Tactical & Semantic Accents */
+  --sp-color-accent-indigo: #5E6AD2;
+  --sp-color-status-admissible: #10B981;
+  --sp-color-status-hitl: #F59E0B;
+  --sp-color-status-breach: #EF4444;
+
+  /* Typography Scales */
+  --sp-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --sp-font-mono: 'Fira Code', 'JetBrains Mono', monospace;
+
+  /* Spacing Grid */
+  --sp-space-xs: 4px;
+  --sp-space-sm: 8px;
+  --sp-space-md: 16px;
+  --sp-space-lg: 32px;
+  --sp-space-xl: 64px;
+
+  /* Scaffolding & Borders */
+  --sp-radius-sharp: 2px;
+  --sp-border-thin: 1px solid var(--sp-color-border-grid);
+  --sp-shadow-none: none;
+}

@@ -11,7 +11,7 @@
 - **Active Tasks (WIP=2):**
   None currently active.
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-01
+- **Last Updated:** 2026-09-15
 
 ---
 
@@ -182,6 +182,18 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/test_visualizer_api.py`
   - **Acceptance Criteria:** Live graph run updates node colors and emits findings timeline in frontend.
 
+- **Task ID:** `TASK-5.5`
+  - **Description:** Expand `visualizer_api.py` to proxy real backend datastores (Neo4j, Quickwit, ChromaDB, DuckDB).
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/test_visualizer_api_db.py`
+  - **Acceptance Criteria:** New API routes return 200 OK and properly format data from underlying datastores.
+
+- **Task ID:** `TASK-5.6`
+  - **Description:** Rework frontend architecture to multi-page dashboard with DB visualizer interfaces.
+  - **Status:** `passing`
+  - **Verification Command:** `npm run lint --prefix visualization`
+  - **Acceptance Criteria:** Frontend renders Landing, Startup, Investigation, and Database visualization pages with Specula design system.
+
 ---
 
 ## Pending Dependency & Terminal Requests (Awaiting Human Action)
@@ -205,3 +217,5 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
 | 2026-09-01 | Agent tooling | Installed `ui-ux-pro-max` at `.agents/skills/ui-ux-pro-max` and exposed only it to Git | Skill: `validate_data.py` passed; 130/132 bundled tests passed (2 require omitted upstream repo-root helpers). Repo fallback: 241 passed, 2 failed, 17 errors (pre-existing Neo4j/threat-intel fixtures and supervisor sync/async mismatch) |
 | 2026-09-01 | `TASK-5.3`, `TASK-5.4` | Built 2-page React + Vite frontend with dark mode enterprise UI, ReactFlow, and hooked to FastAPI mock trigger | Passed (frontend lint zero warnings, backend tests passed) |
+| 2026-09-15 | `TASK-5.5`, `TASK-5.6` | Rewrote React frontend with React Router into a multi-page dashboard implementing UI/UX Pro Max Specula theme. Added backend datastore proxy API routes. | Passed (frontend lint zero warnings, backend `pytest` 5/5 passed) |
+| 2026-09-15 | Phase 5 UI/UX | Formally established the Specula Brand Identity System (16 sections). Removed generic ReactFlow diagram from InvestigationConsole and implemented 6-step sequential telemetry view using new strict CSS tokens (`specula-tokens.css`) | Passed (Frontend UI rules adhered) |

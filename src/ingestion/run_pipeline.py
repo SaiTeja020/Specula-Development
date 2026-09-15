@@ -138,6 +138,7 @@ def run_pipeline_on_event(
     qw_client: QuickwitClient = None,
     source_type: str = "evtx",
     neo4j_client = None,
+    exclude_ports: set[int] = None,
 ) -> list:
     trace_id = raw_event.get("trace_id", str(uuid.uuid4()))
     raw_event["trace_id"] = trace_id
@@ -251,6 +252,13 @@ def run_pipeline_on_event(
     
     results = []
     for ocsf_evt in ocsf_evts:
+        if exclude_ports:
+            # Check if this event has endpoints with excluded ports
+            dst_port = getattr(getattr(ocsf_evt, "dst_endpoint", None), "port", None)
+            src_port = getattr(getattr(ocsf_evt, "src_endpoint", None), "port", None)
+            if (dst_port in exclude_ports) or (src_port in exclude_ports):
+                continue
+
         validated_evt = validate_event(ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, 'model_dump') else ocsf_evt, type(ocsf_evt))
         event_dict = ocsf_evt.model_dump(mode="json") if hasattr(ocsf_evt, "model_dump") else ocsf_evt
         cypher_query, cypher_params = CypherBuilder.dispatch_event(event_dict)
@@ -274,7 +282,10 @@ def main():
     parser.add_argument("--start-time", dest="start_time", type=str, default=None, help="Start date and time (e.g., '2026-08-25T00:00:00')")
     parser.add_argument("--end-time", dest="end_time", type=str, default=None, help="End date and time (e.g., '2026-08-25T12:00:00'). Defaults to current date and time if start_time is provided.")
     parser.add_argument("--max-events", dest="max_events", type=int, default=2000, help="Max events to extract per channel.")
+    parser.add_argument("--exclude-ports", dest="exclude_ports", type=str, default="80,443,53", help="Comma-separated list of ports to exclude from network events (e.g., '80,443,53')")
     args = parser.parse_args()
+
+    exclude_ports = {int(p.strip()) for p in args.exclude_ports.split(",") if p.strip().isdigit()} if args.exclude_ports else set()
 
     start_time = args.start_time
     end_time = args.end_time
@@ -415,6 +426,7 @@ def main():
                 qw_client=qw_client,
                 source_type=source_type,
                 neo4j_client=neo4j_client,
+                exclude_ports=exclude_ports,
             )
             if not results:
                 logger.debug("Event blocked or dropped.")
