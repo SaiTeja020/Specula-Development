@@ -55,7 +55,7 @@ export default function StartupPage() {
   const isComplete = activeStep === BOOT_SEQUENCE.length;
 
   return (
-    <div className="app-container-fullscreen" style={{ padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', overflowY: 'auto' }}>
+    <div className="app-container-fullscreen" style={{ padding: '2rem 1.5rem', alignItems: 'center' }}>
       
       {/* Header */}
       <div style={{ width: '100%', maxWidth: '850px', textAlign: 'center', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
