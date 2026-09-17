@@ -182,7 +182,7 @@ export default function Neo4jVisualizer() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
       <div className="header glass-panel" style={{ padding: '1rem 1.5rem', margin: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/specula-logo.svg" alt="Specula Logo" style={{ height: '24px' }} />
+          <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
           <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Knowledge Graph (Neo4j)</h1>
         </div>
       </div>

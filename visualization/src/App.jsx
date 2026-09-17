@@ -21,7 +21,7 @@ function Sidebar() {
   return (
     <aside className="sidebar glass-panel">
       <div className="sidebar-brand">
-        <img src="/specula-logo.svg" alt="Specula Logo" style={{ height: '32px' }} />
+        <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '32px' }} />
         <span>SPECULA</span>
       </div>
       <nav className="sidebar-nav">

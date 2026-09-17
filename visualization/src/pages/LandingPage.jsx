@@ -5,7 +5,7 @@ export default function LandingPage() {
   return (
     <div className="landing-hero">
       <div style={{ marginBottom: '2rem' }}>
-        <img src="/specula-logo.svg" alt="Specula Logo" style={{ height: '100px' }} />
+        <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '100px' }} />
       </div>
       <h1 className="landing-title">
         Specula Multi-Agent DFIR

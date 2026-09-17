@@ -39,7 +39,7 @@ export default function StartupPage() {
   return (
     <div className="app-container-fullscreen" style={{ padding: '2rem', alignItems: 'center' }}>
       <div className="header" style={{ width: '100%', maxWidth: '800px', justifyContent: 'center', marginBottom: '3rem', flexDirection: 'column', gap: '1rem' }}>
-        <img src="/specula-logo.svg" alt="Specula Logo" style={{ height: '64px' }} />
+        <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '64px' }} />
         <h1 style={{ fontSize: '2rem' }}>System Initialization</h1>
         <p style={{ color: 'var(--text-secondary)' }}>Booting underlying infrastructure and connecting to datastores.</p>
       </div>

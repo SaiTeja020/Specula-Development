@@ -158,7 +158,7 @@ export default function InvestigationConsole() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem', overflowY: 'auto', paddingBottom: '2rem' }}>
       <div className="header" style={{ padding: '1.5rem', margin: 0, borderBottom: 'var(--sp-border-thin)', background: 'var(--sp-color-bg-surface)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/specula-logo.svg" alt="Specula Logo" style={{ height: '24px' }} />
+          <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
           <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Live Investigation</h1>
           <span style={{ 
             padding: '4px 8px',

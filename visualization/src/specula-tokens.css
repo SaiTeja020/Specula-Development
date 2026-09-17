@@ -1,12 +1,12 @@
 :root {
-  /* Brand Foundation (The Void) */
-  --sp-color-bg-void: #120E32;
-  --sp-color-bg-surface: #1C1844;
-  --sp-color-border-grid: #2D2859;
+  /* Brand Foundation (The Light Void) */
+  --sp-color-bg-void: #FFFFFF;
+  --sp-color-bg-surface: #F1F3F7;
+  --sp-color-border-grid: #DDE2EC;
 
   /* Typography Colors */
-  --sp-color-text-primary: #F8FAFC;
-  --sp-color-text-secondary: #B2B7BD;
+  --sp-color-text-primary: #120E32;
+  --sp-color-text-secondary: #4B4673;
 
   /* Tactical & Semantic Accents */
   --sp-color-accent-indigo: #5E6AD2;
