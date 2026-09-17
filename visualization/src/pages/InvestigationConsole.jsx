@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 const STAGES = [
   { 
@@ -44,7 +44,7 @@ const mapNodeToStage = (nodeId) => {
 };
 
 export default function InvestigationConsole() {
-  const [caseId, setCaseId] = useState('CASE-2026-0915-ALPHA');
+  const [caseId] = useState('CASE-2026-0915-ALPHA');
   const [isStarted, setIsStarted] = useState(false);
   const [caseStatus, setCaseStatus] = useState('IDLE');
   
@@ -66,7 +66,6 @@ export default function InvestigationConsole() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const { type, payload } = data;
-      const timestamp = new Date().toLocaleTimeString();
 
       if (type === 'pipeline_started') {
         setActiveStage(0);
@@ -173,21 +172,21 @@ export default function InvestigationConsole() {
         {!isStarted && (
           <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
                 Start Date:
-                <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ background: 'var(--sp-color-bg-base)', border: 'var(--sp-border-thin)', color: 'white', padding: '0.5rem', borderRadius: '4px' }} />
+                <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem' }} />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
                 End Date:
-                <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ background: 'var(--sp-color-bg-base)', border: 'var(--sp-border-thin)', color: 'white', padding: '0.5rem', borderRadius: '4px' }} />
+                <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem' }} />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
                 Max Events:
-                <input type="number" value={maxEvents} onChange={e => setMaxEvents(e.target.value)} style={{ background: 'var(--sp-color-bg-base)', border: 'var(--sp-border-thin)', color: 'white', padding: '0.5rem', borderRadius: '4px', width: '100px' }} />
+                <input type="number" value={maxEvents} onChange={e => setMaxEvents(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '110px', fontSize: '0.85rem' }} />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
                 Exclude Ports:
-                <input type="text" value={excludePorts} onChange={e => setExcludePorts(e.target.value)} style={{ background: 'var(--sp-color-bg-base)', border: 'var(--sp-border-thin)', color: 'white', padding: '0.5rem', borderRadius: '4px', width: '150px' }} />
+                <input type="text" value={excludePorts} onChange={e => setExcludePorts(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '150px', fontSize: '0.85rem' }} />
               </label>
             </div>
             <button className="primary-btn" onClick={handleStart} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
@@ -221,11 +220,11 @@ export default function InvestigationConsole() {
           return (
             <div key={idx} style={{ 
               border: `1px solid ${borderColor}`,
-              borderRadius: 'var(--sp-radius-sharp)',
+              borderRadius: 'var(--sp-radius-md)',
               background: bgColor,
               marginBottom: '1rem',
               overflow: 'hidden',
-              transition: 'all 0.15s linear'
+              transition: 'all 0.15s ease'
             }}>
               {/* Header */}
               <div style={{ 

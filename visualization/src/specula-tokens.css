@@ -9,7 +9,8 @@
   --sp-color-text-secondary: #4B4673;
 
   /* Tactical & Semantic Accents */
-  --sp-color-accent-indigo: #5E6AD2;
+  --sp-color-accent-indigo: #1E40AF; /* Rich darker royal indigo/blue */
+  --sp-color-accent-indigo-hover: #172554; /* Deep navy hover */
   --sp-color-status-admissible: #10B981;
   --sp-color-status-hitl: #F59E0B;
   --sp-color-status-breach: #EF4444;
@@ -27,6 +28,10 @@
 
   /* Scaffolding & Borders */
   --sp-radius-sharp: 2px;
+  --sp-radius-sm: 4px;
+  --sp-radius-md: 6px;
+  --sp-radius-lg: 8px;
+  --sp-radius-xl: 12px;
   --sp-border-thin: 1px solid var(--sp-color-border-grid);
   --sp-shadow-none: none;
 }

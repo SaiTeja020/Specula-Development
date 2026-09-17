@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Activity, LayoutDashboard, Database, Network, Server, Play, ShieldAlert } from 'lucide-react';
+import { Activity, LayoutDashboard, Database, Network, Play } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import StartupPage from './pages/StartupPage';
 import InvestigationConsole from './pages/InvestigationConsole';

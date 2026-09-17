@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ShieldAlert, Zap, Network, Database, BrainCircuit } from 'lucide-react';
+import { Zap, Network, Database, BrainCircuit } from 'lucide-react';
 
 export default function LandingPage() {
   return (
