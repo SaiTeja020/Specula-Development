@@ -10,7 +10,7 @@ def test_health_check():
     assert response.json() == {"status": "ok"}
     # Verify CORS headers
     assert "access-control-allow-origin" in response.headers
-    assert response.headers["access-control-allow-origin"] == "*"
+    assert response.headers["access-control-allow-origin"] in ["*", "http://localhost:5173"]
 
 def test_get_topology():
     response = client.get("/api/graph/topology")

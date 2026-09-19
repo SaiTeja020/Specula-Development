@@ -59,7 +59,7 @@ def evaluate_dead_end(state: SupervisorState) -> SupervisorState:
 async def dispatch_specialist_tier(state: SupervisorState) -> SupervisorState:
     """Dispatches Memory, Identity, Malware, and Insider Threat agents."""
     state['active_tier'] = 'SPECIALIST'
-    state['dispatched_agents'] = ['memory_forensics', 'identity_cloud', 'malware_stylometry', 'insider_threat']
+    state['dispatched_agents'] = ['memory_forensics', 'identity', 'cloud_container', 'malware_stylometry', 'insider_threat']
     
     try:
         # await asyncio.wait_for(invoke_agents(state['dispatched_agents']), timeout=300)
