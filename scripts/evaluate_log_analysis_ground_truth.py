@@ -50,14 +50,14 @@ THRESHOLDS = {
 
 def verify_fixture_hashes():
     """Assert SHA-256 hash match on fixtures before running evaluation."""
-    gt_bytes = GT_FIXTURE_PATH.read_bytes()
+    gt_bytes = GT_FIXTURE_PATH.read_bytes().replace(b"\r\n", b"\n")
     gt_hash = hashlib.sha256(gt_bytes).hexdigest()
     assert gt_hash == GT_EXPECTED_HASH, (
         f"CRITICAL: Ground truth fixture hash mismatch!\n"
         f"Expected: {GT_EXPECTED_HASH}\nGot:      {gt_hash}"
     )
 
-    bs_bytes = BS_FIXTURE_PATH.read_bytes()
+    bs_bytes = BS_FIXTURE_PATH.read_bytes().replace(b"\r\n", b"\n")
     bs_hash = hashlib.sha256(bs_bytes).hexdigest()
     assert bs_hash == BS_EXPECTED_HASH, (
         f"CRITICAL: Baseline seed fixture hash mismatch!\n"
