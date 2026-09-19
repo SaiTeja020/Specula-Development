@@ -1,87 +1,79 @@
-"""
-Specula EVTX to OCSF Normalizer.
-
-Maps Windows EVTX (System Logs) to OCSF format.
-Source category 1 (Tier 1 Critical).
-
-Reference: specula_ingestion_final_plan.md §4.3 (Binary ordering) & §5.1
-"""
-
-from typing import Any, Dict
-
-from src.ingestion.security_gate.sanitizer import sanitize_text
-from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
+import os
+import re
+from typing import Dict, Any, Optional
+from datetime import datetime
 from src.schemas.ocsf_events import ProcessActivity
+from src.schemas.uid_generator import generate_deterministic_uid
+from src.schemas.entity_resolver import CanonicalEntityResolver
+from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
 
-# Mapping subset for ProcessActivity (4688, Sysmon 1)
-# Note: Actual EVTX parsing logic (e.g. EvtxECmd or python-evtx) is assumed
-# to have run prior to this function, providing a parsed dict.
-
-
 def normalize_evtx_process_creation(
-    raw_parsed_event: Dict[str, Any],
-    time_normalizer: TimeNormalizer,
+    raw_event: Dict[str, Any],
+    sanitized_msg: str,
+    utc_time: datetime,
+    skew_offset: int,
+    skew_unverified: bool,
+    is_degraded: bool,
     trace_id: str,
+    resolver: CanonicalEntityResolver
 ) -> ProcessActivity:
-    """
-    Normalize an EVTX process creation event to OCSF ProcessActivity.
+    provider = raw_event.get("ProviderName", raw_event.get("FileName", raw_event.get("eventSource", "Windows")))
+    event_id = raw_event.get("Id", 0)
+    time_str = raw_event.get("TimeCreated", "") or raw_event.get("LastRecordChange", "") or raw_event.get("eventTime", "")
+
+    # Regex extraction for PID
+    pid_match = re.search(r'(?:New Process ID|ProcessId|Process Id):\s*(0x[0-9a-fA-F]+|\d+)', sanitized_msg, re.IGNORECASE)
+    extracted_pid = 0
+    if pid_match:
+        val = pid_match.group(1)
+        extracted_pid = int(val, 16) if val.lower().startswith('0x') else int(val)
+        
+    # Regex extraction for PPID
+    ppid_match = re.search(r'(?:Creator Process ID|ParentProcessId|Parent Process Id):\s*(0x[0-9a-fA-F]+|\d+)', sanitized_msg, re.IGNORECASE)
+    extracted_ppid = 0
+    parent_uid = None
     
-    Adheres strictly to the Binary Source ordering (v6 §4.3):
-    1. Binary Structural Parse (done upstream of this).
-    2. Text-Field Sanitize (done here per-field).
-    3. OCSF Normalization.
-    """
+    # Resolve host dynamically
+    computer_name = raw_event.get("MachineName", raw_event.get("Computer", ""))
+    host_uid = resolver.resolve_any(hostname=computer_name) if computer_name else None
     
-    # --- 1. Extract raw fields ---
-    # Support both nested python-evtx XML-JSON and flat PowerShell Get-WinEvent formats
-    system_block = raw_parsed_event.get("System", {})
-    event_data = raw_parsed_event.get("EventData", {})
+    if ppid_match:
+        val = ppid_match.group(1)
+        extracted_ppid = int(val, 16) if val.lower().startswith('0x') else int(val)
+        if extracted_ppid > 0:
+            parent_uid = generate_deterministic_uid("process", {"pid": extracted_ppid, "host": host_uid})
+
+    # Regex extraction for Image and CommandLine
+    image_match = re.search(r'(?:Image|New Process Name):\s*([^\r\n]+)', sanitized_msg, re.IGNORECASE)
+    extracted_image = image_match.group(1).strip() if image_match else provider
+    process_name = os.path.basename(extracted_image) if image_match else sanitize_text(str(provider))[0]
     
-    raw_timestamp = system_block.get("TimeCreated", {}).get("SystemTime", "")
-    if not raw_timestamp:
-        raw_timestamp = raw_parsed_event.get("TimeCreated", "")
-        # Handle PowerShell JSON /Date(...) format
-        if isinstance(raw_timestamp, str) and "/Date(" in raw_timestamp:
-            from datetime import datetime, timezone
-            ms = int(raw_timestamp.split("(")[1].split(")")[0])
-            raw_timestamp = datetime.fromtimestamp(ms / 1000.0, tz=timezone.utc).isoformat()
-    
-    event_id = system_block.get("EventID", raw_parsed_event.get("Id", 0))
-    
-    # 4688 mapping / fallback to flat Message
-    raw_cmdline = event_data.get("CommandLine") or raw_parsed_event.get("Message") or ""
-    raw_process_name = event_data.get("NewProcessName") or raw_parsed_event.get("ProviderName") or ""
-    raw_parent_process_name = event_data.get("ParentProcessName") or ""
-    
-    # --- 2. Security Gate per-field sanitization ---
-    # Apply NFKC/zero-width stripping and prompt-injection detection to string fields
-    sanitized_cmdline, has_homoglyphs = sanitize_text(raw_cmdline)
-    is_injection, is_degraded = detect_prompt_injection(sanitized_cmdline or "")
-    
-    sanitized_proc_name, _ = sanitize_text(raw_process_name)
-    sanitized_parent_proc_name, _ = sanitize_text(raw_parent_process_name)
-    
-    # --- 3. Time Normalization ---
-    utc_time, skew_ms, unverified = time_normalizer.normalize(raw_timestamp)
-    
-    # --- 4. UID Generation (deferred to central pipeline, set dummy here for Pydantic) ---
-    # The actual deterministic UID uses canonical_host_id which is resolved later
-    
-    # --- 5. OCSF Construction ---
+    cmd_match = re.search(r'CommandLine:\s*([^\r\n]+)', sanitized_msg, re.IGNORECASE)
+    extracted_cmd = cmd_match.group(1).strip() if cmd_match else sanitized_msg.strip()
+
+    entity_uid = generate_deterministic_uid("process", {
+        "event_id": event_id,
+        "provider": provider,
+        "timestamp": utc_time.isoformat()
+    })
+
     return ProcessActivity(
         trace_id=trace_id,
-        activity_id=1, # Create
-        severity_id=1, # Informational
+        case_id="UNASSIGNED_CONTINUOUS",
+        activity_id=1,
+        severity_id=1,
         time=utc_time,
-        raw_source_timestamp=raw_timestamp,
-        clock_skew_offset_ms=skew_ms,
-        clock_skew_unverified=unverified,
+        raw_source_timestamp=str(time_str),
+        clock_skew_offset_ms=skew_offset,
+        clock_skew_unverified=skew_unverified,
         security_scan_degraded=is_degraded,
-        uid="PENDING_UID", # Replaced during final schema validation pipeline
-        process_name=sanitized_proc_name,
-        process_pid=int(event_data.get("NewProcessId", 0) or 0),
-        command_line=sanitized_cmdline,
-        parent_process_name=sanitized_parent_proc_name,
-        # Other fields would be populated from event_data
+        uid=entity_uid,
+        process_name=process_name,
+        process_pid=extracted_pid,
+        parent_process_pid=extracted_ppid,
+        parent_process_uid=parent_uid,
+        command_line=extracted_cmd,
+        host_name=computer_name or "UNKNOWN_HOST",
+        canonical_host_id=host_uid
     )

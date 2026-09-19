@@ -117,3 +117,55 @@ class EventConsumer:
     ):
         self.topic = topic
         self.process_func = process_func
+        self._real_consumer = None
+        self.dlq_topic = f"{topic}.dlq"
+        
+        try:
+            from confluent_kafka import Consumer
+            consumer_conf = kafka_conf or {}
+            consumer_conf.setdefault("bootstrap.servers", "localhost:9092")
+            consumer_conf["group.id"] = group_id
+            consumer_conf["auto.offset.reset"] = "earliest"
+            consumer_conf["enable.auto.commit"] = False
+            consumer_conf["topic.metadata.refresh.interval.ms"] = 3000
+            
+            self._real_consumer = Consumer(consumer_conf)
+            self._real_consumer.subscribe([self.topic])
+            logger.info(f"EventConsumer: Subscribed to {self.topic} with group {group_id}")
+        except Exception as e:
+            logger.warning(f"EventConsumer: confluent_kafka unavailable ({e}); running in mock mode.")
+
+    def consume_loop(self, timeout: float = 1.0, max_messages: int = 1000):
+        if not self._real_consumer:
+            logger.info("EventConsumer (Mock): No real consumer configured.")
+            return
+
+        messages_processed = 0
+        while messages_processed < max_messages:
+            msg = self._real_consumer.poll(timeout)
+            if msg is None:
+                break
+            if msg.error():
+                logger.error(f"Consumer error: {msg.error()}")
+                continue
+                
+            payload = msg.value()
+            
+            def handler(data: dict):
+                self.process_func(data, False)
+                
+            result = process_message(payload, handler)
+            if result.routed_to_dlt:
+                logger.warning(f"Routing corrupted message to {self.dlq_topic}")
+                # DLQ logic can be added here
+            
+            messages_processed += 1
+            
+        if messages_processed > 0:
+            try:
+                self._real_consumer.commit()
+                logger.info(f"Committed offset after processing {messages_processed} messages.")
+            except Exception as e:
+                logger.error(f"Failed to commit offsets: {e}")
+                
+        return messages_processed

@@ -63,3 +63,8 @@ class SpeculaState(TypedDict, total=False):
 
     # §2.9 Per-agent ReAct scratch (primary verification surface)
     agent_traces: Annotated[list, operator.add]
+
+    # §2.10 Test injection control (production code never sets this field).
+    # Used by dead_end_detector and other Stage 3+ components to short-circuit
+    # real heuristics with deterministic values during unit testing.
+    test_control: Optional[dict]

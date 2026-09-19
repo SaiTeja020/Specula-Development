@@ -2,10 +2,43 @@
 
 Keys match Master_doc §2.5 role names. Every role points at one cheap model
 for now; swapping to real per-agent matrix later is a config change only.
+
+Environment variables are loaded from a .env file discovered by walking up
+from this file's location to the repository root. No hardcoded user paths.
 """
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Portable .env discovery
+# Walks up from this file's directory until it finds a .env file or hits
+# the filesystem root. Silently skips if .env does not exist (safe for CI).
+# ---------------------------------------------------------------------------
+
+def _find_dotenv() -> Path | None:
+    """Return the first .env file found by walking up from this file."""
+    current = Path(__file__).resolve().parent
+    for parent in [current, *current.parents]:
+        candidate = parent / ".env"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _load_env() -> None:
+    """Load .env into os.environ. No-op if file is absent or dotenv not installed."""
+    try:
+        from dotenv import load_dotenv  # type: ignore[import-untyped]
+        dotenv_path = _find_dotenv()
+        if dotenv_path:
+            load_dotenv(dotenv_path, override=False)
+    except ImportError:
+        pass  # python-dotenv not installed; rely on shell environment
+
+
+_load_env()
 
 
 # ---------------------------------------------------------------------------
@@ -204,17 +237,15 @@ class _StubResponse:
 class StubLLM:
     """Deterministic stub for testing without a real LLM provider."""
 
-    def __init__(self, role: str):
+    def __init__(self, role: str, case_id: str = "unknown"):
         self.role = role
+        self._case_id = case_id
 
     def invoke(self, prompt: str | list) -> _StubResponse:
         text = _STUB_RESPONSES.get(self.role, f"[{self.role}] Analysis complete.")
-        # Make report stub include case_id if present in prompt
-        if "{case_id}" in text and isinstance(prompt, str):
-            import re
-            m = re.search(r"case\s+(\S+)", prompt, re.IGNORECASE)
-            if m:
-                text = text.replace("{case_id}", m.group(1))
+        # D4: inject case_id explicitly (no fragile regex extraction from prompt)
+        if "{case_id}" in text:
+            text = text.replace("{case_id}", self._case_id)
         return _StubResponse(text)
 
 
@@ -222,36 +253,31 @@ class StubLLM:
 # LLM factory
 # ---------------------------------------------------------------------------
 
-def _get_gemini_model() -> str:
-    """Check available Gemini models and choose a flash or flash-lite model.
+# D3: resolved once per process — never re-queried on subsequent get_llm() calls
+_RESOLVED_GEMINI_MODEL: str | None = None
 
-    Falls back to a standard default if query fails.
+
+def _get_gemini_model() -> str:
+    """Resolve the best available Gemini model, cached for the process lifetime.
+
+    D3: Called only once; subsequent calls return the cached result so model
+    name cannot drift mid-investigation and the API is not re-hit per agent.
+    Reads GEMINI_API_KEY from os.environ (already populated by _load_env() at
+    module import — no repeated dotenv calls inside this function).
+    Falls back to gemini-2.5-flash if the key is absent or the API is unreachable.
     """
+    global _RESOLVED_GEMINI_MODEL
+    if _RESOLVED_GEMINI_MODEL is not None:
+        return _RESOLVED_GEMINI_MODEL
+
     import json
     import urllib.request
 
-    # Check environment variable
+    # _load_env() already populated os.environ at module import — read directly.
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        # Try loading .env manually
-        project_env = r"c:\Users\S Srirama Mithilesh\Specula\Specula-Development\.env"
-        if os.path.exists(project_env):
-            try:
-                with open(project_env, "r") as f:
-                    for line in f:
-                        if line.strip().startswith("GEMINI_API_KEY"):
-                            parts = line.split("=", 1)
-                            if len(parts) == 2:
-                                val = parts[1].strip()
-                                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
-                                    val = val[1:-1]
-                                api_key = val
-                                break
-            except Exception:
-                pass
-
-    if not api_key:
-        return "gemini-2.5-flash"  # Reasonable default
+        _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"  # D3: cache the default too
+        return _RESOLVED_GEMINI_MODEL
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
     try:
@@ -262,39 +288,44 @@ def _get_gemini_model() -> str:
             # Prioritise flash-lite models, then normal flash
             lite_models = [n for n in names if "gemini" in n.lower() and "flash-lite" in n.lower()]
             if lite_models:
-                # Strip models/ prefix if present
                 chosen = lite_models[-1]
-                return chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
-            
+                _RESOLVED_GEMINI_MODEL = chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
+                return _RESOLVED_GEMINI_MODEL  # D3: cache on every successful resolution
             flash_models = [n for n in names if "gemini" in n.lower() and "flash" in n.lower()]
             if flash_models:
                 chosen = flash_models[-1]
-                return chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
+                _RESOLVED_GEMINI_MODEL = chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
+                return _RESOLVED_GEMINI_MODEL
     except Exception:
         pass
 
-    return "gemini-2.5-flash"
+    _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"
+    return _RESOLVED_GEMINI_MODEL
 
 
-def get_llm(agent_role: str):
+def get_llm(agent_role: str, case_id: str = "unknown"):
     """Return an LLM for *agent_role* based on SPECULA_LLM_BACKEND env var.
 
     Backends:
       stub   — deterministic, no API key (default)
       gemini — langchain_google_genai.ChatGoogleGenerativeAI
+
+    Environment is loaded once at module import via _load_env() — no repeated
+    dotenv calls here. Set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
+    D4: case_id passed through to StubLLM so report stubs can fill {case_id}
+        without regex-extracting it back out of the formatted prompt.
     """
     backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
 
     if backend == "gemini":
-        from dotenv import load_dotenv
-        # Ensure env is loaded
-        load_dotenv(r"c:\Users\S Srirama Mithilesh\Specula\Specula-Development\.env")
+        # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
         if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
             os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
-            
+
         from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
-        model_name = _get_gemini_model()
+        model_name = _get_gemini_model()  # D3: cached after first call
         return ChatGoogleGenerativeAI(model=model_name, temperature=0)
 
-    return StubLLM(agent_role)
+    # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
+    return StubLLM(agent_role, case_id=case_id)
 

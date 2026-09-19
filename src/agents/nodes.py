@@ -18,6 +18,9 @@ from langgraph.types import Command, interrupt
 from .config import AGENT_CONFIG, get_llm
 from .guardrails import run_tier1_checks, run_tier2_checks
 from .kafka_utils import ROLE_TOPIC_MAP, publish_finding
+# NOTE: evidence_collection_node is no longer defined here.
+# Import make_evidence_collection_node from evidence_collection_agent and wire
+# it in build_graph() via the closure pattern (B1 fix).
 
 
 # ===================================================================
@@ -28,9 +31,12 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     """Execute a single-pass LLM call for *role*. Returns (finding, trace).
 
     Extra keyword args are merged into the prompt template format dict.
+    D4: passes case_id to get_llm so StubLLM can fill {case_id} in responses
+    without fragile regex extraction from the formatted prompt.
     """
     cfg = AGENT_CONFIG.get(role, AGENT_CONFIG["supervisor"])
-    llm = get_llm(role)
+    # D4: forward case_id so StubLLM fills report template without prompt regex
+    llm = get_llm(role, case_id=state.get("case_id", "unknown"))
 
     fmt = {
         "case_id": state.get("case_id", "unknown"),
@@ -112,24 +118,19 @@ def _summarise_output(state: dict) -> str:
 
 # --- 1. Supervisor (§3 row 1, §4 entry) ---
 def supervisor_node(state: dict) -> dict:
-    """Entry point. Evaluates input, sets dead-end flags, resets state for re-entry."""
+    """Entry point. Evaluates input, dispatches primary tier.
+
+    D1: Dead-end detection is no longer performed here — it has been moved to
+    primary_tier_join_node (via make_primary_tier_join_node factory), which is
+    the correct evaluation point: AFTER primary agents have run and their
+    findings are available. The DEAD_END:category raw_input signal is removed.
+    test_control injection for dead-end still works via detect_dead_end() inside
+    primary_tier_join_node, which reads state["test_control"]["dead_end_categories"].
+    """
     finding, trace = _run_agent("supervisor", state)
-
-    raw = str(state.get("raw_input", ""))
-
-    # Injectable dead-end signal (§4): parse "DEAD_END:category1,category2" from raw_input
-    dead_end = False
-    categories: list[str] = []
-    match = re.search(r"DEAD_END:([\w,]+)", raw)
-    if match:
-        dead_end = True
-        categories = [c.strip() for c in match.group(1).split(",") if c.strip()]
 
     return {
         "case_status": "primary_tier",
-        "dead_end_detected": dead_end,
-        "dead_end_categories": categories,
-        "specialists_dispatched": categories if dead_end else [],
         "findings": [finding],
         "agent_traces": [trace],
         # Reset on re-entry (HITL clarify loop)
@@ -148,10 +149,10 @@ def supervisor_node(state: dict) -> dict:
 
 
 # --- 2–4. Primary tier (parallel) ---
-def evidence_collection_node(state: dict) -> dict:
-    finding, trace = _run_agent("evidence_collection", state)
-    return {"findings": [finding], "agent_traces": [trace]}
-
+# B1: evidence_collection_node is now a factory in evidence_collection_agent.py.
+# The node function itself is wired into the graph by build_graph() via:
+#   builder.add_node("evidence_collection", make_evidence_collection_node(redis, neo4j))
+# Do NOT call evidence_collection_node directly from nodes.py.
 
 def log_analysis_node(state: dict) -> dict:
     finding, trace = _run_agent("log_analysis", state)
@@ -512,9 +513,28 @@ def hitl_node(state: dict) -> Command[Literal[
 # 4 control-only nodes (no agent identity, no agent_traces entry)
 # ===================================================================
 
-def primary_tier_join_node(state: dict) -> dict:
-    """Fan-in after primary tier. No processing — exists for join semantics."""
-    return {}
+def make_primary_tier_join_node(redis_client):
+    """D1: Factory that closes over redis_client for the real dead-end heuristic.
+
+    The returned node is called by LangGraph as `node(state)` after all three
+    primary agents have completed their fan-out and their findings are merged
+    into state. This is the correct place to evaluate whether a dead-end exists
+    (findings are available here; they were NOT available at Supervisor entry).
+
+    redis_client=None is safe — detect_dead_end handles it gracefully (returns
+    (False, []) unless test_control is set in state).
+    """
+    from .dead_end_detector import detect_dead_end
+
+    def primary_tier_join_node(state: dict) -> dict:
+        dead_end, categories = detect_dead_end(state, redis_client)
+        return {
+            "dead_end_detected": dead_end,
+            "dead_end_categories": categories,
+            "specialists_dispatched": categories if dead_end else [],
+        }
+
+    return primary_tier_join_node
 
 
 def specialist_join_node(state: dict) -> dict:

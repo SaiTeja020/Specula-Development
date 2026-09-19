@@ -147,9 +147,17 @@ class TestNormalPath:
 # ---------------------------------------------------------------------------
 
 class TestDeadEndPath:
+    """D1: Dead-end injection now uses state['test_control']['dead_end_categories']
+    (read by detect_dead_end() inside primary_tier_join_node) instead of the old
+    DEAD_END:category raw_input flag (which was parsed in supervisor_node before
+    any evidence existed). The test_control approach is the documented injection
+    mechanism for Stage 3+."""
+
     def test_specialists_dispatched(self, graph):
-        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity on host WS-042",
-                          thread_id="deadend-1")
+        result = _invoke(
+            graph, thread_id="deadend-1",
+            test_control={"dead_end_categories": ["memory", "identity"]},
+        )
         roles = _get_fired_roles(result)
         assert "memory_forensics" in roles
         assert "identity_cloud" in roles
@@ -157,30 +165,38 @@ class TestDeadEndPath:
         assert "insider_threat" not in roles
 
     def test_dead_end_categories_parsed_into_state(self, graph):
-        """Verify the raw_input parse actually lands in the state field, not
+        """Verify the test_control inject actually lands in the state field, not
         just inferred indirectly via which specialists happened to run."""
-        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity on host WS-042",
-                          thread_id="deadend-categories")
+        result = _invoke(
+            graph, thread_id="deadend-categories",
+            test_control={"dead_end_categories": ["memory", "identity"]},
+        )
         assert result.get("dead_end_detected") is True
         categories = set(result.get("dead_end_categories", []))
         assert categories == {"memory", "identity"}
 
     def test_reaches_final_output(self, graph):
-        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity on host WS-042",
-                          thread_id="deadend-2")
+        result = _invoke(
+            graph, thread_id="deadend-2",
+            test_control={"dead_end_categories": ["memory", "identity"]},
+        )
         assert result.get("case_status") == "closed"
         assert result.get("final_output_ref") is not None
 
     def test_all_four_specialists(self, graph):
-        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity,malware,insider",
-                          thread_id="deadend-all")
+        result = _invoke(
+            graph, thread_id="deadend-all",
+            test_control={"dead_end_categories": ["memory", "identity", "malware", "insider"]},
+        )
         roles = _get_fired_roles(result)
         for s in ["memory_forensics", "identity_cloud", "malware_stylometry", "insider_threat"]:
             assert s in roles
 
     def test_specialist_join_precedes_timeline(self, graph):
-        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity,malware,insider",
-                          thread_id="deadend-order")
+        result = _invoke(
+            graph, thread_id="deadend-order",
+            test_control={"dead_end_categories": ["memory", "identity", "malware", "insider"]},
+        )
         roles = _get_fired_roles(result)
         for s in ["memory_forensics", "identity_cloud", "malware_stylometry", "insider_threat"]:
             assert _role_index(roles, s) < _role_index(roles, "timeline_reconstruction")
