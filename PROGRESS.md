@@ -5,7 +5,7 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase 6: RAG Phase 1 Prototype (Complete) + Phase 5 continues
+- **Active Phase:** Phase H.2: Log Analysis Functional Specialist (Complete) + Phase 5 continues
 - **Active Tasks (WIP=2):**
   - None (Pending Selection)
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
@@ -48,13 +48,13 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-1.2`
   - **Description:** Define base Pydantic schemas for OCSF/OSSEM log ingestion.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
   - **Acceptance Criteria:** Base OCSF Event class validates standard schema attributes deterministically.
 
 - **Task ID:** `TASK-1.3`
   - **Description:** Create mock log pump (`mock_telemetry_pump.py`) for synthetic event generation.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component1_addendum_dhcp_boundary.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component1_addendum_dhcp_boundary.py`
   - **Acceptance Criteria:** Generates synthetic raw Windows Security and Sysmon events with valid structure.
 
 ---
@@ -64,19 +64,19 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-2.1`
   - **Description:** Implement atomic SHA-256 hashing for incoming raw logs (Preservation Layer).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py`
   - **Acceptance Criteria:** Every raw event receives immutable SHA-256 hash before processing.
 
 - **Task ID:** `TASK-2.2`
   - **Description:** Implement Merkle tree generation for VCT session roots.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k merkle`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k merkle`
   - **Acceptance Criteria:** Deterministic Merkle root calculation for forensic session verification.
 
 - **Task ID:** `TASK-2.3`
   - **Description:** Build immutable append-only WORM datastore handler (Quickwit client).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k worm`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k worm`
   - **Acceptance Criteria:** Append-only write verification with integrity checking.
 
 ---
@@ -86,31 +86,31 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-3.1`
   - **Description:** Create Kafka stream consumer for normalized OCSF events & ActiveCasesCache.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component5_broker_case_tagging.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component5_broker_case_tagging.py`
   - **Acceptance Criteria:** Active cases routed to Kafka topics with proper case partition keys.
 
 - **Task ID:** `TASK-3.2`
   - **Description:** Write deterministic Cypher `MERGE` query builder for Neo4j.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component7_graph_ingestion.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component7_graph_ingestion.py`
   - **Acceptance Criteria:** Parameterized Cypher queries build entity/relationship graph nodes without injection risk.
 
 - **Task ID:** `TASK-3.3`
   - **Description:** Implement Phase 2 & 3 OCSF Event Schemas and Normalizers.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
   - **Acceptance Criteria:** Normalizers map EDR, malware, network, auth, vuln scan, and cloud events to standard OCSF classes.
 
 - **Task ID:** `TASK-3.4`
   - **Description:** Implement Vector Retrieval Layer (`mcp-vector-retrieval`) with ChromaDB/InMemory adapters.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_vector_retrieval.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_vector_retrieval.py`
   - **Acceptance Criteria:** Semantic search over ingested evidence embeddings with RBAC filtering.
 
 - **Task ID:** `TASK-3.5`
   - **Description:** Implement FAISS IndexIVFPQ threat-intel corpus (ATT&CK STIX + NVD CVE fetchers & MCP server).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_threat_intel.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/ingestion/test_threat_intel.py`
   - **Acceptance Criteria:** 29/29 tests passing; STIX/NVD retrieval with atomic hot-reload and rate-limit handling.
 
 ---
@@ -120,37 +120,37 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-4.1`
   - **Description:** Define SpeculaState schema with append-reducers for parallel fan-out.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k TestStateIntegrity`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_skeleton_graph.py -k TestStateIntegrity`
   - **Acceptance Criteria:** State models support append-only reducers for findings, debate history, and agent traces.
 
 - **Task ID:** `TASK-4.2`
   - **Description:** Implement 16 ReAct-stub LLM agent nodes with config-driven model mapping.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestNormalPath or TestDeadEndPath"`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestNormalPath or TestDeadEndPath"`
   - **Acceptance Criteria:** All 16 agents instantiate and route according to graph configuration.
 
 - **Task ID:** `TASK-4.3`
   - **Description:** Implement Guardrail Tier 1 (regex), Tier 2 (semantic BoW), and Tier 3 (LLM).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestGuardrailFailures or TestGuardrailGenuineDetection"`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestGuardrailFailures or TestGuardrailGenuineDetection"`
   - **Acceptance Criteria:** Short-circuits malicious prompt injections, shell escapes, and cypher deletions.
 
 - **Task ID:** `TASK-4.4`
   - **Description:** Implement HITL interrupt/resume with dual-entry routing and FastAPI endpoint on uvicorn.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestHITLApproveGuardrail or TestHITLApproveDebate or TestHITLReject or TestHITLClarify"`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestHITLApproveGuardrail or TestHITLApproveDebate or TestHITLReject or TestHITLClarify"`
   - **Acceptance Criteria:** Interrupts execution on guardrail failure or debate exhaustion; resumes cleanly upon human signal.
 
 - **Task ID:** `TASK-4.5`
   - **Description:** Wire 23-node StateGraph with Send fan-out, Command routing, and ACH debate loop.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_skeleton_graph.py`
   - **Acceptance Criteria:** 28/28 tests passing across all graph execution branches.
 
 - **Task ID:** `TASK-4.6`
   - **Description:** Implement Evidence Collection Agent with multi-criterion relevance filtering and verdict publishing.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/agents/`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/agents/`
   - **Acceptance Criteria:** 12/12 agent tests passing; strict multi-host isolation and 4-part discard conjunction logic verified.
 
 - **Task ID:** `TASK-4.7`
@@ -172,13 +172,13 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-5.1`
   - **Description:** Create `src/agents/visualizer_api.py` standalone FastAPI service on port 8300 with CORS and health endpoints.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_visualizer_api.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_visualizer_api.py`
   - **Acceptance Criteria:** FastAPI app instantiates with health check returning 200 and CORS enabled for frontend origin.
 
 - **Task ID:** `TASK-5.2`
   - **Description:** Implement WebSocket streaming endpoint in `visualizer_api.py` broadcasting LangGraph node execution events and state deltas.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_visualizer_ws.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_visualizer_ws.py`
   - **Acceptance Criteria:** WebSocket connection receives real-time JSON event packets during graph invocation.
 
 - **Task ID:** `TASK-5.3`
@@ -190,7 +190,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-5.4`
   - **Description:** End-to-end integration of frontend visualizer with backend WebSocket streaming.
   - **Status:** `not_started`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_visualization_e2e.py`
+  - **Verification Command:** `. env\Scripts\pytest.exe tests/test_visualization_e2e.py`
   - **Acceptance Criteria:** Live graph run updates node colors and emits findings timeline in frontend.
 
 ---
@@ -198,7 +198,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 ## Pending Dependency & Terminal Requests (Awaiting Human Action)
 - **Required for dateutil normalizer tests:**
   ```powershell
-  .env\Scripts\pip.exe install python-dateutil
+  . env\Scripts\pip.exe install python-dateutil
   ```
 
 ---
@@ -260,6 +260,21 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-31 | Bugfix | Fixed async invocation error in `SupervisorKafkaConsumer` by replacing `invoke()` with `asyncio.run(ainvoke())` for the LangGraph execution. | Verified (39/39 supervisor tests passed) |
 | 2026-08-31 | Enhancement | Reinstated `--start-time` and `--end-time` CLI argument parsing in `src/ingestion/run_pipeline.py` and threaded them through `scripts/start_full_pipeline.py`. | Verified |
 | 2026-09-19 | `TASK-4.8` Log Analysis Test Suite | Fixed fixture hash verification for Windows LF/CRLF portability in `evaluate_log_analysis_ground_truth.py` and added `test_ground_truth_benchmark.py` pytest wrapper. | 73/73 Passed (`pytest tests/agents/log_analysis/`) |
+| 2026-09-20 | `tests/agents/rag/test_dfkg_retriever.py` | DFKGRetriever tests pass | Verified |
+| 2026-09-20 | `tests/agents/rag/test_agent_rag_integration.py` | RAG Tool adapter unit tests pass | Verified |
+| 2026-09-20 | `scripts/test_rag_agent_integration.py` | Agent correctly cites UIDs and distinguishes inference from observation | Verified |
+| 2026-09-20 | `tests/agents/test_threat_attribution_rag.py` | Phase G: Threat Attribution RAG | Verified |
+| 2026-09-20 | `tests/agents/test_network_forensics.py` | Phase H: Network Forensics Functional Agent (ReAct) | Verified |
+| 2026-09-20 | `tests/agents/log_analysis/` | Phase H.2: Log Analysis Functional Agent (ReAct) | Verified |
+
+---
+
+| State | Phase/Task | Acceptance Criteria |
+| :--- | :--- | :--- |
+| `passing` | **Phase E: Integrate RAG into ONE agent** | - One existing agent uses RAG to retrieve evidence<br>- Agent distinguishes observation vs inference<br>- Agent survives prompt injection test<br>- Graph UIDs cited correctly<br>- `test_rag_agent_integration.py` runs cleanly |
+| `passing` | **Phase G: Threat Attribution RAG** | - Adapter connects FAISS Threat Intel MCP to ReAct loop<br>- Agent merges DFKG facts with ATT&CK context<br>- UIDs and CVE/Group IDs preserved<br>- ReAct architecture implemented for Threat Attribution |
+| `passing` | **Phase H.2: Log Analysis Functional Agent (ReAct)** | - Log Analysis ReAct agent implemented and tested<br>- Integrates with RAG and DFKG retrieval |
+| `not_started` | **Phase F: Multi-Agent RAG Orchestration** | - Publish RAG-enriched findings to Kafka<br>- Downstream agents consume findings without duplicate retrieval |
 
 ---
 

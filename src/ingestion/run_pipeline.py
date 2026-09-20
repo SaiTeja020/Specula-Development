@@ -27,6 +27,7 @@ from src.ingestion.normalization.time_normalizer import TimeNormalizer
 from src.ingestion.normalization.evtx_normalizer import normalize_evtx_process_creation
 from src.ingestion.normalization.ad_auth_normalizer import normalize_ad_auth_event
 from src.ingestion.normalization.network_normalizer import normalize_pcap_stream
+from src.ingestion.normalization.mft_usn_normalizer import normalize_mft_record
 from src.ingestion.validation.validator import validate_event
 from src.schemas.ocsf_events import ProcessActivity
 from src.schemas.ocsf_phase2_events import AuthenticationEvent
@@ -140,6 +141,7 @@ def main():
     parser.add_argument("--end-time", type=str, help="End time (e.g., '2026-08-31 23:59:59')", default=None)
     parser.add_argument("--max-events", type=int, help="Max events per channel", default=2000)
     parser.add_argument("--pcap-file", type=str, help="Path to PCAP file for NetworkActivityEvent ingestion", default=None)
+    parser.add_argument("--mft-file", type=str, help="Path to MFT JSON array or NDJSON file for FileActivityEvent ingestion", default=None)
     args = parser.parse_args()
 
     logger.info("Extracting logs and running producer pipeline...")
@@ -182,6 +184,37 @@ def main():
                 logger.error(f"Failed to process PCAP file: {e}")
         else:
             logger.error(f"PCAP file not found: {args.pcap_file}")
+
+    if args.mft_file:
+        logger.info(f"Processing MFT file: {args.mft_file}")
+        if os.path.exists(args.mft_file):
+            try:
+                mft_records = []
+                with open(args.mft_file, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                        if isinstance(data, list):
+                            mft_records = data
+                        elif isinstance(data, dict):
+                            mft_records = [data]
+                    except json.JSONDecodeError:
+                        f.seek(0)
+                        for line in f:
+                            if line.strip():
+                                mft_records.append(json.loads(line))
+                
+                for record in mft_records:
+                    trace_id = f"trace-mft-{uuid.uuid4().hex[:8]}"
+                    try:
+                        ocsf_evt = normalize_mft_record(record, time_normalizer, trace_id)
+                        validate_event(ocsf_evt.model_dump(mode="json"), ocsf_evt.__class__)
+                        producer.produce_event(ocsf_evt)
+                    except Exception as e:
+                        logger.error(f"Validation/Produce error for MFT event: {e}")
+            except Exception as e:
+                logger.error(f"Failed to process MFT file: {e}")
+        else:
+            logger.error(f"MFT file not found: {args.mft_file}")
 
     channels = ["System", "Security", "Microsoft-Windows-Sysmon/Operational"]
     for channel in channels:

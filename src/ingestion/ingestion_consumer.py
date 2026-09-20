@@ -112,6 +112,26 @@ class IngestionPipelineConsumer:
                 dst_port = dist_evt.get('dst_port', 'UNKNOWN')
                 time_str = dist_evt.get('time', 'UNKNOWN_TIME')
                 text_repr = f"Network connection observed from {src_ip}:{src_port} to {dst_ip}:{dst_port} using {protocol}. Observed at {time_str}."
+            elif "file_path" in dist_evt:
+                activity_id = dist_evt.get('activity_id', 0)
+                action_map = {1: "CREATED", 2: "READ", 3: "UPDATED", 4: "DELETED"}
+                action = action_map.get(activity_id, "ACCESSED")
+                
+                path = dist_evt.get('file_path', 'UNKNOWN')
+                host = dist_evt.get('canonical_host_id', 'UNKNOWN')
+                si_time = dist_evt.get('si_created', 'N/A')
+                fn_time = dist_evt.get('fn_created', 'N/A')
+                usn = dist_evt.get('usn_reason_code', 'N/A')
+                
+                text_repr = (
+                    f"File activity observed:\n"
+                    f"path={path}\n"
+                    f"action={action}\n"
+                    f"host={host}\n"
+                    f"SI creation time={si_time}\n"
+                    f"FN creation time={fn_time}\n"
+                    f"USN reason={usn}"
+                )
             else:
                 text_repr = str(dist_evt.get("Message", dist_evt))
                 

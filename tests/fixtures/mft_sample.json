@@ -1,0 +1,20 @@
+[
+  {
+    "LastRecordChange": "2026-09-20T12:00:00Z",
+    "FileName": "suspicious.exe",
+    "ParentPath": "C:\\Windows\\System32",
+    "Created0x10": "2026-09-20T11:50:00Z",
+    "Created0x30": "2026-09-20T11:55:00Z",
+    "UsnReasonCode": 256,
+    "TimestampPrecision": 1
+  },
+  {
+    "LastRecordChange": "2026-09-20T12:05:00Z",
+    "FileName": "malware_config.json",
+    "ParentPath": "C:\\Users\\admin\\AppData\\Local\\Temp",
+    "Created0x10": "2026-09-20T12:05:00Z",
+    "Created0x30": "2026-09-20T12:05:00Z",
+    "UsnReasonCode": 256,
+    "TimestampPrecision": 1
+  }
+]

@@ -121,23 +121,70 @@ class DFKGRetriever:
 
         Graph expansion is strictly bounded by max_hops, max_nodes, max_rels.
         """
-        query = """
-        MATCH path = (seed {uid: $uid})-[*0..""" + str(self.max_hops) + """]->(neighbor)
-        WITH collect(DISTINCT neighbor)[0..""" + str(self.max_nodes) + """] AS nodes,
-             collect(DISTINCT relationships(path)) AS rel_lists
-        UNWIND nodes AS n
-        OPTIONAL MATCH (n)-[r]->(m)
-        WHERE m IN nodes
-        RETURN
-            n.uid              AS node_uid,
-            labels(n)[0]       AS node_label,
-            properties(n)      AS node_props,
-            type(r)            AS rel_type,
-            m.uid              AS neighbor_uid,
-            labels(m)[0]       AS neighbor_label,
-            properties(m)      AS neighbor_props
-        LIMIT $max_rels
-        """
+        # 1. Anchor Resolution: Is this UID on a Node or a Relationship?
+        anchor_type = "UNKNOWN"
+        if self.neo4j.execute_read("MATCH (n {uid: $uid}) RETURN 1 LIMIT 1", {"uid": seed_uid}):
+            anchor_type = "NODE"
+        elif self.neo4j.execute_read("MATCH ()-[r {uid: $uid}]->() RETURN 1 LIMIT 1", {"uid": seed_uid}):
+            anchor_type = "RELATIONSHIP"
+            
+        if anchor_type == "UNKNOWN":
+            logger.warning(f"Seed UID '{seed_uid}' not found as Node or Relationship. Returning empty context.")
+            return {"seed_uid": seed_uid, "nodes": {}, "edges": []}
+            
+        if anchor_type == "NODE":
+            query = """
+            MATCH path = (seed {uid: $uid})-[*0..""" + str(self.max_hops) + """]->(neighbor)
+            WITH collect(DISTINCT neighbor)[0..""" + str(self.max_nodes) + """] AS nodes,
+                 collect(DISTINCT relationships(path)) AS rel_lists
+            UNWIND nodes AS n
+            OPTIONAL MATCH (n)-[r]->(m)
+            WHERE m IN nodes
+            RETURN
+                n.uid              AS node_uid,
+                labels(n)[0]       AS node_label,
+                properties(n)      AS node_props,
+                type(r)            AS rel_type,
+                m.uid              AS neighbor_uid,
+                labels(m)[0]       AS neighbor_label,
+                properties(m)      AS neighbor_props
+            LIMIT $max_rels
+            """
+        else:
+            # RELATIONSHIP anchor
+            hops = max(0, self.max_hops - 1)
+            half_nodes = max(1, self.max_nodes // 2)
+            query = """
+            MATCH (source)-[seed {uid: $uid}]->(target)
+            OPTIONAL MATCH path_src = (source)-[*0..""" + str(hops) + """]-(neighbor_src)
+            OPTIONAL MATCH path_tgt = (target)-[*0..""" + str(hops) + """]-(neighbor_tgt)
+            WITH 
+              source, target, seed,
+              collect(DISTINCT neighbor_src)[0..""" + str(half_nodes) + """] AS nodes_src,
+              collect(DISTINCT neighbor_tgt)[0..""" + str(half_nodes) + """] AS nodes_tgt
+              
+            WITH 
+              [source, target] + nodes_src + nodes_tgt AS all_nodes,
+              seed
+              
+            UNWIND all_nodes AS n
+            WITH DISTINCT n, seed, all_nodes
+            WHERE n IS NOT NULL
+            
+            OPTIONAL MATCH (n)-[r]->(m)
+            WHERE m IN all_nodes
+            
+            RETURN 
+                n.uid              AS node_uid,
+                labels(n)[0]       AS node_label,
+                properties(n)      AS node_props,
+                type(r)            AS rel_type,
+                m.uid              AS neighbor_uid,
+                labels(m)[0]       AS neighbor_label,
+                properties(m)      AS neighbor_props
+            LIMIT $max_rels
+            """
+            
         rows = self.neo4j.execute_read(query, {"uid": seed_uid, "max_rels": self.max_rels})
 
         nodes: Dict[str, Dict] = {}

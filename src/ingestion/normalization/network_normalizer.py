@@ -16,6 +16,7 @@ from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
 from src.schemas.ocsf_events import NetworkActivity
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
+from src.schemas.uid_generator import generate_deterministic_uid
 
 
 def normalize_zeek_conn(
@@ -43,7 +44,14 @@ def normalize_zeek_conn(
         clock_skew_offset_ms=skew_ms,
         clock_skew_unverified=unverified,
         security_scan_degraded=False, # Connection logs usually don't need Rebuff
-        uid="PENDING_UID",
+        uid=generate_deterministic_uid("network", {
+            "src_ip": raw_parsed_event.get("id.orig_h", None),
+            "dst_ip": raw_parsed_event.get("id.resp_h", None),
+            "src_port": raw_parsed_event.get("id.orig_p", 0),
+            "dst_port": raw_parsed_event.get("id.resp_p", 0),
+            "protocol": raw_parsed_event.get("proto", None),
+            "time": raw_timestamp
+        }),
         src_ip=raw_parsed_event.get("id.orig_h", None),
         dst_ip=raw_parsed_event.get("id.resp_h", None),
         src_port=int(raw_parsed_event.get("id.orig_p", 0)),
@@ -123,7 +131,14 @@ def normalize_pcap_stream(
             clock_skew_offset_ms=skew_ms,
             clock_skew_unverified=unverified,
             security_scan_degraded=is_degraded,
-            uid="PENDING_UID",
+            uid=generate_deterministic_uid("network", {
+                "src_ip": src_ip,
+                "dst_ip": dst_ip,
+                "src_port": src_port,
+                "dst_port": dst_port,
+                "protocol": protocol,
+                "time": raw_ts_str
+            }),
             src_ip=src_ip,
             dst_ip=dst_ip,
             src_port=src_port,

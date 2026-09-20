@@ -154,35 +154,10 @@ def supervisor_node(state: dict) -> dict:
 #   builder.add_node("evidence_collection", make_evidence_collection_node(redis, neo4j))
 # Do NOT call evidence_collection_node directly from nodes.py.
 
-def log_analysis_node(state: dict) -> dict:
-    finding, trace = _run_agent("log_analysis", state)
-    return {"findings": [finding], "agent_traces": [trace]}
 
 
-def network_forensics_node(state: dict) -> dict:
-    finding, trace = _run_agent("network_forensics", state)
-    return {"findings": [finding], "agent_traces": [trace]}
 
 
-# --- 5. Timeline Reconstruction ---
-def timeline_reconstruction_node(state: dict) -> dict:
-    finding, trace = _run_agent("timeline_reconstruction", state)
-    return {
-        "case_status": "synthesis",
-        "timeline": {"summary": finding["summary"], "dfkg_refs": finding["dfkg_refs"]},
-        "findings": [finding],
-        "agent_traces": [trace],
-    }
-
-
-# --- 6. Threat Attribution ---
-def threat_attribution_node(state: dict) -> dict:
-    finding, trace = _run_agent("threat_attribution", state)
-    return {
-        "attribution": {"summary": finding["summary"], "dfkg_refs": finding["dfkg_refs"]},
-        "findings": [finding],
-        "agent_traces": [trace],
-    }
 
 
 # --- 7–10. Specialist tier (conditional, parallel-if-multiple) ---

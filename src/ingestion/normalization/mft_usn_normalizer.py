@@ -16,6 +16,7 @@ from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
 from src.schemas.ocsf_events import FileActivity
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
+from src.schemas.uid_generator import generate_deterministic_uid
 
 # Note: Actual NTFS parsing logic (e.g. MFTECmd) is assumed
 # to have run prior to this function, providing a parsed dict.
@@ -81,7 +82,12 @@ def normalize_mft_record(
         clock_skew_offset_ms=skew_ms,
         clock_skew_unverified=unverified,
         security_scan_degraded=is_degraded,
-        uid="PENDING_UID",
+        uid=generate_deterministic_uid("file", {
+            "file_name": sanitized_file_name,
+            "file_path": sanitized_file_path,
+            "time": raw_timestamp,
+            "usn_reason": raw_reason
+        }),
         file_name=sanitized_file_name,
         file_path=sanitized_file_path,
         # NTFS Timestomping required fields

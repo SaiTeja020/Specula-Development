@@ -20,7 +20,6 @@ from .nodes import (
     identity_cloud_node,
     insider_threat_node,
     judge_node,
-    log_analysis_node,
     malware_stylometry_node,
     memory_forensics_node,
     network_forensics_node,
@@ -29,11 +28,13 @@ from .nodes import (
     report_generation_node,
     specialist_join_node,
     supervisor_node,
-    threat_attribution_node,
     timeline_artifact_generation_node,
-    timeline_reconstruction_node,
 )
 from .evidence_collection_agent import make_evidence_collection_node  # B1: factory
+from .network_forensics_agent import make_network_forensics_node
+from .log_analysis_agent import make_log_analysis_node
+from .timeline_reconstruction_agent import make_timeline_reconstruction_node
+from .threat_attribution_agent import make_threat_attribution_node # Phase G: factory
 from .state import SpeculaState
 
 
@@ -104,10 +105,10 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
     builder.add_node("supervisor", supervisor_node)
     # B1: evidence_collection gets the real ReAct loop; factory closes over infra clients
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
-    builder.add_node("log_analysis", log_analysis_node)
-    builder.add_node("network_forensics", network_forensics_node)
-    builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
-    builder.add_node("threat_attribution", threat_attribution_node)
+    builder.add_node("log_analysis", make_log_analysis_node(redis_client, neo4j_driver))
+    builder.add_node("network_forensics", make_network_forensics_node(redis_client, neo4j_driver))
+    builder.add_node("timeline_reconstruction", make_timeline_reconstruction_node(redis_client, neo4j_driver))
+    builder.add_node("threat_attribution", make_threat_attribution_node(redis_client, neo4j_driver))
     builder.add_node("memory_forensics", memory_forensics_node)
     builder.add_node("identity_cloud", identity_cloud_node)
     builder.add_node("malware_stylometry", malware_stylometry_node)

@@ -47,7 +47,7 @@ _load_env()
 
 AGENT_CONFIG: dict[str, dict] = {
     "supervisor": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Supervisor agent for case {case_id}. "
@@ -56,7 +56,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "evidence_collection": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Evidence Collection agent for case {case_id}. "
@@ -69,7 +69,7 @@ AGENT_CONFIG: dict[str, dict] = {
     # Single-source consolidation (from src.agents.log_analysis.config import MODEL_ID)
     # is scheduled when the real model endpoint is deployed.
     "log_analysis": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Log Analysis agent for case {case_id}. "
@@ -78,7 +78,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "network_forensics": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Network Forensics agent for case {case_id}. "
@@ -87,7 +87,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "timeline_reconstruction": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Timeline Reconstruction agent for case {case_id}. "
@@ -96,7 +96,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "threat_attribution": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Threat Attribution agent for case {case_id}. "
@@ -105,7 +105,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "memory_forensics": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Memory Forensics specialist for case {case_id}. "
@@ -114,7 +114,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "identity_cloud": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Identity & Cloud specialist for case {case_id}. "
@@ -123,7 +123,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "malware_stylometry": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Malware & Stylometry specialist for case {case_id}. "
@@ -132,7 +132,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "insider_threat": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Insider Threat specialist for case {case_id}. "
@@ -141,7 +141,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "proponent": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Proponent in the Evidentiary Adversarial Debate for case {case_id}. "
@@ -151,7 +151,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "critic": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Critic in the Evidentiary Adversarial Debate for case {case_id}. "
@@ -160,7 +160,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "judge": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Judge in the Evidentiary Adversarial Debate for case {case_id}. "
@@ -172,7 +172,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "guardrail_tier3": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are Guardrail Tier 3 — semantic validation agent for case {case_id}. "
@@ -183,7 +183,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "report_generation": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Report Generation agent for case {case_id}. "
@@ -193,7 +193,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "timeline_artifact_generation": {
-        "model_id": "gemini-2.5-flash",
+        "model_id": "gemini-3.6-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Timeline Artifact Generation agent for case {case_id}. "
@@ -276,7 +276,7 @@ def _get_gemini_model() -> str:
     # _load_env() already populated os.environ at module import — read directly.
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"  # D3: cache the default too
+        _RESOLVED_GEMINI_MODEL = "gemini-3.6-flash"  # D3: cache the default too
         return _RESOLVED_GEMINI_MODEL
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
@@ -299,7 +299,7 @@ def _get_gemini_model() -> str:
     except Exception:
         pass
 
-    _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"
+    _RESOLVED_GEMINI_MODEL = "gemini-3.6-flash"
     return _RESOLVED_GEMINI_MODEL
 
 
