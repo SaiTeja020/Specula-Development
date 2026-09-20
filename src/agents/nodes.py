@@ -177,9 +177,34 @@ def timeline_reconstruction_node(state: dict) -> dict:
 
 # --- 6. Threat Attribution ---
 def threat_attribution_node(state: dict) -> dict:
-    finding, trace = _run_agent("threat_attribution", state)
+    """
+    Grounded threat attribution: queries FAISS (ATT&CK techniques + groups) and
+    Neo4j (case graph entities) BEFORE calling the LLM, so the model reasons
+    over real retrieved data rather than training-weight hallucinations.
+
+    Degradation: if FAISS index is not ready or Neo4j is unavailable, the agent
+    falls back gracefully — it still runs the LLM with whatever data is available.
+    """
+    try:
+        from src.agents.threat_attribution_agent import run_threat_attribution
+
+        # neo4j_driver is not threaded through SpeculaState — pass None here so
+        # the graph-entity lookup degrades gracefully until driver injection is
+        # wired in build_graph() (same pattern as evidence_collection_node factory).
+        attribution, finding, trace = run_threat_attribution(state, neo4j_driver=None)
+
+    except Exception as exc:
+        # Hard fallback: if the new agent crashes for any reason, revert to the
+        # generic stub so the graph does not halt.
+        import logging
+        logging.getLogger(__name__).error(
+            "threat_attribution_node: real agent raised %s — falling back to stub.", exc
+        )
+        finding, trace = _run_agent("threat_attribution", state)
+        attribution = {"summary": finding["summary"], "dfkg_refs": finding["dfkg_refs"]}
+
     return {
-        "attribution": {"summary": finding["summary"], "dfkg_refs": finding["dfkg_refs"]},
+        "attribution": attribution,
         "findings": [finding],
         "agent_traces": [trace],
     }

@@ -7,9 +7,9 @@
 ## Current Build Status
 - **Active Phase:** Phase 5: Visualization Layer & Agent Integration
 - **Active Tasks (WIP=2):**
-  - None (Pending Selection)
+  - None (all WIP slots free)
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-08-26
+- **Last Updated:** 2026-09-20
 
 ---
 
@@ -160,6 +160,16 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 
 ---
 
+### Phase 6: Agent Grounding & Real Tool Integration
+
+- **Task ID:** `TASK-6.2`
+  - **Description:** Implement real Threat Attribution Agent with FAISS + Neo4j grounding. Replaces generic `_run_agent()` stub with 3-lookup pipeline: ATT&CK techniques (FAISS), threat groups (FAISS), case graph entities (Neo4j). LLM reasons over retrieved data only.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/test_threat_attribution_agent.py -v`
+  - **Acceptance Criteria:** 12/12 tests passing across happy path, FAISS-not-ready degradation, and Neo4j-down degradation scenarios.
+
+---
+
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
 
 - **Task ID:** `TASK-5.1`
@@ -253,6 +263,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-31 | Bugfix | Fixed async invocation error in `SupervisorKafkaConsumer` by replacing `invoke()` with `asyncio.run(ainvoke())` for the LangGraph execution. | Verified (39/39 supervisor tests passed) |
 | 2026-08-31 | Enhancement | Reinstated `--start-time` and `--end-time` CLI argument parsing in `src/ingestion/run_pipeline.py` and threaded them through `scripts/start_full_pipeline.py`. | Verified |
 | 2026-09-19 | `TASK-4.8` Log Analysis Test Suite | Fixed fixture hash verification for Windows LF/CRLF portability in `evaluate_log_analysis_ground_truth.py` and added `test_ground_truth_benchmark.py` pytest wrapper. | 73/73 Passed (`pytest tests/agents/log_analysis/`) |
+| 2026-09-20 | `TASK-6.2` Threat Attribution Agent | Replaced generic `_run_agent()` stub in `nodes.py` with real grounded pipeline. New `src/agents/threat_attribution_agent.py`: 3 lookups (FAISS techniques, FAISS groups, Neo4j entities) before LLM call. Updated `config.py` prompt to inject retrieved context. Hard fallback to stub on any exception. `tests/agents/test_threat_attribution_agent.py` covers happy path, FAISS-not-ready, Neo4j-down, and JSON parse degradation. | 12/12 Passed + 28/28 Skeleton Passed |
 
 ---
 

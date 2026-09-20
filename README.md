@@ -71,6 +71,16 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
    ```powershell
    pip install -r requirements.txt
    ```
+3. Build the threat-intel FAISS index (one-time, ~2 min for ATT&CK only):
+   ```powershell
+   # ATT&CK techniques + groups only (no API key needed):
+   python scripts/build_threat_intel_index.py --no-nvd
+
+   # ATT&CK + NVD CVEs (set NVD_API_KEY in .env first, ~10 min):
+   python scripts/build_threat_intel_index.py
+   ```
+   This populates `data/threat_intel/` which is excluded from git (derived artifact).
+   The Threat Attribution Agent degrades gracefully if the index is not built.
 
 ### Start Backing Services (Docker)
 ```powershell
