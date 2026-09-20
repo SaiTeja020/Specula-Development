@@ -1,0 +1,14 @@
+[
+  {
+    "timestamp": "2026-09-20T19:29:56.192410+00:00",
+    "agent": "rag",
+    "query": "RAG-REAL-TRACE-001",
+    "method": "GraphRAG"
+  },
+  {
+    "timestamp": "2026-09-20T19:30:38.799337+00:00",
+    "agent": "rag",
+    "query": "trace",
+    "method": "GraphRAG"
+  }
+]

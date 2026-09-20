@@ -296,7 +296,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-20 | `tests/agents/timeline/` | Phase H.3: Timeline Reconstruction Functional Agent (ReAct) | Verified |
 | 2026-09-20 | `tests/agents/test_debate_agents.py` | Phase H.4: Debate Layer Functional Agents (ReAct) | Verified |
 | 2026-09-20 | `src/agents/threat_attribution_agent.py` | Phase H.7.1: Threat Attribution Context Migration | Verified |
-
+| 2026-09-21 | `src/agents/investigation_trace.py` | Phase H.7.4 Extension: Fixed trace file appending duplication bug. Rewrote TraceRecorder's `_compile_full_report` to generate strict RAG data flow markdown blocks with provenance validation (exposing unsupported stub UIDs). | Verified (`python scripts/run_investigation.py --trace`) |
 ---
 
 | State | Phase/Task | Acceptance Criteria |

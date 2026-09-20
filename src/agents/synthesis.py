@@ -160,7 +160,7 @@ Produce the plain-English investigation summary now.
         f"agents={agents_used}, uids={len(evidence_uids)}"
     )
 
-    return InvestigationResult(
+    result = InvestigationResult(
         case_id=case_id,
         query=query,
         status=status,

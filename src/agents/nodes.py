@@ -68,9 +68,16 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     latency_ms = round((time.time() - start) * 1000, 1)
 
     content = response.content if hasattr(response, "content") else str(response)
+    if isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+            elif isinstance(part, str):
+                text_parts.append(part)
+        content = "\n".join(text_parts)
     
     # Trace action/observation
-    investigation_trace.record_event(role, "agent_action", {"action": "single_pass_llm_call", "action_input": {}})
     investigation_trace.record_event(role, "agent_observation", {"observation": content})
 
     finding = {

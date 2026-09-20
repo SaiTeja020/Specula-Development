@@ -54,13 +54,20 @@ class TraceRecorder:
         
         self.json_path = self.run_dir / "investigation_trace.json"
         
-        if not self.json_path.exists():
-            with open(self.json_path, 'w', encoding='utf-8') as f:
-                json.dump({
-                    "case_id": case_id,
-                    "query": query,
-                    "events": []
-                }, f, indent=2)
+        # Clear out previous trace files if re-running the same case
+        import glob
+        for old_file in glob.glob(str(self.run_dir / "*.*")):
+            try:
+                os.remove(old_file)
+            except OSError:
+                pass
+                
+        with open(self.json_path, 'w', encoding='utf-8') as f:
+            json.dump({
+                "case_id": case_id,
+                "query": query,
+                "events": []
+            }, f, indent=2)
 
         self._write_readme_header()
         self._write_user_query()
@@ -73,6 +80,7 @@ class TraceRecorder:
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "component": component,
+            "active_agent": get_active_agent(),
             "event_type": event_type,
             "data": safe_data
         }
@@ -261,6 +269,209 @@ class TraceRecorder:
         elif evt == "synthesis":
             self._write_final_synthesis(data)
             self._update_readme("Final synthesis produced.")
+            
+            # Now compile the single, comprehensive trace document
+            try:
+                self._compile_full_report()
+            except Exception as e:
+                logger.error(f"Failed to compile full trace report: {e}")
+
+    def _compile_full_report(self) -> None:
+        """Parse the JSON trace and compile a single sequential report matching the RAG data flow specification."""
+        report_path = self.run_dir / "full_trace_report.md"
+        
+        with open(self.json_path, 'r', encoding='utf-8') as f:
+            trace = json.load(f)
+            
+        events = trace.get("events", [])
+        
+        # Collect all valid retrieved UIDs for unsupported claim checking
+        retrieved_uids = set()
+        for e in events:
+            if e["event_type"] == "rag_retrieval":
+                for rec in e["data"].get("records", []):
+                    if "uid" in rec:
+                        retrieved_uids.add(rec["uid"])
+            elif e["event_type"] == "dfkg_query":
+                for uid in e["data"].get("uids", []):
+                    retrieved_uids.add(uid)
+
+        sections = []
+        sections.append(f"# SPECULA INVESTIGATION TRACE\n\nCase: {self.case_id}\n\n---\n")
+        
+        counter = 1
+        
+        current_agent = None
+        agent_block = ""
+        
+        for e in events:
+            evt = e["event_type"]
+            comp = e["component"]
+            active = e.get("active_agent", "unknown_agent")
+            data = e["data"]
+            
+            if evt == "user_query":
+                sections.append(f"## {counter}. USER\n\nQuery:\n\"{data.get('query')}\"\n\n---\n")
+                counter += 1
+                
+            elif evt == "supervisor_input":
+                pass # handled below
+                
+            elif evt == "supervisor_route":
+                sections.append(f"## {counter}. SUPERVISOR\n\n### Decision\nRoute investigation to:\n" + "\n".join([f"- {a}" for a in data.get('next_agents', [])]) + "\n\n---\n")
+                counter += 1
+                
+            elif evt == "agent_start":
+                if current_agent and agent_block:
+                    agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+                    sections.append(agent_block)
+                current_agent = comp
+                name = comp.replace("_", " ").upper()
+                agent_block = f"## {counter}. {name} AGENT\n\n"
+                counter += 1
+                
+            elif evt == "agent_action":
+                if current_agent:
+                    action = data.get('action')
+                    inputs = json.dumps(data.get('action_input', {}), indent=2)
+                    agent_block += f"### Input received\n```json\n{inputs}\n```\n\n### Action\n{action}\n\n"
+                    
+            elif evt == "rag_query":
+                if active == current_agent:
+                    agent_block += f"==================================================\nRAG REQUEST\n==================================================\n\n"
+                    agent_block += f"Agent:\n{active}\n\n"
+                    agent_block += f"RAG query:\n{data.get('query')}\n\n"
+                    agent_block += f"Retrieval method:\n{data.get('method')}\n\n"
+                    
+            elif evt == "rag_retrieval":
+                if active == current_agent:
+                    agent_block += f"==================================================\nRAG RESPONSE\n==================================================\n\n"
+                    records = data.get("records", [])
+                    if not records:
+                        agent_block += "No records retrieved.\n\n"
+                    else:
+                        for i, rec in enumerate(records, 1):
+                            agent_block += f"Retrieved result #{i}\n\n"
+                            agent_block += f"UID:\n{rec.get('uid', 'UNKNOWN')}\n\n"
+                            agent_block += f"Type:\n{rec.get('metadata', {}).get('type', 'Unknown')}\n\n"
+                            agent_block += f"Score:\n{rec.get('score', 'N/A')}\n\n"
+                            agent_block += f"Data:\n{json.dumps(rec.get('page_content', ''), indent=2)}\n\n"
+                            agent_block += f"Source:\n{rec.get('metadata', {}).get('source', 'Unknown')}\n\n"
+                    
+                    exp = data.get("dfkg_expansion", {})
+                    if exp:
+                        agent_block += f"==================================================\nGRAPH EXPANSION\n==================================================\n\n"
+                        agent_block += f"Anchor UID:\n{exp.get('anchor_uid', 'N/A')}\n\n"
+                        agent_block += f"Nodes returned:\n{exp.get('nodes_retrieved', 0)}\n\n"
+                        agent_block += f"Relationships returned:\n{exp.get('rels_retrieved', 0)}\n\n"
+                        agent_block += f"Hops:\n{exp.get('hops', 1)}\n\n"
+                        
+            elif evt == "dfkg_query":
+                if active == current_agent:
+                    agent_block += f"==================================================\nDFKG REQUEST\n==================================================\n\n"
+                    agent_block += f"Agent:\n{active}\n\n"
+                    agent_block += f"Cypher query:\n```cypher\n{data.get('cypher')}\n```\n\n"
+                    
+                    agent_block += f"==================================================\nDFKG RESPONSE\n==================================================\n\n"
+                    agent_block += f"Entities Returned:\n{data.get('returned_entities')}\n\n"
+                    agent_block += f"UIDs:\n{data.get('uids')}\n\n"
+                    
+            elif evt == "agent_observation":
+                if comp == current_agent:
+                    agent_block += f"==================================================\nAGENT OBSERVATION\n==================================================\n\n"
+                    agent_block += f"{data.get('observation')}\n\n"
+                    
+            elif evt == "agent_finding":
+                if comp == current_agent:
+                    agent_block += f"==================================================\nAGENT FINDING\n==================================================\n\n"
+                    agent_block += f"Finding:\n{data.get('summary')}\n\n"
+                    
+                    # Verify UIDs
+                    uids = data.get('evidence_uids', [])
+                    verified_uids = []
+                    for u in uids:
+                        if u in retrieved_uids:
+                            verified_uids.append(u)
+                        else:
+                            verified_uids.append(f"{u} [UNSUPPORTED: Evidence never retrieved by RAG/DFKG]")
+                            
+                    agent_block += f"Evidence UIDs:\n{verified_uids}\n\n"
+                    
+                    agent_block += f"==================================================\nBLACKBOARD HANDOFF\n==================================================\n\n"
+                    agent_block += f"Published finding UID:\n{data.get('node_uid')}\n\n---\n"
+                    
+                    sections.append(agent_block)
+                    current_agent = None
+                    agent_block = ""
+                    
+            elif evt == "debate_proponent":
+                if current_agent and agent_block:
+                    agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+                    sections.append(agent_block)
+                    current_agent = None
+                    agent_block = ""
+                sections.append(f"## {counter}. PROPONENT\n\n### Argument\n{data.get('argument')}\n\n---\n")
+                counter += 1
+            elif evt == "debate_critic":
+                if current_agent and agent_block:
+                    agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+                    sections.append(agent_block)
+                    current_agent = None
+                    agent_block = ""
+                sections.append(f"## {counter}. CRITIC\n\n### Challenge\n{data.get('challenge')}\n\n---\n")
+                counter += 1
+            elif evt == "debate_judge":
+                if current_agent and agent_block:
+                    agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+                    sections.append(agent_block)
+                    current_agent = None
+                    agent_block = ""
+                sections.append(f"## {counter}. JUDGE\n\n### Verdict\n{data.get('verdict')}\n\n### Reasoning\n{data.get('reasoning')}\n\n---\n")
+                counter += 1
+            elif evt == "hitl_pause":
+                if current_agent and agent_block:
+                    agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+                    sections.append(agent_block)
+                    current_agent = None
+                    agent_block = ""
+                sections.append(f"## {counter}. HITL\n\n### Triggered\n{data.get('entry_reason')}\n\n---\n")
+                counter += 1
+                
+            elif evt == "synthesis":
+                if current_agent and agent_block:
+                    agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+                    sections.append(agent_block)
+                    current_agent = None
+                    agent_block = ""
+                result = data.get("result", {})
+                syn_block = f"## {counter}. FINAL SYNTHESIS\n\n"
+                syn_block += f"### User question\n{result.get('query', '')}\n\n"
+                syn_block += f"### Evidence\n(Trace automatically tracks evidence UIDs)\n\n"
+                syn_block += f"### Final conclusion\n{result.get('answer', '')}\n\n"
+                
+                uids = result.get('evidence_uids', [])
+                verified_uids = []
+                for u in uids:
+                    if u in retrieved_uids:
+                        verified_uids.append(u)
+                    else:
+                        verified_uids.append(f"{u} [UNSUPPORTED: Evidence never retrieved by RAG/DFKG]")
+                        
+                syn_block += f"### Evidence UIDs\n{verified_uids}\n\n"
+                syn_block += f"### Limitations\n"
+                for lim in result.get("limitations", []):
+                    syn_block += f"- {lim}\n"
+                syn_block += "\n---\n"
+                sections.append(syn_block)
+                counter += 1
+
+        # Append any leftover agent block (if finding wasn't published)
+        if current_agent and agent_block:
+            agent_block += "\n(Agent run ended without publishing a final finding.)\n\n---\n"
+            sections.append(agent_block)
+
+        with open(report_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(sections))
 
     def _write_final_synthesis(self, data: dict) -> None:
         result = data.get("result", {})

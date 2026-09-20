@@ -59,13 +59,18 @@ def _get_neo4j_driver(uri: str | None):
     if not neo4j_enabled:
         return None
 
-    if not neo4j_password:
+    auth = None
+    if neo4j_password:
+        auth = (neo4j_user, neo4j_password)
+    elif neo4j_user and neo4j_user.lower() != "neo4j":
+        # If user is specified but no password, we assume auth is required and fail
         print("[INFO] NEO4J_PASSWORD not set — running without live DFKG queries.")
         return None
+    # If no password and user is default, assume NEO4J_AUTH=none
 
     try:
         from neo4j import GraphDatabase
-        driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
+        driver = GraphDatabase.driver(neo4j_uri, auth=auth)
         driver.verify_connectivity()
         print(f"[INFO] Connected to Neo4j at {neo4j_uri}")
         return driver
@@ -178,12 +183,11 @@ def main():
     except KeyboardInterrupt:
         print("\n[Specula] Investigation interrupted by user.")
         sys.exit(1)
-    except Exception as exc:
-        print(f"\n[ERROR] Investigation failed: {exc}")
-        if os.environ.get("SPECULA_DEBUG"):
-            import traceback
-            traceback.print_exc()
-        sys.exit(2)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"[ERROR] Investigation failed: {e}")
+        sys.exit(1)
     finally:
         if neo4j_driver:
             neo4j_driver.close()

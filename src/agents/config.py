@@ -334,6 +334,7 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
         # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
         if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
             os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
+            del os.environ["GEMINI_API_KEY"]
 
         from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
         model_name = _get_gemini_model()  # D3: cached after first call
