@@ -59,3 +59,6 @@ dpkt==1.9.8
 
 # LangGraph Checkpointer
 langgraph-checkpoint-redis>=0.5.2
+
+# Google GenAI SDK for Gemini RAG client (Phase 1 RAG prototype)
+google-genai>=2.0.0

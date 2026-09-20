@@ -64,6 +64,8 @@ services:
       - NEO4J_AUTH=none
       # Required for v6 §8.3 Triggers
       - NEO4J_apoc_trigger_enabled=true 
+      # Auto-download APOC core plugin on startup
+      - NEO4J_PLUGINS=["apoc"]
     volumes:
       - ./data/neo4j/plugins:/plugins
     # In a real deployment, APOC needs to be downloaded into /plugins before startup
