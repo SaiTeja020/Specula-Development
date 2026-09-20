@@ -268,3 +268,62 @@ def test_graph_context_builder_format(retriever):
     assert "RETRIEVED FORENSIC GRAPH CONTEXT" in text
     assert "ENTITIES" in text
     assert "RELATIONSHIPS" in text
+
+# ---------------------------------------------------------------------------
+# Test 8: UID Validation - Output Side Check (Phase 1.5)
+# ---------------------------------------------------------------------------
+
+def test_8_uid_validation_valid():
+    from src.agents.rag.response_validator import validate_response_uids
+    # Provide a context containing PROC3_UID
+    ctx = [{"nodes": {PROC3_UID: {"label": "Process"}}}]
+    response = f"Finding: suspicious.exe did bad things.\nEvidence: uid={PROC3_UID}"
+    report = validate_response_uids(response, ctx)
+    
+    assert report["validation_passed"] is True
+    assert report["has_unverified_uids"] is False
+    assert PROC3_UID in report["verified_uids"]
+    assert len(report["unverified_uids"]) == 0
+
+
+def test_8_uid_validation_unknown_hallucinated():
+    from src.agents.rag.response_validator import validate_response_uids
+    ctx = [{"nodes": {PROC3_UID: {"label": "Process"}}}]
+    # Hallucinated UID that does not match PROC3_UID (must be hex and >8 chars)
+    hallucinated_uid = "deadbeef12345678" 
+    response = f"Finding: unknown entity.\nEvidence: uid={hallucinated_uid}"
+    report = validate_response_uids(response, ctx)
+    
+    assert report["validation_passed"] is False
+    assert report["has_unverified_uids"] is True
+    assert len(report["verified_uids"]) == 0
+    assert hallucinated_uid in report["unverified_uids"]
+
+
+def test_8_uid_validation_no_uids():
+    from src.agents.rag.response_validator import validate_response_uids
+    ctx = [{"nodes": {PROC3_UID: {"label": "Process"}}}]
+    response = "Finding: generic finding without any UID citations."
+    report = validate_response_uids(response, ctx)
+    
+    # If there are no UIDs cited, there are no *unverified* UIDs, so validation technically passes
+    assert report["validation_passed"] is True
+    assert report["has_unverified_uids"] is False
+    assert len(report["cited_uids"]) == 0
+
+
+def test_8_uid_validation_multiple_valid():
+    from src.agents.rag.response_validator import validate_response_uids
+    ctx = [{"nodes": {
+        PROC3_UID: {"label": "Process"},
+        IP2_UID: {"label": "NetworkEndpoint"}
+    }}]
+    response = f"Finding: connection to IP.\nEvidence: uid={PROC3_UID} connected to uid={IP2_UID}"
+    report = validate_response_uids(response, ctx)
+    
+    assert report["validation_passed"] is True
+    assert len(report["verified_uids"]) == 2
+    assert PROC3_UID in report["verified_uids"]
+    assert IP2_UID in report["verified_uids"]
+    assert len(report["unverified_uids"]) == 0
+

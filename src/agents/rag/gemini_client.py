@@ -27,8 +27,8 @@ logger = logging.getLogger("GeminiClient")
 _REQUIRED_ENV_VAR = "GEMINI_API_KEY"
 # The project targets gemini-2.5-flash per AGENT_CONFIG in src/agents/config.py.
 # This API key does not have access to that model; the Gemini API recommends
-# gemini-3.6-flash as the replacement. Override via GEMINI_MODEL env var.
-_DEFAULT_MODEL = "gemini-3.6-flash"
+# gemini-3.1-pro-preview as the replacement. Override via GEMINI_MODEL env var.
+_DEFAULT_MODEL = "gemini-3.1-pro-preview"
 
 
 class GeminiConfigError(Exception):

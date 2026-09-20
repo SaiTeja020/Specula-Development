@@ -11,12 +11,12 @@
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
 - **Last Updated:** 2026-09-20
 
-### RAG Phase 1 — PASSING ✅ (2026-09-20)
-- **Verification:** `pytest tests/test_rag_pipeline.py -v` → **12/12 passed**
-- **End-to-end:** `python scripts/run_rag_agent.py` → Gemini response received (gemini-3.6-flash)
+### RAG Phase 1 & 1.5 — PASSING ✅ (2026-09-20)
+- **Verification:** `pytest tests/test_rag_pipeline.py -v` → **16/16 passed** (including Phase 1.5 UID validation tests)
+- **End-to-end:** `python scripts/run_rag_agent.py` → RAG retrieval, context building, and semantic embeddings (all-MiniLM-L6-v2) implemented. E2E script tested (blocked locally only by Gemini Pro API quota limits).
 - **Neo4j seeded:** 9 nodes, 22 relationships via `scripts/seed_rag_test_data.py`
-- **Files created:** `src/agents/rag/` package + `scripts/run_rag_agent.py` + `tests/test_rag_pipeline.py` + `docs/rag_phase1_architecture.md`
-- **Model note:** `gemini-2.5-flash` unavailable to this API key; `gemini-3.6-flash` used. Override via `GEMINI_MODEL` env var.
+- **Files created/modified:** `src/agents/rag/response_validator.py`, `src/ingestion/indexing/vector_store.py`, `src/agents/rag/gemini_client.py`, `scripts/run_rag_agent.py`, `tests/test_rag_pipeline.py`
+- **Model note:** Default changed from `gemini-3.6-flash` to `gemini-3.1-pro-preview` per Phase 1.5 requirements. Override via `GEMINI_MODEL` env var.
 
 ---
 

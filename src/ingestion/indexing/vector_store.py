@@ -25,7 +25,17 @@ class EmbeddingGenerator:
     deterministic 384-dimensional unit-length float vectors based on text hashing.
     """
 
-    def __init__(self, model_version: str = "mxbai-embed-large-v1", dimension: int = 384, use_st: bool = False):
+    def __init__(self, model_version: str = "mxbai-embed-large-v1", dimension: int = 384, use_st: bool = True):
+        """
+        Args:
+            model_version: Legacy field; ignored when use_st=True (SentenceTransformer
+                           always loads all-MiniLM-L6-v2 for the RAG prototype).
+            dimension:     Output dimension used only by the hash-based fallback.
+            use_st:        If True (default), use sentence-transformers/all-MiniLM-L6-v2
+                           for real semantic embeddings. If False, use SHA-384 hash
+                           pseudo-embedding (deterministic but NOT semantically meaningful).
+                           Set to False only in zero-dependency / offline environments.
+        """
         self.model_version = model_version
         self.dimension = dimension
         self._st_model = None
@@ -34,9 +44,14 @@ class EmbeddingGenerator:
             try:
                 from sentence_transformers import SentenceTransformer
                 self._st_model = SentenceTransformer("all-MiniLM-L6-v2")
-                logger.info("SentenceTransformer initialized for vector embeddings.")
-            except Exception:
-                logger.info("SentenceTransformer not loaded; using deterministic hash-embedding fallback.")
+                logger.info("SentenceTransformer (all-MiniLM-L6-v2) initialized for semantic embeddings.")
+            except Exception as e:
+                logger.warning(
+                    f"sentence-transformers unavailable ({e}); "
+                    "falling back to SHA-384 hash pseudo-embedding. "
+                    "Semantic retrieval quality will be degraded. "
+                    "Install sentence-transformers to restore real embeddings."
+                )
 
 
     def embed(self, text: str) -> List[float]:

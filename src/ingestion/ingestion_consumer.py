@@ -104,6 +104,14 @@ class IngestionPipelineConsumer:
                 text_repr = f"Process {dist_evt.get('process_name')} (PID: {dist_evt.get('process_pid')}) launched on host {dist_evt.get('host_name', '')} with CLI: {dist_evt.get('command_line', '')}"
             elif "auth_protocol" in dist_evt:
                 text_repr = f"User {dist_evt.get('user_name')} authenticated via {dist_evt.get('auth_protocol')} from {dist_evt.get('src_ip')} on host {dist_evt.get('host_name', '')}"
+            elif "src_ip" in dist_evt and "dst_ip" in dist_evt:
+                protocol = dist_evt.get('protocol', 'Unknown Protocol')
+                src_ip = dist_evt.get('src_ip', 'UNKNOWN')
+                src_port = dist_evt.get('src_port', 'UNKNOWN')
+                dst_ip = dist_evt.get('dst_ip', 'UNKNOWN')
+                dst_port = dist_evt.get('dst_port', 'UNKNOWN')
+                time_str = dist_evt.get('time', 'UNKNOWN_TIME')
+                text_repr = f"Network connection observed from {src_ip}:{src_port} to {dst_ip}:{dst_port} using {protocol}. Observed at {time_str}."
             else:
                 text_repr = str(dist_evt.get("Message", dist_evt))
                 

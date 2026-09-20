@@ -26,6 +26,7 @@ from src.ingestion.security_gate.pipeline import run_security_gate
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
 from src.ingestion.normalization.evtx_normalizer import normalize_evtx_process_creation
 from src.ingestion.normalization.ad_auth_normalizer import normalize_ad_auth_event
+from src.ingestion.normalization.network_normalizer import normalize_pcap_stream
 from src.ingestion.validation.validator import validate_event
 from src.schemas.ocsf_events import ProcessActivity
 from src.schemas.ocsf_phase2_events import AuthenticationEvent
@@ -138,6 +139,7 @@ def main():
     parser.add_argument("--start-time", type=str, help="Start time (e.g., '2026-08-31 00:00:00')", default=None)
     parser.add_argument("--end-time", type=str, help="End time (e.g., '2026-08-31 23:59:59')", default=None)
     parser.add_argument("--max-events", type=int, help="Max events per channel", default=2000)
+    parser.add_argument("--pcap-file", type=str, help="Path to PCAP file for NetworkActivityEvent ingestion", default=None)
     args = parser.parse_args()
 
     logger.info("Extracting logs and running producer pipeline...")
@@ -162,6 +164,24 @@ def main():
         topic="logs.normalized.ocsf",
         active_cases_cache=cache
     )
+
+    if args.pcap_file:
+        logger.info(f"Processing PCAP file: {args.pcap_file}")
+        if os.path.exists(args.pcap_file):
+            try:
+                with open(args.pcap_file, "rb") as f:
+                    trace_id_base = f"trace-pcap-{uuid.uuid4().hex[:8]}"
+                    pcap_events = normalize_pcap_stream(f, time_normalizer, trace_id_base)
+                    for ocsf_evt in pcap_events:
+                        try:
+                            validate_event(ocsf_evt.model_dump(mode="json"), ocsf_evt.__class__)
+                            producer.produce_event(ocsf_evt)
+                        except Exception as e:
+                            logger.error(f"Validation/Produce error for PCAP event: {e}")
+            except Exception as e:
+                logger.error(f"Failed to process PCAP file: {e}")
+        else:
+            logger.error(f"PCAP file not found: {args.pcap_file}")
 
     channels = ["System", "Security", "Microsoft-Windows-Sysmon/Operational"]
     for channel in channels:

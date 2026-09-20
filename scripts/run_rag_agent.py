@@ -179,6 +179,7 @@ def run_rag(question: str, seed_uid: str = None, dry_run: bool = False) -> str:
 
         # --- Stage 3: Gemini ---
         from src.agents.rag.gemini_client import GeminiClient
+        from src.agents.rag.response_validator import validate_response_uids, format_validation_report
         llm = GeminiClient()
 
         prompt = build_forensic_prompt(question, graph_context)
@@ -187,6 +188,20 @@ def run_rag(question: str, seed_uid: str = None, dry_run: bool = False) -> str:
         response = llm.generate(prompt)
 
         logger.info(f"\n{'='*60}\n[GEMINI RESPONSE]\n{response}\n{'='*60}")
+
+        # --- Stage 4: Output-side UID validation ---
+        logger.info("[Stage 4] Validating Gemini UID citations against retrieved graph context...")
+        validation_report = validate_response_uids(response, graph_contexts)
+        report_text = format_validation_report(validation_report)
+        logger.info(f"\n{report_text}")
+
+        if validation_report["has_unverified_uids"]:
+            logger.warning(
+                "[Stage 4] ⚠ Unverified UIDs detected in Gemini response. "
+                "These citations are NOT backed by the retrieved DFKG context. "
+                "Treat them as potentially hallucinated."
+            )
+
         return response
 
     finally:
