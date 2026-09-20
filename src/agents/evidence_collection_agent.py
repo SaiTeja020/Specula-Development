@@ -202,7 +202,7 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
             "check_relevance": RelevanceCheckTool(),
             "query_dfkg": dfkg_tool,
             "forensic_rag_search": rag_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "evidence_collection"),
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "evidence_collection", dfkg_tool),
         }
 
         if redis_client is not None:

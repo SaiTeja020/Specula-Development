@@ -51,8 +51,14 @@ AGENT_CONFIG: dict[str, dict] = {
         "provider": "google",
         "system_prompt_template": (
             "You are the Supervisor agent for case {case_id}. "
-            "Evaluate the forensic input and decide if specialist agents are needed. "
-            "Summarise your dispatch decision.\nInput: {raw_input}"
+            "Evaluate the forensic input and the current investigation context to decide the next action.\n"
+            "Input: {raw_input}\n"
+            "Current DFKG Context:\n{findings_summary}\n\n"
+            "You must output a structured routing decision on a new line exactly matching one of:\n"
+            "ROUTE: evidence_collection, log_analysis, network_forensics\n"
+            "ROUTE: timeline_reconstruction\n"
+            "ROUTE: wait\n"
+            "Summarise your dispatch decision before outputting the ROUTE."
         ),
     },
     "evidence_collection": {
@@ -219,9 +225,9 @@ _STUB_RESPONSES: dict[str, str] = {
     "identity_cloud":           "Compromised service account svc-backup@corp.local. Kerberoasting evidence: TGS-REP for SPN MSSQLSvc/db01. Azure AD token refresh anomaly.",
     "malware_stylometry":       "PE sample SHA256: a1b2c3... Static analysis: UPX packed, anti-debug via IsDebuggerPresent. Code similarity 87% to APT29 SunBurst loader.",
     "insider_threat":           "User jsmith: 340% increase in after-hours file access. USB device connected 2x in 72h (policy violation). Sentiment score: -0.4 (baseline: 0.1).",
-    "proponent":                "Primary hypothesis: External APT compromise via spear-phishing with lateral movement to domain controller. DFKG evidence refs: [E-001, E-003, N-002].",
-    "critic":                   "Alternative hypothesis: Insider threat with credential sharing. The lateral movement pattern is consistent with legitimate admin activity. Gap: no C2 confirmation from sandboxed execution.",
-    "judge":                    "VERDICT: ACCEPT. Both positions evaluated. Proponent's C2 beaconing evidence and ATT&CK chain are well-supported. Confidence: 0.85.",
+    "proponent":                "FINAL_ANSWER: VERDICT: ACCEPT — Primary hypothesis: External APT compromise via spear-phishing with lateral movement to domain controller. DFKG evidence refs: [E-001, E-003, N-002].",
+    "critic":                   "FINAL_ANSWER: COUNTER-EVIDENCE: Alternative hypothesis: Insider threat with credential sharing. The lateral movement pattern is consistent with legitimate admin activity. Gap: no C2 confirmation from sandboxed execution.",
+    "judge":                    "FINAL_ANSWER: VERDICT: ACCEPT\nConfidence: 0.85\nBoth positions evaluated. Proponent's C2 beaconing evidence and ATT&CK chain are well-supported.",
     "guardrail_tier3":          "RESULT: PASS. Output is factually consistent with DFKG evidence. No hallucinated claims detected. Logical chain from initial access to exfiltration is coherent.",
     "report_generation":        "=== FORENSIC INVESTIGATION REPORT ===\nCase: {case_id}\nClassification: External APT Compromise\nSeverity: Critical\nFindings: 15 evidence artifacts across 4 domains.\nRecommendation: Immediate containment of affected hosts.",
     "timeline_artifact_generation": "=== TIMELINE ARTIFACT ===\n03:12 - Phishing email received\n03:14 - Malicious attachment executed\n03:19 - Lateral movement to DC01\n03:26 - Data staging initiated\n03:30 - Exfiltration via DNS tunnel",
@@ -242,10 +248,17 @@ class StubLLM:
         self._case_id = case_id
 
     def invoke(self, prompt: str | list) -> _StubResponse:
-        text = _STUB_RESPONSES.get(self.role, f"[{self.role}] Analysis complete.")
+        val = _STUB_RESPONSES.get(self.role, f"[{self.role}] Analysis complete.")
+        
+        if isinstance(val, list):
+            text = val.pop(0) if val else f"[{self.role}] No more stubs."
+        else:
+            text = val
+            
         # D4: inject case_id explicitly (no fragile regex extraction from prompt)
         if "{case_id}" in text:
             text = text.replace("{case_id}", self._case_id)
+            
         return _StubResponse(text)
 
 

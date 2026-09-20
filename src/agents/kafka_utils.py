@@ -178,17 +178,31 @@ def run_dfkg_consumer(*, max_messages: int | None = None) -> None:
             uid = hashlib.sha256(uid_seed.encode()).hexdigest()[:16]
 
             # Parameterized MERGE — no dynamic string interpolation (AGENTS.md rule)
+            case_id = finding.get("case_id", "unknown")
+            dfkg_refs = finding.get("dfkg_refs", [])
             with driver.session() as session:
                 session.run(
-                    "MERGE (e:Entity {uid: $uid}) "
+                    "MERGE (e:AgentFinding {uid: $uid}) "
                     "SET e.agent_role = $role, e.summary = $summary, "
-                    "    e.timestamp = $ts, e.topic = $topic",
+                    "    e.timestamp = $ts, e.topic = $topic, e.case_id = $case_id "
+                    "MERGE (c:Case {case_id: $case_id}) "
+                    "MERGE (e)-[:BELONGS_TO]->(c)",
                     uid=uid,
                     role=finding.get("agent_role", "unknown"),
                     summary=finding.get("summary", "")[:500],
                     ts=finding.get("timestamp", ""),
                     topic=msg.topic(),
+                    case_id=case_id,
                 )
+                if dfkg_refs:
+                    session.run(
+                        "MATCH (e:AgentFinding {uid: $uid}) "
+                        "UNWIND $refs AS ref_uid "
+                        "MERGE (ev:Entity {uid: ref_uid}) "
+                        "MERGE (e)-[:BASED_ON]->(ev)",
+                        uid=uid,
+                        refs=dfkg_refs
+                    )
 
             count += 1
             if max_messages is not None and count >= max_messages:

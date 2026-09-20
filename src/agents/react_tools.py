@@ -72,18 +72,25 @@ class KafkaPublishFindingTool(Tool):
         "finding (dict, must include 'summary')."
     )
 
-    def __init__(self, case_id: str, trace_id: str, agent_role: str):
+    def __init__(self, case_id: str, trace_id: str, agent_role: str, dfkg_tool: Tool | None = None):
         self._case_id = case_id
         self._trace_id = trace_id
         self._agent_role = agent_role
+        self._dfkg_tool = dfkg_tool
 
     def run(self, topic: str, finding: dict) -> ToolResult:
         if "summary" not in finding:
             return ToolResult(ok=False, observation="finding must include a 'summary' field.")
+        
+        dfkg_refs = []
+        if self._dfkg_tool and hasattr(self._dfkg_tool, "collected_uids"):
+            dfkg_refs = list(self._dfkg_tool.collected_uids)
+            
         payload = {
             "agent_role": self._agent_role,
             "case_id": self._case_id,
             "trace_id": self._trace_id,
+            "dfkg_refs": dfkg_refs,
             **finding,
         }
         try:

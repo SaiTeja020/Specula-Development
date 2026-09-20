@@ -96,7 +96,7 @@ def make_timeline_reconstruction_node(redis_client: Optional[Any], neo4j_driver:
             
         tools: dict[str, Tool] = {
             "query_dfkg": dfkg_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "timeline_reconstruction"),
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "timeline_reconstruction", dfkg_tool),
         }
         
         if redis_client is not None:

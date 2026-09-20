@@ -11,7 +11,6 @@ from langgraph.types import Send
 
 from .nodes import (
     case_closed_rejected_node,
-    critic_node,
     final_output_join_node,
     guardrail_tier1_node,
     guardrail_tier2_node,
@@ -19,22 +18,24 @@ from .nodes import (
     hitl_node,
     identity_cloud_node,
     insider_threat_node,
-    judge_node,
     malware_stylometry_node,
-    memory_forensics_node,
-    network_forensics_node,
     make_primary_tier_join_node,  # D1: factory replaces the no-op node
-    proponent_node,
     report_generation_node,
     specialist_join_node,
-    supervisor_node,
+    make_supervisor_node,
     timeline_artifact_generation_node,
 )
 from .evidence_collection_agent import make_evidence_collection_node  # B1: factory
 from .network_forensics_agent import make_network_forensics_node
 from .log_analysis_agent import make_log_analysis_node
 from .timeline_reconstruction_agent import make_timeline_reconstruction_node
-from .threat_attribution_agent import make_threat_attribution_node # Phase G: factory
+from .threat_attribution_agent import make_threat_attribution_node  # Phase G: factory
+from .memory_forensics_agent import make_memory_forensics_node
+from .debate_agents import (             # Phase H.4: debate layer factories
+    make_proponent_node,
+    make_critic_node,
+    make_judge_node,
+)
 from .state import SpeculaState
 
 
@@ -43,13 +44,11 @@ from .state import SpeculaState
 # ===================================================================
 
 def _supervisor_primary_dispatch(state: dict) -> list[Send]:
-    """§4: Supervisor -> fan-out to 3 primary agents via Send."""
+    """§4: Supervisor -> dynamic routing based on next_agents state."""
     s = dict(state)
-    return [
-        Send("evidence_collection", s),
-        Send("log_analysis", s),
-        Send("network_forensics", s),
-    ]
+    next_agents = state.get("next_agents", ["evidence_collection", "log_analysis", "network_forensics"])
+    
+    return [Send(agent, s) for agent in next_agents]
 
 
 _SPECIALIST_MAP = {
@@ -102,20 +101,20 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
     # ---- Add all 23 nodes ----
 
     # 16 ReAct-stub LLM agent nodes
-    builder.add_node("supervisor", supervisor_node)
+    builder.add_node("supervisor", make_supervisor_node(neo4j_driver))
     # B1: evidence_collection gets the real ReAct loop; factory closes over infra clients
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", make_log_analysis_node(redis_client, neo4j_driver))
     builder.add_node("network_forensics", make_network_forensics_node(redis_client, neo4j_driver))
     builder.add_node("timeline_reconstruction", make_timeline_reconstruction_node(redis_client, neo4j_driver))
     builder.add_node("threat_attribution", make_threat_attribution_node(redis_client, neo4j_driver))
-    builder.add_node("memory_forensics", memory_forensics_node)
+    builder.add_node("memory_forensics", make_memory_forensics_node(redis_client, neo4j_driver))
     builder.add_node("identity_cloud", identity_cloud_node)
     builder.add_node("malware_stylometry", malware_stylometry_node)
     builder.add_node("insider_threat", insider_threat_node)
-    builder.add_node("proponent", proponent_node)
-    builder.add_node("critic", critic_node)
-    builder.add_node("judge", judge_node)          # returns Command
+    builder.add_node("proponent", make_proponent_node(redis_client, neo4j_driver))
+    builder.add_node("critic", make_critic_node(redis_client, neo4j_driver))
+    builder.add_node("judge", make_judge_node(redis_client, neo4j_driver))  # returns Command
     builder.add_node("guardrail_tier3", guardrail_tier3_node)  # returns Command
     builder.add_node("report_generation", report_generation_node)
     builder.add_node("timeline_artifact_generation", timeline_artifact_generation_node)

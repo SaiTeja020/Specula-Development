@@ -194,20 +194,14 @@ class TestNeo4jLiveIntegration:
 
     def test_neo4j_write_failure_is_non_fatal_in_pipeline(self):
         """
-        Verifies the pipeline's non-fatal Neo4j design: if Neo4j is unreachable,
-        run_pipeline_on_event() must log a warning and NOT raise.
-
-        Uses a bad client pointed at a closed port to simulate Neo4j being down.
+        Verifies the pipeline's non-fatal Neo4j design (Deprecated logic).
+        After H.5, Neo4j writes are fully decoupled to Kafka consumers.
+        This test now only validates the producer pipeline executes cleanly.
         """
         from src.ingestion.preservation.vct_atomic_chain import VCTAtomicChain
         from src.schemas.entity_resolver import CanonicalEntityResolver
         from src.ingestion.normalization.time_normalizer import TimeNormalizer
         from src.ingestion.run_pipeline import run_pipeline_on_event
-
-        # Create a bad client that will fail on execute()
-        class AlwaysFailingClient:
-            def execute(self, query, params):
-                raise RuntimeError("Simulated Neo4j connection failure")
 
         raw_event = {
             "Id": 4688,
@@ -216,16 +210,13 @@ class TestNeo4jLiveIntegration:
             "Message": "A new process has been created.",
         }
 
-        # Must not raise — Neo4j write failure is non-fatal
-        validated_evt, cypher_query, neo4j_result = run_pipeline_on_event(
+        # Must not raise 
+        validated_evt = run_pipeline_on_event(
             raw_event,
             VCTAtomicChain(),
             CanonicalEntityResolver(),
             TimeNormalizer(dc_anchor_skew_ms=0),
             qw_client=None,
             source_type="evtx",
-            neo4j_client=AlwaysFailingClient(),
         )
-
         assert validated_evt is not None
-        assert neo4j_result is None  # write failed, result is None — pipeline continued

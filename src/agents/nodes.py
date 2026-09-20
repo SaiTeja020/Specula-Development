@@ -116,36 +116,70 @@ def _summarise_output(state: dict) -> str:
 # 16 ReAct-stub LLM agent nodes
 # ===================================================================
 
-# --- 1. Supervisor (§3 row 1, §4 entry) ---
-def supervisor_node(state: dict) -> dict:
-    """Entry point. Evaluates input, dispatches primary tier.
-
-    D1: Dead-end detection is no longer performed here — it has been moved to
-    primary_tier_join_node (via make_primary_tier_join_node factory), which is
-    the correct evaluation point: AFTER primary agents have run and their
-    findings are available. The DEAD_END:category raw_input signal is removed.
-    test_control injection for dead-end still works via detect_dead_end() inside
-    primary_tier_join_node, which reads state["test_control"]["dead_end_categories"].
+def make_supervisor_node(neo4j_driver):
+    """Factory for the Supervisor node, allowing it to query the DFKG for context
+    instead of relying on the ephemeral LangGraph findings array.
     """
-    finding, trace = _run_agent("supervisor", state)
+    def supervisor_node(state: dict) -> dict:
+        case_id = state.get("case_id", "unknown")
+        
+        dfkg_summary = "No prior findings."
+        if neo4j_driver:
+            try:
+                with neo4j_driver.session() as session:
+                    res = session.run(
+                        "MATCH (f:AgentFinding)-[:BELONGS_TO]->(c:Case {case_id: $case_id}) "
+                        "RETURN f.agent_role AS role, f.summary AS summary "
+                        "ORDER BY f.timestamp DESC LIMIT 10",
+                        case_id=case_id
+                    )
+                    records = [r.data() for r in res]
+                    if records:
+                        parts = [f"[{r['role']}] {str(r['summary'])[:200]}" for r in records]
+                        dfkg_summary = ";\n".join(parts)
+            except Exception as e:
+                dfkg_summary = f"Error querying DFKG: {e}"
 
-    return {
-        "case_status": "primary_tier",
-        "findings": [finding],
-        "agent_traces": [trace],
-        # Reset on re-entry (HITL clarify loop)
-        "guardrail_fail_tier": None,
-        "guardrail_tier1_result": None,
-        "guardrail_tier2_result": None,
-        "guardrail_tier3_result": None,
-        "debate_outcome": None,
-        "debate_round": 1,
-        "hitl_decision": None,
-        "hitl_required": False,
-        "report_output": None,
-        "timeline_artifact": None,
-        "final_output_ref": None,
-    }
+        # Inject DFKG summary explicitly, overriding the state array fallback
+        finding, trace = _run_agent("supervisor", state, findings_summary=dfkg_summary)
+
+        # Parse dynamic routing command
+        content = finding.get("summary", "")
+        # Fallback to default primary tier if the model didn't output a ROUTE line
+        next_agents = ["evidence_collection", "log_analysis", "network_forensics"]
+        
+        # Test injection override
+        raw_input = str(state.get("raw_input", ""))
+        match = re.search(r"FORCE_SUPERVISOR_ROUTE:\s*(.+)", raw_input)
+        if not match:
+            match = re.search(r"ROUTE:\s*(.+)", content)
+            
+        if match:
+            route_str = match.group(1).strip()
+            if route_str == "wait":
+                next_agents = []
+            else:
+                next_agents = [x.strip() for x in route_str.split(",") if x.strip()]
+
+        return {
+            "case_status": "primary_tier",
+            "findings": [finding],
+            "agent_traces": [trace],
+            "next_agents": next_agents,
+            # Reset on re-entry (HITL clarify loop)
+            "guardrail_fail_tier": None,
+            "guardrail_tier1_result": None,
+            "guardrail_tier2_result": None,
+            "guardrail_tier3_result": None,
+            "debate_outcome": None,
+            "debate_round": 1,
+            "hitl_decision": None,
+            "hitl_required": False,
+            "report_output": None,
+            "timeline_artifact": None,
+            "final_output_ref": None,
+        }
+    return supervisor_node
 
 
 # --- 2–4. Primary tier (parallel) ---
@@ -161,13 +195,7 @@ def supervisor_node(state: dict) -> dict:
 
 
 # --- 7–10. Specialist tier (conditional, parallel-if-multiple) ---
-def memory_forensics_node(state: dict) -> dict:
-    finding, trace = _run_agent("memory_forensics", state)
-    return {
-        "findings": [finding],
-        "agent_traces": [trace],
-        "specialists_completed": ["memory"],
-    }
+# (Memory forensics moved to src/agents/memory_forensics_agent.py)
 
 
 def identity_cloud_node(state: dict) -> dict:
@@ -197,111 +225,10 @@ def insider_threat_node(state: dict) -> dict:
     }
 
 
-# --- 11. Proponent ---
-def proponent_node(state: dict) -> dict:
-    finding, trace = _run_agent("proponent", state)
-    return {
-        "case_status": "debate",
-        "proponent_argument": finding["summary"],
-        "findings": [finding],
-        "agent_traces": [trace],
-    }
-
-
-# --- 12. Critic ---
-def critic_node(state: dict) -> dict:
-    finding, trace = _run_agent("critic", state)
-    return {
-        "critic_argument": finding["summary"],
-        "findings": [finding],
-        "agent_traces": [trace],
-    }
-
-
-# --- 13. Judge (returns Command — §4 debate loop routing) ---
-def judge_node(state: dict) -> Command[Literal[
-    "guardrail_tier1", "proponent", "hitl"
-]]:
-    finding, trace = _run_agent("judge", state)
-    content = finding["summary"]
-    round_num = state.get("debate_round", 1)
-
-    # Parse verdict from LLM output / test overrides
-    raw_input = str(state.get("raw_input", ""))
-
-    # Per-round control: FORCE_JUDGE_REJECT_ROUNDS:N rejects rounds 1..N,
-    # accepts from round N+1 onward. FORCE_JUDGE_REJECT (no :N) rejects all.
-    rounds_match = re.search(r"FORCE_JUDGE_REJECT_ROUNDS:(\d+)", raw_input)
-    if rounds_match:
-        reject_until = int(rounds_match.group(1))
-        verdict = "reject" if round_num <= reject_until else "accept"
-    elif "FORCE_JUDGE_REJECT" in raw_input:
-        verdict = "reject"
-    elif "VERDICT: REJECT" in content.upper():
-        verdict = "reject"
-    elif "VERDICT: ACCEPT" in content.upper():
-        verdict = "accept"
-    else:
-        verdict = "accept"
-
-
-
-    # Parse confidence from output
-    conf_match = re.search(r"Confidence:\s*(\d+(?:\.\d+)?)", content, re.IGNORECASE)
-    current_confidence = float(conf_match.group(1)) if conf_match else 0.85
-
-
-
-    # Compute confidence delta (undefined on round 1 per §2.5)
-    prev_history = state.get("debate_history", [])
-    if round_num >= 2 and prev_history:
-        prev_conf = prev_history[-1].get("confidence", 0.85)
-        confidence_delta = abs(current_confidence - prev_conf)
-    else:
-        confidence_delta = None
-
-    # Build debate history entry
-    history_entry = {
-        "round": round_num,
-        "proponent": state.get("proponent_argument", ""),
-        "critic": state.get("critic_argument", ""),
-        "verdict": verdict,
-        "confidence": current_confidence,
-    }
-
-    base_update = {
-        "judge_verdict": verdict,
-        "confidence_delta": confidence_delta,
-        "debate_history": [history_entry],
-        "findings": [finding],
-        "agent_traces": [trace],
-    }
-
-    # §4 routing logic (evaluated in order):
-    # 1. accept → guardrail_tier1 (converged)
-    if verdict == "accept":
-        base_update["debate_outcome"] = "converged"
-        return Command(update=base_update, goto="guardrail_tier1")
-
-    # 2. round >= 2 AND confidence_delta < 0.05 AND verdict != 'reject' → guardrail_tier1 (early exit)
-    if (verdict != "reject"
-            and round_num >= 2
-            and confidence_delta is not None
-            and confidence_delta < 0.05):
-        base_update["debate_outcome"] = "converged"
-        return Command(update=base_update, goto="guardrail_tier1")
-
-
-    # 3. reject AND round < 3 → loop back to proponent
-    if verdict == "reject" and round_num < 3:
-        base_update["debate_round"] = round_num + 1
-        return Command(update=base_update, goto="proponent")
-
-    # 4. round == 3 exhausted → HITL
-    base_update["debate_outcome"] = "round_cap_exhausted"
-    base_update["hitl_required"] = True
-    base_update["case_status"] = "hitl_review"
-    return Command(update=base_update, goto="hitl")
+# --- 11/12/13. Proponent / Critic / Judge ---
+# Replaced by factory functions in debate_agents.py (Phase H.4).
+# Import make_proponent_node / make_critic_node / make_judge_node from there
+# and wire them in build_graph() via the closure pattern.
 
 
 # --- 14. Guardrail Tier 3 (LLM semantic validation, returns Command) ---

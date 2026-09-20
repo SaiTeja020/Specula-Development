@@ -94,7 +94,7 @@ def make_network_forensics_node(redis_client: Optional[Any], neo4j_driver: Optio
             
         tools: dict[str, Tool] = {
             "query_dfkg": dfkg_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "network_forensics"),
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "network_forensics", dfkg_tool),
         }
         
         if redis_client is not None:

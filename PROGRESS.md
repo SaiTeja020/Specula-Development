@@ -5,11 +5,34 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase H.2: Log Analysis Functional Specialist (Complete) + Phase 5 continues
+- **Active Phase:** Phase E2E: End-to-End Investigation Integration (Complete)
 - **Active Tasks (WIP=2):**
   - None (Pending Selection)
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
 - **Last Updated:** 2026-09-20
+
+### Phase E2E — End-to-End Investigation Integration — PASSING ✅ (2026-09-20)
+- **Verification:** `pytest tests/integration/test_end_to_end_investigation.py -v` → **10/10 passed**
+- **CLI smoke test:** `python scripts/run_investigation.py --case-id case-smoke-001 --query "Investigate suspicious network activity..." --no-hitl` → COMPLETED, all agents ran (Supervisor → Evidence Collection → Log Analysis → Network Forensics → Timeline → Threat Attribution → Debate → Guardrails → Report)
+- **Files created:**
+  - `src/agents/synthesis.py` — plain-English synthesis step (`synthesize_plain_english()`, `InvestigationResult`)
+  - `src/agents/investigation_runner.py` — programmatic runner (`run_investigation()`, `run_investigation_with_hitl_stdin()`, `HITLPausedResult`)
+  - `scripts/run_investigation.py` — CLI entrypoint (`--case-id`, `--query`, `--no-hitl`, `--json`)
+  - `tests/integration/test_end_to_end_investigation.py` — 10 mocked integration tests
+  - `docs/end_to_end_integration_audit.md` — architecture audit
+  - `docs/end_to_end_integration.md` — integration guide
+- **Files modified:**
+  - `src/agents/hitl_api.py` — added `POST /investigate` and `GET /investigation/{thread_id}/result` endpoints
+- **Neural limitation:** Tests used `SPECULA_DISABLE_NEURAL=1` (process-local). Not in `.env`.
+- **Real E2E run:** `stub` LLM backend. StubLLM responses validate full graph traversal. Real LLM requires `SPECULA_LLM_BACKEND=gemini` + `GEMINI_API_KEY`.
+
+### Phase H.7.2 — Memory Forensics Context Migration — PASSING ✅ (2026-09-20)
+- **Verification:** `pytest tests/agents/test_memory_forensics_agent.py -v` → **2/2 passed**
+- **Files created:** `src/agents/memory_forensics_agent.py`, `tests/agents/test_memory_forensics_agent.py`, `docs/phase_h7_2_memory_forensics.md`
+- **Files modified:** `src/agents/nodes.py` (stub removed), `src/agents/graph.py` (factory wired)
+
+### Phase H.7.1 — Threat Attribution Context Migration — PASSING ✅ (2026-09-20)
+- **Verification:** `pytest tests/agents/test_threat_attribution_context_migration.py -v` → **3/3 passed**
 
 ### RAG Phase 1 & 1.5 — PASSING ✅ (2026-09-20)
 - **Verification:** `pytest tests/test_rag_pipeline.py -v` → **16/16 passed** (including Phase 1.5 UID validation tests)
@@ -261,11 +284,13 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-31 | Enhancement | Reinstated `--start-time` and `--end-time` CLI argument parsing in `src/ingestion/run_pipeline.py` and threaded them through `scripts/start_full_pipeline.py`. | Verified |
 | 2026-09-19 | `TASK-4.8` Log Analysis Test Suite | Fixed fixture hash verification for Windows LF/CRLF portability in `evaluate_log_analysis_ground_truth.py` and added `test_ground_truth_benchmark.py` pytest wrapper. | 73/73 Passed (`pytest tests/agents/log_analysis/`) |
 | 2026-09-20 | `tests/agents/rag/test_dfkg_retriever.py` | DFKGRetriever tests pass | Verified |
-| 2026-09-20 | `tests/agents/rag/test_agent_rag_integration.py` | RAG Tool adapter unit tests pass | Verified |
-| 2026-09-20 | `scripts/test_rag_agent_integration.py` | Agent correctly cites UIDs and distinguishes inference from observation | Verified |
+| 2026-09-20 | H.4.1 (Debate Integration Hardening) | Hardened Debate agent prompts to enforce FINAL_ANSWER for ReAct convergence and explicitly instruct Judge to verify DFKG UIDs. | Verified (`python scripts/test_debate_agents_integration.py`) |
 | 2026-09-20 | `tests/agents/test_threat_attribution_rag.py` | Phase G: Threat Attribution RAG | Verified |
 | 2026-09-20 | `tests/agents/test_network_forensics.py` | Phase H: Network Forensics Functional Agent (ReAct) | Verified |
 | 2026-09-20 | `tests/agents/log_analysis/` | Phase H.2: Log Analysis Functional Agent (ReAct) | Verified |
+| 2026-09-20 | `tests/agents/timeline/` | Phase H.3: Timeline Reconstruction Functional Agent (ReAct) | Verified |
+| 2026-09-20 | `tests/agents/test_debate_agents.py` | Phase H.4: Debate Layer Functional Agents (ReAct) | Verified |
+| 2026-09-20 | `src/agents/threat_attribution_agent.py` | Phase H.7.1: Threat Attribution Context Migration | Verified |
 
 ---
 
@@ -274,6 +299,13 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | `passing` | **Phase E: Integrate RAG into ONE agent** | - One existing agent uses RAG to retrieve evidence<br>- Agent distinguishes observation vs inference<br>- Agent survives prompt injection test<br>- Graph UIDs cited correctly<br>- `test_rag_agent_integration.py` runs cleanly |
 | `passing` | **Phase G: Threat Attribution RAG** | - Adapter connects FAISS Threat Intel MCP to ReAct loop<br>- Agent merges DFKG facts with ATT&CK context<br>- UIDs and CVE/Group IDs preserved<br>- ReAct architecture implemented for Threat Attribution |
 | `passing` | **Phase H.2: Log Analysis Functional Agent (ReAct)** | - Log Analysis ReAct agent implemented and tested<br>- Integrates with RAG and DFKG retrieval |
+| `passing` | **Phase H.3: Timeline Reconstruction Functional Agent (ReAct)** | - Timeline Reconstruction ReAct agent implemented and tested<br>- Integrates with RAG and DFKG retrieval |
+| `passing` | **Phase H.4: Debate Layer Functionalization** | - Proponent, Critic, Judge implemented as functional agents<br>- Agents independently query DFKG<br>- UID provenance correctly preserved<br>- Prompt injection protected<br>- Command routing from Judge preserved |
+| `passing` | **Phase H.4.1: Debate Integration Hardening** | - Fix convergence, enforce DFKG verification by Judge |
+| `passing` | **Phase H.5: Blackboard / Multi-Agent Orchestration** | - Shadow-migration to AgentFinding DFKG nodes via Kafka |
+| `passing` | **Phase H.6: Multi-Agent Orchestration** | - Transition LangGraph Supervisor to DFKG-only context |
+| `passing` | **Phase H.7.1: Threat Attribution Context Migration** | - Replaced `state["timeline"]` with targeted DFKG Cypher query<br>- Preserved UID tracking |
+| `not_started` | **Phase I: Integration & UI prep** | - Expose multi-agent trace streams to frontend |
 | `not_started` | **Phase F: Multi-Agent RAG Orchestration** | - Publish RAG-enriched findings to Kafka<br>- Downstream agents consume findings without duplicate retrieval |
 
 ---

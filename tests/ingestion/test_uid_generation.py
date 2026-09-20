@@ -82,4 +82,4 @@ def test_vector_store_collision_prevention(mock_embedder):
     store.upsert(norm2.uid, "text2", mock_embedder.embed("text2"), {})
     
     # They should not overwrite each other
-    assert len(store.ids) == 2
+    assert store.count() == 2

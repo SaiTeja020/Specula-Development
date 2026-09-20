@@ -98,8 +98,10 @@ def _cosine_sim_bow(a: dict[str, float], b: dict[str, float]) -> float:
     return dot / (norm_a * norm_b)
 
 
-# Try sentence-transformers; fall back to bag-of-words
 try:
+    import os
+    if os.environ.get("SPECULA_DISABLE_NEURAL", "0") == "1":
+        raise ImportError("Neural bypassed via env var")
     from sentence_transformers import SentenceTransformer  # type: ignore[import-untyped]
     import numpy as np  # type: ignore[import-untyped]
 

@@ -20,13 +20,10 @@ from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
 from src.agents.config import AGENT_CONFIG, get_llm
 
 
-def _build_system_prompt(state: dict) -> str:
+def _build_system_prompt(state: dict, timeline_summary: str) -> str:
     """Builds the prompt based on Phase G rules."""
     case_id = state.get("case_id", "unknown")
     cfg = AGENT_CONFIG.get("threat_attribution", AGENT_CONFIG["supervisor"])
-    
-    timeline = state.get("timeline", {})
-    timeline_summary = timeline.get("summary", "") if timeline else "No timeline available."
     
     prompt = cfg["system_prompt_template"].format(
         case_id=case_id,
@@ -115,7 +112,7 @@ def make_threat_attribution_node(redis_client, neo4j_driver):
         tools: dict[str, Tool] = {
             "query_dfkg": dfkg_tool,
             "forensic_threat_context_search": ti_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "threat_attribution"),
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "threat_attribution", dfkg_tool),
         }
 
         if redis_client is not None:
@@ -129,8 +126,25 @@ def make_threat_attribution_node(redis_client, neo4j_driver):
 
         budget = LoopBudget(max_iterations=8, max_tool_calls=10, timeout_seconds=60.0)
 
+        # H.7.1 Retrieve timeline context directly from DFKG instead of state
+        timeline_summary = "No timeline available."
+        # We check for the TrackingDFKGQueryTool specifically (or its mock in tests)
+        if hasattr(dfkg_tool, "run") and type(dfkg_tool).__name__ != "NotYetImplementedTool":
+            # TrackingDFKGQueryTool automatically collects UIDs returned by this query
+            query = (
+                "MATCH (f:AgentFinding)-[:BELONGS_TO]->(c:Case {case_id: $case_id}) "
+                "WHERE f.agent_role = 'timeline_reconstruction' "
+                "RETURN f.summary AS summary, f.uid AS uid "
+                "ORDER BY f.timestamp DESC LIMIT 1"
+            )
+            res = dfkg_tool.run(query)
+            if res.ok and res.data:
+                # We expect one recent timeline finding
+                record = res.data[0]
+                timeline_summary = f"[uid={record.get('uid', 'unknown')}] {record.get('summary', '')}"
+
         result = run_react_loop(
-            system_prompt=_build_system_prompt(state),
+            system_prompt=_build_system_prompt(state, timeline_summary),
             tools=tools,
             llm_call=_llm_call,
             parse_llm_output=_parse_llm_output,
