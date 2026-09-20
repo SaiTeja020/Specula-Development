@@ -46,6 +46,7 @@ from src.agents.investigation_runner import (
     HITLPausedResult,
 )
 from src.agents.synthesis import InvestigationResult
+from src.agents import investigation_trace
 
 
 def _get_neo4j_driver(uri: str | None):
@@ -132,9 +133,14 @@ def main():
     parser.add_argument("--neo4j-uri", default=None, help="Neo4j bolt URI")
     parser.add_argument("--no-hitl", action="store_true",
                         help="Non-interactive: auto-approve any HITL pause")
+    parser.add_argument("--trace", action="store_true",
+                        help="Generate an explainability trace in investigation_runs/")
     args = parser.parse_args()
 
     print(f"\n[Specula] Starting investigation for query: {args.query!r}")
+    
+    if args.trace:
+        investigation_trace.start_trace(args.case_id or f"case-{os.urandom(4).hex()}", args.query)
     backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
     print(f"[Specula] LLM backend: {backend}")
 

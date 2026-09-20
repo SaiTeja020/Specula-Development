@@ -25,6 +25,7 @@ from typing import Any, Literal, Optional
 
 from langgraph.types import Command
 
+from src.agents import investigation_trace
 from src.agents.config import get_llm
 from src.agents.evidence_collection_agent import TrackingDFKGQueryTool
 from src.agents.react_engine import (
@@ -166,6 +167,7 @@ def make_proponent_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]
             parse_llm_output=_parse_llm_output,
             budget=LoopBudget(max_iterations=8, max_tool_calls=10, timeout_seconds=60.0),
             scratchpad=scratchpad,
+            agent_role="proponent",
         )
 
         if result.terminal:
@@ -191,6 +193,8 @@ def make_proponent_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]
             "terminal": result.terminal,
             "termination_reason": result.termination_reason,
         }
+
+        investigation_trace.record_event("proponent", "debate_proponent", {"argument": summary})
 
         return {
             "case_status": "debate",
@@ -287,6 +291,7 @@ def make_critic_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]):
             parse_llm_output=_parse_llm_output,
             budget=LoopBudget(max_iterations=8, max_tool_calls=10, timeout_seconds=60.0),
             scratchpad=scratchpad,
+            agent_role="critic",
         )
 
         if result.terminal:
@@ -312,6 +317,8 @@ def make_critic_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]):
             "terminal": result.terminal,
             "termination_reason": result.termination_reason,
         }
+
+        investigation_trace.record_event("critic", "debate_critic", {"challenge": summary})
 
         return {
             "critic_argument": summary,
@@ -429,6 +436,7 @@ def make_judge_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]):
             parse_llm_output=_parse_llm_output,
             budget=LoopBudget(max_iterations=4, max_tool_calls=4, timeout_seconds=45.0),
             scratchpad=scratchpad,
+            agent_role="judge",
         )
 
         content = result.final_answer or f"INCOMPLETE ({result.termination_reason})"
@@ -476,6 +484,7 @@ def make_judge_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]):
             "findings": [finding],
             "agent_traces": [trace],
         }
+        investigation_trace.record_event("judge", "debate_judge", {"verdict": verdict, "reasoning": content})
 
         # --- §4 routing (exact same logic as original stub, preserved verbatim) ---
         if verdict == "accept":

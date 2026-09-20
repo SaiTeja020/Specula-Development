@@ -26,6 +26,11 @@
 - **Neural limitation:** Tests used `SPECULA_DISABLE_NEURAL=1` (process-local). Not in `.env`.
 - **Real E2E run:** `stub` LLM backend. StubLLM responses validate full graph traversal. Real LLM requires `SPECULA_LLM_BACKEND=gemini` + `GEMINI_API_KEY`.
 
+### Phase H.7.4 — Investigation Explainability Trace — PASSING ✅ (2026-09-20)
+- **Verification:** `pytest tests/integration/test_investigation_trace.py -v` → **Passed**
+- **Files created:** `src/agents/investigation_trace.py`, `tests/integration/test_investigation_trace.py`
+- **Description:** Trace dir structure enriched with RAG/DFKG explicit blocks, UID provenance, and no internal COT leak.
+
 ### Phase H.7.2 — Memory Forensics Context Migration — PASSING ✅ (2026-09-20)
 - **Verification:** `pytest tests/agents/test_memory_forensics_agent.py -v` → **2/2 passed**
 - **Files created:** `src/agents/memory_forensics_agent.py`, `tests/agents/test_memory_forensics_agent.py`, `docs/phase_h7_2_memory_forensics.md`

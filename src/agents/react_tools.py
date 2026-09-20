@@ -15,6 +15,8 @@ from src.agents.rag.dfkg_retriever import DFKGRetriever
 from src.agents.rag.graph_context_builder import build_graph_context
 import json
 
+from src.agents import investigation_trace
+
 
 class DFKGQueryTool(Tool):
     """Parameterized Cypher read-only query — never string-concatenated.
@@ -52,6 +54,14 @@ class DFKGQueryTool(Tool):
             with self._driver.session() as session:
                 result = session.run(cypher, params)
                 records = [r.data() for r in result]
+                
+            investigation_trace.record_event("dfkg", "dfkg_query", {
+                "cypher": cypher,
+                "parameters": params,
+                "returned_entities": len(records),
+                "uids": [r.get("uid") for r in records if isinstance(r, dict) and "uid" in r][:20]
+            })
+            
             return ToolResult(
                 ok=True,
                 observation=f"Query returned {len(records)} record(s): {records[:20]}",
@@ -96,6 +106,10 @@ class KafkaPublishFindingTool(Tool):
         try:
             publish_finding(topic, payload)
             flush_producer(timeout=5.0)
+            investigation_trace.record_event(self._agent_role, "agent_finding", {
+                "summary": finding["summary"],
+                "evidence_uids": dfkg_refs
+            })
             return ToolResult(ok=True, observation=f"Finding published to {topic}.", data=payload)
         except Exception as exc:
             # Fire-and-forget degradation, per Stage 1's Kafka-unreachable design —
@@ -122,6 +136,8 @@ class ForensicRAGSearchTool(Tool):
         
     def run(self, query: str) -> ToolResult:
         try:
+            investigation_trace.record_event("rag", "rag_query", {"query": query, "method": "GraphRAG"})
+            
             # 1. Semantic Search
             uid_results = self._retriever.retrieve_entity_uids(query, top_k=5)
             if not uid_results:
@@ -155,6 +171,11 @@ class ForensicRAGSearchTool(Tool):
                 f"Retrieved {len(contexts)} evidence subgraphs.\n\n"
                 f"{context_text}"
             )
+            
+            investigation_trace.record_event("rag", "rag_retrieval", {
+                "records": [{"uid": r["uid"], "score": r.get("score")} for r in uid_results],
+                "dfkg_expansion": {"nodes_retrieved": len(contexts)}
+            })
             
             return ToolResult(ok=True, observation=observation, data={"uids": [r["uid"] for r in uid_results]})
             

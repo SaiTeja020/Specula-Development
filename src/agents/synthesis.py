@@ -18,6 +18,8 @@ from __future__ import annotations
 import logging
 from typing import Any, Optional, TypedDict
 
+from src.agents import investigation_trace
+
 logger = logging.getLogger("Synthesis")
 
 
@@ -170,6 +172,9 @@ Produce the plain-English investigation summary now.
         validation_passed=None,  # filled by caller if UID validation was run
         limitations=limitations,
     )
+    
+    investigation_trace.record_event("synthesis", "synthesis", {"result": result})
+    return result
 
 
 def _format_findings_for_synthesis(findings: list) -> str:

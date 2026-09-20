@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -16,6 +17,13 @@ logger = logging.getLogger("InvestigationTrace")
 
 # Global singleton
 _recorder: Optional['TraceRecorder'] = None
+_thread_local = threading.local()
+
+def set_active_agent(agent_role: str) -> None:
+    _thread_local.active_agent = agent_role
+
+def get_active_agent() -> str:
+    return getattr(_thread_local, "active_agent", "unknown_agent")
 
 
 def start_trace(case_id: str, query: str) -> None:
@@ -42,6 +50,7 @@ class TraceRecorder:
         self.query = query
         self.run_dir = Path("investigation_runs") / case_id
         self.run_dir.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
         
         self.json_path = self.run_dir / "investigation_trace.json"
         
@@ -69,17 +78,19 @@ class TraceRecorder:
         }
 
         # 1. Append to JSON
-        try:
-            with open(self.json_path, 'r', encoding='utf-8') as f:
-                trace = json.load(f)
-            trace["events"].append(event)
-            with open(self.json_path, 'w', encoding='utf-8') as f:
-                json.dump(trace, f, indent=2)
-        except Exception as e:
-            logger.error(f"Failed to write trace JSON: {e}")
+        with self._lock:
+            try:
+                with open(self.json_path, 'r', encoding='utf-8') as f:
+                    trace = json.load(f)
+                trace["events"].append(event)
+                with open(self.json_path, 'w', encoding='utf-8') as f:
+                    json.dump(trace, f, indent=2)
+            except Exception as e:
+                logger.error(f"Failed to write trace JSON: {e}")
 
         # 2. Append to Markdown / contextual files
-        self._format_markdown(event)
+        with self._lock:
+            self._format_markdown(event)
 
     def _sanitize(self, data: Any) -> Any:
         """Strip secrets/API keys from trace logs."""
@@ -139,6 +150,10 @@ class TraceRecorder:
         data = event["data"]
         ts = event["timestamp"]
 
+        # For tool events, if component is generic like "rag" or "dfkg", try to route to active agent's markdown
+        active_agent = get_active_agent()
+        agent_file = f"02_{active_agent}.md" if active_agent != "unknown_agent" else f"02_{comp}.md"
+
         if evt == "supervisor_route":
             content = f"## [{ts}] Routing Decision\n\n**Next Agents:** {', '.join(data.get('next_agents', []))}\n"
             self._append_md("01_supervisor.md", content)
@@ -173,9 +188,8 @@ class TraceRecorder:
                 "query": data.get("query"),
                 "method": data.get("method")
             })
-            agent_file = f"02_{comp}.md"
             self._append_md(agent_file, f"### RAG Query\n**Method:** {data.get('method')}\n**Query:** `{data.get('query')}`\n")
-            self._update_readme(f"GraphRAG used by {comp} for: `{data.get('query')}`")
+            self._update_readme(f"GraphRAG used by {active_agent} for: `{data.get('query')}`")
 
         elif evt == "rag_retrieval":
             # Append records to the latest entry in json
@@ -188,6 +202,11 @@ class TraceRecorder:
                     docs[-1]["dfkg_expansion"] = data.get("dfkg_expansion", {})
                 with open(path, "w", encoding='utf-8') as f:
                     json.dump(docs, f, indent=2)
+            
+            # Add to agent's markdown
+            self._append_md(agent_file, f"### RAG Retrieved Data\n```json\n{json.dumps(data.get('records', []), indent=2)}\n```\n")
+            exp = data.get('dfkg_expansion', {})
+            self._append_md(agent_file, f"### DFKG Graph Expansion\n**Nodes retrieved:** {exp.get('nodes_retrieved', 0)}\n")
 
         elif evt == "dfkg_query":
             self._write_json("dfkg_context.json", {
@@ -199,6 +218,7 @@ class TraceRecorder:
                 "returned_relationships": data.get("returned_relationships"),
                 "uids": data.get("uids")
             })
+            self._append_md(agent_file, f"### DFKG Query\n**Cypher:**\n```cypher\n{data.get('cypher')}\n```\n**Entities Returned:** {data.get('returned_entities')}\n**UIDs:** {data.get('uids')}\n")
 
         elif evt == "agent_finding":
             self._write_json("agent_findings.json", {
@@ -208,6 +228,7 @@ class TraceRecorder:
                 "evidence_uids": data.get("evidence_uids"),
                 "node_uid": data.get("node_uid")
             })
+            self._append_md(agent_file, f"### Agent Conclusion (Finding Published)\n```text\n{data.get('summary')}\n```\n**Evidence UIDs:** {data.get('evidence_uids')}\n")
             self._update_readme(f"{comp} created a finding on the blackboard.")
 
         elif evt == "hitl_pause":

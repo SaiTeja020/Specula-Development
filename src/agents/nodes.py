@@ -15,6 +15,8 @@ from typing import Literal
 
 from langgraph.types import Command, interrupt
 
+from src.agents import investigation_trace
+
 from .config import AGENT_CONFIG, get_llm
 from .guardrails import run_tier1_checks, run_tier2_checks
 from .kafka_utils import ROLE_TOPIC_MAP, publish_finding
@@ -57,10 +59,19 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     )
 
     start = time.time()
+    
+    # Trace agent start
+    investigation_trace.set_active_agent(role)
+    investigation_trace.record_event(role, "agent_start", {"model": cfg["model_id"]})
+    
     response = llm.invoke(prompt)
     latency_ms = round((time.time() - start) * 1000, 1)
 
     content = response.content if hasattr(response, "content") else str(response)
+    
+    # Trace action/observation
+    investigation_trace.record_event(role, "agent_action", {"action": "single_pass_llm_call", "action_input": {}})
+    investigation_trace.record_event(role, "agent_observation", {"observation": content})
 
     finding = {
         "agent_role": role,
@@ -160,6 +171,8 @@ def make_supervisor_node(neo4j_driver):
                 next_agents = []
             else:
                 next_agents = [x.strip() for x in route_str.split(",") if x.strip()]
+
+        investigation_trace.record_event("supervisor", "supervisor_route", {"next_agents": next_agents})
 
         return {
             "case_status": "primary_tier",
@@ -386,6 +399,8 @@ def hitl_node(state: dict) -> Command[Literal[
     # the status is correctly visible in the state checkpoint while the graph
     # is paused here at the interrupt().
     decision = interrupt(snapshot)
+    
+    investigation_trace.record_event("hitl", "hitl_decision", {"decision": decision})
 
     update: dict = {
         "hitl_decision": decision,

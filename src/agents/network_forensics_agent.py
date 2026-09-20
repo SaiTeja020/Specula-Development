@@ -115,6 +115,7 @@ def make_network_forensics_node(redis_client: Optional[Any], neo4j_driver: Optio
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,
+            agent_role="network_forensics",
         )
         
         if result.terminal:

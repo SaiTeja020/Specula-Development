@@ -150,6 +150,7 @@ def make_threat_attribution_node(redis_client, neo4j_driver):
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,
+            agent_role="threat_attribution",
         )
 
         if result.terminal:

@@ -26,6 +26,7 @@ from typing import Any, Optional
 
 from langgraph.checkpoint.memory import InMemorySaver
 
+from src.agents import investigation_trace
 from src.agents.graph import build_graph
 from src.agents.synthesis import synthesize_plain_english, InvestigationResult
 
@@ -132,6 +133,7 @@ def run_investigation(
 
     # --- Invoke the graph ---
     try:
+        investigation_trace.record_event("runner", "user_query", {"query": query, "case_id": case_id})
         result_state = graph.invoke(initial_state, config)
     except Exception as exc:
         # Check if this is a LangGraph interrupt (HITL pause)
@@ -158,6 +160,7 @@ def run_investigation(
 
     # --- Synthesise plain-English answer ---
     result = synthesize_plain_english(result_state, query)
+    investigation_trace.record_event("runner", "investigation_complete", {"case_id": case_id, "status": result_state.get('case_status')})
     return result
 
 
@@ -258,4 +261,5 @@ def _handle_hitl_pause(
         snapshot = {}
 
     logger.info(f"Graph paused at HITL: case={case_id}, thread={thread_id}")
+    investigation_trace.record_event("hitl", "hitl_pause", snapshot)
     return HITLPausedResult(thread_id=thread_id, case_id=case_id, snapshot=snapshot)

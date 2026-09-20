@@ -117,6 +117,7 @@ def make_timeline_reconstruction_node(redis_client: Optional[Any], neo4j_driver:
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,
+            agent_role="timeline_reconstruction",
         )
         
         if result.terminal:

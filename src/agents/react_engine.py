@@ -25,6 +25,7 @@ from typing import Any, Callable, Optional
 
 import redis
 
+from src.agents import investigation_trace
 from src.agents.redis_keys import SCRATCHPAD_PREFIX
 
 
@@ -142,6 +143,7 @@ def run_react_loop(
     parse_llm_output: ParseFn,
     budget: LoopBudget,
     scratchpad: Scratchpad,
+    agent_role: str = "agent",
 ) -> ReActResult:
     """Runs one agent's ReAct loop to completion or exhaustion.
 
@@ -149,6 +151,10 @@ def run_react_loop(
     building the tool dict, and deciding what to do with a non-terminal
     ReActResult (typically: report a partial observation to the Supervisor).
     """
+    # Start trace
+    investigation_trace.set_active_agent(agent_role)
+    investigation_trace.record_event(agent_role, "agent_start", {"model": "LLM"})
+
     steps: list[ReActStep] = []
     tool_calls_used = 0
     start = time.monotonic()
@@ -203,6 +209,10 @@ def run_react_loop(
         step = ReActStep(iteration, thought, action, action_input, observation)
         steps.append(step)
         scratchpad.append(step)
+        
+        # Trace action and observation
+        investigation_trace.record_event(agent_role, "agent_action", {"action": action, "action_input": action_input})
+        investigation_trace.record_event(agent_role, "agent_observation", {"observation": observation})
 
     return ReActResult(
         terminal=False, final_answer=None, steps=steps,

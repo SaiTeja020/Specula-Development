@@ -114,6 +114,7 @@ def make_log_analysis_node(redis_client: Optional[Any], neo4j_driver: Optional[A
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,
+            agent_role="log_analysis",
         )
         
         if result.terminal:

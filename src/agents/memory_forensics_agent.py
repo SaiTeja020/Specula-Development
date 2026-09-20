@@ -116,6 +116,7 @@ def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Option
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,
+            agent_role="memory_forensics",
         )
         
         if result.terminal:
