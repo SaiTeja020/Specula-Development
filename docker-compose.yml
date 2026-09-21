@@ -51,11 +51,11 @@ services:
       - "7280:7280"
     environment:
       - QW_DISABLE_TELEMETRY=1
-    command: ["run"]
+    command: [ "run" ]
 
   # 5. Neo4j (DFKG)
   neo4j:
-    image: neo4j:5.14.0
+    image: neo4j:5
     container_name: specula-neo4j
     ports:
       - "7474:7474" # HTTP Browser
@@ -63,14 +63,14 @@ services:
     environment:
       - NEO4J_AUTH=none
       # Required for v6 §8.3 Triggers
-      - NEO4J_apoc_trigger_enabled=true 
+      - NEO4J_apoc_trigger_enabled=true
       # Auto-download APOC core plugin on startup
       - NEO4J_PLUGINS=["apoc"]
     volumes:
       - ./data/neo4j/plugins:/plugins
     # In a real deployment, APOC needs to be downloaded into /plugins before startup
 
-  # 6. ChromaDB (Case Evidence Vector Index — Stage 2 §3 Step 7)
+    # 6. ChromaDB (Case Evidence Vector Index — Stage 2 §3 Step 7)
   chromadb:
     image: chromadb/chroma:latest
     container_name: specula-chromadb

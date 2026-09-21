@@ -7,7 +7,8 @@
 
 // Trigger: Milestone Pattern Created (e.g. Lateral Movement)
 // Fires when a Process on one host communicates with a Process on another host.
-CALL apoc.trigger.install('specula', 'lateral_movement_detected',
+USE system
+CALL apoc.trigger.install('neo4j', 'lateral_movement_detected',
   "
   UNWIND $createdRelationships AS rel
   WITH rel

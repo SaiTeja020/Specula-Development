@@ -28,7 +28,8 @@ class DFKGQueryTool(Tool):
     name = "query_dfkg"
     description = (
         "Run a read-only, parameterized Cypher query against the DFKG. "
-        "Args: cypher (str, must use $param placeholders), params (dict)."
+        "Args: cypher (str, must use $param placeholders), params (dict). "
+        "NOTE: Do not assume specific property names like 'name' exist on all nodes. Always return n.uid, labels(n), and keys(n) when exploring."
     )
 
     def __init__(self, driver: Driver, case_id: str):
@@ -181,6 +182,20 @@ class ForensicRAGSearchTool(Tool):
             
         except Exception as exc:
             return ToolResult(ok=False, observation=f"RAG search failed: {exc}")
+
+
+def get_rag_tool(neo4j_driver) -> Tool:
+    """Helper to initialize the full RAG retrieval pipeline for ReAct agents."""
+    from src.ingestion.indexing.vector_store import ChromaVectorStore, EmbeddingGenerator
+    from src.agents.rag.dfkg_retriever import DFKGRetriever
+    try:
+        store = ChromaVectorStore(collection_name="case_evidence_embeddings")
+        embedder = EmbeddingGenerator()
+        retriever = DFKGRetriever(neo4j_driver, store, embedder)
+        return ForensicRAGSearchTool(retriever)
+    except Exception as e:
+        from src.agents.react_engine import NotYetImplementedTool
+        return NotYetImplementedTool("forensic_rag_search", f"Init failed: {e}")
 
 
 class ForensicThreatContextSearchTool(Tool):

@@ -290,6 +290,9 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-19 | `TASK-4.8` Log Analysis Test Suite | Fixed fixture hash verification for Windows LF/CRLF portability in `evaluate_log_analysis_ground_truth.py` and added `test_ground_truth_benchmark.py` pytest wrapper. | 73/73 Passed (`pytest tests/agents/log_analysis/`) |
 | 2026-09-20 | `tests/agents/rag/test_dfkg_retriever.py` | DFKGRetriever tests pass | Verified |
 | 2026-09-20 | H.4.1 (Debate Integration Hardening) | Hardened Debate agent prompts to enforce FINAL_ANSWER for ReAct convergence and explicitly instruct Judge to verify DFKG UIDs. | Verified (`python scripts/test_debate_agents_integration.py`) |
+| 2026-09-20 | `tests/integration/test_investigation_trace.py` | Trace formatting verified | Verified |
+| 2026-09-20 | `tests/integration/test_blackboard_integration.py` | Kafka -> Neo4j entity path verified | Verified |
+| 2026-09-20 | `tests/integration/test_rag_trace.py` | Offline RAG tracing verified | Verified |
 | 2026-09-20 | `tests/agents/test_threat_attribution_rag.py` | Phase G: Threat Attribution RAG | Verified |
 | 2026-09-20 | `tests/agents/test_network_forensics.py` | Phase H: Network Forensics Functional Agent (ReAct) | Verified |
 | 2026-09-20 | `tests/agents/log_analysis/` | Phase H.2: Log Analysis Functional Agent (ReAct) | Verified |
@@ -297,6 +300,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-20 | `tests/agents/test_debate_agents.py` | Phase H.4: Debate Layer Functional Agents (ReAct) | Verified |
 | 2026-09-20 | `src/agents/threat_attribution_agent.py` | Phase H.7.1: Threat Attribution Context Migration | Verified |
 | 2026-09-21 | `src/agents/investigation_trace.py` | Phase H.7.4 Extension: Fixed trace file appending duplication bug. Rewrote TraceRecorder's `_compile_full_report` to generate strict RAG data flow markdown blocks with provenance validation (exposing unsupported stub UIDs). | Verified (`python scripts/run_investigation.py --trace`) |
+| 2026-09-21 | `docker-compose.yml`, `src/graph/apoc_triggers.cypher` | Fixed Neo4j startup crash during APOC trigger initialization by upgrading to Neo4j 5 (latest) and explicitly routing trigger installation to the `system` database. | Verified (`python scripts/neo4j_setup.py`) |
 ---
 
 | State | Phase/Task | Acceptance Criteria |

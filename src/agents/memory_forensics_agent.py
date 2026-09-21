@@ -21,7 +21,7 @@ def _build_system_prompt(state: dict) -> str:
         "and other in-memory attacker techniques.\n\n"
         "You operate in a loop of Thought, Action, Observation.\n"
         "You have the following tools available:\n"
-        "- query_dfkg: Execute Cypher against the Neo4j graph. Args: {\"cypher\": \"...\"}\n"
+        "- query_dfkg: Execute semantic search against the Neo4j GraphRAG. Args: {\"query\": \"...\"}\n"
         "- publish_finding: Publish your forensic conclusion. Args: {\"topic\": \"...\", \"finding\": {\"summary\": \"...\"}}\n\n"
         "To use a tool, you MUST output a SINGLE LINE exactly like this (NO markdown, NO json blocks):\n"
         "ACTION: tool_name {\"arg_name\": \"arg_value\"}\n\n"
@@ -88,14 +88,15 @@ def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Option
         
         # Tools
         if neo4j_driver is not None:
-            dfkg_tool = TrackingDFKGQueryTool(neo4j_driver, case_id)
+            from src.agents.react_tools import get_rag_tool
+            rag_tool = get_rag_tool(neo4j_driver)
         else:
             from src.agents.react_engine import NotYetImplementedTool
-            dfkg_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
+            rag_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
             
         tools: dict[str, Tool] = {
-            "query_dfkg": dfkg_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "memory_forensics", dfkg_tool),
+            "query_dfkg": rag_tool,
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "memory_forensics", rag_tool),
         }
         
         if redis_client is not None:

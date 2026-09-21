@@ -182,17 +182,9 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
         # Initialize Vector Store if possible
         rag_tool = None
         if neo4j_driver is not None:
+            from src.agents.react_tools import get_rag_tool
             dfkg_tool = TrackingDFKGQueryTool(neo4j_driver, case_id)
-            try:
-                # We lazily initialize Chroma inside the node factory 
-                # (which only runs when this node is entered)
-                store = ChromaVectorStore(collection_name="case_evidence_embeddings")
-                embedder = EmbeddingGenerator()
-                retriever = DFKGRetriever(neo4j_driver, store, embedder)
-                rag_tool = ForensicRAGSearchTool(retriever)
-            except Exception as e:
-                from src.agents.react_engine import NotYetImplementedTool
-                rag_tool = NotYetImplementedTool("forensic_rag_search", f"Init failed: {e}")
+            rag_tool = get_rag_tool(neo4j_driver)
         else:
             from src.agents.react_engine import NotYetImplementedTool
             dfkg_tool = NotYetImplementedTool("query_dfkg", "Stage 3 (requires neo4j_driver)")
@@ -200,9 +192,9 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
 
         tools: dict[str, Tool] = {
             "check_relevance": RelevanceCheckTool(),
-            "query_dfkg": dfkg_tool,
+            "query_dfkg": rag_tool,
             "forensic_rag_search": rag_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "evidence_collection", dfkg_tool),
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "evidence_collection", rag_tool),
         }
 
         if redis_client is not None:

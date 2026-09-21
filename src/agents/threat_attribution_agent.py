@@ -35,7 +35,7 @@ def _build_system_prompt(state: dict, timeline_summary: str) -> str:
     prompt += (
         "\n\nYou operate in a loop of Thought, Action, Observation.\n"
         "You have the following tools available:\n"
-        "- query_dfkg: Args: {\"cypher\": \"...\"}\n"
+        "- query_dfkg: Execute semantic search against the Neo4j GraphRAG. Args: {\"query\": \"...\"}\n"
         "- forensic_threat_context_search: Args: {\"query\": \"...\", \"record_type\": \"...\"}\n"
         "- publish_finding: Args: {\"topic\": \"...\", \"finding\": {\"summary\": \"...\"}}\n\n"
         "To use a tool, you MUST output a SINGLE LINE exactly like this (NO markdown, NO json blocks):\n"
@@ -97,22 +97,26 @@ def make_threat_attribution_node(redis_client, neo4j_driver):
         
         # Tools
         if neo4j_driver is not None:
+            from src.agents.evidence_collection_agent import TrackingDFKGQueryTool
+            from src.agents.react_tools import get_rag_tool
             dfkg_tool = TrackingDFKGQueryTool(neo4j_driver, case_id)
+            rag_tool = get_rag_tool(neo4j_driver)
         else:
             from src.agents.react_engine import NotYetImplementedTool
             dfkg_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
+            rag_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
             
         try:
             ti_server = ThreatIntelMCPServer()
-            ti_tool = ForensicThreatContextSearchTool(ti_server)
+            threat_tool = ForensicThreatContextSearchTool(ti_server)
         except Exception as e:
             from src.agents.react_engine import NotYetImplementedTool
-            ti_tool = NotYetImplementedTool("forensic_threat_context_search", f"Init failed: {e}")
+            threat_tool = NotYetImplementedTool("forensic_threat_search", f"Init failed: {e}")
 
         tools: dict[str, Tool] = {
-            "query_dfkg": dfkg_tool,
-            "forensic_threat_context_search": ti_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "threat_attribution", dfkg_tool),
+            "forensic_threat_search": threat_tool,
+            "query_dfkg": rag_tool,
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "threat_attribution", rag_tool),
         }
 
         if redis_client is not None:
