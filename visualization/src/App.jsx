@@ -1,14 +1,25 @@
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Activity, LayoutDashboard, Database, Network, Play } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Activity, LayoutDashboard, Database, Network, Play, LogOut, ShieldCheck, User } from 'lucide-react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './pages/LandingPage';
 import StartupPage from './pages/StartupPage';
 import InvestigationConsole from './pages/InvestigationConsole';
 import Neo4jVisualizer from './pages/Neo4jVisualizer';
 import DatabaseVisualizers from './pages/DatabaseVisualizers';
 import { PipelineProvider } from './contexts/PipelineContext';
+import AuthPage from './pages/AuthPage';
+
+// Route guard – redirects unauthenticated users to /auth
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="auth-loading"><span className="auth-loading-dot" /><span className="auth-loading-dot" /><span className="auth-loading-dot" /></div>;
+  if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  return children;
+}
 
 function Sidebar() {
   const location = useLocation();
+  const { profile, signOut } = useAuth();
 
   const links = [
     { to: '/', label: 'Overview', icon: <LayoutDashboard size={18} /> },
@@ -37,9 +48,35 @@ function Sidebar() {
         ))}
       </nav>
       <div className="sidebar-footer">
-        <div className="status-indicator">
-          <div className="status-dot"></div>
-          <span>System Online</span>
+        {/* User profile strip */}
+        {profile && (
+          <div className="sidebar-user">
+            <div className="sidebar-user-avatar">
+              <User size={14} />
+            </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{profile.full_name}</span>
+              <span className="sidebar-user-role">
+                <ShieldCheck size={11} />
+                {profile.role}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="sidebar-footer-row">
+          <div className="status-indicator">
+            <div className="status-dot"></div>
+            <span>System Online</span>
+          </div>
+          <button
+            id="sidebar-signout-btn"
+            className="sidebar-signout-btn"
+            onClick={signOut}
+            title="Sign out"
+            type="button"
+          >
+            <LogOut size={15} />
+          </button>
         </div>
       </div>
     </aside>
@@ -48,8 +85,12 @@ function Sidebar() {
 
 function Layout({ children }) {
   const location = useLocation();
-  // Don't show sidebar on landing page or startup page if desired, but we will show it everywhere for easy navigation.
+  const isAuthRoute = location.pathname === '/auth';
   const isFullscreenRoute = location.pathname === '/' || location.pathname === '/startup';
+
+  if (isAuthRoute) {
+    return <div className="app-container-fullscreen">{children}</div>;
+  }
 
   if (isFullscreenRoute) {
     return <div className="app-container-fullscreen">{children}</div>;
@@ -67,18 +108,27 @@ function Layout({ children }) {
 
 export default function App() {
   return (
-    <PipelineProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/startup" element={<StartupPage />} />
-            <Route path="/investigate" element={<InvestigationConsole />} />
-            <Route path="/neo4j" element={<Neo4jVisualizer />} />
-            <Route path="/databases" element={<DatabaseVisualizers />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </PipelineProvider>
+    <AuthProvider>
+      <PipelineProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              {/* Public */}
+              <Route path="/auth" element={<AuthPage />} />
+
+              {/* Protected */}
+              <Route path="/" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
+              <Route path="/startup" element={<ProtectedRoute><StartupPage /></ProtectedRoute>} />
+              <Route path="/investigate" element={<ProtectedRoute><InvestigationConsole /></ProtectedRoute>} />
+              <Route path="/neo4j" element={<ProtectedRoute><Neo4jVisualizer /></ProtectedRoute>} />
+              <Route path="/databases" element={<ProtectedRoute><DatabaseVisualizers /></ProtectedRoute>} />
+
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </PipelineProvider>
+    </AuthProvider>
   );
 }
