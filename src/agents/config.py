@@ -106,8 +106,12 @@ AGENT_CONFIG: dict[str, dict] = {
         "provider": "google",
         "system_prompt_template": (
             "You are the Threat Attribution agent for case {case_id}. "
-            "Map findings to ATT&CK techniques and attribute the threat actor.\n"
-            "Timeline: {timeline_summary}"
+            "ATT&CK techniques (FAISS): {retrieved_techniques}. "
+            "Threat groups (FAISS): {retrieved_groups}. "
+            "Case graph entities (Neo4j): {graph_entities}. "
+            "Timeline: {timeline_summary}. "
+            "Map findings to ATT&CK techniques and attribute the threat actor "
+            "using ONLY the data provided above."
         ),
     },
     "memory_forensics": {

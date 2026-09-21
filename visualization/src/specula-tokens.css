@@ -1,0 +1,37 @@
+:root {
+  /* Brand Foundation (The Light Void) */
+  --sp-color-bg-void: #FFFFFF;
+  --sp-color-bg-surface: #F1F3F7;
+  --sp-color-border-grid: #DDE2EC;
+
+  /* Typography Colors */
+  --sp-color-text-primary: #120E32;
+  --sp-color-text-secondary: #4B4673;
+
+  /* Tactical & Semantic Accents */
+  --sp-color-accent-indigo: #1E40AF; /* Rich darker royal indigo/blue */
+  --sp-color-accent-indigo-hover: #172554; /* Deep navy hover */
+  --sp-color-status-admissible: #10B981;
+  --sp-color-status-hitl: #F59E0B;
+  --sp-color-status-breach: #EF4444;
+
+  /* Typography Scales */
+  --sp-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --sp-font-mono: 'Fira Code', 'JetBrains Mono', monospace;
+
+  /* Spacing Grid */
+  --sp-space-xs: 4px;
+  --sp-space-sm: 8px;
+  --sp-space-md: 16px;
+  --sp-space-lg: 32px;
+  --sp-space-xl: 64px;
+
+  /* Scaffolding & Borders */
+  --sp-radius-sharp: 2px;
+  --sp-radius-sm: 4px;
+  --sp-radius-md: 6px;
+  --sp-radius-lg: 8px;
+  --sp-radius-xl: 12px;
+  --sp-border-thin: 1px solid var(--sp-color-border-grid);
+  --sp-shadow-none: none;
+}

@@ -1,19 +1,23 @@
 """Real-time monitoring and visualization API for Specula LangGraph — §9.
 
 This standalone microservice provides:
-- GET /api/graph/topology: Returns the nodes and edges for React Flow.
-- WS  /api/graph/stream: WebSocket streaming for active node tracking and state updates.
+- GET  /api/graph/topology: Returns the nodes and edges for React Flow.
+- WS   /api/graph/stream: WebSocket streaming for active node tracking and state updates.
 - POST /api/graph/run_mock: Triggers a mock execution sequence to demonstrate flow.
+- GET  /api/logs/search: Proxy to Quickwit search API for forensic log browsing.
+- GET  /api/neo4j/summary: Returns Neo4j knowledge graph statistics.
 """
 from __future__ import annotations
 
 import asyncio
 import json
 import logging
+import os
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+import httpx
 import uvicorn
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -158,6 +162,120 @@ async def trigger_mock_run():
     asyncio.create_task(simulate_run())
     
     return {"status": "mock run initiated"}
+
+
+# ---------------------------------------------------------------------------
+# Quickwit log search proxy
+# ---------------------------------------------------------------------------
+
+QUICKWIT_ENDPOINT = os.environ.get("QUICKWIT_ENDPOINT", "http://localhost:7280")
+QUICKWIT_INDEX = os.environ.get("QUICKWIT_INDEX", "specula_raw_evidence")
+
+
+@app.get("/api/logs/search")
+async def search_logs(
+    q: str = Query(default="*", description="Lucene query string"),
+    max_hits: int = Query(default=50, ge=1, le=200),
+) -> dict[str, Any]:
+    """Proxy search requests to Quickwit so the browser avoids CORS issues."""
+    search_url = f"{QUICKWIT_ENDPOINT}/api/v1/{QUICKWIT_INDEX}/search"
+    body = {"query": q, "max_hits": max_hits}
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                search_url,
+                json=body,
+                headers={"Content-Type": "application/json"},
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.ConnectError:
+        return {"error": "Quickwit is not reachable", "hits": [], "num_hits": 0}
+    except httpx.HTTPStatusError as e:
+        return {"error": f"Quickwit returned {e.response.status_code}", "hits": [], "num_hits": 0}
+    except Exception as e:
+        return {"error": str(e), "hits": [], "num_hits": 0}
+
+
+@app.get("/api/logs/indexes")
+async def list_indexes() -> dict[str, Any]:
+    """List available Quickwit indexes for the frontend dropdown."""
+    url = f"{QUICKWIT_ENDPOINT}/api/v1/indexes"
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+            indexes = resp.json()
+            names = [idx.get("index_config", {}).get("index_id", idx.get("index_id", "unknown")) for idx in indexes]
+            return {"indexes": names}
+    except Exception:
+        return {"indexes": [QUICKWIT_INDEX]}
+
+
+# ---------------------------------------------------------------------------
+# Neo4j knowledge graph summary
+# ---------------------------------------------------------------------------
+
+NEO4J_URI = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", "")
+
+
+@app.get("/api/neo4j/summary")
+async def neo4j_summary() -> dict[str, Any]:
+    """Return a high-level summary of the Neo4j knowledge graph."""
+    try:
+        from neo4j import GraphDatabase
+    except ImportError:
+        return {"error": "neo4j driver not installed", "connected": False}
+
+    auth = (NEO4J_USER, NEO4J_PASSWORD) if NEO4J_PASSWORD else None
+    try:
+        driver = GraphDatabase.driver(NEO4J_URI, auth=auth)
+        driver.verify_connectivity()
+
+        with driver.session() as session:
+            # Node count by label
+            node_result = session.run(
+                "CALL db.labels() YIELD label "
+                "CALL apoc.cypher.run('MATCH (n:`' + label + '`) RETURN count(n) AS cnt', {}) "
+                "YIELD value RETURN label, value.cnt AS count"
+            )
+            labels = {}
+            try:
+                for record in node_result:
+                    labels[record["label"]] = record["count"]
+            except Exception:
+                # APOC may not be installed; fall back to simple count
+                simple = session.run("MATCH (n) RETURN count(n) AS cnt")
+                labels = {"all": simple.single()["cnt"]}
+
+            # Relationship count
+            rel_result = session.run("MATCH ()-[r]->() RETURN count(r) AS cnt")
+            rel_count = rel_result.single()["cnt"]
+
+            # Sample recent nodes (top 10)
+            sample_result = session.run(
+                "MATCH (n) RETURN labels(n) AS labels, "
+                "properties(n) AS props LIMIT 10"
+            )
+            samples = [
+                {"labels": list(r["labels"]), "props": dict(r["props"])}
+                for r in sample_result
+            ]
+
+        driver.close()
+
+        return {
+            "connected": True,
+            "node_labels": labels,
+            "total_nodes": sum(labels.values()),
+            "total_relationships": rel_count,
+            "samples": samples,
+        }
+    except Exception as e:
+        return {"connected": False, "error": str(e)}
 
 
 if __name__ == "__main__":

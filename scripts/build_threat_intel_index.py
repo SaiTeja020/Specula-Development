@@ -1,4 +1,4 @@
-﻿"""
+"""
 Specula Offline Threat-Intel Index Build Script.
 
 Fetches MITRE ATT&CK STIX + NVD CVE data, embeds all records, trains a
@@ -56,6 +56,15 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
 logger = logging.getLogger("build_threat_intel_index")
+
+# Load .env so NVD_API_KEY and other env vars are available without
+# needing to set them manually in the shell each time.
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed — rely on shell env vars
+
 
 # ---------------------------------------------------------------------------
 # Artifact file names (must match threat_intel_index.py constants)
