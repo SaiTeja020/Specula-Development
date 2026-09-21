@@ -88,9 +88,11 @@ def make_network_forensics_node(redis_client: Optional[Any], neo4j_driver: Optio
         # Tools
         if neo4j_driver is not None:
             from src.agents.react_tools import get_rag_tool
+            dfkg_tool = TrackingDFKGQueryTool(neo4j_driver, case_id)
             rag_tool = get_rag_tool(neo4j_driver)
         else:
             from src.agents.react_engine import NotYetImplementedTool
+            dfkg_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
             rag_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
             
         tools: dict[str, Tool] = {

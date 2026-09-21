@@ -1,0 +1,35 @@
+[
+  {
+    "timestamp": "2026-09-21T07:07:43.235846+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (f:AgentFinding)-[:BELONGS_TO]->(c:Case {case_id: $case_id}) WHERE f.agent_role = 'timeline_reconstruction' RETURN f.summary AS summary, f.uid AS uid ORDER BY f.timestamp DESC LIMIT 1",
+    "parameters": {
+      "case_id": "RAG-LMSTUDIO-001"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  },
+  {
+    "timestamp": "2026-09-21T07:12:12.109467+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (n:Case {case_id: \"RAG-LMSTUDIO-001\"}) RETURN n",
+    "parameters": {
+      "case_id": "RAG-LMSTUDIO-001"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  },
+  {
+    "timestamp": "2026-09-21T07:12:58.432762+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (n) WHERE n.uid = 'uid=...' RETURN n",
+    "parameters": {
+      "case_id": "RAG-LMSTUDIO-001"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  }
+]

@@ -159,8 +159,12 @@ def run_react_loop(
     
     cfg = AGENT_CONFIG.get(agent_role, {})
     actual_model = cfg.get("model_id", "LLM")
-    if os.environ.get("SPECULA_LLM_BACKEND", "").lower() == "ollama":
+    
+    backend = os.environ.get("SPECULA_LLM_BACKEND", "").lower()
+    if backend == "ollama":
         actual_model = os.environ.get("SPECULA_LLM_MODEL", "qwen2.5-coder:1.5b")
+    elif backend == "lmstudio":
+        actual_model = os.environ.get("SPECULA_LLM_MODEL", "local-model")
         
     investigation_trace.record_event(agent_role, "agent_start", {"model": actual_model})
 

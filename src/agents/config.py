@@ -354,6 +354,24 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
         base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         return ChatOllama(model=model_name, base_url=base_url, temperature=0)
 
+    if backend == "lmstudio":
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError:
+            raise ImportError(
+                "LM Studio support requires the 'langchain-openai' package. "
+                "Please run: pip install langchain-openai"
+            )
+        
+        model_name = os.environ.get("SPECULA_LLM_MODEL", "local-model")
+        base_url = os.environ.get("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
+        return ChatOpenAI(
+            api_key="lm-studio",
+            base_url=base_url,
+            model=model_name,
+            temperature=0
+        )
+
     # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
     return StubLLM(agent_role, case_id=case_id)
 
