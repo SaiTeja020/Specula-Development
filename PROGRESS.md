@@ -145,8 +145,14 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-4.6`
   - **Description:** Implement Evidence Collection Agent with multi-criterion relevance filtering and verdict publishing.
   - **Status:** `passing`
-  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/test_evidence_collection.py`
   - **Acceptance Criteria:** 12/12 agent tests passing; strict multi-host isolation and 4-part discard conjunction logic verified.
+
+- **Task ID:** `TASK-4.8`
+  - **Description:** Wire Log Analysis, Network Forensics, and Supervisor agents into LangGraph orchestration.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py tests/agents/test_network_forensics.py`
+  - **Acceptance Criteria:** Legacy stubs removed, DFKG-sourced adapter factories injected via build_graph, and all 28 graph compilation tests passing.
 
 - **Task ID:** `TASK-4.7`
   - **Description:** Implement Supervisor Agent (Orchestrator) graph and Kafka Consumer.

@@ -116,52 +116,12 @@ def _summarise_output(state: dict) -> str:
 # 16 ReAct-stub LLM agent nodes
 # ===================================================================
 
-# --- 1. Supervisor (§3 row 1, §4 entry) ---
-def supervisor_node(state: dict) -> dict:
-    """Entry point. Evaluates input, dispatches primary tier.
-
-    D1: Dead-end detection is no longer performed here — it has been moved to
-    primary_tier_join_node (via make_primary_tier_join_node factory), which is
-    the correct evaluation point: AFTER primary agents have run and their
-    findings are available. The DEAD_END:category raw_input signal is removed.
-    test_control injection for dead-end still works via detect_dead_end() inside
-    primary_tier_join_node, which reads state["test_control"]["dead_end_categories"].
-    """
-    finding, trace = _run_agent("supervisor", state)
-
-    return {
-        "case_status": "primary_tier",
-        "findings": [finding],
-        "agent_traces": [trace],
-        # Reset on re-entry (HITL clarify loop)
-        "guardrail_fail_tier": None,
-        "guardrail_tier1_result": None,
-        "guardrail_tier2_result": None,
-        "guardrail_tier3_result": None,
-        "debate_outcome": None,
-        "debate_round": 1,
-        "hitl_decision": None,
-        "hitl_required": False,
-        "report_output": None,
-        "timeline_artifact": None,
-        "final_output_ref": None,
-    }
-
-
+# --- 1. Supervisor (now a factory) ---
 # --- 2–4. Primary tier (parallel) ---
 # B1: evidence_collection_node is now a factory in evidence_collection_agent.py.
-# The node function itself is wired into the graph by build_graph() via:
-#   builder.add_node("evidence_collection", make_evidence_collection_node(redis, neo4j))
-# Do NOT call evidence_collection_node directly from nodes.py.
-
-def log_analysis_node(state: dict) -> dict:
-    finding, trace = _run_agent("log_analysis", state)
-    return {"findings": [finding], "agent_traces": [trace]}
+# Log analysis and Network Forensics are also now factories.
 
 
-def network_forensics_node(state: dict) -> dict:
-    finding, trace = _run_agent("network_forensics", state)
-    return {"findings": [finding], "agent_traces": [trace]}
 
 
 # --- 5. Timeline Reconstruction ---

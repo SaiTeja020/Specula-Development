@@ -22,20 +22,20 @@ from .nodes import (
     identity_node,
     insider_threat_node,
     judge_node,
-    log_analysis_node,
     malware_stylometry_node,
     memory_forensics_node,
-    network_forensics_node,
     make_primary_tier_join_node,
     proponent_node,
     report_generation_node,
     specialist_join_node,
-    supervisor_node,
     threat_attribution_node,
     timeline_artifact_generation_node,
     timeline_reconstruction_node,
 )
 from .evidence_collection_agent import make_evidence_collection_node
+from .log_analysis_factory import make_log_analysis_node
+from .network_forensics_factory import make_network_forensics_node
+from .supervisor_factory import make_supervisor_node
 from .state import SpeculaState
 
 
@@ -84,7 +84,7 @@ def _dead_end_route(state: dict) -> str | list[Send]:
 # Graph builder
 # ===================================================================
 
-def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
+def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafka_producer=None, vector_client=None):
     """Assemble and compile the full 23-node orchestration graph.
 
     Args:
@@ -94,16 +94,18 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
         redis_client:  redis.Redis instance for the dead-end heuristic and
                        evidence-collection scratchpad.
         neo4j_driver:  neo4j.Driver for DFKG queries from evidence_collection.
+        kafka_producer: Kafka producer for finding publications.
+        vector_client: Vector DB client for log analysis MCP.
     """
     builder = StateGraph(SpeculaState)
 
     # ---- Add all 23 nodes ----
 
     # 18 ReAct-stub LLM agent nodes
-    builder.add_node("supervisor", supervisor_node)
+    builder.add_node("supervisor", make_supervisor_node())
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
-    builder.add_node("log_analysis", log_analysis_node)
-    builder.add_node("network_forensics", network_forensics_node)
+    builder.add_node("log_analysis", make_log_analysis_node(kafka_producer, vector_client, redis_client, neo4j_driver))
+    builder.add_node("network_forensics", make_network_forensics_node(neo4j_driver, kafka_producer))
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
     builder.add_node("threat_attribution", threat_attribution_node)
     builder.add_node("dag", dag_node)                           # F23 — Dynamic Attack Graph
