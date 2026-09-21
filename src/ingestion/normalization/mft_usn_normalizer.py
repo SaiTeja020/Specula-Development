@@ -16,6 +16,7 @@ from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
 from src.schemas.ocsf_events import FileActivity
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
+from src.schemas.uid_generator import generate_deterministic_uid
 
 # Note: Actual NTFS parsing logic (e.g. MFTECmd) is assumed
 # to have run prior to this function, providing a parsed dict.
@@ -49,6 +50,9 @@ def normalize_mft_record(
     sanitized_file_name, _ = sanitize_text(raw_file_name)
     sanitized_file_path, _ = sanitize_text(raw_file_path)
     
+    if (not sanitized_file_name or sanitized_file_name.strip() == "") and (not sanitized_file_path or sanitized_file_path.strip() == ""):
+        raise ValueError("File name and path cannot both be empty")
+    
     # Rebuff scan on file path (can contain injection payloads)
     is_injection, is_degraded = detect_prompt_injection(sanitized_file_path)
     
@@ -81,7 +85,11 @@ def normalize_mft_record(
         clock_skew_offset_ms=skew_ms,
         clock_skew_unverified=unverified,
         security_scan_degraded=is_degraded,
-        uid="PENDING_UID",
+        uid=generate_deterministic_uid("file", {
+            "file_name": sanitized_file_name,
+            "file_path": sanitized_file_path,
+            "timestamp": utc_time.isoformat()
+        }),
         file_name=sanitized_file_name,
         file_path=sanitized_file_path,
         # NTFS Timestomping required fields

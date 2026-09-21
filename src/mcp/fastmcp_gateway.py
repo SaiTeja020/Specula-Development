@@ -64,7 +64,14 @@ def normalize_log_batch(port: int, raw_payload: Dict[str, Any], trace_id: str, c
     if not normalizer:
         raise ValueError(f"No gateway normalizer registered for port {port}")
 
-    events = normalizer.normalize(raw_payload, trace_id, case_id)
+    from src.schemas.entity_resolver import CanonicalEntityResolver
+    resolver = CanonicalEntityResolver()
+    
+    if port == 8106:
+        events = normalizer.normalize(raw_payload, trace_id, case_id, entity_resolver=resolver)
+    else:
+        events = normalizer.normalize(raw_payload, trace_id, case_id)
+        
     return [event.model_dump(mode="json") for event in events]
 
 

@@ -14,6 +14,7 @@ from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.ingestion.security_gate.rebuff_gate import detect_prompt_injection
 from src.schemas.ocsf_events import CloudAudit
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
+from src.schemas.uid_generator import generate_deterministic_uid
 
 
 def normalize_cloudtrail(
@@ -44,6 +45,8 @@ def normalize_cloudtrail(
     
     identity = raw_parsed_event.get("userIdentity", {}).get("arn", "")
     sanitized_identity, _ = sanitize_text(identity)
+    if not sanitized_identity or sanitized_identity.strip() == "":
+        sanitized_identity = None
     
     return CloudAudit(
         trace_id=trace_id,
@@ -55,7 +58,10 @@ def normalize_cloudtrail(
         # This should correctly be True because CloudTrail lacks a DC anchor
         clock_skew_unverified=unverified, 
         security_scan_degraded=is_degraded,
-        uid="PENDING_UID",
+        uid=generate_deterministic_uid("cloud", {
+            "event_name": raw_parsed_event.get("eventName"), 
+            "timestamp": raw_parsed_event.get("eventTime")
+        }),
         cloud_provider="AWS",
         cloud_region=raw_parsed_event.get("awsRegion", None),
         cloud_account_id=raw_parsed_event.get("recipientAccountId", None),

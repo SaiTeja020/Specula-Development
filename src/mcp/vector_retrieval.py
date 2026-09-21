@@ -60,7 +60,7 @@ class VectorRetrievalMCPServer:
         model_version: str = "mxbai-embed-large-v1",
     ):
         self.embedding_generator = embedding_generator or EmbeddingGenerator(model_version=model_version)
-        self.vector_store = vector_store or InMemoryVectorStore()
+        self.vector_store = vector_store or ChromaVectorStore()
         self.model_version = model_version
         self._is_healthy = True
 

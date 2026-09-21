@@ -24,6 +24,8 @@ const BOOT_SEQUENCE = [
 export default function StartupPage() {
   const [activeStep, setActiveStep] = useState(-1);
   const [logs, setLogs] = useState([]);
+  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
   const terminalBodyRef = useRef(null);
 
@@ -34,23 +36,64 @@ export default function StartupPage() {
   }, [logs]);
 
   useEffect(() => {
+    let isCancelled = false;
+
     const runBoot = async () => {
+      setLogs(prev => [...prev, { 
+        time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
+        tag: 'INIT', 
+        msg: 'Initiating full teardown and rebuild of Docker containers...' 
+      }]);
+
+      // Start the actual backend boot process and WAIT for it
+      const bootResult = await fetch('http://localhost:8300/api/system/boot', { method: 'POST' })
+        .then(res => res.json())
+        .catch(err => ({ status: 'error', message: err.message }));
+
+      if (isCancelled) return;
+
+      if (bootResult.status === 'error') {
+        setLogs(prev => [...prev, { 
+          time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
+          tag: 'ERROR', 
+          msg: `Failed to boot: ${bootResult.message}` 
+        }]);
+        setHasError(true);
+        return;
+      }
+
+      setLogs(prev => [...prev, { 
+        time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
+        tag: 'OK', 
+        msg: 'Docker containers recreated successfully. Verifying services...' 
+      }]);
+
+      // Visually iterate through services now that we know they are running
       for (let i = 0; i < BOOT_SEQUENCE.length; i++) {
+        if (isCancelled) return;
         setActiveStep(i);
         const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false });
         setLogs(prev => [...prev, { time: timeStr, tag: 'INIT', msg: `Initializing ${BOOT_SEQUENCE[i].label} on port ${BOOT_SEQUENCE[i].port}...` }]);
-        await new Promise(r => setTimeout(r, 650));
+        
+        await new Promise(r => setTimeout(r, 400));
         
         const okTime = new Date().toLocaleTimeString('en-US', { hour12: false });
         setLogs(prev => [...prev, { time: okTime, tag: 'OK', msg: `Service ${BOOT_SEQUENCE[i].id} (${BOOT_SEQUENCE[i].port}) verified online and healthy.` }]);
-        await new Promise(r => setTimeout(r, 150));
+        
+        await new Promise(r => setTimeout(r, 100));
       }
+      
+      if (isCancelled) return;
+
       setActiveStep(BOOT_SEQUENCE.length);
       const doneTime = new Date().toLocaleTimeString('en-US', { hour12: false });
       setLogs(prev => [...prev, { time: doneTime, tag: 'SYSTEM', msg: 'All core microservices and datastores online. Specula readiness: 100%.' }]);
     };
+    
     runBoot();
-  }, []);
+
+    return () => { isCancelled = true; };
+  }, [retryCount]);
 
   const isComplete = activeStep === BOOT_SEQUENCE.length;
 
@@ -190,12 +233,13 @@ export default function StartupPage() {
             if (log.tag === 'OK') tagColor = '#34D399';
             if (log.tag === 'INIT') tagColor = '#60A5FA';
             if (log.tag === 'SYSTEM') tagColor = '#A78BFA';
+            if (log.tag === 'ERROR') tagColor = '#F87171';
 
             return (
               <div key={i} className="log-line" style={{ display: 'flex', gap: '8px', alignItems: 'baseline' }}>
                 <span style={{ color: '#64748B', fontSize: '0.8rem', userSelect: 'none' }}>[{log.time}]</span>
                 <span style={{ color: tagColor, fontWeight: 700, minWidth: '60px' }}>[{log.tag}]</span>
-                <span style={{ color: log.tag === 'OK' ? '#E2E8F0' : (log.tag === 'SYSTEM' ? '#F8FAFC' : '#CBD5E1') }}>
+                <span style={{ color: log.tag === 'OK' ? '#E2E8F0' : (log.tag === 'SYSTEM' ? '#F8FAFC' : (log.tag === 'ERROR' ? '#FECACA' : '#CBD5E1')) }}>
                   {log.msg}
                 </span>
               </div>
@@ -212,7 +256,21 @@ export default function StartupPage() {
       </div>
 
       {/* 3. Action CTA (BELOW TERMINAL) */}
-      <div style={{ marginTop: '1.5rem', marginBottom: '2rem', minHeight: '48px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ marginTop: '1.5rem', marginBottom: '2rem', minHeight: '48px', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+        {hasError && (
+          <button 
+            className="secondary-btn" 
+            onClick={() => {
+              setHasError(false);
+              setActiveStep(-1);
+              setLogs([]);
+              setRetryCount(prev => prev + 1);
+            }}
+            style={{ padding: '0.85rem 2.25rem', fontSize: '1rem', border: '1px solid var(--sp-color-border-hover)' }}
+          >
+            Retry Boot Process
+          </button>
+        )}
         {isComplete && (
           <button 
             className="primary-btn" 

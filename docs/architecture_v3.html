@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Specula — Architecture with Feature Coverage Map (v4)</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; background: #fff; color: #1a1a1a; margin: 0; padding: 24px 32px 60px; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { color: #555; font-size: 13px; margin-bottom: 20px; max-width: 900px; }
+  .changelog { font-size: 12px; color: #444; background: #FFF8E6; border: 1px solid #EBD69A; border-radius: 8px; padding: 10px 16px; margin-bottom: 20px; max-width: 900px; }
+  .changelog b { color: #7A4E00; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; margin-bottom: 20px; border: 1px solid #ddd; padding: 10px 16px; border-radius: 8px; background: #fafafa; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.15); }
+  #diagram { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; background: #fff; }
+  .notes { margin-top: 24px; font-size: 13px; line-height: 1.6; }
+  .notes h2 { font-size: 15px; margin-bottom: 6px; margin-top: 22px; }
+  code { background: #f2f2f2; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 8px; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: #f4f4f4; }
+  .fcode { font-weight: 600; color: #534AB7; white-space: nowrap; }
+  .searchbox { margin: 10px 0 16px; }
+  .searchbox input { font-size: 13px; padding: 6px 10px; width: 320px; border: 1px solid #ccc; border-radius: 6px; }
+  tr.hl { background: #FFF6D8; }
+  tr.new-row td:first-child::after { content: " NEW"; font-size: 9px; color: #B45309; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>Specula — architecture with feature coverage map (v4)</h1>
+<div class="subtitle">Every node carries its feature code(s) in small italics, e.g. <code>[F10, F11]</code>. The table below is the authoritative cross-reference: every feature named across the brainstorming doc, the overview doc, the Specula proposal, and everything added across chat sessions (harness, dynamic timeline, distillation-as-DFKG-input, specialist roster split) is listed with the exact node(s) that implement it. Type in the search box to highlight a feature's row.</div>
+
+<div class="changelog">
+  <b>Changes in v4 (this revision):</b>
+  (1) Added <code>DISTILL</code> node — entropy distillation (Drain3 + SimHash + MiniBatchKMeans) now shown explicitly as a pre-LLM stage populating DFKG <i>before</i> primary-tier agents run, not just as a downstream write target of agent findings.
+  (2) Added a read-readiness gate edge (<code>DFKG → SUP</code>) mirroring the existing Report-Generation "frozen" gate concept, so primary tier does not dispatch against a partially-populated graph.
+  (3) Added explicit read edges: <code>DFKG → EC, LA, NF</code> — the primary tier now reads distilled case evidence as input, in addition to writing findings back.
+  (4) Corrected specialist write path: <code>MF / ID / CLOUD_K8S / MB / IT / DAG</code> now publish findings via Kafka like every other agent, per Master_doc §14.1's resolution that there is no specialist direct-DFKG-write path (the old harness-doc mechanic is superseded).
+  (5) Split the old <code>IC</code> ("Identity &amp; Cloud") node into two agents — <code>ID</code> (Identity) and <code>CLOUD_K8S</code> (Cloud &amp; Container) — since AD/Kerberos identity forensics and K8s/container-runtime forensics are different domains that were previously conflated under one model assignment.
+  (6) Added <code>DAG</code> (Dynamic Attack Graph Agent) to Sequential Synthesis — closes a previously orphaned input category (Vulnerability Scans) that had a named skill (<code>Dijkstra_Attack_Graph_Skill</code>) but no owning agent in the authoritative 15-agent roster.
+  (7) New feature row <b>F37</b> added for the distillation-as-DFKG-input mechanism; F13 split into F13a/F13b; F23's node mapping updated from "SKILLS only" to the new DAG agent.
+  (8) <code>mcp-container-runtime</code> broken out as its own visible MCP subcomponent (previously only mentioned in the open-items notes below), wired directly to <code>CLOUD_K8S</code> — it is still not present in harness §9.2's MCP server list in the source docs, so that doc still needs a corresponding update.
+</div>
+
+<div class="searchbox"><input type="text" placeholder="Search a feature, e.g. 'timestomping' or 'F14'..." oninput="filterTable(this.value)"></div>
+
+<div class="legend">
+  <div class="legend-item"><span class="swatch" style="background:#CEE8FB;border-color:#378ADD"></span>Orchestration</div>
+  <div class="legend-item"><span class="swatch" style="background:#CDEFE1;border-color:#0F6E56"></span>Primary tier (ReAct)</div>
+  <div class="legend-item"><span class="swatch" style="background:#E4E1F8;border-color:#534AB7"></span>Data store / shared memory</div>
+  <div class="legend-item"><span class="swatch" style="background:#FDE6D8;border-color:#993C1D"></span>Specialist tier (ReAct)</div>
+  <div class="legend-item"><span class="swatch" style="background:#FBE3EC;border-color:#993556"></span>Adversarial debate (ReAct)</div>
+  <div class="legend-item"><span class="swatch" style="background:#FBEFD9;border-color:#854F0B"></span>Guardrail / HITL</div>
+  <div class="legend-item"><span class="swatch" style="background:#DDEBDD;border-color:#3B6D11"></span>Runtime harness</div>
+  <div class="legend-item"><span class="swatch" style="background:#F1EFE8;border-color:#5F5E5A"></span>Output</div>
+</div>
+
+<div id="diagram">
+  <pre class="mermaid" id="mmd">
+flowchart TB
+    IN["SIEM alert / investigator query<br/><i>[F1]</i>"]
+
+    subgraph HARNESS[" Runtime harness — cross-cutting services "]
+        direction LR
+        KAFKA[("Event backbone (Kafka)<br/>schema registry + dead-letter topics<br/>debounced APOC triggers<br/><i>[F1, F11, F30]</i>")]
+        DISTILL["Entropy Distillation<br/>Drain3 + SimHash + MiniBatchKMeans<br/>pre-LLM semantic compression<br/><i>[F1, F30, F37]</i>"]
+        MCP["MCP server layer<br/>dfkg-cypher / vmi-sandbox / threat-intel<br/>vct-ledger / dataset-eval<br/><i>[F14, F20, F31, F36]</i>"]
+        MCP_CR["mcp-container-runtime<br/>Falco / K8s audit query bridge<br/><i>[F13b, F31]</i>"]
+        SKILLS["Skill library<br/>manifest + least-privilege scoping<br/>golden fixtures<br/><i>[F17, F24, F32, F36]</i>"]
+        RULES["Rule engine<br/>per-role scoped, hot-reload<br/><i>[F33]</i>"]
+        ROUTER["Model router<br/>fallback + confidence flagging<br/><i>[F35]</i>"]
+        OBS["Observability<br/>tracing, replay, live scoreboard<br/><i>[F27, F28, F35]</i>"]
+        SCRATCH[("ReAct scratchpad + checkpointer (Redis)<br/><i>[F34]</i>")]
+    end
+
+    subgraph ORCH[" Orchestration "]
+        SUP{{"Supervisor Agent — ReAct<br/>Nemotron-3 Ultra<br/>Blackboard controller<br/><i>[F10, F11]</i>"}}
+    end
+
+    subgraph PRIMARY[" Primary tier — parallel dispatch "]
+        direction LR
+        EC["Evidence Collection Agent — ReAct<br/>Qwen2.5-7B-Instruct<br/><i>[F2]</i>"]
+        LA["Log Analysis Agent — ReAct<br/>Qwen2.5-72B-Instruct<br/><i>[F3, F17]</i>"]
+        NF["Network Forensics Agent — ReAct<br/>Llama3.3-70B-Instruct<br/><i>[F4]</i>"]
+    end
+
+    DFKG[("Digital Forensic Knowledge Graph<br/>Neo4j + APOC<br/><i>[F7, F8]</i>")]
+
+    subgraph SEQ[" Sequential synthesis "]
+        TR["Timeline Reconstruction Agent — ReAct<br/>DeepSeek-V3.2<br/><i>[F5, F29]</i>"]
+        TA["Threat Attribution Agent — ReAct + RAG<br/>Kimi K2.6<br/><i>[F6, F9, F24]</i>"]
+        DAG["Dynamic Attack Graph Agent — ReAct<br/>Qwen2.5-7B-Instruct<br/>Dijkstra / EPSS / CVSS<br/><i>[F23]</i>"]
+    end
+
+    RAGSRC[("MITRE ATT&amp;CK / CVE / NIST corpus<br/>FAISS IndexIVFPQ<br/><i>[F6, F9]</i>")]
+    EPSS[("DuckDB — daily EPSS cache<br/>(FIRST.org)<br/><i>[F23]</i>")]
+
+    subgraph SPEC[" Specialist tier — dispatched on dead-end "]
+        direction LR
+        MF["Memory Forensics Agent — ReAct<br/>Qwen3 32B<br/><i>[F12]</i>"]
+        ID["Identity Agent — ReAct<br/>Prism-ML-Ternary-Bonsai-27B<br/><i>[F13a]</i>"]
+        CLOUD_K8S["Cloud &amp; Container Agent — ReAct<br/>Qwen3 32B<br/><i>[F13b]</i>"]
+        MB["Malware &amp; Stylometry Agent — ReAct<br/>DeepSeek-R1-Distill-Qwen-14B<br/><i>[F14, F15]</i>"]
+        IT["Insider Threat Agent — ReAct<br/>MiniMax-M2.5<br/><i>[F16]</i>"]
+    end
+
+    subgraph DEBATE[" Evidentiary adversarial debate — ACH, max 3 rounds "]
+        PRO["Proponent Agent — ReAct<br/>Nemotron-3 Super<br/><i>[F18]</i>"]
+        CRI["Critic Agent — ReAct<br/>Llama3.3-70B-Instruct<br/><i>[F18]</i>"]
+        JUD["Judge Agent<br/>Nemotron-3 Ultra<br/><i>[F18, F19]</i>"]
+    end
+
+    subgraph GUARD[" Zero-trust guardrail — sequential escalation "]
+        G1["Tier 1: regex + AST signature<br/><i>[F21]</i>"]
+        G2["Tier 2: MiniLM classifier<br/><i>[F21]</i>"]
+        G3["Tier 3: LLM semantic validation<br/><i>[F21]</i>"]
+    end
+
+    HITL["HITL Dashboard<br/>FastAPI + React<br/><i>[F22]</i>"]
+    RPT["Report Generation Agent — ReAct<br/>Llama-3.3-8B-Instruct<br/><i>[F25]</i>"]
+    REPSPEC["Structured report<br/>17 sections — Report_format.docx<br/><i>[F25]</i>"]
+    TIMELINEGEN["Dynamic attack timeline generator<br/>interactive graph, DFKG-grounded<br/><i>[F26, F29]</i>"]
+    OUT[("Court-ready PDF + VCT Merkle audit trail<br/>+ dynamic timeline artifact<br/><i>[F20, F25, F26]</i>")]
+
+    IN --> KAFKA
+    KAFKA -- "raw/normalized OCSF evidence" --> DISTILL
+    DISTILL -- "write distilled entity/event nodes (pre-investigation population)" --> DFKG
+    IN --> SUP
+
+    HARNESS -. "serves all agents" .-> SUP
+    HARNESS -.-> PRIMARY
+    HARNESS -.-> SEQ
+    HARNESS -.-> SPEC
+    HARNESS -.-> DEBATE
+    HARNESS -.-> GUARD
+    HARNESS -.-> RPT
+
+    DFKG -. "readiness gate: zero consumer lag on case topics (new — mirrors Report Gen's frozen-state gate)" .-> SUP
+
+    SUP -- "dispatch task" --> EC
+    SUP -- "dispatch task" --> LA
+    SUP -- "dispatch task" --> NF
+
+    DFKG -. "read distilled case-evidence subgraph" .-> EC
+    DFKG -. "read distilled case-evidence subgraph" .-> LA
+    DFKG -. "read distilled case-evidence subgraph" .-> NF
+
+    EC -. "final observation" .-> SUP
+    LA -. "final observation" .-> SUP
+    NF -. "final observation" .-> SUP
+
+    EC -- "publish finding" --> KAFKA
+    LA -- "publish finding" --> KAFKA
+    NF -- "publish finding" --> KAFKA
+    KAFKA -- "write nodes/edges (findings, Phase B)" --> DFKG
+    DFKG -- "APOC trigger: milestone pattern detection" --> KAFKA
+    KAFKA -- "dead-end signal (Supervisor-side heuristic)" --> SUP
+
+    DFKG -. "read via mcp-dfkg-cypher" .-> TR
+    TR -- "publish timeline edges" --> KAFKA
+    DFKG -. "read timeline" .-> TA
+    TA <-. "retrieve TTP profiles" .-> RAGSRC
+    TA -- "publish attribution tags" --> KAFKA
+
+    DFKG -. "read confirmed preconditions" .-> DAG
+    DAG <-. "daily EPSS scores" .-> EPSS
+    DAG -- "publish residual-risk / exploit-path findings" --> KAFKA
+
+    SUP -- "dispatch — dead-end trigger" --> MF
+    SUP -- "dispatch — dead-end trigger" --> ID
+    SUP -- "dispatch — dead-end trigger" --> CLOUD_K8S
+    SUP -- "dispatch — dead-end trigger" --> MB
+    SUP -- "dispatch — dead-end trigger" --> IT
+
+    MF -. "read via mcp-dfkg-cypher" .-> DFKG
+    ID -. "read via mcp-dfkg-cypher" .-> DFKG
+    CLOUD_K8S -. "read via mcp-dfkg-cypher" .-> DFKG
+    CLOUD_K8S <-. "K8s audit / Falco queries" .-> MCP_CR
+    MB -. "read via mcp-dfkg-cypher" .-> DFKG
+    IT -. "read via mcp-dfkg-cypher" .-> DFKG
+
+    MF -- "publish finding" --> KAFKA
+    ID -- "publish finding" --> KAFKA
+    CLOUD_K8S -- "publish finding" --> KAFKA
+    MB -- "publish finding" --> KAFKA
+    IT -- "publish finding" --> KAFKA
+
+    MF -. "final observation" .-> SUP
+    ID -. "final observation" .-> SUP
+    CLOUD_K8S -. "final observation" .-> SUP
+    MB -. "final observation" .-> SUP
+    IT -. "final observation" .-> SUP
+
+    DFKG -. "full subgraph context" .-> PRO
+    PRO -- "hypothesis + DFKG citations" --> CRI
+    CRI <-. "counter-query" .-> DFKG
+    CRI -- "counter-argument + citations" --> JUD
+    JUD -- "reject — revise" --> PRO
+    JUD -- "checkpoint round state" --> SCRATCH
+    JUD -- "confidence delta less than 0.05 — terminate" --> G1
+
+    G1 -- "pass" --> G2
+    G1 -- "fail" --> HITL
+    G2 -- "pass" --> G3
+    G2 -- "fail" --> HITL
+    G3 -- "pass" --> RPT
+    G3 -- "fail" --> HITL
+
+    HITL -- "analyst decision" --> SUP
+    RPT -- "populate sections" --> REPSPEC
+    DFKG -. "full attack chain" .-> TIMELINEGEN
+    TR -. "stage sequencing" .-> TIMELINEGEN
+    REPSPEC --> OUT
+    TIMELINEGEN --> OUT
+
+    classDef orch fill:#CEE8FB,stroke:#378ADD,stroke-width:1px,color:#0C447C;
+    classDef primary fill:#CDEFE1,stroke:#0F6E56,stroke-width:1px,color:#085041;
+    classDef store fill:#E4E1F8,stroke:#534AB7,stroke-width:1px,color:#3C3489;
+    classDef spec fill:#FDE6D8,stroke:#993C1D,stroke-width:1px,color:#712B13;
+    classDef debate fill:#FBE3EC,stroke:#993556,stroke-width:1px,color:#72243E;
+    classDef guard fill:#FBEFD9,stroke:#854F0B,stroke-width:1px,color:#633806;
+    classDef harness fill:#DDEBDD,stroke:#3B6D11,stroke-width:1px,color:#173404;
+    classDef outp fill:#F1EFE8,stroke:#5F5E5A,stroke-width:1px,color:#2C2C2A;
+
+    class SUP orch;
+    class EC,LA,NF,TR,TA,DAG primary;
+    class DFKG,RAGSRC,OUT,EPSS store;
+    class MF,ID,CLOUD_K8S,MB,IT spec;
+    class PRO,CRI,JUD debate;
+    class G1,G2,G3,HITL guard;
+    class KAFKA,DISTILL,MCP,MCP_CR,SKILLS,RULES,ROUTER,OBS,SCRATCH harness;
+    class IN,RPT,REPSPEC,TIMELINEGEN outp;
+  </pre>
+</div>
+
+<div class="notes">
+  <h2>Full feature coverage matrix</h2>
+  <p>Every feature named in BRAINSTORMING.docx, Overview_of_Project.docx, Specula_Project_Proposal.docx, and every addition made across chat sessions (harness, dynamic timeline, distillation-as-input, roster split) is listed here. Nothing has been dropped — if a feature isn't in this table, flag it and it will be added.</p>
+  <table id="ftable">
+    <tr><th>Code</th><th>Feature</th><th>Node(s) in diagram</th><th>Origin</th></tr>
+    <tr><td class="fcode">F1</td><td>Evidence capture + OCSF normalization, schema-validated ingestion</td><td>IN, KAFKA</td><td>Overview / Specula proposal</td></tr>
+    <tr><td class="fcode">F2</td><td>Evidence collection &amp; correlation agent</td><td>EC</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F3</td><td>Log analysis — suspicious activity detection</td><td>LA</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F4</td><td>Network forensics — traffic anomalies, C2 detection</td><td>NF</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F5</td><td>Timeline reconstruction agent</td><td>TR</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F6</td><td>RAG-enhanced threat attribution, ATT&amp;CK mapping</td><td>TA, RAGSRC</td><td>Brainstorming / Overview / Proposal</td></tr>
+    <tr><td class="fcode">F7</td><td>Forensic knowledge graph — shared memory, entity correlation</td><td>DFKG</td><td>All three source docs</td></tr>
+    <tr><td class="fcode">F8</td><td>Topological GraphRAG (FAISS IndexIVFPQ + APOC bounded BFS)</td><td>DFKG</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F9</td><td>Hybrid / RAG-based forensic memory</td><td>RAGSRC, TA</td><td>Brainstorming / Proposal</td></tr>
+    <tr><td class="fcode">F10</td><td>Multi-agent orchestration (Supervisor / Blackboard)</td><td>SUP</td><td>All three source docs</td></tr>
+    <tr><td class="fcode">F11</td><td>Selective agent dispatch / cost pruning (dead-end-triggered, not unconditional)</td><td>SUP, KAFKA</td><td>Brainstorming ("selective agent pruning")</td></tr>
+    <tr><td class="fcode">F12</td><td>Memory forensics specialist</td><td>MF</td><td>Specula proposal</td></tr>
+    <tr class="new-row"><td class="fcode">F13a</td><td>Identity specialist (AD/Kerberos/cloud-IAM) — split from former "Identity &amp; Cloud" node</td><td>ID</td><td>Split this chat — domain conflation fix</td></tr>
+    <tr class="new-row"><td class="fcode">F13b</td><td>Cloud &amp; container specialist (K8s audit, Falco, Docker) — split from former "Identity &amp; Cloud" node</td><td>CLOUD_K8S</td><td>Split this chat — domain conflation fix; depends on <code>CanonicalEntityResolver</code> cloud/container extension landing first (Master_doc §14.4 item 3)</td></tr>
+    <tr><td class="fcode">F14</td><td>Tiered malware sandboxing (YARA → Speakeasy → CAPE/DRAKVUF)</td><td>MB, MCP</td><td>Overview / Specula proposal</td></tr>
+    <tr><td class="fcode">F15</td><td>LLM code stylometry / authorship attribution</td><td>MB</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F16</td><td>Insider threat agent (LSTM autoencoder, sentiment)</td><td>IT</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F17</td><td>Timestomping detection / temporal normalization (XGBoost)</td><td>LA, SKILLS</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F18</td><td>Argumentative agents / Evidentiary Adversarial Debate (ACH)</td><td>PRO, CRI, JUD</td><td>Overview ("Devil's Advocate") / Specula proposal</td></tr>
+    <tr><td class="fcode">F19</td><td>Confidence scoring / multi-agent verification</td><td>JUD</td><td>Brainstorming / Overview / Proposal</td></tr>
+    <tr><td class="fcode">F20</td><td>Cryptographic provenance — VCT, Merkle trees, Hyperledger anchor</td><td>MCP, OUT</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F21</td><td>Zero-trust guardrail — 3-tier escalation</td><td>G1, G2, G3</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F22</td><td>Human-in-the-loop approval gate</td><td>HITL</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F23</td><td>Dynamic attack graph (Dijkstra, EPSS/CVSS weighting) — now has an owning agent, not just a skill with no dispatch target</td><td>DAG, EPSS</td><td>Specula proposal; agent added this chat (previously orphaned — see Master_doc §14 gap analysis)</td></tr>
+    <tr><td class="fcode">F24</td><td>Blast radius quantification + Smith-Waterman sequence-aligned attribution</td><td>SKILLS, TA</td><td>Specula proposal</td></tr>
+    <tr><td class="fcode">F25</td><td>Automated explainable, court-ready report generation</td><td>RPT, REPSPEC</td><td>Overview / Proposal / Report_format.docx</td></tr>
+    <tr><td class="fcode">F26</td><td>Dynamic, interactive attack timeline artifact</td><td>TIMELINEGEN</td><td>Added earlier chat</td></tr>
+    <tr><td class="fcode">F27</td><td>Sandbox/AutoBnB-RAG simulation validation of team strategy</td><td>OBS</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F28</td><td>Advanced breach scenario benchmarking (supply chain, cloud)</td><td>OBS</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F29</td><td>Collaborative timeline export (Timesketch-style)</td><td>TR, TIMELINEGEN</td><td>Brainstorming / Overview</td></tr>
+    <tr><td class="fcode">F30</td><td>Event backbone hardening — schema registry, dead-letter topics, debounced triggers (scoped to milestone pattern detection only, not dead-end detection, per Master_doc §14.1)</td><td>KAFKA</td><td>Harness discussion</td></tr>
+    <tr><td class="fcode">F31</td><td>MCP server abstraction layer with circuit breakers / vault secrets</td><td>MCP</td><td>Harness discussion</td></tr>
+    <tr><td class="fcode">F32</td><td>Skill library governance — manifest, least-privilege scoping, golden fixtures</td><td>SKILLS</td><td>Harness discussion</td></tr>
+    <tr><td class="fcode">F33</td><td>Rule engine — per-role scoping, hot-reload, degradation policy</td><td>RULES</td><td>Harness discussion</td></tr>
+    <tr><td class="fcode">F34</td><td>ReAct loop runtime — checkpointing, loop budgets, context compaction, scratchpad</td><td>SCRATCH</td><td>Harness discussion</td></tr>
+    <tr><td class="fcode">F35</td><td>Observability, replay harness, model routing with fallback confidence flagging</td><td>OBS, ROUTER</td><td>Harness discussion</td></tr>
+    <tr><td class="fcode">F36</td><td>Harness security hardening — sandboxed skill execution, immutable tool-call audit log</td><td>MCP, SKILLS</td><td>Harness discussion</td></tr>
+    <tr class="new-row"><td class="fcode">F37</td><td>Pre-write entropy distillation as an explicit DFKG-population stage; DFKG as read-input to primary tier (not write-only) — includes the new read-readiness gate mirroring Report Generation's frozen-state check</td><td>DISTILL, DFKG, EC, LA, NF</td><td>Added this chat</td></tr>
+  </table>
+
+  <h2>Open items carried by this revision (not yet resolved — flagged, not silently fixed)</h2>
+  <ul>
+    <li><b>Read-readiness gate is newly specified here but not yet implemented anywhere in the build docs.</b> It needs to be added to <code>Specula_LangGraph_Skeleton_Implementation_Plan.md</code> §4 (Supervisor's dispatch conditional) and to the Stage 2/Stage 9 exit criteria in the staged build roadmap — right now only Report Generation's exit-side "frozen" gate is specified (Master_doc §14.3 item 8); this is the same problem at the entry side and has no owning stage yet.</li>
+    <li><b><code>dead_end_categories</code> enum must change</b> from <code>"memory" | "identity" | "cloud" | "malware" | "insider"</code> to <code>"memory" | "identity" | "cloud_container" | "malware" | "insider"</code> to match the ID/CLOUD_K8S split — a breaking change to the state schema in the LangGraph skeleton, not just a diagram relabel.</li>
+    <li><b><code>mcp-container-runtime</code> is now drawn</b> (wraps Falco/K8s audit query interface) and wired to <code>CLOUD_K8S</code>, but it still needs to be formally added to harness §9.2's MCP server list in the source docs — this diagram is currently ahead of that doc, not the other way around.</li>
+    <li><b><code>CLOUD_K8S</code> agent has a hard prerequisite</b> that isn't satisfied yet: <code>CanonicalEntityResolver</code>'s cloud/container-native resolution path (Master_doc §14.4 item 3) is still an open item. Building this agent before that resolver extension lands risks silent entity-misattribution on ephemeral pod/NAT IPs with no DHCP lease trail.</li>
+    <li><b>Specialist read path shown as <code>mcp-dfkg-cypher</code> reads, not the old "harness read/write"</b> — this is consistent with Master_doc §14.1's correction that specialists never direct-write DFKG, but specialists reading DFKG directly (for their own context) is still fine and unchanged; only the write path was corrected to go via Kafka.</li>
+    <li><b>DAG's dispatch trigger is intentionally NOT dead-end-based</b> — it's placed in Sequential Synthesis because it should run whenever vulnerability-scan data exists for in-scope hosts, independent of whether primary tier dead-ends. This is a deliberate deviation from the other specialists' dispatch pattern and should be called out explicitly in Master_doc §2.4 feature 10's description if/when this diagram's structure is folded back into that doc.</li>
+  </ul>
+
+  <h2>Report section mapping (unchanged from v2, kept for reference)</h2>
+  <p>See <code>specula_architecture_v2.html</code> or the earlier message for the full Report_format.docx section-by-section data source table — it's unchanged here, just omitted to keep this file focused on the feature audit.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    flowchart: { curve: "basis", nodeSpacing: 40, rankSpacing: 60, useMaxWidth: false },
+    themeVariables: {
+      fontFamily: "Segoe UI, Arial, sans-serif",
+      fontSize: "13px",
+      primaryTextColor: "#1a1a1a",
+      lineColor: "#6b6b6b"
+    }
+  });
+
+  function filterTable(q) {
+    const rows = document.querySelectorAll("#ftable tr");
+    const query = q.trim().toLowerCase();
+    rows.forEach((r, i) => {
+      if (i === 0) return;
+      const text = r.textContent.toLowerCase();
+      r.classList.toggle("hl", query.length > 0 && text.includes(query));
+    });
+  }
+</script>
+</body>
+</html>

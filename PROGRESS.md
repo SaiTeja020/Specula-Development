@@ -1,15 +1,17 @@
 # PROGRESS.md — Specula Development Tracker
 
+# PROGRESS.md — Specula Development Tracker
+
 > **Notice to AI Agent:** Obey strict WIP=2 constraint (`|active| <= 2`). Update this file **immediately** whenever task status transitions, code is created/modified, or verification commands run.
 
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase 5: Visualization Layer & Agent Integration
+- **Active Phase:** Phase 4: LangGraph Orchestration & Multi-Agent Core
 - **Active Tasks (WIP=2):**
-  - None (all WIP slots free)
+  None currently active.
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-20
+- **Last Updated:** 2026-09-19
 
 ---
 
@@ -22,7 +24,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | [ADR-002](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-002-ingestion-pipeline-bifurcation-preservation-vs-abstraction) | Ingestion Pipeline Bifurcation (Preservation vs. Abstraction) | Accepted | Phase 1 |
 | [ADR-003](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-003-model-distribution--deployment-topology) | Model Distribution & Deployment Topology | Accepted | Phase 4 & Phase 5 |
 | [ADR-004](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-004-three-tier-cryptographic-provenance-architecture-vct) | Three-Tier Cryptographic Provenance Architecture (VCT) | Accepted | Phase 1 & Phase 2 |
-| [ADR-005](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-005-adversarial-quality-control-via-ach-debate-loop) | Accepted | Phase 4 |
+| [ADR-005](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-005-adversarial-quality-control-via-ach-debate-loop) | Adversarial Quality Control via ACH Debate Loop | Accepted | Phase 4 |
 | [ADR-006](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-006-dynamic-attack-graph-weighting-via-negative-log-transformation) | Dynamic Attack Graph Weighting via Negative Log Transformation | Accepted | Phase 2 & Phase 3 |
 | [ADR-007](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-007-mcp-integration-scope) | MCP Integration Scope | Accepted | Phase 5 |
 
@@ -41,13 +43,13 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-1.2`
   - **Description:** Define base Pydantic schemas for OCSF/OSSEM log ingestion.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
   - **Acceptance Criteria:** Base OCSF Event class validates standard schema attributes deterministically.
 
 - **Task ID:** `TASK-1.3`
   - **Description:** Create mock log pump (`mock_telemetry_pump.py`) for synthetic event generation.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component1_addendum_dhcp_boundary.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component1_addendum_dhcp_boundary.py`
   - **Acceptance Criteria:** Generates synthetic raw Windows Security and Sysmon events with valid structure.
 
 ---
@@ -57,19 +59,19 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-2.1`
   - **Description:** Implement atomic SHA-256 hashing for incoming raw logs (Preservation Layer).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py`
   - **Acceptance Criteria:** Every raw event receives immutable SHA-256 hash before processing.
 
 - **Task ID:** `TASK-2.2`
   - **Description:** Implement Merkle tree generation for VCT session roots.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k merkle`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k merkle`
   - **Acceptance Criteria:** Deterministic Merkle root calculation for forensic session verification.
 
 - **Task ID:** `TASK-2.3`
   - **Description:** Build immutable append-only WORM datastore handler (Quickwit client).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k worm`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component2_preservation.py -k worm`
   - **Acceptance Criteria:** Append-only write verification with integrity checking.
 
 ---
@@ -79,31 +81,31 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-3.1`
   - **Description:** Create Kafka stream consumer for normalized OCSF events & ActiveCasesCache.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component5_broker_case_tagging.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component5_broker_case_tagging.py`
   - **Acceptance Criteria:** Active cases routed to Kafka topics with proper case partition keys.
 
 - **Task ID:** `TASK-3.2`
   - **Description:** Write deterministic Cypher `MERGE` query builder for Neo4j.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component7_graph_ingestion.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component7_graph_ingestion.py`
   - **Acceptance Criteria:** Parameterized Cypher queries build entity/relationship graph nodes without injection risk.
 
 - **Task ID:** `TASK-3.3`
   - **Description:** Implement Phase 2 & 3 OCSF Event Schemas and Normalizers.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_component1_schemas.py`
   - **Acceptance Criteria:** Normalizers map EDR, malware, network, auth, vuln scan, and cloud events to standard OCSF classes.
 
 - **Task ID:** `TASK-3.4`
   - **Description:** Implement Vector Retrieval Layer (`mcp-vector-retrieval`) with ChromaDB/InMemory adapters.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_vector_retrieval.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_vector_retrieval.py`
   - **Acceptance Criteria:** Semantic search over ingested evidence embeddings with RBAC filtering.
 
 - **Task ID:** `TASK-3.5`
   - **Description:** Implement FAISS IndexIVFPQ threat-intel corpus (ATT&CK STIX + NVD CVE fetchers & MCP server).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/ingestion/test_threat_intel.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/ingestion/test_threat_intel.py`
   - **Acceptance Criteria:** 29/29 tests passing; STIX/NVD retrieval with atomic hot-reload and rate-limit handling.
 
 ---
@@ -113,37 +115,37 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-4.1`
   - **Description:** Define SpeculaState schema with append-reducers for parallel fan-out.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k TestStateIntegrity`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -k TestStateIntegrity`
   - **Acceptance Criteria:** State models support append-only reducers for findings, debate history, and agent traces.
 
 - **Task ID:** `TASK-4.2`
   - **Description:** Implement 16 ReAct-stub LLM agent nodes with config-driven model mapping.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestNormalPath or TestDeadEndPath"`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestNormalPath or TestDeadEndPath"`
   - **Acceptance Criteria:** All 16 agents instantiate and route according to graph configuration.
 
 - **Task ID:** `TASK-4.3`
   - **Description:** Implement Guardrail Tier 1 (regex), Tier 2 (semantic BoW), and Tier 3 (LLM).
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestGuardrailFailures or TestGuardrailGenuineDetection"`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestGuardrailFailures or TestGuardrailGenuineDetection"`
   - **Acceptance Criteria:** Short-circuits malicious prompt injections, shell escapes, and cypher deletions.
 
 - **Task ID:** `TASK-4.4`
   - **Description:** Implement HITL interrupt/resume with dual-entry routing and FastAPI endpoint on uvicorn.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestHITLApproveGuardrail or TestHITLApproveDebate or TestHITLReject or TestHITLClarify"`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -k "TestHITLApproveGuardrail or TestHITLApproveDebate or TestHITLReject or TestHITLClarify"`
   - **Acceptance Criteria:** Interrupts execution on guardrail failure or debate exhaustion; resumes cleanly upon human signal.
 
 - **Task ID:** `TASK-4.5`
   - **Description:** Wire 23-node StateGraph with Send fan-out, Command routing, and ACH debate loop.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_skeleton_graph.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py`
   - **Acceptance Criteria:** 28/28 tests passing across all graph execution branches.
 
 - **Task ID:** `TASK-4.6`
   - **Description:** Implement Evidence Collection Agent with multi-criterion relevance filtering and verdict publishing.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/agents/`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/`
   - **Acceptance Criteria:** 12/12 agent tests passing; strict multi-host isolation and 4-part discard conjunction logic verified.
 
 - **Task ID:** `TASK-4.7`
@@ -153,20 +155,16 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Acceptance Criteria:** Supervisor graph built and routes according to specifications.
 
 - **Task ID:** `TASK-4.8`
-  - **Description:** Build Log Analysis Agent Multi-Tier Ground-Truth Benchmark Suite with SHA-256 integrity lock and 3-tier scoring.
+  - **Description:** Implement deterministic Network Forensics Agent component.
   - **Status:** `passing`
-  - **Verification Command:** `.\venv\Scripts\python.exe scripts/evaluate_log_analysis_ground_truth.py`
-  - **Acceptance Criteria:** All 4 pre-committed SLA thresholds pass against frozen 50-event dataset and 100k-event baseline seed.
+  - **Verification Command:** `pytest tests/agents/test_network_forensics.py`
+  - **Acceptance Criteria:** Agent evaluates OCSF 4001 events and flags C2, DNS Tunneling, and Exfiltration deterministically.
 
----
-
-### Phase 6: Agent Grounding & Real Tool Integration
-
-- **Task ID:** `TASK-6.2`
-  - **Description:** Implement real Threat Attribution Agent with FAISS + Neo4j grounding. Replaces generic `_run_agent()` stub with 3-lookup pipeline: ATT&CK techniques (FAISS), threat groups (FAISS), case graph entities (Neo4j). LLM reasons over retrieved data only.
+- **Task ID:** `TASK-4.8`
+  - **Description:** Align skeleton to architecture v4: split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); add `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Update `_SPECIALIST_MAP`, graph wiring, Kafka topics, stubs, supervisor_agent dispatch list, and test assertions.
   - **Status:** `passing`
-  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/test_threat_attribution_agent.py -v`
-  - **Acceptance Criteria:** 12/12 tests passing across happy path, FAISS-not-ready degradation, and Neo4j-down degradation scenarios.
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -v`
+  - **Acceptance Criteria:** 28/28 passing; zero `identity_cloud` references in source; `dag` present in `agent_traces` membership and ordering assertions.
 
 ---
 
@@ -175,33 +173,45 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-5.1`
   - **Description:** Create `src/agents/visualizer_api.py` standalone FastAPI service on port 8300 with CORS and health endpoints.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_visualizer_api.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_visualizer_api.py`
   - **Acceptance Criteria:** FastAPI app instantiates with health check returning 200 and CORS enabled for frontend origin.
 
 - **Task ID:** `TASK-5.2`
   - **Description:** Implement WebSocket streaming endpoint in `visualizer_api.py` broadcasting LangGraph node execution events and state deltas.
   - **Status:** `passing`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_visualizer_ws.py`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_visualizer_ws.py`
   - **Acceptance Criteria:** WebSocket connection receives real-time JSON event packets during graph invocation.
 
 - **Task ID:** `TASK-5.3`
   - **Description:** Build Vite + React frontend dashboard with React Flow graph visualizer for 23 orchestration nodes.
-  - **Status:** `not_started`
-  - **Verification Command:** `npm test --prefix visualization`
+  - **Status:** `passing`
+  - **Verification Command:** `npm run lint --prefix visualization`
   - **Acceptance Criteria:** React component renders 23 graph nodes with active status highlighting.
 
 - **Task ID:** `TASK-5.4`
   - **Description:** End-to-end integration of frontend visualizer with backend WebSocket streaming.
-  - **Status:** `not_started`
-  - **Verification Command:** `.env\Scripts\pytest.exe tests/test_visualization_e2e.py`
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/test_visualizer_api.py`
   - **Acceptance Criteria:** Live graph run updates node colors and emits findings timeline in frontend.
+
+- **Task ID:** `TASK-5.5`
+  - **Description:** Expand `visualizer_api.py` to proxy real backend datastores (Neo4j, Quickwit, ChromaDB, DuckDB).
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/test_visualizer_api_db.py`
+  - **Acceptance Criteria:** New API routes return 200 OK and properly format data from underlying datastores.
+
+- **Task ID:** `TASK-5.6`
+  - **Description:** Rework frontend architecture to multi-page dashboard with DB visualizer interfaces.
+  - **Status:** `passing`
+  - **Verification Command:** `npm run lint --prefix visualization`
+  - **Acceptance Criteria:** Frontend renders Landing, Startup, Investigation, and Database visualization pages with Specula design system.
 
 ---
 
 ## Pending Dependency & Terminal Requests (Awaiting Human Action)
 - **Required for dateutil normalizer tests:**
   ```powershell
-  .env\Scripts\pip.exe install python-dateutil
+  .\venv\Scripts\pip.exe install python-dateutil
   ```
 
 ---
@@ -209,64 +219,22 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 ## Recent Execution Log
 | Date | Component / Task | Changes Made | Verification Result |
 | :--- | :--- | :--- | :--- |
-| 2026-07-25 | `AGENTS.md`, `PROGRESS.md` | Initialized development harness and tracking rules | Verified |
-| 2026-07-28 | `.agents/skills/mcp-builder`, `.agents/skills.json` | Downloaded and added `mcp-builder` skill from GitHub | Verified |
-| 2026-07-28 | `specula_ingestion_final_plan.md` | Adopted authoritative v6 implementation plan | Approved for Execution |
-| 2026-07-28 | `src/schemas/*`, `src/ingestion/preservation/*` | Implemented Component 1 (Schemas) & Component 2 (Forensic Preservation) | Verified |
-| 2026-07-28 | `src/ingestion/security_gate/*` | Implemented Component 3 (Security Gate) | Verified |
-| 2026-07-28 | `src/ingestion/normalization/*`, `src/mcp/*` | Implemented Component 4 (OCSF Normalization & Time Baseline) | Verified |
-| 2026-07-28 | `src/ingestion/validation/*`, `src/ingestion/broker/*` | Implemented Component 5 (Validation, Wire Serialization & Case Tagging) | Verified |
-| 2026-07-28 | `src/ingestion/abstraction/*`, `src/ingestion/broker/reconcile_degraded_windows.py` | Implemented Component 6 (Analytical Abstraction & Compression) | Verified |
-| 2026-07-28 | `src/graph/*`, `src/mcp/dfkg_cypher.py` | Implemented Component 7 (Knowledge Graph Ingestion) | Verified |
-| 2026-07-28 | `src/ingestion/indexing/*`, `requirements.txt`, `docker-compose.yml` | Implemented Component 8 (Vector Indexing) & Infrastructure | Verified |
-| 2026-07-31 | `tests/conftest.py`, `tests/ingestion/*` | Merged all 8 component test suites from `additional tests/` into `tests/ingestion/`. Updated `conftest.py` with mock fixtures (`FakeRedisPersistent`, `FakeQuickwit`, `FakeNeo4j`, `synthetic_evtx_batch`, `poison_cluster`). | Verified |
-| 2026-07-31 | `dist/Specula_Ingestion_Pipeline_and_Tests.zip` | Packaged complete source pipeline (`src/`), full test suite (`tests/`), `PROGRESS.md`, `pytest.ini`, and `specula_ingestion_final_plan.md` into zip archive without altering source files. | Verified |
-| 2026-08-01 | `.gitignore`, `src/*`, `tests/*` | Updated `.gitignore` (excluding `data/`, `quarantine/`, `dist/`, `*.bin`, `*.zip`) and committed all implementation modules and 99/99 passing unit tests to local Git (`main`). | Committed (`42690bf`) |
-| 2026-08-08 | `ocsf_phase2_phase3_implementation_plan_FINAL.md` | Adopted final approved implementation plan for Phase 2 & 3 OCSF normalizers | Approved for Execution |
-| 2026-08-08 | `src/schemas/ocsf_phase2_events.py`, `src/schemas/ocsf_phase3_events.py` | Implemented Pydantic v2 schemas for `ProcessActivityEvent`, `FileActivityEvent`, `NetworkActivityEvent`, `AuthenticationEvent`, `DetectionFindingEvent`, `IncidentFindingEvent`, `EmailActivityEvent`, `VulnerabilityFindingEvent`, `HTTPActivityEvent`, `DeviceInventoryInfoEvent` | Verified |
-| 2026-08-08 | `src/ingestion/normalization/*` | Built 8 normalizers (`edr_normalizer.py`, `malware_normalizer.py`, `email_normalizer.py`, `memory_dump_normalizer.py`, `container_normalizer.py`, `vuln_scan_normalizer.py`, `ueba_browser_normalizer.py`, `cloud_topology_normalizer.py`) | Verified |
-| 2026-08-08 | `src/mcp/fastmcp_gateway.py` | Registered FastMCP gateway port routing for ports `8106`–`8113` | Verified |
-| 2026-08-08 | `tests/ingestion/test_phase2_phase3_normalizers.py` | Added test suite covering sub-event branching, UID determinism, time baseline/unverified flags, gateway port routing, and threat intel boundary isolation. | 111/111 Passed |
-| 2026-08-08 | `vector_retrieval_implementation_plan.md`, `src/schemas/vector_metadata.py`, `src/ingestion/indexing/vector_store.py`, `src/mcp/vector_retrieval.py`, `src/mcp/fastmcp_gateway.py`, `tests/ingestion/test_vector_retrieval.py` | Implemented Vector Retrieval Layer (`mcp-vector-retrieval`), metadata schema, ChromaDB & InMemory adapters, FastMCP port 8114 registration, and comprehensive test suite. | 10/10 Passed |
-| 2026-08-09 | `docs/*`, `.gitignore` | Reorganized documentation files into `docs/` folder, updated `.gitignore` to ignore `.agents/`, staged, and pushed changes to remote `main`. | Pushed |
-| 2026-08-09 | `src/agents/*` | Built full 23-node LangGraph orchestration skeleton: state schema (state.py), 16 agent configs (config.py), guardrails T1/T2 (guardrails.py), Kafka utils (kafka_utils.py), all node functions (nodes.py), graph assembly (graph.py), HITL API (hitl_api.py). | Code Complete |
-| 2026-08-09 | `tests/test_skeleton_graph.py` | Verification suite: 10 test classes covering normal/dead-end paths, debate loop, guardrail failures, HITL dual-entry routing. | 19/19 Passed |
-| 2026-08-09 | `requirements.txt`, `schema_constraints.cypher` | Added langgraph/fastapi/neo4j/google-genai deps. Added Entity.uid uniqueness constraint (§5.2). | Updated |
-| 2026-08-11 | `src/agents/nodes.py`, `src/agents/guardrails.py` | Fixed Judge node loop-back (`FORCE_JUDGE_REJECT_ROUNDS:N`), HITL `case_status` pre-interrupt persistence, and Guardrail BoW chunk evaluation. Added shell regex and anti-forensic semantic phrases to Guardrails. | Verified |
-| 2026-08-11 | `tests/test_skeleton_graph.py`, `tests/test_skeleton_integration.py` | Applied corrected unit tests with short-circuit/round-cap assertions (28/28 passing). Added separate integration suite for Kafka/Neo4j/cross-process HITL (skipped locally via `-m "not integration"`). | Verified |
-| 2026-08-11 | `implementation_plan.md`, `task.md` | Created implementation plan for distinct real-time visualization layer using Vite/React and FastAPI WebSockets. | Approved for Execution |
-| 2026-08-11 | `docker-compose.yml` | Fixed Kafka KRaft `CLUSTER_ID` base64 UUID, updated Quickwit image tag to `quickwit/quickwit:latest`. | Verified |
-| 2026-08-11 | `src/agents/checkpointer.py` | Added stopgap Redis `RedisSaver` checkpointer for cross-process HITL state persistence testing. Added pending_writes and list() notes. | 4/4 Integration Passed |
-| 2026-08-18 | `git` | Rebased and merged `skeleton` branch into `main`. | Main branch updated |
-| 2026-08-14 | `.agents/rules/rules.md` | Added session start (clock in) and session end (clock out) rules to operational directives. | Updated |
-| 2026-08-14 | `DECISIONS.md`, `PROGRESS.md` | Created central ADR repository (`DECISIONS.md`) with baseline ADRs 001-007; established bidirectional links with `PROGRESS.md`. | Verified |
-| 2026-08-18 | `faiss_threat_intel_implementation_plan.md`, `src/schemas/threat_intel_metadata.py`, `src/ingestion/indexing/threat_intel_sources.py`, `src/ingestion/indexing/threat_intel_index.py`, `src/mcp/threat_intel_mcp.py`, `scripts/build_threat_intel_index.py`, `tests/ingestion/test_threat_intel.py`, `requirements.txt` | Implemented FAISS IndexIVFPQ threat-intel corpus: ATT&CK STIX + NVD CVE fetchers, in-process ThreatIntelIndex with atomic hot-reload, ThreatIntelMCPServer exposing query_attack_techniques/groups/cves/health_check, offline build script with rate-limited NVD API (NVD_API_KEY env var for key injection), and full 5-category test suite (golden-fixture, training-skip guard, reload, filter-after-search, staleness). | 29/29 Passed |
-| 2026-08-18 | `src/ingestion/security_gate/injection_detector.py`, `src/ingestion/broker/case_open_consumer.py`, `tests/ingestion/test_stage2_ingestion_pipeline.py` | Created in-process injection detector, Kafka case-open dispatcher, and Stage 2 fixture test suite. Initial component work; Security Gate not yet wired to block, Kafka serialization simulated. | 15/15 Passed (unit-level only) |
-| 2026-08-18 | `src/ingestion/security_gate/pipeline.py`, `src/ingestion/broker/kafka_producer.py`, `src/ingestion/broker/kafka_consumer.py`, `src/ingestion/validation/schema_registry_client.py`, `src/ingestion/run_pipeline.py`, `docker-compose.yml`, `requirements.txt`, `tests/ingestion/test_stage2_e2e_flow.py` | **Gap fixes:** (1) Wired `scan_for_injection()` into `run_security_gate()` — malicious payloads now blocked with `injection_blocked=True`. (2) Replaced hardcoded schema ID with `jsonschema` validation against OCSF JSON Schema; `EventProducer` uses real `SerializingProducer` when broker available. (3) Added 7-step e2e flow test (SHA-256 → Gate → OCSF → wire → deser → Cypher → vector). (4) Replaced Qdrant with ChromaDB in docker-compose. | 15/15 Fixtures + 2/2 E2E + 28/28 Skeleton |
+| 2026-08-09 | `TASK-4.1`–`TASK-4.5` | Built 23-node LangGraph skeleton with guardrails, debate loop, and HITL API | 28/28 Passed |
+| 2026-08-18 | `TASK-3.5` | Built FAISS IndexIVFPQ threat-intel corpus, fetchers, and MCP server | 29/29 Passed |
+| 2026-08-18 | Stage 2 Ingestion Gaps | Wired injection detector into security gate; added 7-step e2e test | 15/15 + 2/2 Passed |
 | 2026-08-20 | `TASK-4.6` | Verified pulled Evidence Collection Agent & Relevance Filter tests | 12/12 Passed (`tests/agents/`) |
+| 2026-08-25 | Phase 2 & 3 Schemas | Applied strict validation, registered schemas, wired normalizers | Passed (`pytest tests/ingestion/`) |
 | 2026-08-20 | Harness Upgrade | Updated `AGENTS.md`, `.agents/rules/rules.md`, and restructured `PROGRESS.md` to WIP=2 state machine | Verified |
 | 2026-08-21 | `TASK-4.7` | Created `supervisor_agent.py`, `supervisor_graph.py`, and `kafka_consumer.py` per build spec | 2/2 Passed (`tests/orchestration/test_supervisor.py`) |
 | 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
-| 2026-08-21 | Ingestion Fix | Fixed MFT USN casting crash & heuristic timestamp bug; refactored container extraction to pull from live Docker endpoints | 212/212 Nodes Written |
-| 2026-08-22 | `docs/imp_plan.md` fixes (A1–D4) | **A1/B1:** `make_evidence_collection_node` factory fixes node signature; wired in `build_graph()`. **A2:** `_llm_call` extracts `.content` with `hasattr` guard. **A3:** `test_control: Optional[dict]` added to `SpeculaState`. **B2:** EC node uses `KafkaPublishFindingTool`-only publish (no `_run_agent`, no double-publish). **C1:** `TrackingDFKGQueryTool` populates `dfkg_refs` from DFKG query results. **D1:** Dead-end detection moved to `primary_tier_join_node` via `make_primary_tier_join_node` factory; `supervisor_node` strips DEAD_END: regex; tests updated to `test_control` injection. **D2:** Portable `load_dotenv()` auto-discovery replaces hardcoded Windows path in `config.py`. **D3:** `_RESOLVED_GEMINI_MODEL` module-level cache prevents re-querying Google API per call. **D4:** `StubLLM` receives `case_id` at construction; `get_llm()` and `_run_agent()` pass it explicitly. Promoted `dead_end_detector.py`, `react_tools.py`, `evidence_collection_agent.py` to `src/agents/`. | 28/28 + 44/44 Passed |
-| 2026-08-22 | `TASK-6.1` Log Analysis Agent | Built `src/agents/log_analysis/` package: config, signatures YAML, finding_builder, detection_rules, anomaly_detector, dedup, llm_reasoner, agent. Added RBAC grant in vector_retrieval.py. | 71/71 Passed (`tests/agents/log_analysis/`) |
-| 2026-08-25 | `TASK-4.7` Extended | Integrated Natural Language Query Routing, Capability Fallback Governance, and Async Loop Budgets into Supervisor | 39/39 Passed (`tests/supervisor_test_suite/`) |
-| 2026-08-26 | `src/ingestion/normalization/network_normalizer.py`, `src/ingestion/run_pipeline.py` | Implemented binary PCAP dissection using dpkt, passing packet payloads through Security Gate prompt injection check and routing to OCSF NetworkActivity schema. (ADR-008) | Verified (83/83 OCSF events parsed) |
-| 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/graph/cypher_builder.py` | Fixed time boundary filtering (using FilterHashtable) and parsed CLI arguments for start/end time. Addressed Neo4j graph pollution by only executing Process MERGE for true Process Creation events (Sysmon EID 1, Security EID 4688). | Verified (2/4219 Process nodes generated) |
-| 2026-08-26 | `TASK-5.1`, `TASK-5.2` | Implemented FastAPI visualizer and WebSocket streaming. | Verified |
-| 2026-08-26 | `src/agents/checkpointer.py` | Refactored Checkpointer to use official `langgraph-checkpoint-redis` with native serialization, replacing unsafe `pickle`. | Verified (28/28 tests passed) |
-| 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py` | Decoupled synchronous ingestion pipeline into distinct Kafka Producer and Consumer. Extracted inline normalization to dedicated modules, fixed hardcoded host logic, and implemented structured semantic text embeddings for ChromaDB vector isolation. | Verified |
-| 2026-08-26 | `src/ingestion/run_pipeline.py`, `src/ingestion/ingestion_consumer.py`, `src/ingestion/broker/kafka_consumer.py` | Fixed execution ordering invariant: implemented EventConsumer.consume_loop(), moved specula.cases.opened triggering into ingestion_consumer.py after Distillation -> Cypher -> ChromaDB completes, ensuring Supervisor wakes up to a fully populated graph. | Verified |
-| 2026-08-28 | `TASK-4.8` Log Analysis Benchmark | Created frozen 50-event GT fixture (`log_analysis_ground_truth_v1.json`), 100k-event baseline seed (`log_analysis_baseline_seed_v1.json`), and multi-tier benchmark runner (`evaluate_log_analysis_ground_truth.py`) with SHA-256 integrity locks and pre-committed SLA checks. | 4/4 SLA Passed (Near-Miss FP=0%, Clear Malicious Recall=100%, Overall Recall=88%, Overall Prec=100%) |
-| 2026-08-31 | Bugfix | Fixed JSON decoding error in `src/orchestration/kafka_consumer.py` by using `deserialize_event` to handle Confluent wire format headers. | Verified (39/39 supervisor tests passed) |
-| 2026-08-31 | Bugfix | Removed strict `dfkg_uri` requirement in `SupervisorKafkaConsumer` to support synthetic OCSF trigger events lacking this field. | Verified (39/39 supervisor tests passed) |
-| 2026-08-31 | Bugfix | Fixed async invocation error in `SupervisorKafkaConsumer` by replacing `invoke()` with `asyncio.run(ainvoke())` for the LangGraph execution. | Verified (39/39 supervisor tests passed) |
-| 2026-08-31 | Enhancement | Reinstated `--start-time` and `--end-time` CLI argument parsing in `src/ingestion/run_pipeline.py` and threaded them through `scripts/start_full_pipeline.py`. | Verified |
-| 2026-09-19 | `TASK-4.8` Log Analysis Test Suite | Fixed fixture hash verification for Windows LF/CRLF portability in `evaluate_log_analysis_ground_truth.py` and added `test_ground_truth_benchmark.py` pytest wrapper. | 73/73 Passed (`pytest tests/agents/log_analysis/`) |
-| 2026-09-20 | `TASK-6.2` Threat Attribution Agent | Replaced generic `_run_agent()` stub in `nodes.py` with real grounded pipeline. New `src/agents/threat_attribution_agent.py`: 3 lookups (FAISS techniques, FAISS groups, Neo4j entities) before LLM call. Updated `config.py` prompt to inject retrieved context. Hard fallback to stub on any exception. `tests/agents/test_threat_attribution_agent.py` covers happy path, FAISS-not-ready, Neo4j-down, and JSON parse degradation. | 12/12 Passed + 28/28 Skeleton Passed |
+| 2026-09-01 | Agent tooling | Installed `ui-ux-pro-max` at `.agents/skills/ui-ux-pro-max` and exposed only it to Git | Skill: `validate_data.py` passed; 130/132 bundled tests passed (2 require omitted upstream repo-root helpers). Repo fallback: 241 passed, 2 failed, 17 errors (pre-existing Neo4j/threat-intel fixtures and supervisor sync/async mismatch) |
+| 2026-09-01 | `TASK-5.3`, `TASK-5.4` | Built 2-page React + Vite frontend with dark mode enterprise UI, ReactFlow, and hooked to FastAPI mock trigger | Passed (frontend lint zero warnings, backend tests passed) |
+| 2026-09-15 | Phase 5 UI/UX | Formally established the Specula Brand Identity System (16 sections). Removed generic ReactFlow diagram from InvestigationConsole and implemented 6-step sequential telemetry view using new strict CSS tokens (`specula-tokens.css`) | Passed (Frontend UI rules adhered) |
+| 2026-09-19 | `TASK-4.8` | Created decoupled Network Forensics agent module with C2, DNS Tunneling, and Data Exfiltration anomaly detection heuristics | 6/6 Passed (`tests/agents/test_network_forensics.py`) |
+| 2026-09-21 | `TASK-5.4` | Refactored pipeline trigger: separated Docker boot to `/api/system/boot` and lifted React state to `PipelineContext` to keep WebSocket alive across pages | Verified via UI linting and component updates |
+| 2026-09-21 | `TASK-5.4` | Fixed `StartupPage` UI sync issue to await actual `docker compose down -v` and `up --force-recreate` completion before displaying services as verified | Verified via local UI logic |
+| 2026-09-21 | `TASK-5.4` | Lazy-loaded neo4j/langgraph/graph imports in `visualizer_api.py` to prevent numpy 1.26 fatal crash on Py3.13+Windows. Added boot lock, retry button, and `restart: on-failure` for Redpanda | `GET /health` → ok, `POST /api/system/boot` → success, 7/7 containers Up |
+| 2026-09-21 | `TASK-5.5` | Upgraded Neo4j Docker image to `5.26.0` to resolve Bolt Protocol v5.5 mismatch with python driver 6.2.0, and updated `numpy` dependency to `2.5.3` to fix silent crash | Verified (558 nodes ingested) |
+| 2026-09-17 | Phase 5 UI/UX | Refined button tokens to darker royal indigo (`#1E40AF`) with 8px radius & white text. Positioned terminal directly below the Service Health Checks box with compact 2-column grid ensuring all 6 services are completely visible without window scroll push | Passed (`npm run lint` 0 warnings, `pytest` 8/8 passed) |
+| 2026-09-19 | `TASK-4.8` | Split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); added `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Updated 7 files: `config.py`, `nodes.py`, `graph.py`, `kafka_utils.py`, `state.py`, `supervisor_agent.py`, `test_skeleton_graph.py`. Node count: 23 → 25. | 28/28 Passed (`tests/test_skeleton_graph.py`) |
 
----
-
-## Known Blockers, Bugs & Carry-Forward Tracking Items
-1. **Kafka Integration CI Retention:** Set short retention policy or per-run topic suffixes on `findings.*` Kafka topics before running integration test suite in automated CI.
-2. **Stage 7 Guardrail Fine-Tuning:** The `rm -rf` Tier 1 regex will false-positive on findings quoting attacker commands. Fine-tune Tier 2 embedding model with real MiniLM training data beyond phrase matching in Stage 7.

@@ -1,6 +1,6 @@
 """LangGraph StateGraph assembly — §4 graph topology & conditional routing.
 
-23 nodes, wired per the implementation plan's control-flow topology.
+25 nodes, wired per the implementation plan's control-flow topology.
 Uses Send for primary-tier and specialist fan-out, Command for debate
 loop routing and guardrail/HITL branching.
 """
@@ -11,20 +11,22 @@ from langgraph.types import Send
 
 from .nodes import (
     case_closed_rejected_node,
+    cloud_container_node,
     critic_node,
+    dag_node,
     final_output_join_node,
     guardrail_tier1_node,
     guardrail_tier2_node,
     guardrail_tier3_node,
     hitl_node,
-    identity_cloud_node,
+    identity_node,
     insider_threat_node,
     judge_node,
     log_analysis_node,
     malware_stylometry_node,
     memory_forensics_node,
     network_forensics_node,
-    make_primary_tier_join_node,  # D1: factory replaces the no-op node
+    make_primary_tier_join_node,
     proponent_node,
     report_generation_node,
     specialist_join_node,
@@ -33,7 +35,7 @@ from .nodes import (
     timeline_artifact_generation_node,
     timeline_reconstruction_node,
 )
-from .evidence_collection_agent import make_evidence_collection_node  # B1: factory
+from .evidence_collection_agent import make_evidence_collection_node
 from .state import SpeculaState
 
 
@@ -52,10 +54,11 @@ def _supervisor_primary_dispatch(state: dict) -> list[Send]:
 
 
 _SPECIALIST_MAP = {
-    "memory":  "memory_forensics",
-    "identity": "identity_cloud",
-    "malware": "malware_stylometry",
-    "insider": "insider_threat",
+    "memory":          "memory_forensics",
+    "identity":        "identity",          # F13a — split from identity_cloud
+    "cloud_container": "cloud_container",   # F13b — split from identity_cloud
+    "malware":         "malware_stylometry",
+    "insider":         "insider_threat",
 }
 
 
@@ -85,31 +88,28 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
     """Assemble and compile the full 23-node orchestration graph.
 
     Args:
-        checkpointer:  LangGraph checkpointer instance. Required for HITL
-                       interrupt/resume. Use InMemorySaver for tests,
-                       Redis-backed for production (§5.3).
+        checkpointer: LangGraph checkpointer instance. Required for HITL
+                      interrupt/resume. Use InMemorySaver for tests,
+                      Redis-backed for production (§5.3).
         redis_client:  redis.Redis instance for the dead-end heuristic and
-                       evidence-collection scratchpad. None is safe for unit
-                       tests — degrades gracefully (test_control injection
-                       still works; real heuristic is skipped).
+                       evidence-collection scratchpad.
         neo4j_driver:  neo4j.Driver for DFKG queries from evidence_collection.
-                       None is safe for tests — DFKG tool degrades to
-                       NotYetImplementedTool with a clear observation message.
     """
     builder = StateGraph(SpeculaState)
 
     # ---- Add all 23 nodes ----
 
-    # 16 ReAct-stub LLM agent nodes
+    # 18 ReAct-stub LLM agent nodes
     builder.add_node("supervisor", supervisor_node)
-    # B1: evidence_collection gets the real ReAct loop; factory closes over infra clients
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", log_analysis_node)
     builder.add_node("network_forensics", network_forensics_node)
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
     builder.add_node("threat_attribution", threat_attribution_node)
+    builder.add_node("dag", dag_node)                           # F23 — Dynamic Attack Graph
     builder.add_node("memory_forensics", memory_forensics_node)
-    builder.add_node("identity_cloud", identity_cloud_node)
+    builder.add_node("identity", identity_node)                 # F13a — Identity specialist
+    builder.add_node("cloud_container", cloud_container_node)   # F13b — Cloud & Container specialist
     builder.add_node("malware_stylometry", malware_stylometry_node)
     builder.add_node("insider_threat", insider_threat_node)
     builder.add_node("proponent", proponent_node)
@@ -127,7 +127,6 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
     builder.add_node("hitl", hitl_node)
 
     # 4 control-only nodes
-    # D1: primary_tier_join is now a factory node with real detect_dead_end logic
     builder.add_node("primary_tier_join", make_primary_tier_join_node(redis_client))
     builder.add_node("specialist_join", specialist_join_node)
     builder.add_node("final_output_join", final_output_join_node)
@@ -157,7 +156,8 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
         [
             "timeline_reconstruction",
             "memory_forensics",
-            "identity_cloud",
+            "identity",
+            "cloud_container",
             "malware_stylometry",
             "insider_threat",
         ],
@@ -165,7 +165,8 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
 
     # Specialist agents -> join
     builder.add_edge("memory_forensics", "specialist_join")
-    builder.add_edge("identity_cloud", "specialist_join")
+    builder.add_edge("identity", "specialist_join")
+    builder.add_edge("cloud_container", "specialist_join")
     builder.add_edge("malware_stylometry", "specialist_join")
     builder.add_edge("insider_threat", "specialist_join")
 
@@ -175,8 +176,9 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None):
     # Sequential synthesis
     builder.add_edge("timeline_reconstruction", "threat_attribution")
 
-    # Threat attribution -> debate subgraph entry
-    builder.add_edge("threat_attribution", "proponent")
+    # Threat attribution -> DAG (Dynamic Attack Graph) -> debate entry
+    builder.add_edge("threat_attribution", "dag")
+    builder.add_edge("dag", "proponent")
 
     # Debate loop (linear within a round)
     builder.add_edge("proponent", "critic")

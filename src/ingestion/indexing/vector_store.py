@@ -177,10 +177,13 @@ class ChromaVectorStore(VectorStoreAdapter):
 
         try:
             import chromadb
+            import os
             if persist_dir:
                 self.client = chromadb.PersistentClient(path=persist_dir)
             else:
-                self.client = chromadb.Client()
+                host = os.environ.get("CHROMA_HOST", "localhost")
+                port = int(os.environ.get("CHROMA_PORT", 8000))
+                self.client = chromadb.HttpClient(host=host, port=port)
             self.collection = self.client.get_or_create_collection(name=collection_name)
             logger.info(f"Initialized ChromaDB collection: {collection_name}")
         except Exception as e:

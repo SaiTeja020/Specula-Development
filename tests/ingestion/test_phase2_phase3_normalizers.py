@@ -37,6 +37,9 @@ from src.ingestion.normalization import (
     vuln_scan_normalizer,
 )
 from src.mcp.fastmcp_gateway import normalize_log_batch
+from src.schemas.entity_resolver import CanonicalEntityResolver
+
+dummy_resolver = CanonicalEntityResolver()
 
 
 def test_edr_normalizer_subevent_branching():
@@ -49,7 +52,7 @@ def test_edr_normalizer_subevent_branching():
         "host_name": "HOST-01",
         "alert_title": "Suspicious PowerShell Execution",
     }
-    events = edr_normalizer.normalize(raw_proc, trace_id="trace-123", case_id="CASE-1")
+    events = edr_normalizer.normalize(raw_proc, trace_id="trace-123", case_id="CASE-1", entity_resolver=dummy_resolver)
     assert len(events) == 2
     assert isinstance(events[0], ProcessActivityEvent)
     assert isinstance(events[1], DetectionFindingEvent)
@@ -63,8 +66,8 @@ def test_edr_uid_determinism():
     payload_a = {"event_type": "file_write", "file_name": "malware.exe", "host_name": "H1", "timestamp": "2026-08-08T12:00:00Z"}
     payload_b = {"timestamp": "2026-08-08T12:00:00Z", "host_name": "H1", "file_name": "malware.exe", "event_type": "file_write"}
     
-    events_a = edr_normalizer.normalize(payload_a, trace_id="t1", case_id="C1")
-    events_b = edr_normalizer.normalize(payload_b, trace_id="t1", case_id="C1")
+    events_a = edr_normalizer.normalize(payload_a, trace_id="t1", case_id="C1", entity_resolver=dummy_resolver)
+    events_b = edr_normalizer.normalize(payload_b, trace_id="t1", case_id="C1", entity_resolver=dummy_resolver)
     
     assert events_a[0].uid == events_b[0].uid
 

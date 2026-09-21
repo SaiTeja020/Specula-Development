@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { usePipeline } from '../contexts/PipelineContext';
 
 const STAGES = [
   { 
@@ -33,124 +34,24 @@ const STAGES = [
   }
 ];
 
-const mapNodeToStage = (nodeId) => {
-  if (['__start__'].includes(nodeId)) return 0;
-  if (['evidence_collection'].includes(nodeId)) return 1; // Mapped here for demonstration to bridge the gap
-  if (['supervisor', 'log_analysis', 'network_forensics', 'primary_tier_join', 'memory_forensics', 'identity_cloud', 'malware_stylometry', 'insider_threat', 'specialist_join'].includes(nodeId)) return 2;
-  if (['timeline_reconstruction', 'threat_attribution'].includes(nodeId)) return 3;
-  if (['proponent', 'critic', 'judge'].includes(nodeId)) return 4;
-  if (['guardrail_tier1', 'guardrail_tier2', 'guardrail_tier3', 'hitl', 'report_generation', 'timeline_artifact_generation', 'case_closed_rejected', 'final_output_join', '__end__'].includes(nodeId)) return 5;
-  return -1;
-};
-
 export default function InvestigationConsole() {
-  const [caseId] = useState('CASE-2026-0915-ALPHA');
-  const [isStarted, setIsStarted] = useState(false);
-  const [caseStatus, setCaseStatus] = useState('IDLE');
-  
-  const [activeStage, setActiveStage] = useState(-1);
-  const [stageLogs, setStageLogs] = useState({ 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] });
-  const [hitlData, setHitlData] = useState(null);
+  const { 
+    isStarted, caseStatus, activeStage, stageLogs, hitlData, 
+    handleStart, handleHitlAction 
+  } = usePipeline();
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [maxEvents, setMaxEvents] = useState(2000);
   const [excludePorts, setExcludePorts] = useState('80,443,53');
 
-  // Connect to WebSocket only when started
-  useEffect(() => {
-    if (!isStarted) return;
-    
-    const ws = new WebSocket('ws://localhost:8300/api/graph/stream');
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const { type, payload } = data;
-
-      if (type === 'pipeline_started') {
-        setActiveStage(0);
-        appendLog(0, `[INGEST] Pipeline initialized for ${payload.case_id}`);
-      } else if (type === 'node_active') {
-        const stageIndex = mapNodeToStage(payload.node);
-        if (stageIndex >= 0) {
-          setActiveStage(stageIndex);
-          appendLog(stageIndex, `[NODE ACTIVE] ${payload.node.toUpperCase()} :: ${payload.data?.status || 'Processing'}`);
-        }
-
-        if (payload.node === 'hitl') {
-          setHitlData({
-            confidence: 0.65,
-            blastRadius: '14 Hosts',
-            tamperCheck: 'VCT VALID'
-          });
-        }
-      } else if (type === 'node_complete') {
-        const stageIndex = mapNodeToStage(payload.node);
-        if (stageIndex >= 0) {
-          appendLog(stageIndex, `[OK] ${payload.node.toUpperCase()} completed successfully.`);
-        }
-        if (payload.node === 'hitl') setHitlData(null);
-
-      } else if (type === 'run_complete') {
-        setCaseStatus('COMPLETED');
-        setActiveStage(6); // Moves beyond the last stage
-        appendLog(5, `[SYSTEM] Run Completed: Case ${payload.case_id}`);
-      }
-    };
-
-    return () => ws.close();
-  }, [isStarted]);
-
-  const appendLog = (stageIdx, msg) => {
-    setStageLogs(prev => ({
-      ...prev,
-      [stageIdx]: [...(prev[stageIdx] || []), { time: new Date().toLocaleTimeString(), msg }]
-    }));
-  };
-
-  const handleStart = async () => {
-    setIsStarted(true);
-    setCaseStatus('RUNNING');
-    setActiveStage(0);
-    try {
-      const res = await fetch('http://localhost:8300/api/trigger_pipeline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          case_id: caseId,
-          start_date: startDate,
-          end_date: endDate,
-          max_events: maxEvents,
-          exclude_ports: excludePorts
-        })
-      });
-      
-      const data = await res.json();
-      if (data.status === 'error') {
-        setIsStarted(false);
-        setCaseStatus('IDLE');
-        setActiveStage(-1);
-        
-        if (data.message === 'docker_offline') {
-          alert('Docker Engine is offline. Please start Docker Desktop and try again.');
-        } else if (data.message === 'docker_cli_not_found') {
-          alert('Docker CLI not found. Please ensure Docker is installed and in your PATH.');
-        } else {
-          alert(`Failed to start pipeline: ${data.message}`);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to trigger pipeline", e);
-      setIsStarted(false);
-      setCaseStatus('IDLE');
-      setActiveStage(-1);
-      alert('Network error communicating with the backend API.');
-    }
-  };
-
-  const handleHitlAction = (action) => {
-    appendLog(5, `[HITL] Analyst Action: ${action.toUpperCase()}`);
-    setHitlData(null);
+  const onLaunch = () => {
+    handleStart({
+      start_date: startDate,
+      end_date: endDate,
+      max_events: maxEvents,
+      exclude_ports: excludePorts
+    });
   };
 
   return (
@@ -189,7 +90,7 @@ export default function InvestigationConsole() {
                 <input type="text" value={excludePorts} onChange={e => setExcludePorts(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '150px', fontSize: '0.85rem' }} />
               </label>
             </div>
-            <button className="primary-btn" onClick={handleStart} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
+            <button className="primary-btn" onClick={onLaunch} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
           </div>
         )}
       </div>

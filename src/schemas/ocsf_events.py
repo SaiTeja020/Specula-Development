@@ -25,7 +25,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from pydantic import Field
+from pydantic import BaseModel, Field, field_validator
 
 from src.schemas.ocsf_base import OCSFBaseEvent
 
@@ -72,96 +72,62 @@ class ProcessActivity(OCSFBaseEvent):
         description="Canonical host UID from entity resolver.",
     )
 
+    @field_validator("process_name", mode="before")
+    @classmethod
+    def reject_empty_process_name(cls, v):
+        if v is not None and str(v).strip() == "":
+            raise ValueError("ProcessActivity cannot have an empty process_name")
+        return v
+
 
 # ─── Network Activity (OCSF class 4001) ──────────────────────────────
 
 
-class NetworkActivity(OCSFBaseEvent):
-    """
-    OCSF Network Activity event. Maps Zeek conn/DNS/HTTP logs,
-    Suricata IDS alerts, and raw PCAP metadata.
-    """
+class NetworkEndpoint(BaseModel):
+    ip_address: Optional[str] = None
+    port: Optional[int] = None
+    canonical_host_uid: Optional[str] = Field(
+        None, 
+        description="Resolved via DHCP lease time-bounds for ephemeral IPs."
+    )
 
+    @field_validator("ip_address", "canonical_host_uid", mode="before")
+    @classmethod
+    def reject_invalid_network_strings(cls, v):
+        if v is not None:
+            val_str = str(v).strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"NetworkEndpoint fields cannot be empty or '{val_str}'")
+        return v
+
+class UserIdentity(BaseModel):
+    name: str
+    domain: Optional[str] = None
+    sid: Optional[str] = None
+
+class NetworkActivity(OCSFBaseEvent):
     class_uid: int = Field(default=4001, frozen=True)
     category_uid: int = Field(default=4, frozen=True)  # Network Activity
-
-    # Network-specific fields
-    src_ip: Optional[str] = Field(default=None, description="Source IP address.")
-    dst_ip: Optional[str] = Field(
-        default=None, description="Destination IP address."
-    )
-    src_port: Optional[int] = Field(default=None, description="Source port.")
-    dst_port: Optional[int] = Field(default=None, description="Destination port.")
-    protocol: Optional[str] = Field(
-        default=None, description="Protocol (TCP, UDP, ICMP, etc.)."
-    )
-    bytes_in: Optional[int] = Field(default=None, description="Bytes received.")
-    bytes_out: Optional[int] = Field(default=None, description="Bytes sent.")
-    connection_uid: Optional[str] = Field(
-        default=None, description="Zeek/Suricata connection UID if available."
-    )
-    dns_query: Optional[str] = Field(
-        default=None, description="DNS query name if this is a DNS event."
-    )
-    http_url: Optional[str] = Field(
-        default=None, description="HTTP URL if this is an HTTP event."
-    )
-    http_method: Optional[str] = Field(
-        default=None, description="HTTP method (GET, POST, etc.)."
-    )
-    alert_signature: Optional[str] = Field(
-        default=None, description="IDS alert signature/rule name."
-    )
-    canonical_host_id: Optional[str] = Field(
-        default=None,
-        description="Canonical host UID from entity resolver (source host).",
-    )
+    activity_id: int = Field(..., description="1: Open, 2: Close, 3: DNS Query, 99: Other")
+    src_endpoint: NetworkEndpoint
+    dst_endpoint: NetworkEndpoint
+    protocol: Optional[str] = None
+    dns_query: Optional[str] = Field(None, description="Populated for Sysmon Event ID 22")
 
 
 # ─── Authentication (OCSF class 3002) ────────────────────────────────
 
 
 class Authentication(OCSFBaseEvent):
-    """
-    OCSF Authentication event. Maps AD Kerberos/LDAP, Windows EVTX
-    4624/4625/4768/4769, SSH auth logs, and cloud identity events.
-    """
-
     class_uid: int = Field(default=3002, frozen=True)
-    category_uid: int = Field(default=3, frozen=True)  # Identity & Access
-
-    # Authentication-specific fields
-    user_name: str = Field(..., description="Authenticated user identity.")
-    auth_protocol: Optional[str] = Field(
-        default=None,
-        description="Authentication protocol (Kerberos, NTLM, LDAP, SSH, etc.).",
-    )
-    logon_type: Optional[int] = Field(
-        default=None,
-        description="Windows logon type (2=interactive, 3=network, 10=RDP, etc.).",
-    )
-    src_ip: Optional[str] = Field(
-        default=None, description="Source IP of authentication attempt."
-    )
-    dst_host: Optional[str] = Field(
-        default=None, description="Destination host of authentication attempt."
-    )
-    status: Optional[str] = Field(
-        default=None, description="Success/Failure."
-    )
-    failure_reason: Optional[str] = Field(
-        default=None, description="Reason for authentication failure."
-    )
-    ticket_type: Optional[str] = Field(
-        default=None, description="Kerberos ticket type (TGT, TGS)."
-    )
-    service_name: Optional[str] = Field(
-        default=None, description="Kerberos service principal name."
-    )
-    canonical_host_id: Optional[str] = Field(
-        default=None,
-        description="Canonical host UID from entity resolver.",
-    )
+    category_uid: int = Field(default=3, frozen=True)  # Identity & Access Management
+    activity_id: int = Field(..., description="1: Logon, 2: Logoff, 3: TGT Request")
+    user: UserIdentity
+    src_endpoint: Optional[NetworkEndpoint] = None
+    dst_endpoint: Optional[NetworkEndpoint] = None
+    auth_protocol: Optional[str] = Field(None, description="e.g., Kerberos, NTLM")
+    logon_type: Optional[int] = None
+    ticket_options: Optional[str] = Field(None, description="Populated for Event ID 4768/4769")
 
 
 # ─── File Activity (OCSF class 1001) ─────────────────────────────────
@@ -238,6 +204,13 @@ class FileActivity(OCSFBaseEvent):
         description="Canonical host UID from entity resolver.",
     )
 
+    @field_validator("file_name", "file_path", mode="before")
+    @classmethod
+    def reject_empty_file_strings(cls, v):
+        if v is not None and str(v).strip() == "":
+            raise ValueError("FileActivity cannot have an empty file_name or file_path")
+        return v
+
 
 # ─── Cloud Audit (OCSF class 6003) ───────────────────────────────────
 
@@ -275,10 +248,82 @@ class CloudAudit(OCSFBaseEvent):
         default=None,
         description="IAM principal / identity ARN / user agent.",
     )
+
+    @field_validator("user_identity", mode="before")
+    @classmethod
+    def reject_empty_cloud_strings(cls, v):
+        if v is not None and str(v).strip() == "":
+            raise ValueError("CloudAudit cannot have an empty user_identity")
+        return v
     request_parameters: Optional[str] = Field(
         default=None,
         description="Serialized request parameters (JSON string).",
     )
+
+
+# ─── Detection Finding (OCSF class 2004) ─────────────────────────────
+
+
+class DetectionFindingEvent(OCSFBaseEvent):
+    """
+    OCSF Detection Finding event. Maps Windows Defender alerts, AppLocker
+    blocks, and other EDR/AV detections.
+    """
+    class_uid: int = Field(default=2004, frozen=True)
+    category_uid: int = Field(default=2, frozen=True)  # Findings
+
+    severity_id: int = Field(..., description="1: Info, 2: Low, 3: Medium, 4: High, 5: Critical, 6: Fatal")
+    finding_info: str = Field(..., description="Title/Description of the finding.")
+    attacks: Optional[list[str]] = Field(default=None, description="MITRE ATT&CK technique IDs.")
+    
+    canonical_host_id: Optional[str] = Field(
+        default=None,
+        description="Canonical host UID from entity resolver.",
+    )
+
+    @field_validator("finding_info", mode="before")
+    @classmethod
+    def reject_empty_finding_strings(cls, v):
+        if v is not None and str(v).strip() in ("", "PENDING_UID"):
+            raise ValueError("DetectionFindingEvent cannot have an empty finding_info or PENDING_UID")
+        return v
+    
+    @field_validator("attacks", mode="before")
+    @classmethod
+    def reject_empty_attacks(cls, v):
+        if v is not None:
+            if isinstance(v, list):
+                for item in v:
+                    if str(item).strip() in ("", "PENDING_UID"):
+                        raise ValueError("DetectionFindingEvent attacks list cannot contain empty strings")
+            elif str(v).strip() in ("", "PENDING_UID"):
+                raise ValueError("DetectionFindingEvent attacks cannot be empty strings")
+        return v
+
+
+# ─── Audit Activity (OCSF class 3001) ────────────────────────────────
+
+
+class AuditActivity(OCSFBaseEvent):
+    """
+    OCSF Audit Activity event. Maps log clearing and configuration changes.
+    """
+    class_uid: int = Field(default=3001, frozen=True)
+    category_uid: int = Field(default=3, frozen=True)
+    
+    message: str = Field(..., description="Message detailing the audit activity.")
+    
+    canonical_host_id: Optional[str] = Field(
+        default=None,
+        description="Canonical host UID from entity resolver.",
+    )
+    
+    @field_validator("message", mode="before")
+    @classmethod
+    def reject_empty_message(cls, v):
+        if v is not None and str(v).strip() in ("", "PENDING_UID"):
+            raise ValueError("AuditActivity cannot have an empty message")
+        return v
     response_elements: Optional[str] = Field(
         default=None,
         description="Serialized response elements (JSON string).",

@@ -23,8 +23,10 @@ TOPICS = [
     "findings.network_forensics",
     "findings.timeline",
     "findings.attribution",
+    "findings.dag",
     "findings.specialist.memory",
     "findings.specialist.identity",
+    "findings.specialist.cloud_container",
     "findings.specialist.malware",
     "findings.specialist.insider",
     "findings.debate",
@@ -39,8 +41,10 @@ ROLE_TOPIC_MAP: dict[str, str] = {
     "network_forensics":    "findings.network_forensics",
     "timeline_reconstruction": "findings.timeline",
     "threat_attribution":   "findings.attribution",
+    "dag":                  "findings.dag",                          # F23
     "memory_forensics":     "findings.specialist.memory",
-    "identity_cloud":       "findings.specialist.identity",
+    "identity":             "findings.specialist.identity",          # F13a
+    "cloud_container":      "findings.specialist.cloud_container",   # F13b
     "malware_stylometry":   "findings.specialist.malware",
     "insider_threat":       "findings.specialist.insider",
     "proponent":            "findings.debate",
