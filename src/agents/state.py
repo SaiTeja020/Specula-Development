@@ -28,7 +28,7 @@ class SpeculaState(TypedDict, total=False):
 
     # §2.3 Dead-end / dispatch control
     dead_end_detected: bool
-    dead_end_categories: list                # Supervisor sole writer
+    dead_end_categories: list                # Supervisor sole writer; valid: "memory" | "identity" | "cloud_container" | "malware" | "insider"
     specialists_dispatched: list             # set once by Supervisor before fan-out
     specialists_completed: Annotated[list, operator.add]  # append for fan-in check
 

@@ -64,8 +64,8 @@ app = FastAPI(title="Specula Visualizer API", version="1.0.0")
 # Allow CORS for the Vite frontend (usually runs on port 5173)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -335,8 +335,19 @@ async def get_neo4j_data():
             "edges": edges_list
         }
     except Exception as e:
-        log.error(f"Failed to query Neo4j: {e}")
-        return {"status": "error", "message": str(e)}
+        log.warning(f"Failed to query Neo4j, returning offline fallback: {e}")
+        return {
+            "status": "offline_fallback",
+            "source": "neo4j",
+            "message": str(e),
+            "nodes": [
+                {"id": "user_1", "label": "User", "properties": {"name": "Admin (Fallback)"}},
+                {"id": "machine_1", "label": "Machine", "properties": {"ip": "10.0.0.5"}}
+            ],
+            "edges": [
+                {"id": "e1", "source": "user_1", "target": "machine_1", "type": "LOGGED_IN_TO"}
+            ]
+        }
 
 
 @app.get("/api/data/quickwit")

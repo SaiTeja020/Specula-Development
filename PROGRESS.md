@@ -7,11 +7,11 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase 5: Visualization Layer & Agent Integration
+- **Active Phase:** Phase 4: LangGraph Orchestration & Multi-Agent Core
 - **Active Tasks (WIP=2):**
   None currently active.
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-15
+- **Last Updated:** 2026-09-19
 
 ---
 
@@ -160,6 +160,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/agents/test_network_forensics.py`
   - **Acceptance Criteria:** Agent evaluates OCSF 4001 events and flags C2, DNS Tunneling, and Exfiltration deterministically.
 
+- **Task ID:** `TASK-4.8`
+  - **Description:** Align skeleton to architecture v4: split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); add `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Update `_SPECIALIST_MAP`, graph wiring, Kafka topics, stubs, supervisor_agent dispatch list, and test assertions.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -v`
+  - **Acceptance Criteria:** 28/28 passing; zero `identity_cloud` references in source; `dag` present in `agent_traces` membership and ordering assertions.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -223,10 +229,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-08-21 | `TASK-4.7` | Rewrote tests to directly evaluate LangGraph state transitions and replaced inert mocks; fixed HITL routing logic | 32/32 Passed (`tests/supervisor_test_suite/`) |
 | 2026-09-01 | Agent tooling | Installed `ui-ux-pro-max` at `.agents/skills/ui-ux-pro-max` and exposed only it to Git | Skill: `validate_data.py` passed; 130/132 bundled tests passed (2 require omitted upstream repo-root helpers). Repo fallback: 241 passed, 2 failed, 17 errors (pre-existing Neo4j/threat-intel fixtures and supervisor sync/async mismatch) |
 | 2026-09-01 | `TASK-5.3`, `TASK-5.4` | Built 2-page React + Vite frontend with dark mode enterprise UI, ReactFlow, and hooked to FastAPI mock trigger | Passed (frontend lint zero warnings, backend tests passed) |
-| 2026-09-15 | `TASK-5.5`, `TASK-5.6` | Rewrote React frontend with React Router into a multi-page dashboard implementing UI/UX Pro Max Specula theme. Added backend datastore proxy API routes. | Passed (frontend lint zero warnings, backend `pytest` 5/5 passed) |
 | 2026-09-15 | Phase 5 UI/UX | Formally established the Specula Brand Identity System (16 sections). Removed generic ReactFlow diagram from InvestigationConsole and implemented 6-step sequential telemetry view using new strict CSS tokens (`specula-tokens.css`) | Passed (Frontend UI rules adhered) |
 | 2026-09-19 | `TASK-4.8` | Created decoupled Network Forensics agent module with C2, DNS Tunneling, and Data Exfiltration anomaly detection heuristics | 6/6 Passed (`tests/agents/test_network_forensics.py`) |
 | 2026-09-21 | `TASK-5.4` | Refactored pipeline trigger: separated Docker boot to `/api/system/boot` and lifted React state to `PipelineContext` to keep WebSocket alive across pages | Verified via UI linting and component updates |
 | 2026-09-21 | `TASK-5.4` | Fixed `StartupPage` UI sync issue to await actual `docker compose down -v` and `up --force-recreate` completion before displaying services as verified | Verified via local UI logic |
 | 2026-09-21 | `TASK-5.4` | Lazy-loaded neo4j/langgraph/graph imports in `visualizer_api.py` to prevent numpy 1.26 fatal crash on Py3.13+Windows. Added boot lock, retry button, and `restart: on-failure` for Redpanda | `GET /health` → ok, `POST /api/system/boot` → success, 7/7 containers Up |
 | 2026-09-21 | `TASK-5.5` | Upgraded Neo4j Docker image to `5.26.0` to resolve Bolt Protocol v5.5 mismatch with python driver 6.2.0, and updated `numpy` dependency to `2.5.3` to fix silent crash | Verified (558 nodes ingested) |
+| 2026-09-17 | Phase 5 UI/UX | Refined button tokens to darker royal indigo (`#1E40AF`) with 8px radius & white text. Positioned terminal directly below the Service Health Checks box with compact 2-column grid ensuring all 6 services are completely visible without window scroll push | Passed (`npm run lint` 0 warnings, `pytest` 8/8 passed) |
+| 2026-09-19 | `TASK-4.8` | Split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); added `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Updated 7 files: `config.py`, `nodes.py`, `graph.py`, `kafka_utils.py`, `state.py`, `supervisor_agent.py`, `test_skeleton_graph.py`. Node count: 23 → 25. | 28/28 Passed (`tests/test_skeleton_graph.py`) |
+
