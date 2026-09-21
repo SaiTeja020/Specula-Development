@@ -153,7 +153,16 @@ def run_react_loop(
     """
     # Start trace
     investigation_trace.set_active_agent(agent_role)
-    investigation_trace.record_event(agent_role, "agent_start", {"model": "LLM"})
+    
+    import os
+    from src.agents.config import AGENT_CONFIG
+    
+    cfg = AGENT_CONFIG.get(agent_role, {})
+    actual_model = cfg.get("model_id", "LLM")
+    if os.environ.get("SPECULA_LLM_BACKEND", "").lower() == "ollama":
+        actual_model = os.environ.get("SPECULA_LLM_MODEL", "qwen2.5-coder:1.5b")
+        
+    investigation_trace.record_event(agent_role, "agent_start", {"model": actual_model})
 
     steps: list[ReActStep] = []
     tool_calls_used = 0

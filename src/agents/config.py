@@ -322,13 +322,14 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
     Backends:
       stub   — deterministic, no API key (default)
       gemini — langchain_google_genai.ChatGoogleGenerativeAI
+      ollama — langchain_ollama.ChatOllama
 
     Environment is loaded once at module import via _load_env() — no repeated
     dotenv calls here. Set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
     D4: case_id passed through to StubLLM so report stubs can fill {case_id}
         without regex-extracting it back out of the formatted prompt.
     """
-    backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
+    backend = os.environ.get("SPECULA_LLM_BACKEND", "stub").lower()
 
     if backend == "gemini":
         # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
@@ -339,6 +340,19 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
         from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
         model_name = _get_gemini_model()  # D3: cached after first call
         return ChatGoogleGenerativeAI(model=model_name, temperature=0)
+
+    if backend == "ollama":
+        try:
+            from langchain_ollama import ChatOllama
+        except ImportError:
+            raise ImportError(
+                "Ollama support requires the 'langchain-ollama' package. "
+                "Please run: pip install langchain-ollama"
+            )
+        
+        model_name = os.environ.get("SPECULA_LLM_MODEL", "qwen2.5-coder:1.5b")
+        base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        return ChatOllama(model=model_name, base_url=base_url, temperature=0)
 
     # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
     return StubLLM(agent_role, case_id=case_id)

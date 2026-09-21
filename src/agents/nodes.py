@@ -62,7 +62,8 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     
     # Trace agent start
     investigation_trace.set_active_agent(role)
-    investigation_trace.record_event(role, "agent_start", {"model": cfg["model_id"]})
+    actual_model = getattr(llm, "model", cfg.get("model_id", "unknown"))
+    investigation_trace.record_event(role, "agent_start", {"model": actual_model})
     
     response = llm.invoke(prompt)
     latency_ms = round((time.time() - start) * 1000, 1)
@@ -93,7 +94,7 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
         "thought": f"Analysing case as {role}",
         "action": "single_pass_llm_call",
         "observation": content[:200],
-        "model_used": cfg["model_id"],
+        "model_used": actual_model,
         "latency_ms": latency_ms,
     }
 
@@ -177,7 +178,8 @@ def make_supervisor_node(neo4j_driver):
             if route_str == "wait":
                 next_agents = []
             else:
-                next_agents = [x.strip() for x in route_str.split(",") if x.strip()]
+                # Strip markdown (e.g., **, _) but keep valid alphanumeric agent names
+                next_agents = [re.sub(r'[^a-zA-Z0-9_]', '', x.strip()) for x in route_str.split(",") if x.strip()]
 
         investigation_trace.record_event("supervisor", "supervisor_route", {"next_agents": next_agents})
 
