@@ -154,6 +154,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/orchestration/test_supervisor.py`
   - **Acceptance Criteria:** Supervisor graph built and routes according to specifications.
 
+- **Task ID:** `TASK-4.8`
+  - **Description:** Implement deterministic Network Forensics Agent component.
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/agents/test_network_forensics.py`
+  - **Acceptance Criteria:** Agent evaluates OCSF 4001 events and flags C2, DNS Tunneling, and Exfiltration deterministically.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -219,3 +225,8 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-01 | `TASK-5.3`, `TASK-5.4` | Built 2-page React + Vite frontend with dark mode enterprise UI, ReactFlow, and hooked to FastAPI mock trigger | Passed (frontend lint zero warnings, backend tests passed) |
 | 2026-09-15 | `TASK-5.5`, `TASK-5.6` | Rewrote React frontend with React Router into a multi-page dashboard implementing UI/UX Pro Max Specula theme. Added backend datastore proxy API routes. | Passed (frontend lint zero warnings, backend `pytest` 5/5 passed) |
 | 2026-09-15 | Phase 5 UI/UX | Formally established the Specula Brand Identity System (16 sections). Removed generic ReactFlow diagram from InvestigationConsole and implemented 6-step sequential telemetry view using new strict CSS tokens (`specula-tokens.css`) | Passed (Frontend UI rules adhered) |
+| 2026-09-19 | `TASK-4.8` | Created decoupled Network Forensics agent module with C2, DNS Tunneling, and Data Exfiltration anomaly detection heuristics | 6/6 Passed (`tests/agents/test_network_forensics.py`) |
+| 2026-09-21 | `TASK-5.4` | Refactored pipeline trigger: separated Docker boot to `/api/system/boot` and lifted React state to `PipelineContext` to keep WebSocket alive across pages | Verified via UI linting and component updates |
+| 2026-09-21 | `TASK-5.4` | Fixed `StartupPage` UI sync issue to await actual `docker compose down -v` and `up --force-recreate` completion before displaying services as verified | Verified via local UI logic |
+| 2026-09-21 | `TASK-5.4` | Lazy-loaded neo4j/langgraph/graph imports in `visualizer_api.py` to prevent numpy 1.26 fatal crash on Py3.13+Windows. Added boot lock, retry button, and `restart: on-failure` for Redpanda | `GET /health` → ok, `POST /api/system/boot` → success, 7/7 containers Up |
+| 2026-09-21 | `TASK-5.5` | Upgraded Neo4j Docker image to `5.26.0` to resolve Bolt Protocol v5.5 mismatch with python driver 6.2.0, and updated `numpy` dependency to `2.5.3` to fix silent crash | Verified (558 nodes ingested) |

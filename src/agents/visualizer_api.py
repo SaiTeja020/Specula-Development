@@ -14,22 +14,51 @@ import os
 import subprocess
 from typing import Any
 
-from neo4j import GraphDatabase
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from langgraph.checkpoint.memory import InMemorySaver
-
-from .graph import build_graph
 
 log = logging.getLogger(__name__)
 
-# Neo4j Driver (Auth=none per docker-compose)
-try:
-    neo4j_driver = GraphDatabase.driver("bolt://localhost:7687")
-except Exception as e:
-    log.warning(f"Neo4j driver initialization failed: {e}")
+# ---------------------------------------------------------------------------
+# Lazy-loaded heavy dependencies (neo4j, langgraph pull in numpy which
+# fatally crashes on Python 3.13 + Windows MINGW builds if loaded eagerly
+# at module-import time).  We defer their import to first use so that the
+# FastAPI server can start immediately for boot / health / websocket.
+# ---------------------------------------------------------------------------
+_neo4j_driver = None
+_specula_graph = None
 
+
+def _get_neo4j_driver():
+    """Return the Neo4j driver, creating it on first call."""
+    global _neo4j_driver
+    if _neo4j_driver is None:
+        try:
+            from neo4j import GraphDatabase
+            _neo4j_driver = GraphDatabase.driver("bolt://localhost:7687")
+        except Exception as e:
+            log.warning(f"Neo4j driver initialization failed: {e}")
+    return _neo4j_driver
+
+
+def _get_specula_graph():
+    """Return the compiled LangGraph, building it on first call."""
+    global _specula_graph
+    if _specula_graph is None:
+        try:
+            from langgraph.checkpoint.memory import InMemorySaver
+            from .graph import build_graph
+            checkpointer = InMemorySaver()
+            _specula_graph = build_graph(checkpointer=checkpointer)
+        except Exception as e:
+            log.warning(f"LangGraph initialization failed: {e}")
+    return _specula_graph
+
+
+# ---------------------------------------------------------------------------
+# FastAPI app — lightweight, starts without numpy
+# ---------------------------------------------------------------------------
 app = FastAPI(title="Specula Visualizer API", version="1.0.0")
 
 # Allow CORS for the Vite frontend (usually runs on port 5173)
@@ -44,10 +73,6 @@ app.add_middleware(
 # Global set of active websocket connections
 active_connections: set[WebSocket] = set()
 
-# Initialize the graph
-checkpointer = InMemorySaver()
-specula_graph = build_graph(checkpointer=checkpointer)
-
 @app.get("/health")
 async def health_check() -> dict[str, str]:
     """Health check endpoint to verify API is active."""
@@ -57,8 +82,12 @@ async def health_check() -> dict[str, str]:
 @app.get("/api/graph/topology")
 async def get_topology() -> dict[str, Any]:
     """Extract and return the graph's nodes and edges in a format suitable for React Flow."""
+    graph = _get_specula_graph()
+    if graph is None:
+        return {"nodes": [], "edges": [], "error": "Graph not available (numpy/langgraph not loaded)"}
+
     # LangGraph exposes the underlying graph structure
-    g = specula_graph.get_graph()
+    g = graph.get_graph()
     
     react_nodes = []
     react_edges = []
@@ -99,7 +128,7 @@ async def websocket_endpoint(websocket: WebSocket):
             if data == "ping":
                 await websocket.send_text("pong")
     except WebSocketDisconnect:
-        active_connections.remove(websocket)
+        active_connections.discard(websocket)
         log.info(f"WebSocket client disconnected. Total clients: {len(active_connections)}")
 
 
@@ -119,12 +148,17 @@ async def broadcast_event(event_type: str, payload: dict):
             
     # Clean up dead connections
     for connection in stale_connections:
-        active_connections.remove(connection)
+        active_connections.discard(connection)
 
 
-@app.post("/api/trigger_pipeline")
-async def trigger_pipeline(config: dict):
-    """Trigger a mock execution to demonstrate real-time graph monitoring from frontend."""
+# ---------------------------------------------------------------------------
+# System Boot — Docker teardown + recreate
+# ---------------------------------------------------------------------------
+boot_lock = asyncio.Lock()
+
+@app.post("/api/system/boot")
+async def system_boot():
+    """Build and start Docker containers for the Specula infrastructure."""
     
     # Check Docker engine status
     try:
@@ -133,6 +167,34 @@ async def trigger_pipeline(config: dict):
         return {"status": "error", "message": "docker_cli_not_found"}
     except subprocess.CalledProcessError:
         return {"status": "error", "message": "docker_offline"}
+        
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    
+    # Run Docker cleanup and boot in a thread so it doesn't block the API
+    def boot_docker():
+        # Clean up existing containers, networks, and volumes for this compose project
+        subprocess.run("docker compose down -v", shell=True, cwd=repo_root, capture_output=True, timeout=60)
+        
+        # Build and start forcing recreation of containers
+        return subprocess.run("docker compose up -d --build --force-recreate", shell=True, cwd=repo_root, capture_output=True, text=True, timeout=300)
+
+    try:
+        async with boot_lock:
+            proc = await asyncio.to_thread(boot_docker)
+            if proc.returncode == 0:
+                return {"status": "success", "message": "Docker containers running successfully."}
+            else:
+                return {"status": "error", "message": f"Docker compose returned non-zero: {proc.stderr}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# Pipeline trigger
+# ---------------------------------------------------------------------------
+@app.post("/api/trigger_pipeline")
+async def trigger_pipeline(config: dict):
+    """Trigger a mock execution to demonstrate real-time graph monitoring from frontend."""
     
     # Normally this would invoke `run_pipeline.py` or hit LangGraph directly.
     # For now, it runs the mock sequence to populate the dashboard UI.
@@ -162,44 +224,11 @@ async def trigger_pipeline(config: dict):
         await broadcast_event("pipeline_started", {"case_id": config.get("case_id", "C-1234")})
         await asyncio.sleep(0.5)
         
-        # Delete all existing containers first
-        await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Deleting all existing containers..."}})
-        try:
-            def remove_containers():
-                import subprocess
-                ps_res = subprocess.run("docker ps -aq", shell=True, capture_output=True, text=True)
-                ids = ps_res.stdout.strip().split()
-                if ids:
-                    subprocess.run(f"docker rm -f {' '.join(ids)}", shell=True, capture_output=True)
-                    
-            await asyncio.to_thread(remove_containers)
-            await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Containers removed successfully."}})
-        except Exception as e:
-            await broadcast_event("node_active", {"node": "__start__", "data": {"status": f"Warning: Failed to delete containers: {e}"}})
-
-        # Build and start Docker containers automatically
-        await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Building & starting Docker containers..."}})
-        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        try:
-            def start_compose():
-                import subprocess
-                return subprocess.run("docker compose up -d --build", shell=True, cwd=repo_root, capture_output=True, text=True)
-                
-            proc = await asyncio.to_thread(start_compose)
-            if proc.returncode == 0:
-                await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Docker containers running successfully."}})
-            else:
-                await broadcast_event("node_active", {"node": "__start__", "data": {"status": f"Warning: Docker compose returned non-zero: {proc.stderr}"}})
-        except Exception as e:
-            await broadcast_event("node_active", {"node": "__start__", "data": {"status": f"Docker infra error: {e}"}})
-            
-        await broadcast_event("node_complete", {"node": "__start__"})
-        
         # Execute real ingestion pipeline instead of hardcoded mock data
         await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Executing ingestion pipeline..."}})
         try:
             def run_ingestion():
-                import subprocess
+                repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
                 cmd = ["python", "src/ingestion/run_pipeline.py"]
                 
                 if config.get("start_date"):
@@ -227,6 +256,8 @@ async def trigger_pipeline(config: dict):
             logging.error(f"Pipeline execution error: {e}")
             await broadcast_event("node_active", {"node": "__start__", "data": {"status": f"Error running pipeline: {e}"}})
 
+        await broadcast_event("node_complete", {"node": "__start__"})
+
         for step in mock_sequence:
             await broadcast_event("node_active", step)
             # simulate processing delay
@@ -244,13 +275,19 @@ async def trigger_pipeline(config: dict):
     return {"status": "pipeline triggered", "config": config}
 
 
+# ---------------------------------------------------------------------------
+# Data-store proxy endpoints
+# ---------------------------------------------------------------------------
 @app.get("/api/data/neo4j")
 async def get_neo4j_data():
     """Proxy endpoint to fetch Neo4j graph data for the visualizer."""
+    driver = _get_neo4j_driver()
+    if driver is None:
+        return {"status": "error", "message": "Neo4j driver not available"}
     try:
         nodes_dict = {}
         edges_list = []
-        with neo4j_driver.session() as session:
+        with driver.session() as session:
             result = session.run("MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100")
             for record in result:
                 n = record["n"]

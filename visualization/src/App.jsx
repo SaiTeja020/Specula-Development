@@ -5,6 +5,7 @@ import StartupPage from './pages/StartupPage';
 import InvestigationConsole from './pages/InvestigationConsole';
 import Neo4jVisualizer from './pages/Neo4jVisualizer';
 import DatabaseVisualizers from './pages/DatabaseVisualizers';
+import { PipelineProvider } from './contexts/PipelineContext';
 
 function Sidebar() {
   const location = useLocation();
@@ -66,16 +67,18 @@ function Layout({ children }) {
 
 export default function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/startup" element={<StartupPage />} />
-          <Route path="/investigate" element={<InvestigationConsole />} />
-          <Route path="/neo4j" element={<Neo4jVisualizer />} />
-          <Route path="/databases" element={<DatabaseVisualizers />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <PipelineProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/startup" element={<StartupPage />} />
+            <Route path="/investigate" element={<InvestigationConsole />} />
+            <Route path="/neo4j" element={<Neo4jVisualizer />} />
+            <Route path="/databases" element={<DatabaseVisualizers />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </PipelineProvider>
   );
 }
