@@ -201,14 +201,11 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `pytest tests/agents/test_network_forensics.py`
   - **Acceptance Criteria:** Agent evaluates OCSF 4001 events and flags C2, DNS Tunneling, and Exfiltration deterministically.
 
-=======
-- **Task ID:** `TASK-4.8`
+- **Task ID:** `TASK-4.9`
   - **Description:** Align skeleton to architecture v4: split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); add `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Update `_SPECIALIST_MAP`, graph wiring, Kafka topics, stubs, supervisor_agent dispatch list, and test assertions.
   - **Status:** `passing`
   - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -v`
   - **Acceptance Criteria:** 28/28 passing; zero `identity_cloud` references in source; `dag` present in `agent_traces` membership and ordering assertions.
-
->>>>>>> origin/main
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -216,7 +213,6 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 - **Task ID:** `TASK-5.1`
   - **Description:** Create `src/agents/visualizer_api.py` standalone FastAPI service on port 8300 with CORS and health endpoints.
   - **Status:** `passing`
-<<<<<<< HEAD
   - **Verification Command:** `. env\Scripts\pytest.exe tests/test_visualizer_api.py`
   - **Acceptance Criteria:** FastAPI app instantiates with health check returning 200 and CORS enabled for frontend origin.
 

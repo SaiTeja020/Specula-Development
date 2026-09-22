@@ -1,4 +1,40 @@
 import { useState } from 'react';
+import { usePipeline } from '../contexts/PipelineContext';
+
+const STAGES = [
+  { 
+    id: 0, 
+    title: 'Ingestion & Integrity Preservation', 
+    desc: 'Stream capture across heterogeneous sources, SHA-256 SIMD hashing, Quickwit WORM commit, and OCSF schema normalization.' 
+  },
+  { 
+    id: 1, 
+    title: 'Entropy Distillation & DFKG Write', 
+    desc: 'Drain3 template clustering, SimHash anti-poisoning, and Neo4j Digital Forensic Knowledge Graph node/edge creation.' 
+  },
+  { 
+    id: 2, 
+    title: 'Multi-Agent Forensic Triage', 
+    desc: 'Supervisor dispatches Primary Tier in parallel with conditional Specialist routing on dead-ends.' 
+  },
+  { 
+    id: 3, 
+    title: 'Synthesis & Attack Reconstruction', 
+    desc: 'Sequential execution of Timeline Reconstruction and Threat Attribution (MITRE ATT&CK correlation via FAISS).' 
+  },
+  { 
+    id: 4, 
+    title: 'Adversarial ACH Debate', 
+    desc: 'Proponent vs. Critic agents debate competing hypotheses, evaluated by the Judge agent to eliminate hallucinations.' 
+  },
+  { 
+    id: 5, 
+    title: 'Guardrails, HITL & Final Assembly', 
+    desc: '3-tier zero-trust safety checks, Human-in-the-Loop escalation gate, and 17-section Daubert-admissible PDF generation.' 
+  }
+];
+
+export default function InvestigationConsole() {
   const { 
     isStarted, caseStatus, activeStage, stageLogs, hitlData, 
     handleStart, handleHitlAction 
@@ -38,12 +74,20 @@ import { useState } from 'react';
           <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
-                Case ID:
-                <input type="text" value={caseId} onChange={e => setCaseId(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', width: '200px' }} />
+                Start Date:
+                <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem' }} />
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500, flex: 1 }}>
-                Investigation Query:
-                <input type="text" value={query} onChange={e => setQuery(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', width: '100%' }} />
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
+                End Date:
+                <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
+                Max Events:
+                <input type="number" value={maxEvents} onChange={e => setMaxEvents(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '110px', fontSize: '0.85rem' }} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
+                Exclude Ports:
+                <input type="text" value={excludePorts} onChange={e => setExcludePorts(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '150px', fontSize: '0.85rem' }} />
               </label>
             </div>
             <button className="primary-btn" onClick={onLaunch} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>

@@ -5,9 +5,11 @@ from src.ingestion.normalization.time_normalizer import TimeNormalizer
 from src.ingestion.indexing.vector_store import InMemoryVectorStore, EmbeddingGenerator
 import io
 
+from datetime import datetime, timezone
+
 class MockTimeNormalizer(TimeNormalizer):
     def normalize(self, ts):
-        return ("2026-09-20T12:00:00Z", 0, False)
+        return (datetime(2026, 9, 20, 12, 0, tzinfo=timezone.utc), 0, False)
 
 def test_network_uid_determinism_and_uniqueness():
     tn = MockTimeNormalizer()

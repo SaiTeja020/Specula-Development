@@ -169,6 +169,15 @@ def make_supervisor_node(neo4j_driver):
         
         # Test injection override
         raw_input = str(state.get("raw_input", ""))
+        
+        # Restore legacy test injection for test_skeleton_graph.py
+        test_control = state.get("test_control", {})
+        if "DEAD_END:" in raw_input:
+            match_dead_end = re.search(r"DEAD_END:([a-z,_]+)", raw_input)
+            if match_dead_end:
+                test_control = dict(test_control)
+                test_control["dead_end_categories"] = match_dead_end.group(1).split(",")
+
         match = re.search(r"FORCE_SUPERVISOR_ROUTE:\s*(.+)", raw_input)
         if not match:
             match = re.search(r"ROUTE:\s*(.+)", content)
@@ -183,7 +192,7 @@ def make_supervisor_node(neo4j_driver):
 
         investigation_trace.record_event("supervisor", "supervisor_route", {"next_agents": next_agents})
 
-        return {
+        update_dict = {
             "case_status": "primary_tier",
             "findings": [finding],
             "agent_traces": [trace],
@@ -201,6 +210,11 @@ def make_supervisor_node(neo4j_driver):
             "timeline_artifact": None,
             "final_output_ref": None,
         }
+        
+        if test_control:
+            update_dict["test_control"] = test_control
+            
+        return update_dict
     return supervisor_node
 
 

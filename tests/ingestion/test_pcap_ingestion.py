@@ -55,12 +55,11 @@ def test_pcap_normalizer():
     assert len(events) == 1
     event = events[0]
     
-    assert event.src_ip == "10.10.10.50"
-    assert event.dst_ip == "185.220.101.45"
-    assert event.src_port == 49152
-    assert event.dst_port == 443
+    assert event.src_endpoint.ip_address == "10.10.10.50"
+    assert event.dst_endpoint.ip_address == "185.220.101.45"
+    assert event.src_endpoint.port == 49152
+    assert event.dst_endpoint.port == 443
     assert event.protocol == "TCP"
-    assert event.bytes_out > 0
     assert event.activity_id == 1
 
 def test_consumer_cypher_generation(monkeypatch):

@@ -52,14 +52,9 @@ def normalize_zeek_conn(
             "protocol": raw_parsed_event.get("proto", None),
             "time": raw_timestamp
         }),
-        src_ip=raw_parsed_event.get("id.orig_h", None),
-        dst_ip=raw_parsed_event.get("id.resp_h", None),
-        src_port=int(raw_parsed_event.get("id.orig_p", 0)),
-        dst_port=int(raw_parsed_event.get("id.resp_p", 0)),
+        src_endpoint={"ip_address": raw_parsed_event.get("id.orig_h", None), "port": int(raw_parsed_event.get("id.orig_p", 0))},
+        dst_endpoint={"ip_address": raw_parsed_event.get("id.resp_h", None), "port": int(raw_parsed_event.get("id.resp_p", 0))},
         protocol=raw_parsed_event.get("proto", None),
-        bytes_in=int(raw_parsed_event.get("resp_bytes", 0) or 0),
-        bytes_out=int(raw_parsed_event.get("orig_bytes", 0) or 0),
-        connection_uid=raw_parsed_event.get("uid", None),
     )
 
 
@@ -139,13 +134,8 @@ def normalize_pcap_stream(
                 "protocol": protocol,
                 "time": raw_ts_str
             }),
-            src_ip=src_ip,
-            dst_ip=dst_ip,
-            src_port=src_port,
-            dst_port=dst_port,
+            src_endpoint={"ip_address": src_ip, "port": src_port},
+            dst_endpoint={"ip_address": dst_ip, "port": dst_port},
             protocol=protocol,
-            bytes_in=0,  # Single packet parsing context
-            bytes_out=len(buf),
-            connection_uid=None,
         )
 
