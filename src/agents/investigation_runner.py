@@ -69,6 +69,7 @@ def run_investigation(
     checkpointer=None,
     thread_id: Optional[str] = None,
     raw_input_prefix: str = "",
+    on_node_event=None,
 ) -> InvestigationResult | HITLPausedResult:
     """Run a complete Specula investigation from a user text query.
 
@@ -134,7 +135,23 @@ def run_investigation(
     # --- Invoke the graph ---
     try:
         investigation_trace.record_event("runner", "user_query", {"query": query, "case_id": case_id})
-        result_state = graph.invoke(initial_state, config)
+        if on_node_event:
+            result_state = dict(initial_state)
+            for s in graph.stream(initial_state, config):
+                for node_id, state_update in s.items():
+                    on_node_event("node_active", {"node": node_id, "data": {"status": "Processing"}})
+                    # Ensure state updates correctly
+                    if isinstance(state_update, dict):
+                        result_state.update(state_update)
+                    on_node_event("node_complete", {"node": node_id})
+            
+            # Ensure we get the very final state from checkpointer if available
+            try:
+                result_state = graph.get_state(config).values
+            except:
+                pass
+        else:
+            result_state = graph.invoke(initial_state, config)
     except Exception as exc:
         # Check if this is a LangGraph interrupt (HITL pause)
         # LangGraph raises GraphInterrupt when interrupt() is called

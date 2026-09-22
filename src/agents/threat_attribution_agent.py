@@ -28,6 +28,9 @@ def _build_system_prompt(state: dict, timeline_summary: str) -> str:
     prompt = cfg["system_prompt_template"].format(
         case_id=case_id,
         timeline_summary=timeline_summary,
+        retrieved_techniques="[Use forensic_threat_search tool with a \"query\" arg]",
+        retrieved_groups="[Use forensic_threat_search tool with a \"query\" arg]",
+        graph_entities="[Use query_dfkg tool with a \"query\" arg]",
         findings_summary="" # For formatting compatibility if required
     )
     

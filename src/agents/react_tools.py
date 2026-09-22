@@ -29,7 +29,11 @@ class DFKGQueryTool(Tool):
     description = (
         "Run a read-only, parameterized Cypher query against the DFKG. "
         "Args: cypher (str, must use $param placeholders), params (dict). "
-        "NOTE: Do not assume specific property names like 'name' exist on all nodes. Always return n.uid, labels(n), and keys(n) when exploring."
+        "NOTE: Do not assume specific property names like 'name' exist on all nodes. Always return n.uid, labels(n), and keys(n) when exploring. "
+        "SCHEMA GUIDANCE: Raw evidence nodes are labeled ONLY by their OCSF type (Process, Host, User, File, NetworkEndpoint) and do NOT connect to a Case node via BELONGS_TO. Instead, they use a case_id property (e.g., MATCH (p:Process {case_id: $case_id})). "
+        "Actual implemented relationships for evidence include RUNS_ON and SPAWNED. "
+        "PROHIBITED: Do NOT assume a generic 'Event' label exists. Do NOT use the 'CONTAINS' relationship for raw evidence. "
+        "Agent findings are labeled AgentFinding and DO use BELONGS_TO (e.g., MATCH (f:AgentFinding)-[:BELONGS_TO]->(c:Case {case_id: $case_id}))."
     )
 
     def __init__(self, driver: Driver, case_id: str):

@@ -72,6 +72,15 @@ class DFKGRetriever:
         self.max_nodes = max_nodes
         self.max_rels = max_rels
 
+    def _execute_read(self, query: str, params: dict) -> List[Dict]:
+        """Helper to run read queries regardless of whether neo4j is a Neo4jClient or raw Driver."""
+        if hasattr(self.neo4j, "execute_read"):
+            return self.neo4j.execute_read(query, params)
+        else:
+            with self.neo4j.session() as session:
+                result = session.run(query, params)
+                return [r.data() for r in result]
+
     # ------------------------------------------------------------------
     # Stage 1: Semantic retrieval
     # ------------------------------------------------------------------
@@ -123,9 +132,9 @@ class DFKGRetriever:
         """
         # 1. Anchor Resolution: Is this UID on a Node or a Relationship?
         anchor_type = "UNKNOWN"
-        if self.neo4j.execute_read("MATCH (n {uid: $uid}) RETURN 1 LIMIT 1", {"uid": seed_uid}):
+        if self._execute_read("MATCH (n {uid: $uid}) RETURN 1 LIMIT 1", {"uid": seed_uid}):
             anchor_type = "NODE"
-        elif self.neo4j.execute_read("MATCH ()-[r {uid: $uid}]->() RETURN 1 LIMIT 1", {"uid": seed_uid}):
+        elif self._execute_read("MATCH ()-[r {uid: $uid}]->() RETURN 1 LIMIT 1", {"uid": seed_uid}):
             anchor_type = "RELATIONSHIP"
             
         if anchor_type == "UNKNOWN":
@@ -185,7 +194,7 @@ class DFKGRetriever:
             LIMIT $max_rels
             """
             
-        rows = self.neo4j.execute_read(query, {"uid": seed_uid, "max_rels": self.max_rels})
+        rows = self._execute_read(query, {"uid": seed_uid, "max_rels": self.max_rels})
 
         nodes: Dict[str, Dict] = {}
         edges: List[Dict] = []
@@ -229,7 +238,7 @@ class DFKGRetriever:
 
     def retrieve_by_uid(self, uid: str) -> Dict[str, Any]:
         """Look up a single DFKG entity directly by its UID."""
-        rows = self.neo4j.execute_read(
+        rows = self._execute_read(
             "MATCH (n {uid: $uid}) RETURN labels(n)[0] AS label, properties(n) AS props",
             {"uid": uid},
         )

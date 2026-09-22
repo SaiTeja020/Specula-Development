@@ -119,6 +119,14 @@ def run_pipeline_on_event(
             event_type = "PROCESS"
         elif event_id in ["4624", "4625", "4768", "4769"]:
             event_type = "AUTH"
+        else:
+            event_type = "GENERIC"
+    elif provider == "Microsoft-Windows-DistributedCOM" and event_id == "10016":
+        event_type = "AUTH"
+    elif provider in ["Microsoft-Windows-Kernel-Power", "Microsoft-Windows-UserModePowerService", "Service Control Manager", "Microsoft-Windows-Hyper-V-VmSwitch"]:
+        event_type = "PROCESS"
+    else:
+        event_type = "GENERIC"
 
     ocsf_evt = None
     if event_type == "PROCESS":
@@ -128,6 +136,22 @@ def run_pipeline_on_event(
     elif event_type == "AUTH":
         ocsf_evt = normalize_ad_auth_event(
             raw_event, sanitized_msg, utc_time, skew_offset, skew_unverified, is_degraded, trace_id, resolver
+        )
+    elif event_type == "GENERIC":
+        from src.schemas.ocsf_events import GenericEvent
+        ocsf_evt = GenericEvent(
+            trace_id=trace_id,
+            activity_id=0,
+            severity_id=1,
+            time=utc_time,
+            raw_source_timestamp=time_str,
+            clock_skew_offset_ms=skew_offset,
+            clock_skew_unverified=skew_unverified,
+            security_scan_degraded=is_degraded,
+            uid=trace_id,
+            raw_data=json.dumps(raw_event),
+            event_name=f"{provider}:{event_id}",
+            canonical_host_id=resolver.resolve_hostname(raw_event.get("MachineName", "UNKNOWN"))
         )
     
     if ocsf_evt:

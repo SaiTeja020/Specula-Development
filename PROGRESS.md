@@ -5,9 +5,9 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase E2E: End-to-End Investigation Integration (Complete)
+- **Active Phase:** Phase I: Integration & UI prep (Complete)
 - **Active Tasks (WIP=2):**
-  - None (Pending Selection)
+  - None
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
 - **Last Updated:** 2026-09-20
 
@@ -301,6 +301,9 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-20 | `src/agents/threat_attribution_agent.py` | Phase H.7.1: Threat Attribution Context Migration | Verified |
 | 2026-09-21 | `src/agents/investigation_trace.py` | Phase H.7.4 Extension: Fixed trace file appending duplication bug. Rewrote TraceRecorder's `_compile_full_report` to generate strict RAG data flow markdown blocks with provenance validation (exposing unsupported stub UIDs). | Verified (`python scripts/run_investigation.py --trace`) |
 | 2026-09-21 | `docker-compose.yml`, `src/graph/apoc_triggers.cypher` | Fixed Neo4j startup crash during APOC trigger initialization by upgrading to Neo4j 5 (latest) and explicitly routing trigger installation to the `system` database. | Verified (`python scripts/neo4j_setup.py`) |
+| 2026-09-21 | `src/agents/visualizer_api.py`, `src/agents/investigation_runner.py` | Fixed architecture mismatch by wiring `/api/trigger_pipeline` to asynchronously invoke `run_investigation` post-ingestion. Bridged LangGraph `stream()` execution events (`node_active`, `node_complete`) to WebSocket telemetry required by React flow. | Verified (`frontend_integration_e2e_report.md`) |
+| 2026-09-21 | `src/ingestion/run_pipeline.py` | Mapped real Windows System events (e.g. DCOM 10016 to AUTH, Power/Hyper-V to PROCESS) to ensure they reach Neo4j without modifying graph architecture. | Verified (Kafka, Neo4j, ChromaDB all received events) |
+| 2026-09-21 | `scripts/run_investigation.py` | Attempted real investigation with case `REAL-PC-002` to verify end-to-end evidence retrieval and finding generation. | Failed (LM Studio backend unreachable; see `real_pc_investigation_test.md`) |
 ---
 
 | State | Phase/Task | Acceptance Criteria |
@@ -314,7 +317,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | `passing` | **Phase H.5: Blackboard / Multi-Agent Orchestration** | - Shadow-migration to AgentFinding DFKG nodes via Kafka |
 | `passing` | **Phase H.6: Multi-Agent Orchestration** | - Transition LangGraph Supervisor to DFKG-only context |
 | `passing` | **Phase H.7.1: Threat Attribution Context Migration** | - Replaced `state["timeline"]` with targeted DFKG Cypher query<br>- Preserved UID tracking |
-| `not_started` | **Phase I: Integration & UI prep** | - Expose multi-agent trace streams to frontend |
+| `passing` | **Phase I: Integration & UI prep** | - Expose multi-agent trace streams to frontend via WS<br>- `/api/trigger_pipeline` successfully runs investigation |
 | `not_started` | **Phase F: Multi-Agent RAG Orchestration** | - Publish RAG-enriched findings to Kafka<br>- Downstream agents consume findings without duplicate retrieval |
 
 ---

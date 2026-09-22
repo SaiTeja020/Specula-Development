@@ -44,6 +44,9 @@ def main():
     print("[*] Waiting 10 seconds for Kafka & Neo4j to be ready...")
     time.sleep(10)
     
+    print("[*] Creating Kafka topics...")
+    subprocess.run([sys.executable, "-c", "from src.agents.kafka_utils import create_topics; create_topics()"], cwd=cwd)
+    
     services = []
     producer = None
     
@@ -57,6 +60,9 @@ def main():
         
         # 3. Start Supervisor Orchestrator (Multi-Agent Graph)
         services.append(run_background_service([sys.executable, "-m", "src.orchestration.kafka_consumer"], "Supervisor", cwd))
+        
+        # 3.5 Start DFKG Consumer (Blackboard writer)
+        services.append(run_background_service([sys.executable, "-c", "from src.agents.kafka_utils import run_dfkg_consumer; run_dfkg_consumer()"], "DFKGConsumer", cwd))
         
         print("[*] Waiting 5 seconds for consumers to initialize and subscribe to Kafka...")
         time.sleep(5)

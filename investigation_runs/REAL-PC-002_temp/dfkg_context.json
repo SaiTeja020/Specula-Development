@@ -1,0 +1,57 @@
+[
+  {
+    "timestamp": "2026-09-21T13:54:22.958497+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (f:AgentFinding)-[:BELONGS_TO]->(c:Case {case_id: $case_id}) WHERE f.agent_role = 'timeline_reconstruction' RETURN f.summary AS summary, f.uid AS uid ORDER BY f.timestamp DESC LIMIT 1",
+    "parameters": {
+      "case_id": "REAL-PC-002"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  },
+  {
+    "timestamp": "2026-09-21T13:57:14.650544+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (a:Event)-[:RELATED_TO]->(b:Threat) WHERE a.name CONTAINS 'Microsoft-Windows-Hyper-V-' RETURN a, b",
+    "parameters": {
+      "case_id": "REAL-PC-002"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  },
+  {
+    "timestamp": "2026-09-21T13:58:16.258906+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (u:UID)-[:CITES]->(p:Proposition) WHERE u.uid = 'abc123' RETURN u, p",
+    "parameters": {
+      "case_id": "REAL-PC-002"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  },
+  {
+    "timestamp": "2026-09-21T14:00:08.894458+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (n:Device)-[:USED_IN_ATTACK]->(a:Attack) RETURN n, a",
+    "parameters": {
+      "case_id": "REAL-PC-002"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  },
+  {
+    "timestamp": "2026-09-21T14:06:24.773555+00:00",
+    "agent": "dfkg",
+    "cypher": "MATCH (n:Node) WHERE n.name = 'QueryResult' RETURN n",
+    "parameters": {
+      "case_id": "REAL-PC-002"
+    },
+    "returned_entities": 0,
+    "returned_relationships": null,
+    "uids": []
+  }
+]

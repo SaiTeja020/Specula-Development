@@ -30,6 +30,8 @@ TOPICS = [
     "findings.debate",
     "dfkg.writes",
     "dfkg.dead_letter",
+    "logs.normalized.ocsf",
+    "specula.cases.opened",
 ]
 
 # Agent role -> Kafka topic

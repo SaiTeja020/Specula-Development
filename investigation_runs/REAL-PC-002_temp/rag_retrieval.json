@@ -1,0 +1,64 @@
+[
+  {
+    "timestamp": "2026-09-21T13:50:58.320010+00:00",
+    "agent": "rag",
+    "query": "case REAL-PC-002",
+    "method": "GraphRAG",
+    "records": [
+      {
+        "uid": "trace-5f5fe4c19ee3",
+        "score": 0.3587106146954771
+      },
+      {
+        "uid": "d15aa515112e8edc614119d75dd536af5ec8a24652c05a657510f26a23e688a1",
+        "score": 0.35679869931174957
+      },
+      {
+        "uid": "3977536f0def62461421af688de16e863f6ff7bb682c9474626a93df07bb02d7",
+        "score": 0.35381610125084606
+      },
+      {
+        "uid": "322c11fffa634b9d3dda219d9d8618d288c5ee63c427244e157a0ad21a8cc6ee",
+        "score": 0.3523870416290317
+      },
+      {
+        "uid": "408ccbc4b1d4c79f7f0cb463847e4e4782de029126cee4bbe4535a4eb1ad2665",
+        "score": 0.34237543431607753
+      }
+    ],
+    "dfkg_expansion": {
+      "nodes_retrieved": 4
+    }
+  },
+  {
+    "timestamp": "2026-09-21T13:53:25.493414+00:00",
+    "agent": "rag",
+    "query": "SELECT uid, timestamp, process_name, command_line, username FROM events WHERE status = 'confirmed' ORDER BY timestamp",
+    "method": "GraphRAG",
+    "records": [
+      {
+        "uid": "trace-5f5fe4c19ee3",
+        "score": 0.41260326376608497
+      },
+      {
+        "uid": "d15aa515112e8edc614119d75dd536af5ec8a24652c05a657510f26a23e688a1",
+        "score": 0.35857906876442114
+      },
+      {
+        "uid": "cfa3c49bdbe3bae1c70fea39f49eeb28786e2d91feb50cd68a908dab125cee43",
+        "score": 0.3440823749721637
+      },
+      {
+        "uid": "3977536f0def62461421af688de16e863f6ff7bb682c9474626a93df07bb02d7",
+        "score": 0.33813722636583093
+      },
+      {
+        "uid": "322c11fffa634b9d3dda219d9d8618d288c5ee63c427244e157a0ad21a8cc6ee",
+        "score": 0.3374232973578238
+      }
+    ],
+    "dfkg_expansion": {
+      "nodes_retrieved": 4
+    }
+  }
+]

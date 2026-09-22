@@ -1,0 +1,25 @@
+{
+  "case_id": "REAL-PC-007",
+  "query": "Investigate the available activity in this case and identify anything that may require attention.",
+  "events": [
+    {
+      "timestamp": "2026-09-22T02:26:36.117528+00:00",
+      "component": "runner",
+      "active_agent": "unknown_agent",
+      "event_type": "user_query",
+      "data": {
+        "query": "Investigate the available activity in this case and identify anything that may require attention.",
+        "case_id": "REAL-PC-007"
+      }
+    },
+    {
+      "timestamp": "2026-09-22T02:26:38.872528+00:00",
+      "component": "supervisor",
+      "active_agent": "supervisor",
+      "event_type": "agent_start",
+      "data": {
+        "model": "qwen/qwen3-1.7b"
+      }
+    }
+  ]
+}
