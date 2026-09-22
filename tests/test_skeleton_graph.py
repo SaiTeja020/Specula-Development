@@ -1,9 +1,8 @@
 """Verification suite for the Specula LangGraph orchestration skeleton — §11.
 
-REQUIRES a corresponding source change before this file will pass in full:
-  The stub Judge node must support `FORCE_JUDGE_REJECT_ROUNDS:N` in raw_input,
-  rejecting rounds 1..N and accepting from round N+1 onward. `FORCE_JUDGE_REJECT`
-  (unconditional, all rounds) remains for the exhaustion test.
+NODE COUNT: 25 (was 23). Changes from architecture v4:
+  - identity_cloud split into identity (F13a) + cloud_container (F13b)
+  - dag (Dynamic Attack Graph) added to Sequential Synthesis (F23)
 
 Tests cover, mapped to Stage 1 plan §11:
   1. Normal case (no dead-end) reaches final output
@@ -108,7 +107,7 @@ class TestNormalPath:
 
         expected_present = [
             "supervisor", "evidence_collection", "log_analysis", "network_forensics",
-            "timeline_reconstruction", "threat_attribution",
+            "timeline_reconstruction", "threat_attribution", "dag",
             "proponent", "critic", "judge",
             "guardrail_tier3",
             "report_generation", "timeline_artifact_generation",
@@ -123,7 +122,8 @@ class TestNormalPath:
         assert _role_index(roles, "log_analysis") < _role_index(roles, "timeline_reconstruction")
         assert _role_index(roles, "network_forensics") < _role_index(roles, "timeline_reconstruction")
         assert _role_index(roles, "timeline_reconstruction") < _role_index(roles, "threat_attribution")
-        assert _role_index(roles, "threat_attribution") < _role_index(roles, "proponent")
+        assert _role_index(roles, "threat_attribution") < _role_index(roles, "dag")
+        assert _role_index(roles, "dag") < _role_index(roles, "proponent")
         assert _role_index(roles, "proponent") < _role_index(roles, "critic")
         assert _role_index(roles, "critic") < _role_index(roles, "judge")
         assert _role_index(roles, "judge") < _role_index(roles, "guardrail_tier3")
@@ -138,7 +138,7 @@ class TestNormalPath:
     def test_no_specialists_dispatched(self, graph):
         result = _invoke(graph, thread_id="normal-no-specialists")
         roles = _get_fired_roles(result)
-        for specialist in ["memory_forensics", "identity_cloud", "malware_stylometry", "insider_threat"]:
+        for specialist in ["memory_forensics", "identity", "cloud_container", "malware_stylometry", "insider_threat"]:
             assert specialist not in roles
 
 
@@ -147,58 +147,43 @@ class TestNormalPath:
 # ---------------------------------------------------------------------------
 
 class TestDeadEndPath:
-    """D1: Dead-end injection now uses state['test_control']['dead_end_categories']
-    (read by detect_dead_end() inside primary_tier_join_node) instead of the old
-    DEAD_END:category raw_input flag (which was parsed in supervisor_node before
-    any evidence existed). The test_control approach is the documented injection
-    mechanism for Stage 3+."""
-
     def test_specialists_dispatched(self, graph):
-        result = _invoke(
-            graph, thread_id="deadend-1",
-            test_control={"dead_end_categories": ["memory", "identity"]},
-        )
+        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity on host WS-042",
+                          thread_id="deadend-1")
         roles = _get_fired_roles(result)
         assert "memory_forensics" in roles
-        assert "identity_cloud" in roles
+        assert "identity" in roles
+        assert "cloud_container" not in roles
         assert "malware_stylometry" not in roles
         assert "insider_threat" not in roles
 
     def test_dead_end_categories_parsed_into_state(self, graph):
-        """Verify the test_control inject actually lands in the state field, not
+        """Verify the raw_input parse actually lands in the state field, not
         just inferred indirectly via which specialists happened to run."""
-        result = _invoke(
-            graph, thread_id="deadend-categories",
-            test_control={"dead_end_categories": ["memory", "identity"]},
-        )
+        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity on host WS-042",
+                          thread_id="deadend-categories")
         assert result.get("dead_end_detected") is True
         categories = set(result.get("dead_end_categories", []))
         assert categories == {"memory", "identity"}
 
     def test_reaches_final_output(self, graph):
-        result = _invoke(
-            graph, thread_id="deadend-2",
-            test_control={"dead_end_categories": ["memory", "identity"]},
-        )
+        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity on host WS-042",
+                          thread_id="deadend-2")
         assert result.get("case_status") == "closed"
         assert result.get("final_output_ref") is not None
 
     def test_all_four_specialists(self, graph):
-        result = _invoke(
-            graph, thread_id="deadend-all",
-            test_control={"dead_end_categories": ["memory", "identity", "malware", "insider"]},
-        )
+        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity,cloud_container,malware,insider",
+                          thread_id="deadend-all")
         roles = _get_fired_roles(result)
-        for s in ["memory_forensics", "identity_cloud", "malware_stylometry", "insider_threat"]:
+        for s in ["memory_forensics", "identity", "cloud_container", "malware_stylometry", "insider_threat"]:
             assert s in roles
 
     def test_specialist_join_precedes_timeline(self, graph):
-        result = _invoke(
-            graph, thread_id="deadend-order",
-            test_control={"dead_end_categories": ["memory", "identity", "malware", "insider"]},
-        )
+        result = _invoke(graph, raw_input="Alert DEAD_END:memory,identity,cloud_container,malware,insider",
+                          thread_id="deadend-order")
         roles = _get_fired_roles(result)
-        for s in ["memory_forensics", "identity_cloud", "malware_stylometry", "insider_threat"]:
+        for s in ["memory_forensics", "identity", "cloud_container", "malware_stylometry", "insider_threat"]:
             assert _role_index(roles, s) < _role_index(roles, "timeline_reconstruction")
 
 

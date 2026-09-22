@@ -1,106 +1,21 @@
 import { useState } from 'react';
+  const { 
+    isStarted, caseStatus, activeStage, stageLogs, hitlData, 
+    handleStart, handleHitlAction 
+  } = usePipeline();
 
-const STAGES = [
-  { 
-    id: 0, 
-    title: 'Ingestion & Integrity Preservation', 
-    desc: 'Stream capture across heterogeneous sources, SHA-256 SIMD hashing, Quickwit WORM commit, and OCSF schema normalization.' 
-  },
-  { 
-    id: 1, 
-    title: 'Entropy Distillation & DFKG Write', 
-    desc: 'Drain3 template clustering, SimHash anti-poisoning, and Neo4j Digital Forensic Knowledge Graph node/edge creation.' 
-  },
-  { 
-    id: 2, 
-    title: 'Multi-Agent Forensic Triage', 
-    desc: 'Supervisor dispatches Primary Tier in parallel with conditional Specialist routing on dead-ends.' 
-  },
-  { 
-    id: 3, 
-    title: 'Synthesis & Attack Reconstruction', 
-    desc: 'Sequential execution of Timeline Reconstruction and Threat Attribution (MITRE ATT&CK correlation via FAISS).' 
-  },
-  { 
-    id: 4, 
-    title: 'Adversarial ACH Debate', 
-    desc: 'Proponent vs. Critic agents debate competing hypotheses, evaluated by the Judge agent to eliminate hallucinations.' 
-  },
-  { 
-    id: 5, 
-    title: 'Guardrails, HITL & Final Assembly', 
-    desc: '3-tier zero-trust safety checks, Human-in-the-Loop escalation gate, and 17-section Daubert-admissible PDF generation.' 
-  }
-];
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [maxEvents, setMaxEvents] = useState(2000);
+  const [excludePorts, setExcludePorts] = useState('80,443,53');
 
-export default function InvestigationConsole() {
-  const [caseId, setCaseId] = useState('REAL-PC-002');
-  const [query, setQuery] = useState('Investigate the available activity in this case and identify anything that may require attention.');
-  const [isStarted, setIsStarted] = useState(false);
-  const [caseStatus, setCaseStatus] = useState('IDLE');
-  
-  const [activeStage, setActiveStage] = useState(-1);
-  const [stageLogs, setStageLogs] = useState({ 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] });
-  const [hitlData, setHitlData] = useState(null);
-
-  const appendLog = (stageIdx, msg) => {
-    setStageLogs(prev => ({
-      ...prev,
-      [stageIdx]: [...(prev[stageIdx] || []), { time: new Date().toLocaleTimeString(), msg }]
-    }));
-  };
-
-  const handleStart = async () => {
-    setIsStarted(true);
-    setCaseStatus('RUNNING');
-    setActiveStage(2); // visually indicate we are processing logic beyond ingestion
-    
-    appendLog(2, `[SYSTEM] Started backend investigation request for ${caseId}...`);
-    
-    try {
-      const res = await fetch('http://localhost:8200/investigate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          case_id: caseId,
-          query: query
-        })
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
-      }
-      
-      const data = await res.json();
-      
-      setCaseStatus('COMPLETED');
-      setActiveStage(6);
-      
-      if (data.type === 'hitl_paused') {
-          setHitlData({
-            confidence: 0.0,
-            blastRadius: 'Unknown',
-            tamperCheck: 'PENDING',
-            ...data
-          });
-          appendLog(5, `[SYSTEM] Investigation paused for HITL review. Thread ID: ${data.thread_id}`);
-      } else {
-          appendLog(5, `[SYSTEM] Investigation Completed.`);
-          appendLog(5, `Result Synthesis: ${JSON.stringify(data.synthesis || data, null, 2)}`);
-      }
-      
-    } catch (e) {
-      console.error("Failed to trigger investigation", e);
-      setIsStarted(false);
-      setCaseStatus('ERROR');
-      setActiveStage(-1);
-      alert('Failed to communicate with the investigation backend API.');
-    }
-  };
-
-  const handleHitlAction = (action) => {
-    appendLog(5, `[HITL] Analyst Action: ${action.toUpperCase()}`);
-    setHitlData(null);
+  const onLaunch = () => {
+    handleStart({
+      start_date: startDate,
+      end_date: endDate,
+      max_events: maxEvents,
+      exclude_ports: excludePorts
+    });
   };
 
   return (
@@ -131,7 +46,7 @@ export default function InvestigationConsole() {
                 <input type="text" value={query} onChange={e => setQuery(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', width: '100%' }} />
               </label>
             </div>
-            <button className="primary-btn" onClick={handleStart} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
+            <button className="primary-btn" onClick={onLaunch} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
           </div>
         )}
       </div>

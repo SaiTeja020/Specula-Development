@@ -16,7 +16,7 @@ All models inherit from OCSFBaseEvent (ocsf_base.py).
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from src.schemas.ocsf_base import OCSFBaseEvent
 
@@ -41,6 +41,16 @@ class ProcessActivityEvent(OCSFBaseEvent):
     container: Optional[Dict[str, Any]] = Field(default=None, description="Container context metadata.")
 
 
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
+
 class FileActivityEvent(OCSFBaseEvent):
     """
     OCSF File Activity event (class_uid 1001, category_uid 1).
@@ -62,6 +72,16 @@ class FileActivityEvent(OCSFBaseEvent):
     usn_reason_code: Optional[int] = Field(default=None, description="USN Journal reason code.")
     timestamp_precision_bitmask: Optional[int] = Field(default=None, description="Timestamp precision flags.")
 
+
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
 
 class NetworkActivityEvent(OCSFBaseEvent):
     """
@@ -86,6 +106,16 @@ class NetworkActivityEvent(OCSFBaseEvent):
     container: Optional[Dict[str, Any]] = Field(default=None, description="Container context metadata.")
 
 
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
+
 class AuthenticationEvent(OCSFBaseEvent):
     """
     OCSF Authentication event (class_uid 3002, category_uid 3).
@@ -102,6 +132,16 @@ class AuthenticationEvent(OCSFBaseEvent):
     failure_reason: Optional[str] = Field(default=None, description="Reason for failure.")
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
 
+
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
 
 class DetectionFindingEvent(OCSFBaseEvent):
     """
@@ -120,6 +160,16 @@ class DetectionFindingEvent(OCSFBaseEvent):
     details: Optional[Dict[str, Any]] = Field(default=None, description="Additional detection details.")
 
 
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
+
 class IncidentFindingEvent(OCSFBaseEvent):
     """
     OCSF Incident Finding event (class_uid 2005, category_uid 2).
@@ -135,6 +185,16 @@ class IncidentFindingEvent(OCSFBaseEvent):
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
 
 
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v
+
 class EmailActivityEvent(OCSFBaseEvent):
     """
     OCSF Email Activity event (class_uid 4009, category_uid 4).
@@ -148,3 +208,13 @@ class EmailActivityEvent(OCSFBaseEvent):
     message_id: Optional[str] = Field(default=None, description="Message-ID header.")
     attachments: Optional[List[Dict[str, Any]]] = Field(default=None, description="Attachment metadata list.")
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
+
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def reject_empty_and_pending_strings(cls, v):
+        if isinstance(v, str):
+            val_str = v.strip()
+            if val_str == "" or val_str == "PENDING_UID":
+                raise ValueError(f"Fields cannot be empty or '{val_str}'")
+        return v

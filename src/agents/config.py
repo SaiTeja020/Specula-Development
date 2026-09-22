@@ -123,13 +123,36 @@ AGENT_CONFIG: dict[str, dict] = {
             "Input: {raw_input}"
         ),
     },
-    "identity_cloud": {
-        "model_id": "gemini-3.6-flash",
-        "provider": "google",
+    "identity": {
+        "model_id": "Prism-ML-Ternary-Bonsai-27B",   # arch v4 [ID] — F13a
+        "provider": "vllm",
         "system_prompt_template": (
-            "You are the Identity & Cloud specialist for case {case_id}. "
-            "Examine AD/cloud audit logs for credential abuse and lateral movement.\n"
+            "You are the Identity specialist for case {case_id}. "
+            "Examine AD/Kerberos ticket abuse, cloud-IAM privilege escalation, "
+            "and lateral movement via credential theft.\n"
             "Input: {raw_input}"
+        ),
+    },
+    "cloud_container": {
+        "model_id": "Qwen3-32B",                       # arch v4 [CLOUD_K8S] — F13b
+        "provider": "vllm",
+        "system_prompt_template": (
+            "You are the Cloud & Container specialist for case {case_id}. "
+            "Analyse K8s audit logs, Falco runtime alerts, Docker API abuse, "
+            "and ephemeral pod/NAT IP activity.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "dag": {
+        "model_id": "Qwen2.5-7B-Instruct",            # arch v4 [DAG] — F23
+        "provider": "vllm",
+        "system_prompt_template": (
+            "You are the Dynamic Attack Graph agent for case {case_id}. "
+            "Using confirmed preconditions from the DFKG and EPSS/CVSS scores, "
+            "compute Dijkstra shortest-path attack chains weighted by "
+            "-ln(CVSS * EPSS * gamma + epsilon). "
+            "Output residual-risk scores and the highest-probability exploit path.\n"
+            "Findings so far: {findings_summary}"
         ),
     },
     "malware_stylometry": {
@@ -226,7 +249,9 @@ _STUB_RESPONSES: dict[str, str] = {
     "timeline_reconstruction":  "T-0: Initial access via phishing (03:12). T+2m: PowerShell download cradle. T+5m: Lateral movement to DC01. T+12m: Data staging. T+18m: Exfiltration start.",
     "threat_attribution":       "ATT&CK mapping: T1566.001 (Phishing), T1059.001 (PowerShell), T1021.002 (SMB), T1041 (Exfiltration). Attribution confidence: APT29 (moderate, 0.72).",
     "memory_forensics":         "Process hollowing detected in svchost.exe (PID 4812). Injected Cobalt Strike beacon shellcode at 0x7FFE0000. YARA match: CobaltStrike_Beacon_v4.",
-    "identity_cloud":           "Compromised service account svc-backup@corp.local. Kerberoasting evidence: TGS-REP for SPN MSSQLSvc/db01. Azure AD token refresh anomaly.",
+    "identity":                 "Kerberoasting of SPN MSSQLSvc/db01 confirmed. TGS-REP for svc-backup@corp.local. Azure AD token refresh anomaly at 03:17 UTC. Lateral movement to DC01 via Pass-the-Ticket.",
+    "cloud_container":          "K8s audit: privileged pod launched in kube-system (image: alpine). Falco alert: unexpected outbound connection from container cid-8f3a. Docker daemon API accessed unauthenticated from 10.0.0.42.",
+    "dag":                      "Highest-probability attack path: CVE-2021-34527 (PrintNightmare, CVSS 8.8, EPSS 0.94) -> DC01 via SMB. Dijkstra weight: 0.062. Residual risk score: 0.91. Secondary path: CVE-2020-1472 (Zerologon, CVSS 10.0, EPSS 0.97) weight: 0.030.",
     "malware_stylometry":       "PE sample SHA256: a1b2c3... Static analysis: UPX packed, anti-debug via IsDebuggerPresent. Code similarity 87% to APT29 SunBurst loader.",
     "insider_threat":           "User jsmith: 340% increase in after-hours file access. USB device connected 2x in 72h (policy violation). Sentiment score: -0.4 (baseline: 0.1).",
     "proponent":                "FINAL_ANSWER: VERDICT: ACCEPT — Primary hypothesis: External APT compromise via spear-phishing with lateral movement to domain controller. DFKG evidence refs: [E-001, E-003, N-002].",

@@ -210,8 +210,8 @@ class TestNeo4jLiveIntegration:
             "Message": "A new process has been created.",
         }
 
-        # Must not raise 
-        validated_evt = run_pipeline_on_event(
+        # Must not raise — Neo4j write failure is non-fatal
+        results = run_pipeline_on_event(
             raw_event,
             VCTAtomicChain(),
             CanonicalEntityResolver(),
@@ -219,4 +219,5 @@ class TestNeo4jLiveIntegration:
             qw_client=None,
             source_type="evtx",
         )
+        validated_evt, cypher_query, neo4j_result = results[0]
         assert validated_evt is not None

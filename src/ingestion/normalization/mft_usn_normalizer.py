@@ -50,6 +50,9 @@ def normalize_mft_record(
     sanitized_file_name, _ = sanitize_text(raw_file_name)
     sanitized_file_path, _ = sanitize_text(raw_file_path)
     
+    if (not sanitized_file_name or sanitized_file_name.strip() == "") and (not sanitized_file_path or sanitized_file_path.strip() == ""):
+        raise ValueError("File name and path cannot both be empty")
+    
     # Rebuff scan on file path (can contain injection payloads)
     is_injection, is_degraded = detect_prompt_injection(sanitized_file_path)
     
@@ -85,8 +88,7 @@ def normalize_mft_record(
         uid=generate_deterministic_uid("file", {
             "file_name": sanitized_file_name,
             "file_path": sanitized_file_path,
-            "time": raw_timestamp,
-            "usn_reason": raw_reason
+            "timestamp": utc_time.isoformat()
         }),
         file_name=sanitized_file_name,
         file_path=sanitized_file_path,

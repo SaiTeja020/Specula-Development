@@ -1,7 +1,7 @@
-"""All 23 node functions for the Specula orchestration skeleton — §3–4, §7–8.
+"""All 25 node functions for the Specula orchestration skeleton — §3–4, §7–8.
 
 Node types:
-  16 ReAct-stub LLM agent nodes
+  18 ReAct-stub LLM agent nodes
    2 non-LLM real nodes (Guardrail Tier 1, Tier 2)
    1 real HTTP node (HITL — uses interrupt())
    4 control-only nodes (joins + terminal)
@@ -215,17 +215,43 @@ def make_supervisor_node(neo4j_driver):
 
 
 
+# --- 7. Dynamic Attack Graph (Sequential Synthesis) ---
+def dag_node(state: dict) -> dict:
+    """Dynamic Attack Graph Agent — Sequential Synthesis (F23).
 
-# --- 7–10. Specialist tier (conditional, parallel-if-multiple) ---
+    Reads confirmed preconditions from DFKG (via mcp-dfkg-cypher) and EPSS
+    daily scores from DuckDB, then computes Dijkstra-weighted exploit paths
+    per ADR-006: W = -ln(CVSS * EPSS * gamma + epsilon).
+    Publishes residual-risk and exploit-path findings to Kafka.
+    """
+    finding, trace = _run_agent("dag", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# --- 8–12. Specialist tier (conditional, parallel-if-multiple) ---
 # (Memory forensics moved to src/agents/memory_forensics_agent.py)
 
 
-def identity_cloud_node(state: dict) -> dict:
-    finding, trace = _run_agent("identity_cloud", state)
+def identity_node(state: dict) -> dict:
+    """Identity Agent — AD/Kerberos/cloud-IAM forensics specialist (F13a)."""
+    finding, trace = _run_agent("identity", state)
     return {
         "findings": [finding],
         "agent_traces": [trace],
         "specialists_completed": ["identity"],
+    }
+
+
+def cloud_container_node(state: dict) -> dict:
+    """Cloud & Container Agent — K8s/Falco/Docker runtime forensics specialist (F13b)."""
+    finding, trace = _run_agent("cloud_container", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+        "specialists_completed": ["cloud_container"],
     }
 
 

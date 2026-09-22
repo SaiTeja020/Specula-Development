@@ -16,9 +16,9 @@ def test_cypher_idempotency_mft():
     query, params = CypherBuilder.build_file_activity(event_dict)
     
     # Assert idempotency properties
-    assert "MERGE (f:File {uid: $file_path})" in query
-    assert "MERGE (host:Host {uid: $canonical_host_id})" in query
-    assert "MERGE (host)-[r:CREATED {uid: $uid}]->(f)" in query
+    assert "MERGE (f:File {uid: $file_uid})" in query
+    assert "MERGE (h:Host {uid: $canonical_host_id})" in query
+    assert "MERGE (f)-[r:RUNS_ON]->(h)" in query
     assert "CREATE (f:File" not in query # Must not forcefully create duplicate nodes
 
 def test_cypher_idempotency_pcap():
@@ -34,5 +34,5 @@ def test_cypher_idempotency_pcap():
     
     assert "MERGE (src:NetworkEndpoint {uid: $src_ip})" in query
     assert "MERGE (dst:NetworkEndpoint {uid: $dst_ip})" in query
-    assert "MERGE (src)-[r:COMMUNICATED_WITH {uid: $uid}]->(dst)" in query
+    assert "MERGE (src)-[r:CONNECTED_TO]->(dst)" in query
     assert "CREATE (src:NetworkEndpoint" not in query

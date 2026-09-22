@@ -6,6 +6,7 @@ import StartupPage from './pages/StartupPage';
 import InvestigationConsole from './pages/InvestigationConsole';
 import Neo4jVisualizer from './pages/Neo4jVisualizer';
 import DatabaseVisualizers from './pages/DatabaseVisualizers';
+import { PipelineProvider } from './contexts/PipelineContext';
 import AuthPage from './pages/AuthPage';
 
 // Route guard – redirects unauthenticated users to /auth
@@ -108,24 +109,26 @@ function Layout({ children }) {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
-            {/* Public */}
-            <Route path="/auth" element={<AuthPage />} />
+      <PipelineProvider>
+        <Router>
+          <Layout>
+            <Routes>
+              {/* Public */}
+              <Route path="/auth" element={<AuthPage />} />
 
-            {/* Protected */}
-            <Route path="/" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
-            <Route path="/startup" element={<ProtectedRoute><StartupPage /></ProtectedRoute>} />
-            <Route path="/investigate" element={<ProtectedRoute><InvestigationConsole /></ProtectedRoute>} />
-            <Route path="/neo4j" element={<ProtectedRoute><Neo4jVisualizer /></ProtectedRoute>} />
-            <Route path="/databases" element={<ProtectedRoute><DatabaseVisualizers /></ProtectedRoute>} />
+              {/* Protected */}
+              <Route path="/" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
+              <Route path="/startup" element={<ProtectedRoute><StartupPage /></ProtectedRoute>} />
+              <Route path="/investigate" element={<ProtectedRoute><InvestigationConsole /></ProtectedRoute>} />
+              <Route path="/neo4j" element={<ProtectedRoute><Neo4jVisualizer /></ProtectedRoute>} />
+              <Route path="/databases" element={<ProtectedRoute><DatabaseVisualizers /></ProtectedRoute>} />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Layout>
-      </Router>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </PipelineProvider>
     </AuthProvider>
   );
 }

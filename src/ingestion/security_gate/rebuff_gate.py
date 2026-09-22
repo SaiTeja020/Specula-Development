@@ -21,6 +21,7 @@ REBUFF_ENDPOINT = "http://localhost:8080/api/v1/detect"
 
 _LAST_UNREACHABLE_TIME = 0.0
 _UNREACHABLE_CACHE_TTL = 30.0
+_has_logged_rebuff_error = False
 
 FALLBACK_HEURISTIC_PATTERNS = [
     re.compile(r"ignore previous instructions", re.IGNORECASE),
@@ -65,7 +66,10 @@ def screen(text: str) -> RebuffScreenResult:
             security_scan_degraded=False,
         )
     except Exception as e:
-        logger.warning(f"Rebuff service call failed: {e}. Falling back to local heuristics.")
+        global _has_logged_rebuff_error
+        if not _has_logged_rebuff_error:
+            logger.warning(f"Rebuff service call failed: {e}. Falling back to local heuristics.")
+            _has_logged_rebuff_error = True
         is_inj = _fallback_heuristic_scan(text)
         return RebuffScreenResult(
             is_injection=is_inj,

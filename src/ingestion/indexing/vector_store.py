@@ -192,9 +192,13 @@ class ChromaVectorStore(VectorStoreAdapter):
 
         try:
             import chromadb
-            # Connect to the docker-compose chromadb instance on port 8000
-            # This avoids the local pyo3 rust panic on Python 3.13 Windows.
-            self.client = chromadb.HttpClient(host="localhost", port=8000)
+            import os
+            if persist_dir:
+                self.client = chromadb.PersistentClient(path=persist_dir)
+            else:
+                host = os.environ.get("CHROMA_HOST", "localhost")
+                port = int(os.environ.get("CHROMA_PORT", 8000))
+                self.client = chromadb.HttpClient(host=host, port=port)
             self.collection = self.client.get_or_create_collection(name=collection_name)
             logger.info(f"Initialized ChromaDB collection: {collection_name}")
         except Exception as e:

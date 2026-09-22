@@ -55,7 +55,7 @@ services:
 
   # 5. Neo4j (DFKG)
   neo4j:
-    image: neo4j:5
+    image: neo4j:5.26.0
     container_name: specula-neo4j
     ports:
       - "7474:7474" # HTTP Browser
@@ -83,6 +83,7 @@ services:
   redpanda-console:
     image: docker.redpanda.com/redpandadata/console:v2.4.6
     container_name: specula-redpanda-console
+    restart: on-failure
     ports:
       - "8082:8080"
     environment:

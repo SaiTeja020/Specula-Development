@@ -142,6 +142,18 @@ class OCSFBaseEvent(BaseModel):
             )
         return v
 
+    @field_validator("uid", mode="before")
+    @classmethod
+    def uid_must_be_valid(cls, v: str) -> str:
+        """
+        Reject empty strings and PENDING_UID explicitly.
+        """
+        if not v or v.strip() == "":
+            raise ValueError("uid must not be empty.")
+        if v == "PENDING_UID":
+            raise ValueError("uid must not be 'PENDING_UID'. Generate a deterministic hash instead.")
+        return v
+
     model_config = {
         "json_schema_extra": {
             "description": (

@@ -94,3 +94,30 @@ def get_json_deserializer(schema_str: Optional[str] = None) -> Any:
             "confluent-kafka[json] package is required for Schema Registry integration"
         ) from e
 
+
+def register_phase2_phase3_schemas(url: str = "http://localhost:8081"):
+    """
+    Registers the Phase 2 and Phase 3 schemas into the Confluent Schema Registry.
+    """
+    try:
+        from confluent_kafka.schema_registry import SchemaRegistryClient, Schema
+        from src.schemas.ocsf_phase2_events import IncidentFindingEvent
+        from src.schemas.ocsf_phase3_events import VulnerabilityFindingEvent, HTTPActivityEvent
+        
+        client = SchemaRegistryClient({"url": url})
+        
+        schemas_to_register = {
+            "IncidentFindingEvent-value": IncidentFindingEvent,
+            "VulnerabilityFindingEvent-value": VulnerabilityFindingEvent,
+            "HTTPActivityEvent-value": HTTPActivityEvent
+        }
+        
+        for subject, model in schemas_to_register.items():
+            schema_json = json.dumps(model.model_json_schema())
+            schema = Schema(schema_json, schema_type="JSON")
+            client.register_schema(subject, schema)
+            logger.info(f"Registered schema for {subject}")
+            
+    except Exception as e:
+        logger.warning(f"Failed to register Phase 2/3 schemas (Schema Registry might be offline): {e}")
+

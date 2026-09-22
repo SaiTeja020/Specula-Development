@@ -4,22 +4,21 @@ import threading
 import time
 import os
 import argparse
+from dotenv import load_dotenv
+
+# Load variables from .env if present
+load_dotenv()
 
 def prefix_output(process, prefix):
     for line in iter(process.stdout.readline, b''):
-        sys.stdout.write(f"[{prefix}] {line.decode('utf-8', errors='replace')}")
-        sys.stdout.flush()
+        print(f"[{prefix}] {line.decode('utf-8', errors='replace').rstrip()}")
 
-def run_background_service(command, prefix, cwd):
-    print(f"[*] Starting {prefix}...")
-    env = os.environ.copy()
-    env["PYTHONPATH"] = cwd
+def run_background_service(command, prefix, cwd=None):
     p = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        cwd=cwd,
-        env=env
+        cwd=cwd
     )
     t = threading.Thread(target=prefix_output, args=(p, prefix), daemon=True)
     t.start()
@@ -34,52 +33,41 @@ def main():
     cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
     print("[*] Starting infrastructure with docker compose...")
-    try:
-        subprocess.run(["docker", "compose", "up", "-d"], cwd=cwd, check=True)
-    except Exception as e:
-        print(f"[!] Failed to start docker compose: {e}")
-        print("Please ensure Docker Desktop is running.")
-        sys.exit(1)
+    subprocess.run(["docker", "compose", "up", "-d"], cwd=cwd, check=True)
     
-    print("[*] Waiting 10 seconds for Kafka & Neo4j to be ready...")
-    time.sleep(10)
-    
-    print("[*] Creating Kafka topics...")
-    subprocess.run([sys.executable, "-c", "from src.agents.kafka_utils import create_topics; create_topics()"], cwd=cwd)
-    
+    print("[*] Waiting for infrastructure to initialize (15s)...")
+    time.sleep(15)
+
     services = []
-    producer = None
-    
     try:
-        # 1. Start Visualizer API (if it exists)
-        if os.path.exists(os.path.join(cwd, "src", "agents", "visualizer_api.py")):
-            services.append(run_background_service([sys.executable, "-m", "src.agents.visualizer_api"], "Visualizer", cwd))
+        # 1. Run LangGraph Orchestrator (Consumer)
+        print("[*] Starting Supervisor Orchestrator...")
+        orchestrator = run_background_service([sys.executable, "-m", "src.orchestration.kafka_consumer"], "Supervisor", cwd)
+        services.append(orchestrator)
         
-        # 2. Start Ingestion Consumer (Vector/DFKG distillation)
-        services.append(run_background_service([sys.executable, "-m", "src.ingestion.ingestion_consumer"], "IngestionConsumer", cwd))
-        
-        # 3. Start Supervisor Orchestrator (Multi-Agent Graph)
-        services.append(run_background_service([sys.executable, "-m", "src.orchestration.kafka_consumer"], "Supervisor", cwd))
-        
-        # 3.5 Start DFKG Consumer (Blackboard writer)
-        services.append(run_background_service([sys.executable, "-c", "from src.agents.kafka_utils import run_dfkg_consumer; run_dfkg_consumer()"], "DFKGConsumer", cwd))
-        
-        print("[*] Waiting 5 seconds for consumers to initialize and subscribe to Kafka...")
-        time.sleep(5)
-        
-        # 4. Run Producer (Event Extraction)
-        print("[*] Starting Log Ingestion Producer...")
-        cmd = [sys.executable, "-m", "src.ingestion.run_pipeline"]
-        if args.start_time:
-            cmd.extend(["--start-time", args.start_time])
-        if args.end_time:
-            cmd.extend(["--end-time", args.end_time])
-        producer = run_background_service(cmd, "Producer", cwd)
-        services.append(producer)
+        if args.start_time or args.end_time:
+            # Historical Demo Mode
+            print("[*] Starting Log Ingestion Producer (Historical/Demo Mode)...")
+            cmd = [sys.executable, "-m", "src.ingestion.run_pipeline"]
+            if args.start_time:
+                cmd.extend(["--start-time", args.start_time])
+            if args.end_time:
+                cmd.extend(["--end-time", args.end_time])
+            producer = run_background_service(cmd, "Producer", cwd)
+            services.append(producer)
+        else:
+            # Real-time Streaming Mode
+            print("[*] Starting Winlogbeat Ingestion Consumer (Real-Time)...")
+            winlogbeat_consumer = run_background_service([sys.executable, "-m", "src.ingestion.broker.winlogbeat_consumer"], "Winlogbeat", cwd)
+            services.append(winlogbeat_consumer)
+
+            print("[*] Starting Graph/Vector Ingestion Consumer (Real-Time)...")
+            ingestion_consumer = run_background_service([sys.executable, "-m", "src.ingestion.broker.ingestion_consumer"], "Ingestion", cwd)
+            services.append(ingestion_consumer)
         
         print("\n=======================================================")
-        print("[*] Full pipeline is running multiplexed in this console.")
-        print("[*] Press Ctrl+C at any time to stop all services.")
+        print("Pipeline is actively running.")
+        print("Press Ctrl+C to stop all services.")
         print("=======================================================\n")
         
         # Keep main thread alive
@@ -87,14 +75,12 @@ def main():
             time.sleep(1)
             
     except KeyboardInterrupt:
-        print("\n[*] Keyboard interrupt received. Shutting down services...")
+        print("\n[*] Stopping pipeline services...")
     finally:
         for p in services:
-            try:
-                p.terminate()
-            except:
-                pass
-        print("[*] All python services terminated.")
+            p.terminate()
+            p.wait()
+        print("[*] Services stopped.")
 
 if __name__ == "__main__":
     main()
