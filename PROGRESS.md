@@ -11,7 +11,7 @@
 - **Active Tasks (WIP=2):**
   None currently active.
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-19
+- **Last Updated:** 2026-09-29
 
 ---
 
@@ -172,6 +172,12 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -v`
   - **Acceptance Criteria:** 28/28 passing; zero `identity_cloud` references in source; `dag` present in `agent_traces` membership and ordering assertions.
 
+- **Task ID:** `TASK-4.9`
+  - **Description:** Implement memory dump retrieval and ingestion pipeline. Created `src/ingestion/extractors/memory_extractor.py` (WinPmem → Volatility3 `pslist`/`netscan`/`malfind` → JSON) with mock mode (`SPECULA_MEMORY_MOCK=true`). Wired into `run_pipeline.py` via `SPECULA_MEMORY_ENABLED` feature flag. Added `Memory_Dump_Live` to `_SOURCE_TYPE_MAP`. Feeds into existing `memory_dump_normalizer`.
+  - **Status:** `passing`
+  - **Verification Command:** `.\\venv\\Scripts\\pytest.exe tests/ingestion/test_memory_ingestion.py -v`
+  - **Acceptance Criteria:** 28/28 tests passing; mock extractor output shape verified; all three normalizer branches (pslist/netscan/malfind) produce correct OCSF class_uids; clock_skew_unverified=True for all memory events; full pipeline integration confirmed; UID determinism verified.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
@@ -215,10 +221,41 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 ---
 
 ## Pending Dependency & Terminal Requests (Awaiting Human Action)
+
 - **Required for dateutil normalizer tests:**
   ```powershell
   .\venv\Scripts\pip.exe install python-dateutil
   ```
+
+- **Required for live memory forensics (`SPECULA_MEMORY_ENABLED=true`, non-mock):**
+
+  **1. Install Volatility3 (already in requirements.txt — run if not yet done):**
+  ```powershell
+  .\venv\Scripts\pip.exe install volatility3
+  ```
+
+  **2. Download WinPmem (memory acquisition tool):**
+  - URL: `https://github.com/Velocidex/WinPmem/releases/latest`
+  - Download `winpmem_mini_x64.exe` and place at `tools\winpmem_mini_x64.exe`
+  - Requires Administrator privileges at runtime.
+
+  **3. Download Volatility3 Windows symbol pack (~300 MB):**
+  - URL: `https://downloads.volatilityfoundation.org/volatility3/symbols/windows.zip`
+  - Extract the `windows\` folder inside the ZIP into:
+    ```
+    venv\lib\site-packages\volatility3\framework\symbols\windows\
+    ```
+  - If your exact build is missing from the pack, Volatility3 will auto-download
+    symbols from Microsoft's public symbol server on first run (internet required).
+
+  **4. Add to `.env`:**
+  ```
+  SPECULA_MEMORY_ENABLED=true
+  SPECULA_WINPMEM_PATH=tools/winpmem_mini_x64.exe
+  SPECULA_VOL3_PATH=venv/Scripts/vol.py
+  ```
+
+  **Dev/CI (no tools required):** Set `SPECULA_MEMORY_MOCK=true` instead.
 
 ---
 
@@ -243,4 +280,6 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-21 | `TASK-5.5` | Upgraded Neo4j Docker image to `5.26.0` to resolve Bolt Protocol v5.5 mismatch with python driver 6.2.0, and updated `numpy` dependency to `2.5.3` to fix silent crash | Verified (558 nodes ingested) |
 | 2026-09-17 | Phase 5 UI/UX | Refined button tokens to darker royal indigo (`#1E40AF`) with 8px radius & white text. Positioned terminal directly below the Service Health Checks box with compact 2-column grid ensuring all 6 services are completely visible without window scroll push | Passed (`npm run lint` 0 warnings, `pytest` 8/8 passed) |
 | 2026-09-19 | `TASK-4.8` | Split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); added `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Updated 7 files: `config.py`, `nodes.py`, `graph.py`, `kafka_utils.py`, `state.py`, `supervisor_agent.py`, `test_skeleton_graph.py`. Node count: 23 → 25. | 28/28 Passed (`tests/test_skeleton_graph.py`) |
+| 2026-09-29 | `TASK-4.9` | Created `src/ingestion/extractors/memory_extractor.py` (WinPmem → Volatility3 pslist/netscan/malfind → JSON, mock mode via `SPECULA_MEMORY_MOCK=true`). Wired into `run_pipeline.py` with `SPECULA_MEMORY_ENABLED` flag. Added 28-test verification oracle. | 28/28 Passed (`tests/ingestion/test_memory_ingestion.py`) |
+
 

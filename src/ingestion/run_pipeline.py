@@ -36,6 +36,7 @@ from src.ingestion.normalization.evtx_normalizer import (
     normalize_evtx_defense_evasion, normalize_evtx_detection_finding
 )
 from src.ingestion.normalization.mft_usn_normalizer import normalize_mft_record
+from src.ingestion.extractors.memory_extractor import extract_memory_events
 from src.ingestion.normalization.cloud_normalizer import normalize_cloudtrail
 from src.ingestion.validation.validator import validate_event
 from src.schemas.ocsf_events import ProcessActivity, GenericEvent, FileActivity, CloudAudit
@@ -75,6 +76,14 @@ QUICKWIT_ENABLED: bool = os.environ.get("SPECULA_QUICKWIT_ENABLED", "false").low
 # ---------------------------------------------------------------------------
 NEO4J_ENABLED: bool = os.environ.get("SPECULA_NEO4J_ENABLED", "false").lower() == "true"
 
+# ---------------------------------------------------------------------------
+# Memory extraction feature flag.
+# Set SPECULA_MEMORY_ENABLED=true to include live memory forensics in the run.
+# Set SPECULA_MEMORY_MOCK=true to use synthetic fixture records (no WinPmem
+# or Volatility3 required — safe for dev/CI environments).
+# ---------------------------------------------------------------------------
+MEMORY_ENABLED: bool = os.environ.get("SPECULA_MEMORY_ENABLED", "false").lower() == "true"
+
 # Maps channel/category names to OCSF-style source_type labels
 _SOURCE_TYPE_MAP: dict[str, str] = {
     "System": "evtx",
@@ -89,6 +98,7 @@ _SOURCE_TYPE_MAP: dict[str, str] = {
     "EDR_Telemetry": "edr",
     "Malware_Sandbox": "malware",
     "Memory_Dump": "memory",
+    "Memory_Dump_Live": "memory",
     "UEBA_Browser": "ueba",
     "Vulnerability_Scan": "vuln_scan"
 }
@@ -358,6 +368,26 @@ def main():
     }
     all_extracted_events["CloudTrail_Sample"] = [sample_cloud]
     total_count += 1
+
+    # 3. Memory forensics (WinPmem -> Volatility3 pslist/netscan/malfind)
+    if MEMORY_ENABLED:
+        logger.info("Extracting live memory forensics (WinPmem + Volatility3)...")
+        mem_events = extract_memory_events()
+        if mem_events:
+            all_extracted_events["Memory_Dump_Live"] = mem_events
+            total_count += len(mem_events)
+            logger.info(f"Extracted {len(mem_events)} records from memory dump.")
+        else:
+            logger.warning(
+                "Memory extraction returned no records. "
+                "Check SPECULA_WINPMEM_PATH / SPECULA_VOL3_PATH, "
+                "or set SPECULA_MEMORY_MOCK=true to use synthetic fixtures."
+            )
+    else:
+        logger.info(
+            "Memory extraction is DISABLED (SPECULA_MEMORY_ENABLED not set). "
+            "Set it to 'true' to enable WinPmem + Volatility3 ingestion."
+        )
 
     # Save all raw extracted log collections to disk
     out_dir = os.path.abspath("data/extracted_logs")

@@ -59,3 +59,4 @@ dpkt==1.9.8
 
 # LangGraph Checkpointer
 langgraph-checkpoint-redis>=0.5.2
+volatility3
