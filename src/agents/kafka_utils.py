@@ -34,6 +34,7 @@ TOPICS = [
     "dfkg.dead_letter",
     "logs.normalized.ocsf",
     "specula.cases.opened",
+    "specula-winlogbeat-raw",
 ]
 
 # Agent role -> Kafka topic
