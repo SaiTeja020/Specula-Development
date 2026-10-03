@@ -202,7 +202,7 @@ _STUB_RESPONSES: dict[str, str] = {
     "timeline_reconstruction":  "T-0: Initial access via phishing (03:12). T+2m: PowerShell download cradle. T+5m: Lateral movement to DC01. T+12m: Data staging. T+18m: Exfiltration start.",
     "threat_attribution":       "ATT&CK mapping: T1566.001 (Phishing), T1059.001 (PowerShell), T1021.002 (SMB), T1041 (Exfiltration). Attribution confidence: APT29 (moderate, 0.72).",
     "memory_forensics":         "Process hollowing detected in svchost.exe (PID 4812). Injected Cobalt Strike beacon shellcode at 0x7FFE0000. YARA match: CobaltStrike_Beacon_v4.",
-    "identity":                 "Kerberoasting of SPN MSSQLSvc/db01 confirmed. TGS-REP for svc-backup@corp.local. Azure AD token refresh anomaly at 03:17 UTC. Lateral movement to DC01 via Pass-the-Ticket.",
+    "identity":                 '{"verdict": "suspicious", "confidence_score": 0.85, "dfkg_citations": ["E-007", "E-008"]}',
     "cloud_container":          "K8s audit: privileged pod launched in kube-system (image: alpine). Falco alert: unexpected outbound connection from container cid-8f3a. Docker daemon API accessed unauthenticated from 10.0.0.42.",
     "dag":                      "Highest-probability attack path: CVE-2021-34527 (PrintNightmare, CVSS 8.8, EPSS 0.94) -> DC01 via SMB. Dijkstra weight: 0.062. Residual risk score: 0.91. Secondary path: CVE-2020-1472 (Zerologon, CVSS 10.0, EPSS 0.97) weight: 0.030.",
     "malware_stylometry":       "PE sample SHA256: a1b2c3... Static analysis: UPX packed, anti-debug via IsDebuggerPresent. Code similarity 87% to APT29 SunBurst loader.",

@@ -1,0 +1,14 @@
+﻿{
+  "description": "PTT lateral movement chain (class_uid=3002)",
+  "kerberos_anomalies": [
+    {"anomaly_type": "PASS_THE_TICKET","severity": "CRITICAL","evidence_uid": "ev-ptt-lm-001",
+     "target_account": "alice","source_host": "10.0.0.30","confidence": 0.75,"raw_indicators": {}}
+  ],
+  "auth_events": [
+    {"uid": "ev-ptt-auth-001","class_uid": 3002,"event_id": 4768,"user_name": "alice",
+     "src_ip": "10.0.0.30","dst_host": "WEB01","utc_timestamp": "2026-09-22T15:00:00Z"},
+    {"uid": "ev-ptt-auth-002","class_uid": 3002,"event_id": 4769,"user_name": "alice",
+     "src_ip": "10.0.0.45","dst_host": "DB01","utc_timestamp": "2026-09-22T15:02:00Z"}
+  ],
+  "expected": {"lateral_movement_chains_count": 1,"technique": "PASS_THE_TICKET","verdict": "compromised"}
+}

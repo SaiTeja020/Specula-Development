@@ -1,0 +1,12 @@
+﻿{
+  "description": "MFA bypass: ConsoleLogin mfa_used=False (class_uid=6003)",
+  "events": [
+    {
+      "uid": "ev-mfa-001","class_uid": 6003,"api_operation": "ConsoleLogin",
+      "user_identity": "arn:aws:iam::123456789012:user/bob",
+      "source_ip": "185.220.101.1","cloud_provider": "aws",
+      "mfa_used": false,"cloud_region": "us-east-1","utc_timestamp": "2026-09-22T14:00:00Z"
+    }
+  ],
+  "expected": {"cloud_iam_anomalies_count": 1,"anomaly_type": "MFA_BYPASS","verdict": "suspicious","dfkg_citations_non_empty": true,"class_uid": 6003}
+}

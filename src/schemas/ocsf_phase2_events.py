@@ -118,13 +118,26 @@ class AuthenticationEvent(OCSFBaseEvent):
     category_uid: int = Field(default=3, frozen=True)
 
     user_name: str = Field(..., description="Authenticated user identity.")
-    auth_protocol: Optional[str] = Field(default=None, description="Auth protocol.")
-    logon_type: Optional[int] = Field(default=None, description="Windows logon type.")
+    auth_protocol: Optional[str] = Field(default=None, description="Auth protocol (Kerberos|NTLM|LDAP|OAuth2|SAML).")
+    logon_type: Optional[int] = Field(default=None, description="Windows logon type (2=Interactive,3=Network,9=NewCredentials,10=RemoteInteractive).")
     src_ip: Optional[str] = Field(default=None, description="Source IP.")
     dst_host: Optional[str] = Field(default=None, description="Destination host.")
     status: Optional[str] = Field(default=None, description="Success/Failure.")
     failure_reason: Optional[str] = Field(default=None, description="Reason for failure.")
     canonical_host_id: Optional[str] = Field(default=None, description="Canonical host UID.")
+    # Identity-forensics fields added for TASK-4.9 (Identity Agent F13a)
+    ticket_encryption_type: Optional[str] = Field(
+        default=None,
+        description="Kerberos ticket encryption type: 'RC4' (0x17=Kerberoasting indicator) or 'AES256' (0x12=normal).",
+    )
+    service_principal_name: Optional[str] = Field(
+        default=None,
+        description="SPN targeted in TGS-REP request. Non-null on Event 4769; used for Kerberoasting attribution.",
+    )
+    event_id: Optional[int] = Field(
+        default=None,
+        description="Windows Security Event ID (4624, 4648, 4662, 4728, 4768, 4769, etc.).",
+    )
 
 
 

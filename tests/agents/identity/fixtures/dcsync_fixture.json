@@ -1,0 +1,12 @@
+﻿{
+  "description": "DCSync: Event 4662 DS-Replication-Get-Changes from workstation",
+  "events": [
+    {
+      "uid": "ev-dcsync-001","class_uid": 3001,"event_id": 4662,
+      "user_name": "CORP\\compromised_admin","src_ip": "10.0.0.77","dst_host": "DC01.corp.local",
+      "access_rights": "DS-Replication-Get-Changes DS-Replication-Get-Changes-All",
+      "object_type": "domainDNS","utc_timestamp": "2026-09-22T11:00:00Z"
+    }
+  ],
+  "expected": {"kerberos_anomalies_count": 1,"anomaly_type": "DCSYNC","verdict": "compromised","dfkg_citations_non_empty": true}
+}

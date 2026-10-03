@@ -1,0 +1,12 @@
+﻿{
+  "description": "IAM priv esc: AttachUserPolicy (class_uid=6003)",
+  "events": [
+    {
+      "uid": "ev-iam-001","class_uid": 6003,"api_operation": "AttachUserPolicy",
+      "user_identity": "arn:aws:iam::123456789012:user/attacker",
+      "source_ip": "203.0.113.50","cloud_provider": "aws","cloud_region": "us-east-1",
+      "mfa_used": true,"utc_timestamp": "2026-09-22T12:00:00Z"
+    }
+  ],
+  "expected": {"cloud_iam_anomalies_count": 1,"anomaly_type": "IAM_PRIV_ESC","verdict": "suspicious","dfkg_citations_non_empty": true,"class_uid": 6003}
+}

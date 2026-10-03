@@ -1,0 +1,14 @@
+﻿{
+  "description": "PTH lateral movement: same account 2 hosts within 5 min (class_uid=3002)",
+  "kerberos_anomalies": [
+    {"anomaly_type": "AS_REP_ROASTING","severity": "HIGH","evidence_uid": "ev-lm-kerb-001",
+     "target_account": "svc_backup","source_host": "10.0.0.50","confidence": 0.85,"raw_indicators": {}}
+  ],
+  "auth_events": [
+    {"uid": "ev-lm-auth-001","class_uid": 3002,"event_id": 4624,"user_name": "svc_backup",
+     "src_ip": "10.0.0.50","dst_host": "DC01","utc_timestamp": "2026-09-22T10:00:00Z"},
+    {"uid": "ev-lm-auth-002","class_uid": 3002,"event_id": 4624,"user_name": "svc_backup",
+     "src_ip": "10.0.0.99","dst_host": "FILE01","utc_timestamp": "2026-09-22T10:03:00Z"}
+  ],
+  "expected": {"lateral_movement_chains_count": 1,"technique": "PASS_THE_HASH","verdict": "compromised"}
+}

@@ -85,3 +85,51 @@ def execute_ingestion_cypher(
     # This branch is used only in unit tests — not in production
     return {"status": "success", "records_affected": 0}
 
+
+# ─── Identity Agent query templates (TASK-4.9) ───────────────────────────────
+# All queries are parameterized (never string-interpolated) per AGENTS.md.
+# class_uids per ocsf_events.py canonical schema:
+#   3001 = AuditActivity, 3002 = Authentication, 6003 = CloudAudit
+# class_uid 3003 DOES NOT EXIST. class_uid 6001 is NOT CloudAudit (it is 6003).
+
+IDENTITY_QUERIES: dict[str, str] = {
+    # Fetch authentication + audit events for Kerberos/AD analysis
+    "fetch_auth_events": """
+        MATCH (e:OCSFEvent {case_id: $case_id})
+        WHERE e.class_uid IN [3001, 3002]
+        RETURN e.uid, e.utc_timestamp, e.class_uid, e.activity_name,
+               e.user_name, e.src_endpoint_ip, e.dst_endpoint_hostname,
+               e.auth_protocol, e.logon_type, e.status_code,
+               e.ticket_encryption_type, e.service_principal_name,
+               e.event_id, e.access_rights, e.target_account,
+               e.group_name, e.privilege_list
+        ORDER BY e.utc_timestamp ASC
+        LIMIT 500
+    """,
+
+    # Fetch CloudAudit events for IAM identity-plane analysis
+    # CRITICAL: class_uid=6003 (CloudAudit per ocsf_events.py:224). NOT 6001.
+    "fetch_cloud_iam_events": """
+        MATCH (e:OCSFEvent {case_id: $case_id})
+        WHERE e.class_uid = 6003
+          AND e.cloud_provider IN ['aws', 'azure', 'gcp']
+        RETURN e.uid, e.utc_timestamp, e.api_operation, e.user_identity,
+               e.source_ip, e.cloud_region, e.mfa_used, e.status_code,
+               e.assumed_role_arn, e.error_code, e.cloud_provider
+        ORDER BY e.utc_timestamp ASC
+        LIMIT 300
+    """,
+
+    # Fetch user→host authentication graph for lateral movement correlation.
+    # SUPERNODE GUARD: apoc.node.degree(u, 'AUTHENTICATED_TO>') < 200 prevents
+    # traversal explosion on service accounts authenticating to hundreds of hosts.
+    # Silently returns zero rows for supernodes; correlator falls back to auth-event-only.
+    "fetch_identity_host_graph": """
+        MATCH (u:User {case_id: $case_id})
+        WHERE apoc.node.degree(u, 'AUTHENTICATED_TO>') < 200
+        MATCH (u)-[:AUTHENTICATED_TO]->(h:Host)
+        RETURN u.uid, u.canonical_name, h.uid, h.hostname
+        LIMIT 200
+    """,
+}
+

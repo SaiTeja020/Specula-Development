@@ -11,7 +11,7 @@
 - **Active Tasks (WIP=2):**
   None currently active.
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-19
+- **Last Updated:** 2026-09-22
 
 ---
 
@@ -27,6 +27,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | [ADR-005](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-005-adversarial-quality-control-via-ach-debate-loop) | Adversarial Quality Control via ACH Debate Loop | Accepted | Phase 4 |
 | [ADR-006](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-006-dynamic-attack-graph-weighting-via-negative-log-transformation) | Dynamic Attack Graph Weighting via Negative Log Transformation | Accepted | Phase 2 & Phase 3 |
 | [ADR-007](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-007-mcp-integration-scope) | MCP Integration Scope | Accepted | Phase 5 |
+| [ADR-008](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/DECISIONS.md#adr-008-identity--cloud-container-agent-roster-split-f13a--f13b) | Identity / Cloud-Container Agent Roster Split (F13a + F13b) | Accepted | Phase 4 |
 
 ---
 
@@ -168,8 +169,21 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 
 ---
 
+- **Task ID:** `TASK-4.9`
+  - **Description:** Implement Identity Agent (F13a) — single-pass structured tool pipeline
+    (not iterative ReAct) with: Kerberos analyzer (AS-REP Roasting, Kerberoasting, PTT,
+    DCSync, Overpass-the-Hash), privilege escalation detector (group membership, token
+    impersonation, SID injection, AdminSDHolder), lateral movement correlator (PTH/PTT
+    5-min window), cloud IAM analyzer (IAM priv-esc, AssumeRole chain, MFA bypass, root key),
+    3 skills with YAML manifests and golden fixtures, 17-test suite, IDENTITY_QUERIES in
+    dfkg_cypher.py (bounded, supernode guard), identity_rules.md, identity_node promoted
+    in nodes.py. OCSF schemas extended. ADR-008 (roster split) added to DECISIONS.md.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents/test_identity_agent.py -v`
+  - **Acceptance Criteria:** ✅ 17/17 passing; zero dfkg_citations=[] on non-clean verdicts;
+    Kafka trace_id as message header confirmed; supernode guard (degree>=200) tested;
+    no class_uid 6001 anywhere; skeleton regression 28/28 green.
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
-
 - **Task ID:** `TASK-5.1`
   - **Description:** Create `src/agents/visualizer_api.py` standalone FastAPI service on port 8300 with CORS and health endpoints.
   - **Status:** `passing`
@@ -237,4 +251,5 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-21 | `TASK-5.5` | Upgraded Neo4j Docker image to `5.26.0` to resolve Bolt Protocol v5.5 mismatch with python driver 6.2.0, and updated `numpy` dependency to `2.5.3` to fix silent crash | Verified (558 nodes ingested) |
 | 2026-09-17 | Phase 5 UI/UX | Refined button tokens to darker royal indigo (`#1E40AF`) with 8px radius & white text. Positioned terminal directly below the Service Health Checks box with compact 2-column grid ensuring all 6 services are completely visible without window scroll push | Passed (`npm run lint` 0 warnings, `pytest` 8/8 passed) |
 | 2026-09-19 | `TASK-4.8` | Split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); added `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Updated 7 files: `config.py`, `nodes.py`, `graph.py`, `kafka_utils.py`, `state.py`, `supervisor_agent.py`, `test_skeleton_graph.py`. Node count: 23 → 25. | 28/28 Passed (`tests/test_skeleton_graph.py`) |
+| 2026-09-22 | `TASK-4.9` + ADR-008 | Built Identity Agent (F13a): state, kerberos_analyzer, privilege_escalation_detector, cloud_iam_analyzer, lateral_movement_correlator, kafka_publisher, agent.py, 3 skill manifests+callables, identity_rules.md, 10 golden fixtures, IDENTITY_QUERIES in dfkg_cypher.py, identity_node promoted in nodes.py. Corrected plan defects: OCSF class_uids, single-pass label, supernode guard, trace_id header, ADR-008 roster. | **17/17** (`test_identity_agent.py`) + **28/28** (`test_skeleton_graph.py`) |
 

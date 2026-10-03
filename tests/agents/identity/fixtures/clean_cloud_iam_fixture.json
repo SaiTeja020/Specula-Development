@@ -1,0 +1,12 @@
+﻿{
+  "description": "Clean cloud IAM: DescribeInstances (class_uid=6003)",
+  "events": [
+    {
+      "uid": "ev-cleancloud-001","class_uid": 6003,"api_operation": "DescribeInstances",
+      "user_identity": "arn:aws:iam::123456789012:user/devops",
+      "source_ip": "10.0.1.5","cloud_provider": "aws","mfa_used": true,
+      "cloud_region": "eu-west-1","utc_timestamp": "2026-09-22T08:00:00Z"
+    }
+  ],
+  "expected": {"cloud_iam_anomalies_count": 0,"verdict": "clean","dfkg_citations_non_empty": false,"class_uid": 6003}
+}

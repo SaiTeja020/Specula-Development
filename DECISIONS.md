@@ -124,3 +124,19 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Mandating MCP as strict prerequisite for core algorithms:* Creates architectural bloat, increases debugging complexity, hinders isolated unit testing.
 - **Forensic & Research Consequences:** Clear separation of concerns; fast execution; modular testing without external server overhead.
 - **Link to Progress.md:** [PROGRESS.md -> Phase 5 (MCP & Skill Development)](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-5-visualization-layer)
+
+---
+
+### ADR-008: Identity / Cloud-Container Agent Roster Split (F13a + F13b)
+- **Status:** Accepted
+- **Date:** 2026-09-22
+- **Context & Problem Statement:** `Master_doc §2.5` (Agent-Model Rationale Matrix) originally listed a single combined "Identity and cloud" agent (Prism-ML-Ternary-Bonsai-27B) handling both AD/Kerberos credential forensics and cloud-platform container/K8s runtime forensics. As the architecture matured in `architecture_v4.html`, these two domains proved sufficiently distinct in data sources, OCSF class coverage, and detection logic that a single agent would mix IAM-principal-plane analysis (Kerberos, LDAP, CloudTrail IAM) with compute-resource-plane analysis (K8s audit logs, Falco, Docker API abuse). The detection algorithms, tool sets, and forensic skill manifests for each domain do not overlap.
+- **Decision & Tech Choice:** Split the combined agent into two independent specialist nodes:
+  - **F13a — Identity Agent (`ID`):** Prism-ML-Ternary-Bonsai-27B (vllm). Domain: AD/Kerberos ticket abuse, cloud IAM principal privilege escalation, lateral movement via credential theft. OCSF classes: 3001 (AuditActivity), 3002 (Authentication), 6003 (CloudAudit — IAM operations only). Kafka topic: `findings.specialist.identity`.
+  - **F13b — Cloud & Container Agent (`CLOUD_K8S`):** Qwen3-32B (vllm). Domain: K8s audit logs, Falco runtime alerts, Docker API abuse, ephemeral pod/NAT IP activity. OCSF class: 6003 (CloudAudit — compute resource plane). Kafka topic: `findings.specialist.cloud_container`.
+  - Both agents are dispatched independently on dead-end from the Supervisor. The boundary is **IAM principal plane** (Identity) vs **compute resource plane** (Cloud/Container).
+- **Alternatives Considered & Rejected:**
+  - *Single combined Identity & Cloud agent:* Would require a single agent to handle incompatible detection algorithms (Kerberoasting vs. Falco rule evaluation), bloating its tool set and system prompt beyond what a 27B specialist model can reliably reason over.
+  - *Identity agent also covers K8s:* No. K8s audit logs carry no Kerberos ticket metadata; merging them defeats the deterministic pre-analysis pattern.
+- **Forensic & Research Consequences:** Clean domain separation enables independent skill manifests, golden fixture test suites, and model selection per domain. The graph node count increases from 24 to 25 (already reflected in TASK-4.8 skeleton update). `Master_doc §2.5` should be updated to reflect 16 specialist agents rather than 15.
+- **Link to Progress.md:** [PROGRESS.md -> Phase 4 TASK-4.8/TASK-4.9](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-4-langgraph-orchestration--multi-agent-core-adr-001-adr-003-adr-005)

@@ -1,0 +1,11 @@
+﻿{
+  "description": "Clean auth: normal Kerberos AES256 TGT request",
+  "events": [
+    {
+      "uid": "ev-clean-001","class_uid": 3002,"event_id": 4768,"user_name": "regular_user",
+      "src_ip": "10.0.0.10","dst_host": "DC01.corp.local","ticket_encryption_type": "AES256",
+      "auth_protocol": "Kerberos","utc_timestamp": "2026-09-22T09:00:00Z"
+    }
+  ],
+  "expected": {"kerberos_anomalies_count": 0,"verdict": "clean","dfkg_citations_non_empty": false}
+}

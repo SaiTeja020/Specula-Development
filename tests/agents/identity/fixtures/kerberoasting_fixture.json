@@ -1,0 +1,23 @@
+{
+  "description": "Kerberoasting: Event 4769 with RC4 encryption targeting SPN",
+  "events": [
+    {
+      "uid": "ev-kerb-001",
+      "class_uid": 3002,
+      "event_id": 4769,
+      "user_name": "svc_attacker",
+      "src_ip": "10.0.0.50",
+      "dst_host": "DC01.corp.local",
+      "ticket_encryption_type": "RC4",
+      "service_principal_name": "MSSQLSvc/sql01.corp.local:1433",
+      "auth_protocol": "Kerberos",
+      "utc_timestamp": "2026-09-22T10:00:00Z"
+    }
+  ],
+  "expected": {
+    "kerberos_anomalies_count": 1,
+    "anomaly_type": "KERBEROASTING",
+    "verdict": "suspicious",
+    "dfkg_citations_non_empty": true
+  }
+}

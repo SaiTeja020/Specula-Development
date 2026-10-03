@@ -18,6 +18,7 @@ from langgraph.types import Command, interrupt
 from .config import AGENT_CONFIG, get_llm
 from .guardrails import run_tier1_checks, run_tier2_checks
 from .kafka_utils import ROLE_TOPIC_MAP, publish_finding
+from .identity.agent import run_identity_analysis, IdentityAgentDeps
 
 
 # ===================================================================
@@ -211,8 +212,72 @@ def memory_forensics_node(state: dict) -> dict:
 
 
 def identity_node(state: dict) -> dict:
-    """Identity Agent — AD/Kerberos/cloud-IAM forensics specialist (F13a)."""
-    finding, trace = _run_agent("identity", state)
+    """Identity Agent (F13a) — AD/Kerberos ticket abuse + cloud-IAM + lateral movement.
+
+    Single-pass structured tool pipeline (NOT iterative ReAct — max_iterations=1).
+    Per ADR-008: handles OCSF class_uids 3001 (AuditActivity), 3002 (Authentication),
+    6003 (CloudAudit — identity-plane only). Publishes to findings.specialist.identity.
+    """
+    from datetime import datetime, timezone
+    case_id = state.get("case_id", "unknown")
+    trace_id = state.get("trace_id", "")
+
+    # Build IdentityAgentState from the parent SpeculaState
+    identity_state: dict = {
+        "case_id": case_id,
+        "batch_uids": state.get("batch_uids") or [f"{case_id}:identity_dispatch"],
+        "ocsf_classes": [3001, 3002, 6003],
+        "kerberos_anomalies": [],
+        "privilege_escalations": [],
+        "lateral_movement_chains": [],
+        "cloud_iam_anomalies": [],
+        "verdict": None,
+        "confidence_score": 0.0,
+        "dfkg_citations": [],
+        "iteration_count": 0,
+        "max_iterations": 1,
+        "dead_end": False,
+        "status": "pending",
+        "trace_id": trace_id,
+    }
+
+    # Inject raw events from state (if provided; otherwise DFKG client handles fetch)
+    if state.get("_raw_events_for_testing"):
+        identity_state["_raw_events_for_testing"] = state["_raw_events_for_testing"]
+
+    deps = IdentityAgentDeps(
+        dfkg_client=state.get("_dfkg_client"),   # injected in tests or via runtime config
+        kafka_producer=None,                        # kafka_utils handles producer singleton
+        vct_ledger_client=state.get("_vct_client"),
+    )
+
+    result_state = run_identity_analysis(identity_state, deps)
+
+    # Surface verdict and citations as a standard finding for the Supervisor
+    finding = {
+        "agent_role": "identity",
+        "summary": (
+            f"Identity analysis: verdict={result_state.get('verdict')}, "
+            f"confidence={result_state.get('confidence_score'):.2f}, "
+            f"kerberos={len(result_state.get('kerberos_anomalies', []))}, "
+            f"priv_esc={len(result_state.get('privilege_escalations', []))}, "
+            f"cloud_iam={len(result_state.get('cloud_iam_anomalies', []))}, "
+            f"lm_chains={len(result_state.get('lateral_movement_chains', []))}"
+        ),
+        "dfkg_refs": result_state.get("dfkg_citations", []),
+        "verdict": result_state.get("verdict"),
+        "confidence_score": result_state.get("confidence_score", 0.0),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "kafka_offset": None,
+    }
+    trace = {
+        "agent_role": "identity",
+        "thought": "Running single-pass identity forensics pipeline (F13a)",
+        "action": "identity_analysis_pipeline",
+        "observation": finding["summary"][:200],
+        "model_used": AGENT_CONFIG.get("identity", {}).get("model_id", "identity"),
+        "latency_ms": 0,
+    }
     return {
         "findings": [finding],
         "agent_traces": [trace],

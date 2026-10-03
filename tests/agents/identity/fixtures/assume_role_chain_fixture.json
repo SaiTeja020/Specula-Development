@@ -1,0 +1,13 @@
+﻿{
+  "description": "AssumeRole chaining (class_uid=6003)",
+  "events": [
+    {
+      "uid": "ev-role-001","class_uid": 6003,"api_operation": "AssumeRole",
+      "user_identity": "arn:aws:iam::111111111111:user/pivot",
+      "source_ip": "198.51.100.25","cloud_provider": "aws",
+      "assumed_role_arn": "arn:aws:iam::222222222222:role/AdminRole",
+      "cloud_region": "us-west-2","mfa_used": false,"utc_timestamp": "2026-09-22T13:00:00Z"
+    }
+  ],
+  "expected": {"cloud_iam_anomalies_count": 1,"anomaly_type": "ASSUME_ROLE_CHAIN","verdict": "suspicious","dfkg_citations_non_empty": true,"class_uid": 6003}
+}

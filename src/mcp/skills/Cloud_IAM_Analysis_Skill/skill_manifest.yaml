@@ -1,0 +1,25 @@
+# Cloud IAM Analysis Skill — Manifest
+
+skill_name: Cloud_IAM_Analysis_Skill
+version: "1.0.0"
+description: >
+  Detects IAM privilege escalation, AssumeRole chaining, MFA bypass, root key
+  anomalies, and Azure AD admin role assignments in CloudAudit events
+  (OCSF class_uid=6003). Scoped to identity-plane operations only
+  (not compute resource-plane — that belongs to Cloud/Container Agent F13b).
+allowed_roles:
+  - identity
+mcp_dependencies:
+  - mcp-dfkg-cypher
+  - mcp-vct-ledger
+cost_class: low
+latency_class: fast
+input_schema:
+  cloud_events: "list[dict]"   # OCSF class_uid 6003 events
+output_schema:
+  cloud_iam_anomalies: "list[CloudIAMAnomalyResult]"
+golden_fixtures:
+  - tests/agents/identity/fixtures/iam_priv_esc_fixture.json
+  - tests/agents/identity/fixtures/assume_role_chain_fixture.json
+  - tests/agents/identity/fixtures/mfa_bypass_fixture.json
+  - tests/agents/identity/fixtures/clean_cloud_iam_fixture.json

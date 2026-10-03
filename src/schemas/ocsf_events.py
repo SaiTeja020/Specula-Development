@@ -259,8 +259,18 @@ class CloudAudit(OCSFBaseEvent):
         default=None,
         description="Serialized request parameters (JSON string).",
     )
-
-
+    # Identity-forensics fields added for TASK-4.9 (Identity Agent F13a)
+    mfa_used: Optional[bool] = Field(
+        default=None,
+        description="Whether MFA was used in this authentication/API call. False on ConsoleLogin without MFA = MFA bypass indicator.",
+    )
+    assumed_role_arn: Optional[str] = Field(
+        default=None,
+        description="ARN of the role assumed via AssumeRole — used for role chaining detection.",
+    )
+    error_code: Optional[str] = Field(
+        default=None, description="API call error code if the request failed."
+    )
 # ─── Detection Finding (OCSF class 2004) ─────────────────────────────
 
 
@@ -312,10 +322,35 @@ class AuditActivity(OCSFBaseEvent):
     category_uid: int = Field(default=3, frozen=True)
     
     message: str = Field(..., description="Message detailing the audit activity.")
-    
+
     canonical_host_id: Optional[str] = Field(
         default=None,
         description="Canonical host UID from entity resolver.",
+    )
+    # Identity-forensics fields added for TASK-4.9 (Identity Agent F13a)
+    event_id: Optional[int] = Field(
+        default=None,
+        description="Windows Security Event ID: 4728/4732/4756 (group add), 4662 (dir access), 4765 (SID history), 4673 (priv use), 4697 (service install).",
+    )
+    target_account: Optional[str] = Field(
+        default=None,
+        description="Account affected by the audit event (e.g. account added to group).",
+    )
+    group_name: Optional[str] = Field(
+        default=None,
+        description="Group affected by membership change (Event 4728/4732/4756).",
+    )
+    privilege_list: Optional[list] = Field(
+        default=None,
+        description="List of privileges involved (e.g. SeDebugPrivilege for Event 4673).",
+    )
+    object_type: Optional[str] = Field(
+        default=None,
+        description="Object type accessed in directory service events (Event 4662).",
+    )
+    access_rights: Optional[str] = Field(
+        default=None,
+        description="Access rights exercised (DS-Replication-Get-Changes for DCSync detection).",
     )
     
     @field_validator("message", mode="before")

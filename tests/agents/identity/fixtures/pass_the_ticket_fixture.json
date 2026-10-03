@@ -1,0 +1,18 @@
+﻿{
+  "description": "Pass-the-Ticket: same account TGT from 2 different source IPs in 5-minute window",
+  "events": [
+    {
+      "uid": "ev-ptt-001","class_uid": 3002,"event_id": 4768,"user_name": "jsmith",
+      "src_ip": "10.0.0.100","dst_host": "DC01.corp.local",
+      "ticket_encryption_type": "AES256","auth_protocol": "Kerberos",
+      "utc_timestamp": "2026-09-22T10:00:00Z"
+    },
+    {
+      "uid": "ev-ptt-002","class_uid": 3002,"event_id": 4769,"user_name": "jsmith",
+      "src_ip": "10.0.0.200","dst_host": "FILE01.corp.local",
+      "ticket_encryption_type": "AES256","auth_protocol": "Kerberos",
+      "utc_timestamp": "2026-09-22T10:01:00Z"
+    }
+  ],
+  "expected": {"kerberos_anomalies_count": 1,"anomaly_type": "PASS_THE_TICKET","verdict": "compromised","dfkg_citations_non_empty": true}
+}

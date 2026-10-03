@@ -1,0 +1,33 @@
+# AD Kerberos Analysis Skill — Manifest
+# Skill for Identity Agent (F13a) only — least-privilege via omission of other MCP servers.
+
+skill_name: AD_Kerberos_Analysis_Skill
+version: "1.0.0"
+description: >
+  Deterministic detection of Active Directory and Kerberos protocol abuse.
+  Covers: AS-REP Roasting, Kerberoasting (Event 4769 RC4), Pass-the-Ticket
+  (cross-host TGT source IP mismatch), DCSync (Event 4662 DS-Replication rights
+  from non-DC), Golden Ticket, Overpass-the-Hash (Logon Type 9).
+  Also covers Windows privilege escalation: group membership adds (4728/4732/4756),
+  token impersonation (4697), SeDebugPrivilege (4673), SID history injection (4765),
+  AdminSDHolder abuse (4780).
+allowed_roles:
+  - identity                   # F13a ONLY — no other agent may invoke this skill
+mcp_dependencies:
+  - mcp-dfkg-cypher            # read OCSF 3001/3002 events from DFKG
+  - mcp-vct-ledger             # register findings in VCT Merkle chain
+# mcp-vmi-sandbox is NOT listed — Identity Agent does not get sandbox access (least-privilege)
+# mcp-threat-intel is NOT listed — Identity Agent does not do TTP attribution
+cost_class: low                # deterministic, no LLM call in analyzers
+latency_class: fast            # <200ms for typical auth event batch
+input_schema:
+  auth_events: "list[dict]"    # OCSF class_uid 3002 events
+  audit_events: "list[dict]"   # OCSF class_uid 3001 events
+output_schema:
+  kerberos_anomalies: "list[KerberosAnomalyResult]"
+  privilege_escalations: "list[PrivEscResult]"
+golden_fixtures:
+  - tests/agents/identity/fixtures/kerberoasting_fixture.json
+  - tests/agents/identity/fixtures/pass_the_ticket_fixture.json
+  - tests/agents/identity/fixtures/dcsync_fixture.json
+  - tests/agents/identity/fixtures/clean_auth_fixture.json

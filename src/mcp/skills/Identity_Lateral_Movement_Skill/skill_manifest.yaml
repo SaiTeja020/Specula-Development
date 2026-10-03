@@ -1,0 +1,25 @@
+# Identity Lateral Movement Skill — Manifest
+
+skill_name: Identity_Lateral_Movement_Skill
+version: "1.0.0"
+description: >
+  Correlates Kerberos anomalies with cross-host authentication events to build
+  Pass-the-Hash, Pass-the-Ticket, and Overpass-the-Hash lateral movement chains.
+  Operates over a ±5-minute temporal window. Degrades gracefully when the
+  host-graph is unavailable (supernode guard).
+allowed_roles:
+  - identity
+mcp_dependencies:
+  - mcp-dfkg-cypher
+  - mcp-vct-ledger
+cost_class: low
+latency_class: fast
+input_schema:
+  kerberos_anomalies: "list[KerberosAnomalyResult]"
+  auth_events: "list[dict]"
+  dfkg_host_graph: "dict"
+output_schema:
+  lateral_movement_chains: "list[LateralMovementChain]"
+golden_fixtures:
+  - tests/agents/identity/fixtures/lateral_movement_pth_fixture.json
+  - tests/agents/identity/fixtures/lateral_movement_ptt_fixture.json
