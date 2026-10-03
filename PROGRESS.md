@@ -188,6 +188,18 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Verification Command:** `.\\venv\\Scripts\\pytest.exe tests/ingestion/test_memory_ingestion.py -v`
   - **Acceptance Criteria:** 28/28 tests passing; mock extractor output shape verified; all three normalizer branches (pslist/netscan/malfind) produce correct OCSF class_uids; clock_skew_unverified=True for all memory events; full pipeline integration confirmed; UID determinism verified.
 
+- **Task ID:** `TASK-4.10a`
+  - **Description:** Implement Cloud & Container Forensics Agent Core & Parameterized Detection Rules (F13b) with versioned RuleContext, deterministic finding rollups, and evidence evaluation statuses (`ok`/`no_events`/`error`).
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/test_cloud_container_agent.py -v`
+  - **Acceptance Criteria:** 19/19 passing; 13 detection rules (7 cloud, 6 container) tested with golden fixtures; RuleContext evaluation verified; evidence check returns explicit status (`ok`/`no_events`/`error`) without false HITL escalation; deterministic finding UIDs, prompt injection summary escaping, and Kafka partition keys verified.
+
+- **Task ID:** `TASK-4.10b`
+  - **Description:** Wire Cloud & Container Forensics Agent into LangGraph Orchestration via `cloud_container_factory.py`, removing stub implementation and verifying graph dead-end routing.
+  - **Status:** `passing`
+  - **Verification Command:** `pytest tests/test_cloud_container_agent.py tests/test_cloud_container_factory.py tests/test_skeleton_graph.py -v`
+  - **Acceptance Criteria:** 50/50 tests passing; `cloud_container_factory.py` instantiated; stub `cloud_container_node` wrapped; graph routing verified; 28/28 skeleton graph tests passing.
+
 ---
 
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)

@@ -208,12 +208,8 @@ def identity_node(state: dict) -> dict:
 
 def cloud_container_node(state: dict) -> dict:
     """Cloud & Container Agent — K8s/Falco/Docker runtime forensics specialist (F13b)."""
-    finding, trace = _run_agent("cloud_container", state)
-    return {
-        "findings": [finding],
-        "agent_traces": [trace],
-        "specialists_completed": ["cloud_container"],
-    }
+    from src.agents.cloud_container_factory import make_cloud_container_node
+    return make_cloud_container_node()(state)
 
 
 def malware_stylometry_node(state: dict) -> dict:

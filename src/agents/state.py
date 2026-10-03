@@ -31,6 +31,7 @@ class SpeculaState(TypedDict, total=False):
     dead_end_categories: list                # Supervisor sole writer; valid: "memory" | "identity" | "cloud_container" | "malware" | "insider"
     specialists_dispatched: list             # set once by Supervisor before fan-out
     specialists_completed: Annotated[list, operator.add]  # append for fan-in check
+    specialist_statuses: Annotated[dict, operator.ior]     # dict merge for per-agent statuses e.g. {"cloud_container": "ok"}
 
     # §2.4 Sequential synthesis
     timeline: Optional[dict]                 # Timeline Reconstruction only
