@@ -15,15 +15,26 @@ Reference: specula_ingestion_final_plan.md
 import json
 import logging
 import os
+import asyncio
 import subprocess
 import sys
+import time
 import uuid
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.abspath("."))
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from src.schemas.entity_resolver import CanonicalEntityResolver
 from src.schemas.uid_generator import generate_deterministic_uid
+from src.ingestion.extractors.gcp_audit_fetcher import GCPAuditFetcher
+from src.config import GCP_PROJECT_ID, GOOGLE_APPLICATION_CREDENTIALS
+from src.ingestion.broker.kafka_producer import EventProducer
+from src.ingestion.broker.active_cases_cache import ActiveCasesCache
+from src.ingestion.validation.schema_registry_client import OCSF_BASE_JSON_SCHEMA
 from src.ingestion.preservation.sha256_hasher import compute_sha256_bytes
 from src.ingestion.preservation.vct_atomic_chain import VCTAtomicChain
 from src.ingestion.preservation.quickwit_client import QuickwitClient, QuickwitClientError
@@ -36,7 +47,7 @@ from src.ingestion.normalization.evtx_normalizer import (
     normalize_evtx_defense_evasion, normalize_evtx_detection_finding
 )
 from src.ingestion.normalization.mft_usn_normalizer import normalize_mft_record
-from src.ingestion.normalization.cloud_normalizer import normalize_cloudtrail
+from src.ingestion.normalization.cloud_normalizer import normalize_gcp_audit
 from src.ingestion.validation.validator import validate_event
 from src.schemas.ocsf_events import ProcessActivity, GenericEvent, FileActivity, CloudAudit
 from src.ingestion.normalization.edr_normalizer import normalize as normalize_edr
@@ -45,6 +56,7 @@ from src.ingestion.normalization.memory_dump_normalizer import normalize as norm
 from src.ingestion.normalization.ueba_browser_normalizer import normalize as normalize_ueba
 from src.ingestion.normalization.vuln_scan_normalizer import normalize as normalize_vuln
 from src.graph.cypher_builder import CypherBuilder
+from src.ingestion.network_pipeline import ingest_network_files, load_dhcp_leases, tail_network_files_once, serve_syslog
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("SpeculaPipeline")
@@ -85,7 +97,7 @@ _SOURCE_TYPE_MAP: dict[str, str] = {
     "Microsoft-Windows-TaskScheduler/Operational": "evtx",
     "Microsoft-Windows-Sysmon/Operational": "evtx",
     "NTFS_MFT_Sample": "mft",
-    "CloudTrail_Sample": "cloudtrail",
+    "GCP_Audit_Sample": "gcp_audit",
     "EDR_Telemetry": "edr",
     "Malware_Sandbox": "malware",
     "Memory_Dump": "memory",
@@ -231,11 +243,12 @@ def run_pipeline_on_event(
         if not ocsf_evt.canonical_host_id:
             ocsf_evt.canonical_host_id = resolver.resolve_any(hostname="LOCAL_HOST") or "host-LOCAL_HOST"
         ocsf_evts.append(ocsf_evt)
-    elif source_type == "cloudtrail":
-        ocsf_evt = normalize_cloudtrail(raw_event, time_normalizer, trace_id)
+    elif source_type == "gcp_audit":
+        ocsf_evt = normalize_gcp_audit(raw_event, time_normalizer, trace_id)
         ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
         if not ocsf_evt.canonical_host_id:
-            ocsf_evt.canonical_host_id = resolver.resolve_any(cloud_device_id=ocsf_evt.cloud_account_id)
+            # Bypass DHCP-bounded resolver for GCP. Map entity using GCP project ID.
+            ocsf_evt.canonical_host_id = f"gcp-project-{ocsf_evt.cloud_account_id}" if ocsf_evt.cloud_account_id else "gcp-unknown"
         ocsf_evts.append(ocsf_evt)
     elif source_type == "edr":
         ocsf_evts.extend(normalize_edr(raw_event, trace_id, "UNASSIGNED_CONTINUOUS", resolver))
@@ -252,7 +265,7 @@ def run_pipeline_on_event(
     
     results = []
     for ocsf_evt in ocsf_evts:
-        if exclude_ports:
+        if exclude_ports and source_type not in ("zeek", "suricata"):
             # Check if this event has endpoints with excluded ports
             dst_port = getattr(getattr(ocsf_evt, "dst_endpoint", None), "port", None)
             src_port = getattr(getattr(ocsf_evt, "src_endpoint", None), "port", None)
@@ -277,13 +290,145 @@ def run_pipeline_on_event(
 
 import argparse
 
+def run_network_files_only(args) -> int:
+    """Ingest supplied sensor files without running or clearing the local-log graph."""
+    if os.environ.get("SPECULA_QUICKWIT_ENABLED", "false").lower() != "true":
+        raise RuntimeError(
+            "Network evidence ingestion requires SPECULA_QUICKWIT_ENABLED=true "
+            "so original sensor bytes are preserved before processing."
+        )
+
+    resolver = load_dhcp_leases(args.dhcp_leases_json)
+    vct_chain = VCTAtomicChain()
+    quickwit = QuickwitClient()
+    quickwit.ensure_index()
+    producer = EventProducer(
+        schema_str=OCSF_BASE_JSON_SCHEMA,
+        topic="logs.normalized.ocsf",
+        active_cases_cache=ActiveCasesCache(),
+    )
+
+    neo4j_client = None
+    if os.environ.get("SPECULA_NEO4J_ENABLED", "false").lower() == "true":
+        from src.graph.neo4j_client import Neo4jClient
+        neo4j_client = Neo4jClient()
+        schema_path = os.path.abspath("src/graph/schema_constraints.cypher")
+        neo4j_client.apply_schema(schema_path)
+    else:
+        logger.warning("Neo4j writes disabled; normalized events will still be sent to Kafka.")
+
+    try:
+        if args.syslog_listener:
+            try:
+                asyncio.run(serve_syslog(
+                    host=args.syslog_host, port=args.syslog_port,
+                    protocol=args.syslog_protocol, case_id=args.network_case_id,
+                    resolver=resolver, vct_chain=vct_chain,
+                    quickwit_client=quickwit, event_producer=producer,
+                ))
+            except KeyboardInterrupt:
+                logger.info("Syslog listener stopped by user.")
+            return 0
+        if args.follow and args.pcap:
+            pcap_events, errors = ingest_network_files(
+                pcap_files=args.pcap, case_id=args.network_case_id,
+                resolver=resolver, vct_chain=vct_chain, quickwit_client=quickwit,
+                event_producer=producer, neo4j_client=neo4j_client,
+            )
+        else:
+            pcap_events, errors = [], []
+        events = list(pcap_events)
+        followed_count = 0
+        if args.follow:
+            logger.info("Following network JSONL files; offsets: %s", os.path.abspath(args.network_offsets))
+            output_dir = os.path.abspath("data/extracted_logs")
+            os.makedirs(output_dir, exist_ok=True)
+            followed_output = os.path.join(output_dir, "ocsf_network_events.jsonl")
+            try:
+                while True:
+                    batch, batch_errors = tail_network_files_once(
+                        zeek_jsonl=args.zeek_jsonl, suricata_eve=args.suricata_eve,
+                        case_id=args.network_case_id, resolver=resolver, vct_chain=vct_chain,
+                        quickwit_client=quickwit, event_producer=producer,
+                        neo4j_client=neo4j_client, offset_file=args.network_offsets,
+                    )
+                    errors.extend(batch_errors)
+                    if batch:
+                        producer.flush()
+                        with open(followed_output, "a", encoding="utf-8") as output:
+                            for event in batch:
+                                output.write(json.dumps(event.model_dump(mode="json")) + "\n")
+                        followed_count += len(batch)
+                        logger.info("Followed %d network events", len(batch))
+                    time.sleep(args.poll_interval)
+            except KeyboardInterrupt:
+                logger.info("Network log following stopped by user.")
+        else:
+            file_events, file_errors = ingest_network_files(
+                zeek_jsonl=args.zeek_jsonl,
+                suricata_eve=args.suricata_eve,
+                pcap_files=args.pcap,
+                case_id=args.network_case_id,
+                resolver=resolver,
+                vct_chain=vct_chain,
+                quickwit_client=quickwit,
+                event_producer=producer,
+                neo4j_client=neo4j_client,
+            )
+            events.extend(file_events)
+            errors.extend(file_errors)
+        producer.flush()
+        output_dir = os.path.abspath("data/extracted_logs")
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, "ocsf_network_events.json")
+        with open(output_path, "w", encoding="utf-8") as output:
+            json.dump([event.model_dump(mode="json") for event in events], output, indent=2)
+        logger.info("Network ingestion complete: %d events accepted; %d records skipped.", len(events) + followed_count, len(errors))
+        logger.info("Normalized network events saved to %s", output_path)
+        if args.follow:
+            logger.info("Followed normalized events appended to %s", followed_output)
+        for error in errors:
+            logger.warning("Skipped: %s", error)
+        return 0 if events or not errors else 1
+    finally:
+        if neo4j_client is not None:
+            neo4j_client.close()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run the Specula ingestion pipeline.")
     parser.add_argument("--start-time", dest="start_time", type=str, default=None, help="Start date and time (e.g., '2026-08-25T00:00:00')")
     parser.add_argument("--end-time", dest="end_time", type=str, default=None, help="End date and time (e.g., '2026-08-25T12:00:00'). Defaults to current date and time if start_time is provided.")
     parser.add_argument("--max-events", dest="max_events", type=int, default=2000, help="Max events to extract per channel.")
     parser.add_argument("--exclude-ports", dest="exclude_ports", type=str, default="80,443,53", help="Comma-separated list of ports to exclude from network events (e.g., '80,443,53')")
+    parser.add_argument("--network-only", action="store_true", help="Ingest only the supplied network files; preserves existing Neo4j data.")
+    parser.add_argument("--zeek-jsonl", action="append", default=[], help="Zeek JSON-lines file (repeat for multiple files).")
+    parser.add_argument("--suricata-eve", action="append", default=[], help="Suricata EVE JSON-lines file (repeat for multiple files).")
+    parser.add_argument("--pcap", action="append", default=[], help="PCAP capture file (repeat for multiple files).")
+    parser.add_argument("--dhcp-leases-json", help="JSON DHCP lease array with ip, canonical_host_uid, valid_from, and optional valid_to.")
+    parser.add_argument("--network-case-id", default="UNASSIGNED_CONTINUOUS", help="Case ID attached to normalized network events unless ActiveCasesCache assigns one.")
+    parser.add_argument("--follow", action="store_true", help="Continuously follow appended Zeek/Suricata JSONL records.")
+    parser.add_argument("--network-offsets", default="data/ingestion_state/network_offsets.json", help="Persisted byte offsets used by --follow.")
+    parser.add_argument("--poll-interval", type=float, default=1.0, help="Seconds between network file polls in --follow mode.")
+    parser.add_argument("--syslog-listener", action="store_true", help="Receive forwarded endpoint syslog over TCP or UDP.")
+    parser.add_argument("--syslog-host", default="0.0.0.0", help="Interface address for the syslog listener.")
+    parser.add_argument("--syslog-port", type=int, default=5514, help="Syslog listener port (default: 5514).")
+    parser.add_argument("--syslog-protocol", choices=("udp", "tcp"), default="udp", help="Transport used by endpoint syslog forwarding.")
     args = parser.parse_args()
+
+    network_paths = args.zeek_jsonl or args.suricata_eve or args.pcap or args.syslog_listener
+    if network_paths and not args.network_only:
+        parser.error("Network files require --network-only to avoid the local-log runner's graph reset.")
+    if args.network_only:
+        if not network_paths:
+            parser.error("--network-only requires a network file input or --syslog-listener.")
+        if args.follow and not (args.zeek_jsonl or args.suricata_eve):
+            parser.error("--follow requires at least one --zeek-jsonl or --suricata-eve input.")
+        if args.poll_interval <= 0:
+            parser.error("--poll-interval must be greater than zero.")
+        if args.syslog_listener and not 1 <= args.syslog_port <= 65535:
+            parser.error("--syslog-port must be between 1 and 65535.")
+        return run_network_files_only(args)
 
     exclude_ports = {int(p.strip()) for p in args.exclude_ports.split(",") if p.strip().isdigit()} if args.exclude_ports else set()
 
@@ -347,28 +492,6 @@ def main():
     except Exception as e:
         logger.error(f"Failed to execute USN extraction script: {e}")
 
-    sample_cloud = {
-        "eventTime": "2026-07-28T12:05:00Z",
-        "eventName": "RunInstances",
-        "eventSource": "ec2.amazonaws.com",
-        "awsRegion": "us-east-1",
-        "sourceIPAddress": "198.51.100.45",
-        "userAgent": "aws-cli/2.15.0",
-        "recipientAccountId": "123456789012"
-    }
-    all_extracted_events["CloudTrail_Sample"] = [sample_cloud]
-    total_count += 1
-
-    # Save all raw extracted log collections to disk
-    out_dir = os.path.abspath("data/extracted_logs")
-    os.makedirs(out_dir, exist_ok=True)
-    
-    raw_path = os.path.join(out_dir, "raw_system_events.json")
-    with open(raw_path, "w") as f:
-        json.dump(all_extracted_events, f, indent=2)
-    logger.info(f"Saved {total_count} total raw events across all categories to: {raw_path}")
-
-    # 3. Process all extracted channels through pipeline
     vct_chain = VCTAtomicChain()
     resolver = CanonicalEntityResolver()
     time_normalizer = TimeNormalizer(dc_anchor_skew_ms=0)
@@ -413,6 +536,64 @@ def main():
             "Neo4j graph writes are DISABLED. "
             "Events are normalized and validated but not written to the DFKG."
         )
+
+    kafka_producer = None
+    if GCP_PROJECT_ID:
+        try:
+            active_cases_cache = ActiveCasesCache()
+            kafka_producer = EventProducer(
+                schema_str=OCSF_BASE_JSON_SCHEMA,
+                topic="logs.normalized.ocsf",
+                active_cases_cache=active_cases_cache,
+            )
+            gcp_fetcher = GCPAuditFetcher(project_id=GCP_PROJECT_ID, credentials_path=GOOGLE_APPLICATION_CREDENTIALS)
+            logger.info("Fetching live GCP Audit logs...")
+            investigation_window_start = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S") if start_time else datetime.now(timezone.utc)
+            for raw_log in gcp_fetcher.fetch_audit_logs(start_time=investigation_window_start):
+                raw_bytes = json.dumps(raw_log, sort_keys=True).encode("utf-8")
+                
+                # 2. Immutable Preservation
+                sha256_digest = compute_sha256_bytes(raw_bytes)
+                vct_chain.register_hash(sha256_digest)
+                if qw_client:
+                    qw_client.commit_raw_evidence(
+                        uid=str(uuid.uuid4()),
+                        trace_id=str(uuid.uuid4()),
+                        sha256_digest=sha256_digest,
+                        raw_bytes=raw_bytes,
+                        source_type="gcp_audit"
+                    )
+                
+                # 3. Security Gate
+                sanitized_log = run_security_gate("text", raw_bytes)
+                if sanitized_log.injection_blocked:
+                    continue
+                
+                # 4. Normalization
+                time_norm = TimeNormalizer(dc_anchor_skew_ms=0)
+                ocsf_event = normalize_gcp_audit(raw_log, time_norm, str(uuid.uuid4()))
+                
+                # 5. Kafka Buffer
+                kafka_producer.produce_event(ocsf_event)
+                total_count += 1
+            if kafka_producer:
+                kafka_producer.flush()
+        except Exception as e:
+            logger.error(f"GCP log fetching failed: {e}")
+    else:
+        logger.warning("GCP_PROJECT_ID not found in .env. Skipping GCP log fetching.")
+
+
+    # Save all raw extracted log collections to disk
+    out_dir = os.path.abspath("data/extracted_logs")
+    os.makedirs(out_dir, exist_ok=True)
+    
+    raw_path = os.path.join(out_dir, "raw_system_events.json")
+    with open(raw_path, "w") as f:
+        json.dump(all_extracted_events, f, indent=2)
+    logger.info(f"Saved {total_count} total raw events across all categories to: {raw_path}")
+
+
 
     neo4j_write_count = 0
     ocsf_outputs = []
@@ -490,4 +671,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -86,7 +86,7 @@ three concurrent capture paths:
 1. **Automated pull agents**
    - **Filebeat** agents installed on monitored hosts ship system logs (Windows
      EVTX, Linux auditd/syslog, Sysmon) continuously.
-   - **API connectors** built on `boto3` (AWS) and `falconpy` (CrowdStrike Falcon)
+   - **API connectors** built on `google-cloud-logging` (GCP) and `falconpy` (CrowdStrike Falcon)
      pull cloud audit trails and EDR telemetry on a poll/webhook basis.
    - Network taps forward PCAP captures from Suricata/Zeek sensors.
 2. **Manual upload** via the React-based investigator dashboard — used for disk
@@ -104,7 +104,7 @@ three concurrent capture paths:
 | 1 | System Logs | Windows EVTX, Linux auditd/syslog, Sysmon |
 | 2 | NTFS Artifacts | $MFT, $USNjrnl, $FILE_NAME / $STANDARD_INFORMATION |
 | 3 | Network Logs & PCAPs | Suricata IDS, Zeek conn/DNS/HTTP logs, raw PCAP |
-| 4 | AD & Cloud Audit | AD LDAP/Kerberos, AWS CloudTrail, Azure Logs |
+| 4 | AD & Cloud Audit | AD LDAP/Kerberos, GCP Audit Logs, Azure Logs |
 | 5 | EDR & UEBA Telemetry | CrowdStrike Falcon, SentinelOne, Wazuh, Splunk UBA |
 | 6 | Malware Samples | YARA-matched binaries, PE headers, CAPE/ANY.RUN JSON |
 | 7 | Email & Messaging | EML/MBOX, Slack API, Teams Graph API, SharePoint |
@@ -113,13 +113,13 @@ three concurrent capture paths:
 | 10 | Threat Intel Feeds | MITRE ATT&CK STIX, MISP IOCs, VirusTotal, NVD CVE |
 | 11 | Container/K8s Logs | Kubernetes audit logs, Falco runtime security, Docker |
 | 12 | Vulnerability Scans | OpenVAS/Nessus/Qualys API outputs, software manifests |
-| 13 | Cloud Topology | AWS/Azure/GCP logging SDKs, Cartography asset graphs |
+| 13 | Cloud Topology | GCP/Azure logging SDKs, Cartography asset graphs |
 | 14 | Investigator Query | Natural-language text submitted via the dashboard |
 
 **Prerequisites at this step:**
 - Filebeat must be deployed and configured with output pointed at the Kafka broker
   (not directly at Neo4j — logs never skip the queue).
-- API connector credentials (AWS IAM role/keys for `boto3`, Falcon API client
+- API connector credentials (GCP service account keys for `google-cloud-logging`, Falcon API client
   ID/secret for `falconpy`) must be provisioned and scoped read-only where possible.
 - Network taps/sensors (Suricata/Zeek) must already be positioned on the relevant
   network segments; Specula consumes their output, it does not deploy the sensors
@@ -199,14 +199,14 @@ ingestion codepath.
 ### Step 4 — OCSF Normalization (making heterogeneous evidence speak one language)
 
 Raw evidence arrives in wildly different shapes — Windows EVTX XML, Zeek TSV
-records, Slack API JSON, raw PCAP frames, CloudTrail JSON, EML MIME. Before any of
+records, Slack API JSON, raw PCAP frames, GCP Audit JSON, EML MIME. Before any of
 it can be linked into a knowledge graph or handed to an agent, it must be converted
 into one consistent schema.
 
 - **FastMCP gateway microservices** perform this conversion, transforming every
   event into **Open Cybersecurity Schema Framework (OCSF)** JSON — a
   vendor-neutral, standardized event schema.
-- This step is what allows a Sysmon process-creation event, a CloudTrail API call,
+- This step is what allows a Sysmon process-creation event, a GCP Audit API call,
   and a Zeek connection record to all be treated as structurally comparable objects
   by later agents, instead of requiring per-source-format parsing logic scattered
   throughout the codebase.

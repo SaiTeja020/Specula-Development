@@ -201,10 +201,10 @@ def test_ueba_browser_normalizer():
 def test_cloud_topology_normalizer():
     topo_payload = {
         "timestamp": "2026-08-08T12:00:00Z",
-        "resource_id": "arn:aws:ec2:us-east-1:123456789012:instance/i-0123456789abcdef0",
-        "resource_name": "Prod-DB",
-        "resource_type": "AWS::EC2::Instance",
-        "region": "us-east-1",
+        "resource_id": "//compute.googleapis.com/projects/my-project/zones/us-central1-a/instances/my-instance",
+        "resource_name": "my-instance",
+        "resource_type": "compute.googleapis.com/Instance",
+        "region": "us-central1-a",
     }
     events = cloud_topology_normalizer.normalize(topo_payload, trace_id="t1", case_id="C1")
     assert len(events) == 1

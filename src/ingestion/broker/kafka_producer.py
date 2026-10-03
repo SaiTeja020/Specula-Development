@@ -139,7 +139,7 @@ class EventProducer:
     def produce_event(self, event: OCSFBaseEvent) -> None:
         """Serialize and produce an event to Kafka (or in-memory buffer)."""
         canonical_host_id = getattr(event, "canonical_host_id", None)
-        if canonical_host_id and self.active_cases_cache:
+        if canonical_host_id and self.active_cases_cache and event.case_id == "UNASSIGNED_CONTINUOUS":
             event.case_id = self.active_cases_cache.get_case_for_host(canonical_host_id)
 
         event_dict = (
@@ -152,6 +152,7 @@ class EventProducer:
             try:
                 self._real_producer.produce(
                     topic=self.topic,
+                    key=f"host:{canonical_host_id}".encode("utf-8") if canonical_host_id else None,
                     value=event_dict,
                 )
             except Exception as e:

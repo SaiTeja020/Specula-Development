@@ -105,6 +105,60 @@ Extracts local OS event channels (System, Application, PowerShell, Defender, MFT
 python src/ingestion/run_pipeline.py
 ```
 
+### Ingest Network Sensor Logs
+The runner also accepts Zeek JSON Lines (`conn.log`, `dns.log` with JSON output), Suricata EVE JSON Lines, and classic PCAP files. Network ingestion is isolated from the local Windows extraction run, preserves each raw record through Quickwit/VCT before parsing, and does not clear existing Neo4j data.
+
+Start the Docker services first, then enable preservation. Neo4j graph writes are optional; when enabled, this mode applies schema constraints without deleting existing graph data.
+
+```powershell
+$env:SPECULA_QUICKWIT_ENABLED = "true"
+$env:SPECULA_NEO4J_ENABLED = "true"
+.\venv\Scripts\python.exe src/ingestion/run_pipeline.py `
+  --network-only `
+  --zeek-jsonl .\data\network\conn.jsonl `
+  --zeek-jsonl .\data\network\dns.jsonl `
+  --suricata-eve .\data\network\eve.json `
+  --pcap .\data\network\capture.pcap `
+  --dhcp-leases-json .\data\network\dhcp_leases.json
+```
+
+`--zeek-jsonl`, `--suricata-eve`, and `--pcap` may each be repeated. The DHCP file supplies the time-bounded source-IP to host mapping required for host-keyed Kafka partitioning:
+
+```json
+[
+  {
+    "ip": "10.0.0.5",
+    "canonical_host_uid": "host-005",
+    "valid_from": "2026-06-01T00:00:00Z",
+    "valid_to": "2026-06-02T00:00:00Z"
+  }
+]
+```
+
+Records without a matching lease are reported and skipped. Accepted normalized events are written to `data/extracted_logs/ocsf_network_events.json`; raw files remain in place. Quickwit must be available because ingestion stops if original evidence cannot be preserved. Kafka uses the configured local broker; set `SPECULA_NEO4J_ENABLED=false` to skip direct graph writes while still publishing normalized events.
+
+For continuously appended Zeek or Suricata files, add `--follow`. The runner polls for complete newline-terminated records and persists byte offsets in `data/ingestion_state/network_offsets.json` (override with `--network-offsets`). PCAP inputs, if supplied alongside `--follow`, are imported once at startup. Followed normalized events are appended to `data/extracted_logs/ocsf_network_events.jsonl`; press Ctrl+C to stop cleanly.
+
+```powershell
+.\venv\Scripts\python.exe src/ingestion/run_pipeline.py `
+  --network-only --follow --poll-interval 1 `
+  --zeek-jsonl .\data\network\conn.jsonl `
+  --suricata-eve .\data\network\eve.json `
+  --dhcp-leases-json .\data\network\dhcp_leases.json
+```
+
+### Receive Logs Directly from Network Devices
+For firewalls, routers, switches, Linux servers, and appliances that support syslog forwarding, start the live receiver. Configure each device's remote syslog destination as the machine running Specula, on UDP port 5514 by default. The listener preserves the exact received bytes through Quickwit/VCT and publishes an OCSF generic event to Kafka with the sender IP and original message retained. TCP is available for newline-framed syslog senders.
+
+```powershell
+$env:SPECULA_QUICKWIT_ENABLED = "true"
+.\venv\Scripts\python.exe src/ingestion/run_pipeline.py `
+  --network-only --syslog-listener `
+  --syslog-host 0.0.0.0 --syslog-port 5514 --syslog-protocol udp
+```
+
+This is a receiving listener: endpoint devices must be configured to forward logs to it, and the host/network firewall must permit the selected port. Device-specific parsing into detailed connection fields still depends on the vendor's syslog format; unparsed message text remains preserved in the event.
+
 ### Output File Locations
 - **Raw Extracted Logs**: `data/extracted_logs/raw_system_events.json`
 - **Validated OCSF Events**: `data/extracted_logs/ocsf_system_events.json`

@@ -177,21 +177,27 @@ def run_dfkg_consumer(*, max_messages: int | None = None) -> None:
                 # ponytail: dead-letter publish deferred, just log
                 continue
 
-            # Deterministic UID: hash of (agent_role, case_id, summary prefix)
+            # Preserve a producer-assigned deterministic UID when present.
             uid_seed = f"{finding.get('agent_role', '')}-{finding.get('timestamp', '')}"
-            uid = hashlib.sha256(uid_seed.encode()).hexdigest()[:16]
+            uid = finding.get("uid") or hashlib.sha256(uid_seed.encode()).hexdigest()[:16]
 
             # Parameterized MERGE — no dynamic string interpolation (AGENTS.md rule)
             with driver.session() as session:
                 session.run(
                     "MERGE (e:Entity {uid: $uid}) "
                     "SET e.agent_role = $role, e.summary = $summary, "
-                    "    e.timestamp = $ts, e.topic = $topic",
+                    "    e.timestamp = $ts, e.topic = $topic, "
+                    "    e.case_id = $case_id, e.canonical_host_id = $host, "
+                    "    e.dfkg_refs = $refs, e.bytes_out = $bytes_out",
                     uid=uid,
                     role=finding.get("agent_role", "unknown"),
                     summary=finding.get("summary", "")[:500],
                     ts=finding.get("timestamp", ""),
                     topic=msg.topic(),
+                    case_id=finding.get("case_id"),
+                    host=finding.get("canonical_host_id"),
+                    refs=finding.get("dfkg_refs", []),
+                    bytes_out=finding.get("bytes_out", 0),
                 )
 
             count += 1

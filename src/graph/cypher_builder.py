@@ -7,7 +7,10 @@ ensuring explicit locks and supernode protection.
 Reference: specula_ingestion_final_plan.md §8.1 & §8.4
 """
 
+import json
 from typing import Any, Dict, List, Optional, Tuple
+
+from src.schemas.uid_generator import generate_deterministic_uid
 
 
 _MERGE_TEMPLATES = {
@@ -521,34 +524,57 @@ class CypherBuilder:
     @staticmethod
     def build_network_activity(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = """
-        MERGE (src:NetworkEndpoint {uid: $src_ip})
+        MERGE (c:Case {uid: $case_id})
+        MERGE (e:Event {uid: $uid})
+        ON CREATE SET
+            e.class_uid = 4001,
+            e.case_id = $case_id,
+            e.canonical_host_id = $canonical_host_id,
+            e.time = $time,
+            e.raw_source_timestamp = $raw_source_timestamp,
+            e.trace_id = $trace_id,
+            e.src_endpoint = $src_endpoint_json,
+            e.dst_endpoint = $dst_endpoint_json,
+            e.protocol = $protocol,
+            e.dns_query = $dns_query,
+            e.dns_query_type = $dns_query_type,
+            e.bytes_in = $bytes_in,
+            e.bytes_out = $bytes_out
+        MERGE (c)-[:HAS_EVENT]->(e)
+
+        MERGE (src:NetworkEndpoint {uid: $src_endpoint_uid})
         ON CREATE SET
             src.ip_address = $src_ip,
             src.canonical_host_uid = $src_canonical_host_uid,
+            src.canonical_host_id = $src_canonical_host_uid,
             src.case_id = $case_id,
-            src.first_seen = $time
+            src.first_seen = $time,
+            src.timestamp = $time
         ON MATCH SET
             src.last_seen = $time
             
-        MERGE (dst:NetworkEndpoint {uid: $dst_ip})
+        MERGE (dst:NetworkEndpoint {uid: $dst_endpoint_uid})
         ON CREATE SET
             dst.ip_address = $dst_ip,
             dst.canonical_host_uid = $dst_canonical_host_uid,
+            dst.canonical_host_id = $dst_canonical_host_uid,
             dst.case_id = $case_id,
-            dst.first_seen = $time
+            dst.first_seen = $time,
+            dst.timestamp = $time
         ON MATCH SET
             dst.last_seen = $time
             
-        MERGE (src)-[r:CONNECTED_TO]->(dst)
+        MERGE (src)-[r:CONNECTED_TO {event_uid: $uid}]->(dst)
         ON CREATE SET
             r.time = $time,
             r.trace_id = $trace_id,
             r.case_id = $case_id,
             r.dst_port = $dst_port,
             r.protocol = $protocol,
-            r.dns_query = $dns_query
-        ON MATCH SET
-            r.last_seen = $time
+            r.dns_query = $dns_query,
+            r.bytes_out = $bytes_out
+        MERGE (e)-[:SOURCE_ENDPOINT]->(src)
+        MERGE (e)-[:DEST_ENDPOINT]->(dst)
         """
         
         src_endpoint = event.get("src_endpoint", {})
@@ -570,16 +596,36 @@ class CypherBuilder:
             dst_port = None
             dst_canonical_host_uid = None
             
+        uid = event["uid"]
+        case_id = event.get("case_id", "UNASSIGNED_CONTINUOUS")
+        src_endpoint_uid = generate_deterministic_uid("network_endpoint", {
+            "case_id": case_id, "ip": src_ip,
+            "host": src_canonical_host_uid or uid,
+        })
+        dst_endpoint_uid = generate_deterministic_uid("network_endpoint", {
+            "case_id": case_id, "ip": dst_ip,
+            "host": dst_canonical_host_uid or uid,
+        })
         params = {
+            "uid": uid,
+            "src_endpoint_uid": src_endpoint_uid,
+            "dst_endpoint_uid": dst_endpoint_uid,
             "src_ip": src_ip,
             "src_canonical_host_uid": src_canonical_host_uid,
             "dst_ip": dst_ip,
             "dst_canonical_host_uid": dst_canonical_host_uid,
             "dst_port": dst_port,
-            "case_id": event.get("case_id"),
+            "case_id": case_id,
+            "canonical_host_id": event.get("canonical_host_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
+            "raw_source_timestamp": event.get("raw_source_timestamp"),
             "trace_id": event.get("trace_id"),
             "protocol": event.get("protocol"),
-            "dns_query": event.get("dns_query")
+            "dns_query": event.get("dns_query"),
+            "dns_query_type": event.get("dns_query_type"),
+            "bytes_in": event.get("bytes_in", 0),
+            "bytes_out": event.get("bytes_out", 0),
+            "src_endpoint_json": json.dumps(src_endpoint, sort_keys=True),
+            "dst_endpoint_json": json.dumps(dst_endpoint, sort_keys=True),
         }
         return query, params

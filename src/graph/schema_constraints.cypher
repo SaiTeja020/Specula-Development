@@ -10,6 +10,8 @@
 CREATE CONSTRAINT host_uid_unique IF NOT EXISTS FOR (h:Host) REQUIRE h.uid IS UNIQUE;
 CREATE CONSTRAINT process_uid_unique IF NOT EXISTS FOR (p:Process) REQUIRE p.uid IS UNIQUE;
 CREATE CONSTRAINT endpoint_uid_unique IF NOT EXISTS FOR (e:NetworkEndpoint) REQUIRE e.uid IS UNIQUE;
+CREATE CONSTRAINT network_event_uid_unique IF NOT EXISTS FOR (e:Event) REQUIRE e.uid IS UNIQUE;
+CREATE CONSTRAINT case_uid_unique IF NOT EXISTS FOR (c:Case) REQUIRE c.uid IS UNIQUE;
 CREATE CONSTRAINT user_uid_unique IF NOT EXISTS FOR (u:User) REQUIRE u.uid IS UNIQUE;
 CREATE CONSTRAINT file_uid_unique IF NOT EXISTS FOR (f:File) REQUIRE f.uid IS UNIQUE;
 

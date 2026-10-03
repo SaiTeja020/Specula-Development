@@ -162,7 +162,7 @@ async def system_boot():
     
     # Check Docker engine status
     try:
-        subprocess.run(["docker", "info"], capture_output=True, text=True, check=True)
+        subprocess.run(["docker", "info"], capture_output=True, text=True, encoding="utf-8", check=True)
     except FileNotFoundError:
         return {"status": "error", "message": "docker_cli_not_found"}
     except subprocess.CalledProcessError:
@@ -176,7 +176,7 @@ async def system_boot():
         subprocess.run("docker compose down -v", shell=True, cwd=repo_root, capture_output=True, timeout=60)
         
         # Build and start forcing recreation of containers
-        return subprocess.run("docker compose up -d --build --force-recreate", shell=True, cwd=repo_root, capture_output=True, text=True, timeout=300)
+        return subprocess.run("docker compose up -d --build --force-recreate", shell=True, cwd=repo_root, capture_output=True, text=True, encoding="utf-8", timeout=300)
 
     try:
         async with boot_lock:
@@ -244,7 +244,7 @@ async def trigger_pipeline(config: dict):
                 env["SPECULA_QUICKWIT_ENABLED"] = "true"
                 env["SPECULA_NEO4J_ENABLED"] = "true"
                 
-                return subprocess.run(cmd, cwd=repo_root, env=env, capture_output=True, text=True)
+                return subprocess.run(cmd, cwd=repo_root, env=env, capture_output=True, text=True, encoding="utf-8")
 
             ingest_proc = await asyncio.to_thread(run_ingestion)
             if ingest_proc.returncode != 0:
