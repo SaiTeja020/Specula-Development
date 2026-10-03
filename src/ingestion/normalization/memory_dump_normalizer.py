@@ -5,7 +5,7 @@ Maps Volatility JSON plugin outputs to OCSF events.
 Reference: ocsf_phase2_phase3_implementation_plan_FINAL.md §2.4
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
 from src.schemas.ocsf_base import OCSFBaseEvent
@@ -17,13 +17,38 @@ from src.schemas.ocsf_phase2_events import (
 from src.schemas.uid_generator import generate_deterministic_uid
 
 
+def _first_timestamp(payload: Dict[str, Any], keys: tuple[str, ...]) -> Optional[str]:
+    """Return the first non-empty timestamp string in *keys*."""
+    for key in keys:
+        value = payload.get(key)
+        if value not in (None, ""):
+            return str(value)
+    return None
+
+
 def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[OCSFBaseEvent]:
     """
     Normalize Volatility JSON plugin output into ProcessActivityEvent, NetworkActivityEvent, or DetectionFindingEvent.
     """
     time_normalizer = TimeNormalizer()
-    raw_timestamp = str(raw_payload.get("timestamp") or raw_payload.get("capture_time") or "1970-01-01T00:00:00Z")
+
+    # OCSF's canonical `time` and `raw_source_timestamp` always represent
+    # the artifact time used for timeline ordering.  Acquisition time is
+    # supplementary provenance, not a competing timestamp convention.
+    artifact_raw_timestamp = _first_timestamp(
+        raw_payload,
+        ("artifact_timestamp", "process_create_time", "CreateTime", "timestamp"),
+    )
+    raw_capture_timestamp = _first_timestamp(
+        raw_payload,
+        ("capture_time", "acquisition_time", "image_capture_time"),
+    )
+    artifact_time_unverified = artifact_raw_timestamp is None
+    raw_timestamp = artifact_raw_timestamp or raw_capture_timestamp or "1970-01-01T00:00:00Z"
     utc_time, skew_ms, unverified = time_normalizer.normalize(raw_timestamp)
+    capture_time = None
+    if raw_capture_timestamp:
+        capture_time, _, _ = time_normalizer.normalize(raw_capture_timestamp)
 
     if raw_payload.get("has_dc_anchor") is False:
         skew_ms = 0
@@ -45,6 +70,9 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 raw_source_timestamp=raw_timestamp,
                 clock_skew_offset_ms=skew_ms,
                 clock_skew_unverified=unverified,
+                capture_time=capture_time,
+                raw_capture_timestamp=raw_capture_timestamp,
+                artifact_time_unverified=artifact_time_unverified,
                 uid=uid,
                 process_name=raw_payload.get("ImageFileName") or raw_payload.get("process_name", "unknown"),
                 process_pid=int(raw_payload.get("PID") or raw_payload.get("process_pid", 0)),
@@ -64,6 +92,9 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 raw_source_timestamp=raw_timestamp,
                 clock_skew_offset_ms=skew_ms,
                 clock_skew_unverified=unverified,
+                capture_time=capture_time,
+                raw_capture_timestamp=raw_capture_timestamp,
+                artifact_time_unverified=artifact_time_unverified,
                 uid=uid,
                 src_ip=raw_payload.get("ForeignAddr") or raw_payload.get("src_ip"),
                 dst_ip=raw_payload.get("LocalAddr") or raw_payload.get("dst_ip"),
@@ -84,6 +115,9 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 raw_source_timestamp=raw_timestamp,
                 clock_skew_offset_ms=skew_ms,
                 clock_skew_unverified=unverified,
+                capture_time=capture_time,
+                raw_capture_timestamp=raw_capture_timestamp,
+                artifact_time_unverified=artifact_time_unverified,
                 uid=uid,
                 finding_title=f"Memory Injection Finding: {plugin_name}",
                 analytic_name=f"Volatility {plugin_name}",
@@ -105,6 +139,9 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 raw_source_timestamp=raw_timestamp,
                 clock_skew_offset_ms=skew_ms,
                 clock_skew_unverified=unverified,
+                capture_time=capture_time,
+                raw_capture_timestamp=raw_capture_timestamp,
+                artifact_time_unverified=artifact_time_unverified,
                 uid=uid,
                 process_name=raw_payload.get("process_name", "unknown"),
                 process_pid=int(raw_payload.get("process_pid", 0)),

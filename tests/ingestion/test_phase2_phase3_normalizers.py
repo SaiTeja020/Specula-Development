@@ -136,6 +136,39 @@ def test_memory_dump_normalizer():
     assert mal_ev.class_uid == 2004
 
 
+def test_memory_dump_uses_native_artifact_time_and_preserves_capture_provenance():
+    payload = {
+        "plugin": "pslist",
+        "ImageFileName": "lsass.exe",
+        "PID": 500,
+        "CreateTime": "2026-08-08T11:45:00Z",
+        "capture_time": "2026-08-08T12:00:00Z",
+    }
+
+    event = memory_dump_normalizer.normalize(payload, trace_id="t1", case_id="C1")[0]
+
+    assert event.time.isoformat() == "2026-08-08T11:45:00+00:00"
+    assert event.raw_source_timestamp == "2026-08-08T11:45:00Z"
+    assert event.capture_time.isoformat() == "2026-08-08T12:00:00+00:00"
+    assert event.raw_capture_timestamp == "2026-08-08T12:00:00Z"
+    assert event.artifact_time_unverified is False
+
+
+def test_memory_dump_falls_back_to_capture_time_when_artifact_time_is_absent():
+    payload = {
+        "plugin": "pslist",
+        "ImageFileName": "lsass.exe",
+        "PID": 500,
+        "capture_time": "2026-08-08T12:00:00Z",
+    }
+
+    event = memory_dump_normalizer.normalize(payload, trace_id="t1", case_id="C1")[0]
+
+    assert event.time.isoformat() == "2026-08-08T12:00:00+00:00"
+    assert event.raw_source_timestamp == "2026-08-08T12:00:00Z"
+    assert event.artifact_time_unverified is True
+
+
 def test_container_normalizer_context_enrichment():
     container_payload = {
         "timestamp": "2026-08-08T12:00:00Z",

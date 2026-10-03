@@ -11,7 +11,7 @@
 - **Active Tasks (WIP=2):**
   None currently active.
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-19
+- **Last Updated:** 2026-09-23
 
 ---
 
@@ -111,6 +111,18 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 ---
 
 ### Phase 4: LangGraph Orchestration & Multi-Agent Core (`ADR-001`, `ADR-003`, `ADR-005`)
+
+- **Task ID:** `TASK-4.9b`
+  - **Description:** Implement a deterministic, case- and host-scoped Memory Forensics Agent with source-image-scoped deduplication and Kafka finding publication.
+  - **Status:** `passing`
+  - **Verification Command:** `python -m pytest tests/agents/test_memory_forensics.py tests/test_skeleton_graph.py`
+  - **Acceptance Criteria:** Deterministic hidden-process, injection, LSASS-handle, and memory-resident YARA findings are evidence-cited, deduplicated per source image, published to the specialist Kafka topic, and graph-routable only via the existing memory dead-end path.
+
+- **Task ID:** `TASK-4.9a`
+  - **Description:** Preserve memory-image acquisition time separately while retaining the canonical OCSF `time` and `raw_source_timestamp` fields for artifact ordering.
+  - **Status:** `passing`
+  - **Verification Command:** `python -m pytest tests/ingestion/test_phase2_phase3_normalizers.py -k memory_dump`
+  - **Acceptance Criteria:** Native artifact timestamps drive canonical OCSF ordering fields; capture provenance remains available on every normalized memory artifact; fallback-to-capture is explicit.
 
 - **Task ID:** `TASK-4.1`
   - **Description:** Define SpeculaState schema with append-reducers for parallel fan-out.
@@ -225,6 +237,9 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 ## Recent Execution Log
 | Date | Component / Task | Changes Made | Verification Result |
 | :--- | :--- | :--- | :--- |
+| 2026-09-23 | `TASK-4.9b` | Re-ran deterministic Memory Forensics and LangGraph integration verification. | 34/34 passed (`python -m pytest tests/agents/test_memory_forensics.py tests/test_skeleton_graph.py`); pytest cache write warning only. |
+| 2026-09-22 | `TASK-4.9b` | Built deterministic Memory Forensics rules, case/host isolation, source-image-scoped deduplication, Kafka publisher, and LangGraph factory wiring. | 34/34 passed (`python -m pytest tests/agents/test_memory_forensics.py tests/test_skeleton_graph.py`) |
+| 2026-09-22 | `TASK-4.9a` | Added canonical memory-artifact versus image-capture timestamp provenance and finalized process-identity and fixture-floor requirements. | 3/3 passed (`python -m pytest tests/ingestion/test_phase2_phase3_normalizers.py -k memory_dump`) |
 | 2026-08-09 | `TASK-4.1`–`TASK-4.5` | Built 23-node LangGraph skeleton with guardrails, debate loop, and HITL API | 28/28 Passed |
 | 2026-08-18 | `TASK-3.5` | Built FAISS IndexIVFPQ threat-intel corpus, fetchers, and MCP server | 29/29 Passed |
 | 2026-08-18 | Stage 2 Ingestion Gaps | Wired injection detector into security gate; added 7-step e2e test | 15/15 + 2/2 Passed |

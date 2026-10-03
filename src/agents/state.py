@@ -64,6 +64,11 @@ class SpeculaState(TypedDict, total=False):
     # §2.9 Per-agent ReAct scratch (primary verification surface)
     agent_traces: Annotated[list, operator.add]
 
+    # Optional, case-scoped Volatility-derived artifacts. Production nodes may
+    # load the same artifacts from the DFKG; this field makes the hand-off
+    # explicit for tests and event-driven invocations.
+    memory_artifacts: list[dict]
+
     # §2.10 Test injection control (production code never sets this field).
     # Used by dead_end_detector and other Stage 3+ components to short-circuit
     # real heuristics with deterministic values during unit testing.

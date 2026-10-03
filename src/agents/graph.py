@@ -23,7 +23,6 @@ from .nodes import (
     insider_threat_node,
     judge_node,
     malware_stylometry_node,
-    memory_forensics_node,
     make_primary_tier_join_node,
     proponent_node,
     report_generation_node,
@@ -35,6 +34,7 @@ from .nodes import (
 from .evidence_collection_agent import make_evidence_collection_node
 from .log_analysis_factory import make_log_analysis_node
 from .network_forensics_factory import make_network_forensics_node
+from .memory_forensics_factory import make_memory_forensics_node
 from .supervisor_factory import make_supervisor_node
 from .state import SpeculaState
 
@@ -109,7 +109,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
     builder.add_node("threat_attribution", threat_attribution_node)
     builder.add_node("dag", dag_node)                           # F23 — Dynamic Attack Graph
-    builder.add_node("memory_forensics", memory_forensics_node)
+    builder.add_node("memory_forensics", make_memory_forensics_node(neo4j_driver, kafka_producer))
     builder.add_node("identity", identity_node)                 # F13a — Identity specialist
     builder.add_node("cloud_container", cloud_container_node)   # F13b — Cloud & Container specialist
     builder.add_node("malware_stylometry", malware_stylometry_node)
