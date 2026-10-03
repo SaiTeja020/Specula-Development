@@ -1,123 +1,171 @@
+"""Specula Kafka Orchestration Consumer.
+
+Listens on 'specula.cases.opened' and launches the canonical
+23-node LangGraph investigation for each new case.
+
+Uses investigation_runner.run_investigation() — the same path as
+scripts/run_investigation.py — so there is ONE canonical investigation
+implementation. supervisor_graph.py (the old 6-node stub) is no longer
+invoked here.
+
+Duplicate-run protection: an in-process set tracks active case_ids.
+If the same case_id arrives twice before its investigation completes,
+the second message is skipped with a warning.
+"""
 import json
-import time
 import logging
-from typing import Dict, Any, Optional
+import os
+import time
+from typing import Any, Dict, Optional
+
 from confluent_kafka import Consumer, KafkaError
 
-from src.agents.supervisor_agent import SupervisorState
-from src.orchestration.supervisor_graph import build_supervisor_graph
 from src.ingestion.broker.kafka_consumer import deserialize_event
 
 logger = logging.getLogger(__name__)
 
+# In-process guard against duplicate investigations for the same case_id.
+# This is a single-process safeguard; for multi-replica deployments a
+# Redis lock would be required.
+_active_case_ids: set[str] = set()
+
+
 class SupervisorKafkaConsumer:
+    """Kafka consumer that launches a real LangGraph investigation for each case."""
+
     def __init__(self, bootstrap_servers: str, group_id: str):
         self.consumer = Consumer({
-            'bootstrap.servers': bootstrap_servers,
-            'group.id': group_id,
-            'auto.offset.reset': 'earliest',
-            'topic.metadata.refresh.interval.ms': 3000
+            "bootstrap.servers": bootstrap_servers,
+            "group.id": group_id,
+            "auto.offset.reset": "earliest",
+            "topic.metadata.refresh.interval.ms": 3000,
         })
-        self.graph = build_supervisor_graph()
 
     def _parse_headers(self, headers: Optional[list]) -> Dict[str, Any]:
-        control_flags = {}
+        """Extract test-control flags from Kafka message headers."""
+        control_flags: Dict[str, Any] = {}
         if not headers:
             return control_flags
-            
         for key, value in headers:
-            if key == 'test_control':
+            if key == "test_control":
                 try:
-                    # Expecting comma-separated flags or JSON
                     if isinstance(value, bytes):
-                        value = value.decode('utf-8')
-                    flags = value.split(',')
-                    for flag in flags:
+                        value = value.decode("utf-8")
+                    for flag in value.split(","):
                         flag = flag.strip()
-                        if flag == 'FORCE_DEAD_END':
-                            control_flags['FORCE_DEAD_END'] = True
-                        elif flag.startswith('FORCE_GUARDRAIL_FAIL_TIER:'):
-                            tier = flag.split(':')[1]
-                            control_flags['FORCE_GUARDRAIL_FAIL_TIER'] = tier
-                        elif flag.startswith('DEPLOYED_MODEL_TIER:'):
-                            tier = flag.split(':')[1]
-                            control_flags['DEPLOYED_MODEL_TIER'] = tier
+                        if flag == "FORCE_DEAD_END":
+                            control_flags["FORCE_DEAD_END"] = True
+                        elif flag.startswith("FORCE_GUARDRAIL_FAIL_TIER:"):
+                            control_flags["FORCE_GUARDRAIL_FAIL_TIER"] = flag.split(":")[1]
+                        elif flag.startswith("DEPLOYED_MODEL_TIER:"):
+                            control_flags["DEPLOYED_MODEL_TIER"] = flag.split(":")[1]
                 except Exception as e:
-
                     logger.error(f"Error parsing test_control header: {e}")
         return control_flags
 
-    def start_listening(self):
-        self.consumer.subscribe(['specula.cases.opened'])
-        logger.info("SupervisorKafkaConsumer started listening on 'specula.cases.opened'")
+    def _run_investigation(self, case_id: str, query: str, thread_id: str) -> None:
+        """Run the canonical investigation and remove the case_id guard on completion."""
+        try:
+            from src.agents.investigation_runner import run_investigation, HITLPausedResult
+            from langgraph.checkpoint.memory import InMemorySaver
+
+            neo4j_uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+            neo4j_driver = None
+            neo4j_enabled = os.environ.get("SPECULA_NEO4J_ENABLED", "false").lower() == "true"
+            if neo4j_enabled:
+                try:
+                    from neo4j import GraphDatabase
+                    neo4j_driver = GraphDatabase.driver(neo4j_uri)
+                except Exception as e:
+                    logger.warning(f"Neo4j unavailable (non-fatal): {e}")
+
+            checkpointer = InMemorySaver()
+            result = run_investigation(
+                query=query,
+                case_id=case_id,
+                neo4j_driver=neo4j_driver,
+                checkpointer=checkpointer,
+                thread_id=thread_id,
+            )
+
+            if isinstance(result, HITLPausedResult):
+                logger.info(
+                    f"Case {case_id} paused at HITL — thread={result.thread_id}. "
+                    f"POST to http://localhost:8200/hitl/{result.thread_id} to resume."
+                )
+                # Keep case_id in active set until human resumes
+            else:
+                logger.info(f"Case {case_id} completed: status={result.get('status')}")
+                _active_case_ids.discard(case_id)
+
+            if neo4j_driver:
+                neo4j_driver.close()
+        except Exception as exc:
+            logger.error(f"Investigation failed for case {case_id}: {exc}", exc_info=True)
+            _active_case_ids.discard(case_id)
+
+    def start_listening(self) -> None:
+        """Block and process case-open events from Kafka."""
+        self.consumer.subscribe(["specula.cases.opened"])
+        logger.info("SupervisorKafkaConsumer ready — listening on 'specula.cases.opened'")
+        logger.info("Using canonical investigation_runner.run_investigation() (23-node real graph)")
 
         try:
             while True:
                 msg = self.consumer.poll(1.0)
-
                 if msg is None:
                     continue
                 if msg.error():
                     if msg.error().code() == KafkaError._PARTITION_EOF:
                         continue
-                    else:
-                        logger.error(f"Kafka Error: {msg.error()}")
-                        time.sleep(1)
-                        continue
+                    logger.error(f"Kafka error: {msg.error()}")
+                    time.sleep(1)
+                    continue
 
                 try:
                     payload = deserialize_event(msg.value())
-                    case_id = payload.get('case_id')
-                    trace_id = payload.get('trace_id')
-                    nl_query = payload.get('query')
-                    
-                    if not case_id or not trace_id:
-                        logger.warning(f"Invalid payload format, missing required fields: {payload}")
+                    case_id = payload.get("case_id")
+                    trace_id = payload.get("trace_id", "")
+                    query = payload.get("query") or (
+                        "Investigate the available activity in this case and identify "
+                        "anything that may require attention."
+                    )
+
+                    if not case_id:
+                        logger.warning(f"Missing case_id in payload: {payload}")
                         continue
 
-                    # Parse headers for control flags
-                    control_flags = self._parse_headers(msg.headers())
-                    
-                    # Check for trace_id embedded flags if no header
-                    if 'FORCE_DEAD_END' in trace_id and 'FORCE_DEAD_END' not in control_flags:
-                        control_flags['FORCE_DEAD_END'] = True
+                    # Duplicate guard
+                    if case_id in _active_case_ids:
+                        logger.warning(
+                            f"Duplicate case-open event for case_id={case_id} — "
+                            "investigation already active, skipping."
+                        )
+                        continue
 
-                    # Initialize state
-                    initial_state: SupervisorState = {
-                        "case_id": case_id,
-                        "trace_id": trace_id,
-                        "control_flags": control_flags,
-                        "active_tier": "",
-                        "dispatched_agents": [],
-                        "completed_agents": [],
-                        "dead_end_detected": False,
-                        "hitl_attempt_count": 0,
-                        "terminal_state": "",
-                        "nl_query": nl_query,
-                        "query_routing_decision": None,
-                        "degraded_capability_mode": False
-                    }
+                    _active_case_ids.add(case_id)
+                    thread_id = f"thread-{case_id}"
+                    logger.info(f"Launching investigation: case={case_id}, thread={thread_id}")
 
-
-                    # Invoke Graph
-                    logger.info(f"Invoking Supervisor Graph for case {case_id}")
-                    import asyncio
-                    final_state = asyncio.run(self.graph.ainvoke(initial_state))
-                    logger.info(f"Graph completed for case {case_id} with state {final_state.get('terminal_state', 'RESOLVED')}")
+                    # Run blocking investigation in the same thread.
+                    # For high-throughput deployments, use a ThreadPoolExecutor here.
+                    self._run_investigation(case_id, query, thread_id)
 
                 except json.JSONDecodeError:
-                    logger.error("Failed to decode JSON payload")
-                except Exception as e:
-                    logger.error(f"Error processing message: {e}")
+                    logger.error("Failed to decode Kafka message JSON")
+                except Exception as exc:
+                    logger.error(f"Error processing case-open event: {exc}", exc_info=True)
 
         except KeyboardInterrupt:
             pass
         finally:
             self.consumer.close()
+            logger.info("SupervisorKafkaConsumer stopped.")
+
 
 if __name__ == "__main__":
-    import os
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     consumer = SupervisorKafkaConsumer(bootstrap_servers, "supervisor_group")
     consumer.start_listening()
+

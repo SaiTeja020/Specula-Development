@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from src.telemetry import emit_event
 
 log = logging.getLogger(__name__)
 
@@ -82,6 +83,7 @@ def _get_producer():
 
 def publish_finding(topic: str, finding: dict, trace_id: str | None = None) -> None:
     """Publish a finding dict to *topic*. Non-blocking, silent on failure."""
+    emit_event("kafka_produce", topic=topic, case_id=finding.get("case_id"))
     producer = _get_producer()
     if producer is None:
         return
@@ -180,6 +182,10 @@ def run_dfkg_consumer(*, max_messages: int | None = None) -> None:
                 # ponytail: dead-letter publish deferred, just log
                 continue
 
+            # Parameterized MERGE — no dynamic string interpolation (AGENTS.md rule)
+            case_id = finding.get("case_id", "unknown")
+            emit_event("kafka_consume", topic=msg.topic(), case_id=case_id)
+            
             # Deterministic UID: hash of (agent_role, case_id, summary prefix)
             uid_seed = f"{finding.get('agent_role', '')}-{finding.get('timestamp', '')}"
             uid = hashlib.sha256(uid_seed.encode()).hexdigest()[:16]
@@ -188,6 +194,7 @@ def run_dfkg_consumer(*, max_messages: int | None = None) -> None:
             case_id = finding.get("case_id", "unknown")
             dfkg_refs = finding.get("dfkg_refs", [])
             with driver.session() as session:
+                emit_event("dfkg_write", uid=uid, case_id=case_id, role=finding.get("agent_role"))
                 session.run(
                     "MERGE (e:AgentFinding {uid: $uid}) "
                     "SET e.agent_role = $role, e.summary = $summary, "

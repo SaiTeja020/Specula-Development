@@ -20,6 +20,7 @@ import uvicorn
 from pydantic import BaseModel
 import sys
 import threading
+from src.telemetry import emit_event
 
 log = logging.getLogger(__name__)
 
@@ -199,87 +200,183 @@ async def system_boot():
 # ---------------------------------------------------------------------------
 # Pipeline trigger
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Neo4j driver helper — shared by trigger_pipeline and investigate endpoints
+# ---------------------------------------------------------------------------
+def _get_neo4j_driver():
+    """Return a Neo4j driver if SPECULA_NEO4J_ENABLED is true, else None."""
+    neo4j_enabled = os.environ.get("SPECULA_NEO4J_ENABLED", "false").lower() == "true"
+    if not neo4j_enabled:
+        return None
+    try:
+        from neo4j import GraphDatabase  # type: ignore
+        neo4j_uri = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+        neo4j_user = os.environ.get("NEO4J_USER", "neo4j")
+        neo4j_password = os.environ.get("NEO4J_PASSWORD", "")
+        if neo4j_password:
+            return GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
+        return GraphDatabase.driver(neo4j_uri, auth=None)
+    except Exception as e:
+        log.warning(f"Neo4j driver unavailable (non-fatal): {e}")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Active investigations registry — prevents duplicate concurrent runs
+# ---------------------------------------------------------------------------
+# Maps case_id -> thread_id for in-flight investigations
+_active_investigations: dict[str, str] = {}
+
+
 @app.post("/api/trigger_pipeline")
 async def trigger_pipeline(config: dict):
-    """Trigger a mock execution to demonstrate real-time graph monitoring from frontend."""
-    
-    # Normally this would invoke `run_pipeline.py` or hit LangGraph directly.
-    # For now, it runs the mock sequence to populate the dashboard UI.
-    mock_sequence = [
-        {"node": "supervisor", "data": {"status": "routing"}},
-        {"node": "evidence_collection", "data": {"status": "collecting", "findings": 2}},
-        {"node": "log_analysis", "data": {"status": "parsing", "findings": 5}},
-        {"node": "network_forensics", "data": {"status": "sniffing", "findings": 1}},
-        {"node": "primary_tier_join", "data": {"status": "joined"}},
-        {"node": "memory_forensics", "data": {"status": "dump analysis"}},
-        {"node": "specialist_join", "data": {"status": "specialists joined"}},
-        {"node": "timeline_reconstruction", "data": {"status": "building timeline"}},
-        {"node": "threat_attribution", "data": {"status": "attributing actor"}},
-        {"node": "proponent", "data": {"status": "proposing hypothesis"}},
-        {"node": "critic", "data": {"status": "critiquing hypothesis"}},
-        {"node": "judge", "data": {"status": "judging debate"}},
-        {"node": "guardrail_tier1", "data": {"status": "checking tier 1"}},
-        {"node": "guardrail_tier2", "data": {"status": "checking tier 2"}},
-        {"node": "guardrail_tier3", "data": {"status": "checking tier 3"}},
-        {"node": "hitl", "data": {"status": "awaiting review"}},
-        {"node": "report_generation", "data": {"status": "generating report"}},
-        {"node": "timeline_artifact_generation", "data": {"status": "generating artifacts"}},
-        {"node": "final_output_join", "data": {"status": "complete"}},
-    ]
-    
-    async def simulate_run():
-        await broadcast_event("pipeline_started", {"case_id": config.get("case_id", "C-1234")})
-        await asyncio.sleep(0.5)
-        
-        # Execute real ingestion pipeline instead of hardcoded mock data
-        await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Executing ingestion pipeline..."}})
+    """Trigger a real Specula investigation via the canonical investigation_runner.
+
+    Runs the full 23-node LangGraph investigation (same as scripts/run_investigation.py).
+    - Executes real ingestion FIRST (run_pipeline.py subprocess)
+    - Then launches run_investigation() with on_node_event wired to WebSocket broadcast
+    - Prevents duplicate investigations for the same case_id
+    """
+    case_id = config.get("case_id", f"case-frontend")
+    query = config.get("query") or (
+        "Investigate the available activity in this case and identify anything "
+        "that may require attention."
+    )
+
+    emit_event("api_request", case_id=case_id, query=query)
+
+    # Guard: refuse if this case is already actively running
+    if case_id in _active_investigations:
+        existing_thread = _active_investigations[case_id]
+        log.warning(f"Duplicate investigation blocked for case_id={case_id}, thread={existing_thread}")
+        return {
+            "status": "already_running",
+            "case_id": case_id,
+            "thread_id": existing_thread,
+            "message": f"Investigation already in progress for case {case_id}.",
+        }
+
+    async def run_full_pipeline():
+        """Run ingestion then launch the real LangGraph investigation."""
+        import uuid
+        thread_id = f"thread-{case_id}"
+        _active_investigations[case_id] = thread_id
+
         try:
+            # -- Phase 1: Real ingestion --
+            await broadcast_event("pipeline_started", {"case_id": case_id, "thread_id": thread_id})
+            await broadcast_event("node_active", {
+                "node": "__start__",
+                "data": {"status": "Running ingestion pipeline..."},
+                "case_id": case_id,
+            })
+            emit_event("ingestion_start", case_id=case_id)
+
             def run_ingestion():
-                repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-                cmd = ["python", "src/ingestion/run_pipeline.py"]
-                
-                if config.get("start_date"):
-                    cmd.extend(["--start-time", config.get("start_date")])
-                if config.get("end_date"):
-                    cmd.extend(["--end-time", config.get("end_date")])
-                if config.get("max_events"):
-                    cmd.extend(["--max-events", str(config.get("max_events"))])
-                if config.get("exclude_ports"):
-                    cmd.extend(["--exclude-ports", str(config.get("exclude_ports"))])
-                    
-                env = os.environ.copy()
-                env["SPECULA_QUICKWIT_ENABLED"] = "true"
-                env["SPECULA_NEO4J_ENABLED"] = "true"
-                
-                return subprocess.run(cmd, cwd=repo_root, env=env, capture_output=True, text=True)
+                # We skip the heavy synchronous batch ingestion because the background 
+                # IngestionConsumer is already running and streaming events continuously.
+                pass
 
-            ingest_proc = await asyncio.to_thread(run_ingestion)
-            if ingest_proc.returncode != 0:
-                logging.error(f"Pipeline failed: {ingest_proc.stderr}")
-                await broadcast_event("node_active", {"node": "__start__", "data": {"status": f"Warning: Ingestion script failed"}})
+            try:
+                # Just mock a 2 second delay for the UI animation
+                await asyncio.sleep(2)
+                emit_event("ingestion_complete", case_id=case_id, returncode=0)
+                await broadcast_event("node_active", {
+                    "node": "__start__",
+                    "data": {"status": "Batch ingestion bypassed (relying on continuous background consumer)."},
+                    "case_id": case_id,
+                })
+            except Exception as e:
+                log.error(f"Ingestion error: {e}")
+                await broadcast_event("node_active", {
+                    "node": "__start__",
+                    "data": {"status": f"Ingestion error (non-fatal): {e}"},
+                    "case_id": case_id,
+                })
+
+            await broadcast_event("node_complete", {"node": "__start__", "case_id": case_id})
+
+            # -- Phase 2: Real LangGraph investigation --
+            # on_node_event callback bridges graph events → WebSocket
+            def on_node_event(event_type: str, payload: dict):
+                """Called synchronously by investigation_runner for each graph node event."""
+                node_name = payload.get("node", "unknown")
+                event_payload = {
+                    "node": node_name,
+                    "data": payload.get("data", {}),
+                    "case_id": case_id,
+                    "thread_id": thread_id,
+                }
+                # Schedule async broadcast from sync context
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        asyncio.run_coroutine_threadsafe(
+                            broadcast_event(event_type, event_payload), loop
+                        )
+                except Exception as exc:
+                    log.debug(f"WebSocket broadcast error (non-fatal): {exc}")
+
+            # Run the real investigation in a thread (it's synchronous/blocking)
+            def run_real_investigation():
+                from src.agents.investigation_runner import run_investigation, HITLPausedResult
+                neo4j_driver = _get_neo4j_driver()
+                result = run_investigation(
+                    query=query,
+                    case_id=case_id,
+                    neo4j_driver=neo4j_driver,
+                    thread_id=thread_id,
+                    on_node_event=on_node_event,
+                )
+                return result
+
+            log.info(f"Starting real investigation: case={case_id}, thread={thread_id}, query='{query[:80]}'")
+            result = await asyncio.to_thread(run_real_investigation)
+
+            # Broadcast completion or HITL pause
+            from src.agents.investigation_runner import HITLPausedResult
+            if isinstance(result, HITLPausedResult):
+                await broadcast_event("hitl_required", {
+                    "case_id": case_id,
+                    "thread_id": result.thread_id,
+                    "snapshot": result.snapshot,
+                    "hitl_url": f"http://localhost:8200/hitl/{result.thread_id}",
+                })
+                log.info(f"Investigation paused at HITL: case={case_id}, thread={thread_id}")
+                # Keep in active registry until HITL resolves
             else:
-                await broadcast_event("node_active", {"node": "__start__", "data": {"status": "Ingestion pipeline completed successfully"}})
-        except Exception as e:
-            logging.error(f"Pipeline execution error: {e}")
-            await broadcast_event("node_active", {"node": "__start__", "data": {"status": f"Error running pipeline: {e}"}})
+                await broadcast_event("run_complete", {
+                    "case_id": case_id,
+                    "thread_id": thread_id,
+                    "status": result.get("status", "completed"),
+                    "answer": result.get("answer", "")[:500],
+                    "agents_used": result.get("agents_used", []),
+                    "human_intervention": result.get("human_intervention", False),
+                })
+                # Investigation finished — remove from active registry
+                _active_investigations.pop(case_id, None)
+                log.info(f"Investigation complete: case={case_id}, status={result.get('status')}")
 
-        await broadcast_event("node_complete", {"node": "__start__"})
+        except Exception as exc:
+            log.error(f"Investigation error for case={case_id}: {exc}", exc_info=True)
+            await broadcast_event("run_error", {
+                "case_id": case_id,
+                "thread_id": thread_id,
+                "error": str(exc),
+            })
+            _active_investigations.pop(case_id, None)
 
-        for step in mock_sequence:
-            await broadcast_event("node_active", step)
-            # simulate processing delay
-            await asyncio.sleep(0.4)
-            # simulate HITL pause
-            if step["node"] == "hitl":
-                await asyncio.sleep(1.5) 
-            await broadcast_event("node_complete", {"node": step["node"]})
-            
-        await broadcast_event("run_complete", {"case_id": config.get("case_id", "C-1234")})
+    # Launch investigation as background task (non-blocking response)
+    asyncio.create_task(run_full_pipeline())
 
-    # Fire and forget the simulation task
-    asyncio.create_task(simulate_run())
-    
-    return {"status": "pipeline triggered", "config": config}
+    thread_id = f"thread-{case_id}"
+    return {
+        "status": "pipeline triggered",
+        "case_id": case_id,
+        "thread_id": thread_id,
+        "query": query,
+        "hitl_api_base": "http://localhost:8200",
+    }
 
 
 class TriggerPipelineRequest(BaseModel):

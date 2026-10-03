@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import time
+from src.telemetry import emit_event
 
 # ---------------------------------------------------------------------------
 # Portable .env discovery
@@ -368,7 +370,8 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
 
         from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
         model_name = _get_gemini_model()  # D3: cached after first call
-        return ChatGoogleGenerativeAI(model=model_name, temperature=0)
+        llm = ChatGoogleGenerativeAI(model=model_name, temperature=0)
+        return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
 
     if backend == "ollama":
         try:
@@ -381,7 +384,8 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
         
         model_name = os.environ.get("SPECULA_LLM_MODEL", "qwen2.5-coder:1.5b")
         base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        return ChatOllama(model=model_name, base_url=base_url, temperature=0)
+        llm = ChatOllama(model=model_name, base_url=base_url, temperature=0)
+        return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
 
     if backend == "lmstudio":
         try:
@@ -394,13 +398,35 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
         
         model_name = os.environ.get("SPECULA_LLM_MODEL", "local-model")
         base_url = os.environ.get("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
-        return ChatOpenAI(
+        llm = ChatOpenAI(
             api_key="lm-studio",
             base_url=base_url,
             model=model_name,
             temperature=0
         )
+        return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
 
     # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
-    return StubLLM(agent_role, case_id=case_id)
+    stub = StubLLM(agent_role, case_id=case_id)
+    return TelemetryLLMWrapper(stub, agent_role, "stub", "stub")
+
+class TelemetryLLMWrapper:
+    def __init__(self, llm, role, backend, model_name):
+        self._llm = llm
+        self._role = role
+        self._backend = backend
+        self._model_name = model_name
+
+    def invoke(self, *args, **kwargs):
+        emit_event("llm_start", node=self._role, backend=self._backend, model=self._model_name)
+        start_time = time.time()
+        try:
+            res = self._llm.invoke(*args, **kwargs)
+            elapsed = time.time() - start_time
+            emit_event("llm_complete", node=self._role, elapsed=elapsed)
+            return res
+        except Exception as e:
+            elapsed = time.time() - start_time
+            emit_event("llm_error", node=self._role, error=str(e), error_type=type(e).__name__, elapsed=elapsed)
+            raise
 

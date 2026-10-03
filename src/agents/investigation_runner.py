@@ -23,6 +23,7 @@ import logging
 import os
 import uuid
 from typing import Any, Optional
+from src.telemetry import emit_event
 
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -135,15 +136,18 @@ def run_investigation(
     # --- Invoke the graph ---
     try:
         investigation_trace.record_event("runner", "user_query", {"query": query, "case_id": case_id})
+        emit_event("investigation_start", case_id=case_id, thread_id=thread_id)
         if on_node_event:
             result_state = dict(initial_state)
             for s in graph.stream(initial_state, config):
                 for node_id, state_update in s.items():
                     on_node_event("node_active", {"node": node_id, "data": {"status": "Processing"}})
+                    emit_event("node_active", node=node_id, case_id=case_id)
                     # Ensure state updates correctly
                     if isinstance(state_update, dict):
                         result_state.update(state_update)
                     on_node_event("node_complete", {"node": node_id})
+                    emit_event("node_complete", node=node_id, case_id=case_id)
             
             # Ensure we get the very final state from checkpointer if available
             try:
@@ -158,6 +162,7 @@ def run_investigation(
         if _is_hitl_interrupt(exc):
             return _handle_hitl_pause(graph, config, thread_id, case_id)
         logger.error(f"Graph invocation failed: {exc}")
+        emit_event("investigation_error", case_id=case_id, error=str(exc))
         raise
 
     # --- Check if graph ended at HITL without exception (some LG versions) ---
@@ -178,6 +183,7 @@ def run_investigation(
     # --- Synthesise plain-English answer ---
     result = synthesize_plain_english(result_state, query)
     investigation_trace.record_event("runner", "investigation_complete", {"case_id": case_id, "status": result_state.get('case_status')})
+    emit_event("investigation_complete", case_id=case_id, status=result_state.get('case_status'), findings_count=len(result_state.get('findings', [])))
     return result
 
 

@@ -35,22 +35,25 @@ const STAGES = [
 ];
 
 export default function InvestigationConsole() {
-  const { 
-    isStarted, caseStatus, activeStage, stageLogs, hitlData, 
-    handleStart, handleHitlAction 
+  const {
+    isStarted, caseStatus, activeStage, stageLogs, hitlData,
+    investigationResult,
+    handleStart, handleHitlAction
   } = usePipeline();
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [maxEvents, setMaxEvents] = useState(2000);
   const [excludePorts, setExcludePorts] = useState('80,443,53');
+  const [query, setQuery] = useState('Investigate the available activity in this case and identify anything that may require attention.');
 
   const onLaunch = () => {
     handleStart({
+      query,
       start_date: startDate,
       end_date: endDate,
       max_events: maxEvents,
-      exclude_ports: excludePorts
+      exclude_ports: excludePorts,
     });
   };
 
@@ -72,6 +75,16 @@ export default function InvestigationConsole() {
         </div>
         {!isStarted && (
           <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Investigation Query */}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
+              Investigation Query:
+              <textarea
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                rows={2}
+                style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', resize: 'vertical', width: '100%', maxWidth: '700px' }}
+              />
+            </label>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
                 Start Date:
@@ -188,30 +201,40 @@ export default function InvestigationConsole() {
                     {isActive && logs.length === 0 && <span style={{ opacity: 0.5 }}>Waiting for node telemetry...</span>}
                   </div>
 
-                  {/* HITL Modal embedded inside Step 6 */}
-                  {isActive && idx === 5 && hitlData && (
-                    <div style={{ 
-                      marginTop: '1.5rem', 
-                      border: '1px solid var(--sp-color-status-hitl)', 
+                  {/* HITL Modal — populated by real graph hitl_required event */}
+                  {hitlData && idx === 5 && (
+                    <div style={{
+                      marginTop: '1.5rem',
+                      border: '1px solid var(--sp-color-status-hitl)',
                       borderRadius: 'var(--sp-radius-sharp)',
                       background: 'rgba(245, 158, 11, 0.05)',
                       padding: '1rem'
                     }}>
-                      <div style={{ color: 'var(--sp-color-status-hitl)', fontWeight: 600, marginBottom: '0.5rem' }}>
-                        ⚠️ HITL Escalation Gate
+                      <div style={{ color: 'var(--sp-color-status-hitl)', fontWeight: 600, marginBottom: '0.75rem' }}>
+                        ⚠️ HITL Escalation Gate — Human Review Required
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                        <div><strong>Confidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span></div>
-                        <div><strong>Blast Radius:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
-                        <div><strong>Tamper Check:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.tamperCheck}</span></div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.85rem', fontFamily: 'var(--sp-font-mono)' }}>
+                        <div><strong>Thread:</strong> {hitlData.threadId || 'unknown'}</div>
+                        <div><strong>Reason:</strong> {hitlData.entryReason || 'unknown'}</div>
+                        {hitlData.guardrailTier != null && <div><strong>Guardrail Tier:</strong> {hitlData.guardrailTier}</div>}
+                        {hitlData.findingsCount != null && <div><strong>Findings:</strong> {hitlData.findingsCount}</div>}
+                        {hitlData.debateOutcome && <div><strong>Debate:</strong> {hitlData.debateOutcome}</div>}
                       </div>
-                      <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button 
+                      <div style={{ fontSize: '0.8rem', color: 'var(--sp-color-text-secondary)', marginBottom: '0.75rem' }}>
+                        This investigation is paused. Your decision will be sent to the real LangGraph via the HITL API.
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button
                           onClick={() => handleHitlAction('approve')}
                           style={{ background: 'var(--sp-color-status-admissible)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           APPROVE
                         </button>
-                        <button 
+                        <button
+                          onClick={() => handleHitlAction('clarify')}
+                          style={{ background: 'var(--sp-color-accent-indigo)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
+                          CLARIFY
+                        </button>
+                        <button
                           onClick={() => handleHitlAction('reject')}
                           style={{ background: 'var(--sp-color-status-breach)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           REJECT / HALT
