@@ -16,7 +16,7 @@ const mapNodeToStage = (nodeId) => {
   return -1;
 };
 
-const HITL_API_BASE = 'http://localhost:8200';
+const HITL_API_BASE = 'http://localhost:8300/api';
 
 export function PipelineProvider({ children }) {
   const [caseId] = useState('CASE-2026-0915-ALPHA');
@@ -78,9 +78,15 @@ export function PipelineProvider({ children }) {
           findingsCount: snap.findings_count ?? 0,
           debateOutcome: snap.debate_outcome ?? null,
         });
+        setCaseStatus('WAITING_FOR_HUMAN');
         if (payload.thread_id) setActiveThreadId(payload.thread_id);
         appendLog(5, `[HITL] Human review required — thread: ${payload.thread_id}`);
         appendLog(5, `[HITL] Reason: ${snap.entry_reason || 'unknown'}`);
+
+      } else if (type === 'hitl_resumed') {
+        setCaseStatus('RUNNING');
+        setHitlData(null);
+        appendLog(5, `[HITL] Graph resumed by human decision: ${payload.decision}`);
 
       } else if (type === 'run_complete') {
         setCaseStatus('COMPLETED');
@@ -164,7 +170,7 @@ export function PipelineProvider({ children }) {
     }
   };
 
-  const handleHitlAction = async (action) => {
+  const handleHitlAction = async (action, query = '') => {
     const threadId = hitlData?.threadId || activeThreadId;
     if (!threadId) {
       appendLog(5, `[ERROR] No thread_id available — cannot submit HITL decision`);
@@ -174,26 +180,26 @@ export function PipelineProvider({ children }) {
     appendLog(5, `[HITL] Submitting decision: ${action.toUpperCase()} → thread: ${threadId}`);
 
     try {
-      const res = await fetch(`${HITL_API_BASE}/hitl/${threadId}`, {
+      const url = hitlData?.hitlUrl || `${HITL_API_BASE}/hitl/${threadId}`;
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision: action }),
+        body: JSON.stringify({ decision: action, query }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        appendLog(5, `[ERROR] HITL API returned ${res.status}: ${err.detail || 'unknown error'}`);
+        appendLog(5, `[ERROR] HITL API returned ${res.status}: ${err.detail || err.message || 'unknown error'}`);
         return;
       }
       const result = await res.json();
-      appendLog(5, `[HITL] Decision accepted — status: ${result.case_status || 'resumed'}`);
+      appendLog(5, `[HITL] Decision accepted — status: resuming...`);
       setHitlData(null);
+      setCaseStatus('RUNNING');
       if (action === 'reject') {
-        setCaseStatus('REJECTED');
-        setActiveStage(6);
-        setIsStarted(false);
+        // Just let it resume and run to termination
       }
     } catch (e) {
-      appendLog(5, `[ERROR] HITL API request failed: ${e.message} — ensure HITL API is running on :8200`);
+      appendLog(5, `[ERROR] HITL API request failed: ${e.message}`);
     }
   };
 

@@ -59,6 +59,9 @@ def _get_specula_graph():
             log.warning(f"LangGraph initialization failed: {e}")
     return _specula_graph
 
+from langgraph.checkpoint.memory import InMemorySaver
+_visualizer_checkpointer = InMemorySaver()
+
 
 # ---------------------------------------------------------------------------
 # FastAPI app — lightweight, starts without numpy
@@ -319,16 +322,32 @@ async def trigger_pipeline(config: dict):
 
             # Run the real investigation in a thread (it's synchronous/blocking)
             def run_real_investigation():
+                from src.agents import investigation_trace
                 from src.agents.investigation_runner import run_investigation, HITLPausedResult
+                
+                # Start trace for frontend investigation
+                investigation_trace.start_trace(case_id, query)
+                
                 neo4j_driver = _get_neo4j_driver()
-                result = run_investigation(
-                    query=query,
-                    case_id=case_id,
-                    neo4j_driver=neo4j_driver,
-                    thread_id=thread_id,
-                    on_node_event=on_node_event,
-                )
-                return result
+                try:
+                    result = run_investigation(
+                        query=query,
+                        case_id=case_id,
+                        neo4j_driver=neo4j_driver,
+                        thread_id=thread_id,
+                        checkpointer=_visualizer_checkpointer,
+                        on_node_event=on_node_event,
+                    )
+                    return result
+                except Exception as e:
+                    # Finalize whatever trace information exists on error
+                    recorder = investigation_trace.get_recorder()
+                    if recorder:
+                        try:
+                            recorder._compile_full_report()
+                        except Exception:
+                            pass
+                    raise e
 
             log.info(f"Starting real investigation: case={case_id}, thread={thread_id}, query='{query[:80]}'")
             result = await asyncio.to_thread(run_real_investigation)
@@ -375,7 +394,7 @@ async def trigger_pipeline(config: dict):
         "case_id": case_id,
         "thread_id": thread_id,
         "query": query,
-        "hitl_api_base": "http://localhost:8200",
+        "hitl_api_base": "http://localhost:8300",
     }
 
 
@@ -385,6 +404,99 @@ class TriggerPipelineRequest(BaseModel):
     end_date: str = ""
     max_events: int = 2000
     exclude_ports: str = "80,443,53"
+
+class HITLDecision(BaseModel):
+    decision: str  # approve | reject | clarify
+    query: str = "" # Optional query to pass along
+
+@app.post("/api/hitl/{thread_id}")
+async def submit_decision(thread_id: str, body: HITLDecision):
+    """Submit analyst decision and resume the paused graph."""
+    if body.decision not in ("approve", "reject", "clarify"):
+        return {"status": "error", "message": "Decision must be approve, reject, or clarify"}
+
+    case_id = thread_id.replace("thread-", "")
+
+    # Define the event broadcast callback identical to trigger_pipeline
+    def on_node_event(event_type: str, payload: dict):
+        node_name = payload.get("node", "unknown")
+        event_payload = {
+            "node": node_name,
+            "data": payload.get("data", {}),
+            "case_id": case_id,
+            "thread_id": thread_id,
+        }
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    broadcast_event(event_type, event_payload), loop
+                )
+        except Exception as exc:
+            log.debug(f"WebSocket broadcast error (non-fatal): {exc}")
+
+    async def run_resume():
+        _active_investigations[case_id] = thread_id
+        
+        # Broadcast resume event
+        await broadcast_event("hitl_resumed", {
+            "case_id": case_id,
+            "thread_id": thread_id,
+            "decision": body.decision,
+        })
+        
+        def run_real_resume():
+            from src.agents.investigation_runner import _resume_after_hitl, HITLPausedResult
+            neo4j_driver = _get_neo4j_driver()
+            return _resume_after_hitl(
+                query=body.query or f"Resume with decision {body.decision}",
+                thread_id=thread_id,
+                decision=body.decision,
+                checkpointer=_visualizer_checkpointer,
+                on_node_event=on_node_event,
+                neo4j_driver=neo4j_driver,
+            )
+
+        try:
+            log.info(f"Resuming real investigation: case={case_id}, thread={thread_id}, decision={body.decision}")
+            result = await asyncio.to_thread(run_real_resume)
+
+            from src.agents.investigation_runner import HITLPausedResult
+            if isinstance(result, HITLPausedResult):
+                await broadcast_event("hitl_required", {
+                    "case_id": case_id,
+                    "thread_id": result.thread_id,
+                    "snapshot": result.snapshot,
+                    "hitl_url": f"http://localhost:8300/api/hitl/{result.thread_id}",
+                })
+                log.info(f"Investigation paused again at HITL: case={case_id}")
+            else:
+                await broadcast_event("run_complete", {
+                    "case_id": case_id,
+                    "thread_id": thread_id,
+                    "status": result.get("status", "completed"),
+                    "answer": result.get("answer", "")[:500],
+                    "agents_used": result.get("agents_used", []),
+                    "human_intervention": result.get("human_intervention", False),
+                })
+                _active_investigations.pop(case_id, None)
+                log.info(f"Investigation complete: case={case_id}")
+        except Exception as exc:
+            log.error(f"Investigation error for case={case_id}: {exc}", exc_info=True)
+            await broadcast_event("run_error", {
+                "case_id": case_id,
+                "thread_id": thread_id,
+                "error": str(exc),
+            })
+            _active_investigations.pop(case_id, None)
+
+    asyncio.create_task(run_resume())
+
+    return {
+        "status": "resuming",
+        "thread_id": thread_id,
+        "decision": body.decision,
+    }
 
 
 # ---------------------------------------------------------------------------

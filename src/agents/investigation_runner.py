@@ -234,6 +234,7 @@ def _resume_after_hitl(
     thread_id: str,
     decision: str,
     checkpointer,
+    on_node_event=None,
     **kwargs,
 ) -> InvestigationResult | HITLPausedResult:
     """Resume a graph that was paused at HITL with a human decision."""
@@ -244,15 +245,40 @@ def _resume_after_hitl(
         if k in ("neo4j_driver", "redis_client")
     })
     config = {"configurable": {"thread_id": thread_id}}
+    
+    # We need a case_id for events. We can fetch it from the state before resuming.
+    case_id = "unknown"
+    try:
+        current_state = graph.get_state(config)
+        case_id = current_state.values.get("case_id", "unknown")
+    except Exception:
+        pass
 
     try:
-        result_state = graph.invoke(Command(resume=decision), config)
+        if on_node_event:
+            result_state = current_state.values if current_state else {}
+            for s in graph.stream(Command(resume=decision), config):
+                for node_id, state_update in s.items():
+                    on_node_event("node_active", {"node": node_id, "data": {"status": "Processing"}})
+                    emit_event("node_active", node=node_id, case_id=case_id)
+                    if isinstance(state_update, dict):
+                        result_state.update(state_update)
+                    on_node_event("node_complete", {"node": node_id})
+                    emit_event("node_complete", node=node_id, case_id=case_id)
+            try:
+                result_state = graph.get_state(config).values
+            except:
+                pass
+        else:
+            result_state = graph.invoke(Command(resume=decision), config)
     except Exception as exc:
         if _is_hitl_interrupt(exc):
-            return _handle_hitl_pause(graph, config, thread_id, "unknown")
+            return _handle_hitl_pause(graph, config, thread_id, case_id)
         raise
 
-    return synthesize_plain_english(result_state, query)
+    result = synthesize_plain_english(result_state, query)
+    emit_event("investigation_complete", case_id=case_id, status=result_state.get('case_status'), findings_count=len(result_state.get('findings', [])))
+    return result
 
 
 def _is_hitl_interrupt(exc: Exception) -> bool:

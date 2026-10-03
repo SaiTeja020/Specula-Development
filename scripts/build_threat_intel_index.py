@@ -47,6 +47,7 @@ from src.ingestion.indexing.threat_intel_sources import (
     NvdCveFetcher,
     ThreatIntelRecord,
 )
+from src.ingestion.indexing.known_attacks_fetcher import KnownAttacksExcelFetcher
 from src.ingestion.indexing.vector_store import EmbeddingGenerator
 from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.schemas.threat_intel_metadata import ThreatIntelRecordMetadata
@@ -113,6 +114,13 @@ def _embed_records(
             source=record.source,
             source_version=record.source_version,
             tags=record.tags if record.tags else None,
+            stix_id=getattr(record, "stix_id", None),
+            platforms=getattr(record, "platforms", None),
+            is_subtechnique=getattr(record, "is_subtechnique", None),
+            parent_technique_id=getattr(record, "parent_technique_id", None),
+            created=getattr(record, "created", None),
+            last_modified=getattr(record, "last_modified", None),
+            url=getattr(record, "url", None),
         )
         metadata_dicts.append(meta.to_dict())
 
@@ -354,11 +362,11 @@ def main() -> None:
     source_versions: dict = {}
 
     if not args.no_attack:
-        logger.info("Step 1/4: Fetching ATT&CK STIX bundle v%s ...", args.attack_version)
-        fetcher = AttackStixFetcher(version=args.attack_version)
+        logger.info("Step 1/4: Fetching ATT&CK records from known_attacks Excel ...")
+        fetcher = KnownAttacksExcelFetcher()
         for rec in fetcher.fetch_and_parse():
             all_records.append(rec)
-        source_versions["mitre_attack_stix"] = f"ATT&CK-v{args.attack_version}"
+        source_versions["mitre_attack_excel"] = "enterprise-attack-v19.2.xlsx"
         logger.info("ATT&CK: collected %d records.", len(all_records))
     else:
         logger.info("Skipping ATT&CK STIX (--no-attack).")

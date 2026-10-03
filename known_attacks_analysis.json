@@ -1,0 +1,605 @@
+{
+  "enterprise-attack-v19.2-detectionstrategies.xlsx": {
+    "detectionstrategies": {
+      "num_rows": 697,
+      "num_columns": 9,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "analytic_refs"
+      ]
+    },
+    "defensive mappings": {
+      "num_rows": 4160,
+      "num_columns": 11,
+      "columns": [
+        "detection_strategy_attack_id",
+        "detection_strategy_id",
+        "detection_strategy_name",
+        "analytic_id",
+        "analytic_name",
+        "platforms",
+        "log_source_name",
+        "channel",
+        "data_component_id",
+        "data_component_name",
+        "data_component_attack_id"
+      ]
+    }
+  },
+  "enterprise-attack-v19.2-groups.xlsx": {
+    "groups": {
+      "num_rows": 176,
+      "num_columns": 13,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "contributors",
+        "associated groups",
+        "associated groups citations",
+        "relationship citations"
+      ]
+    },
+    "associated software": {
+      "num_rows": 1149,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ]
+    },
+    "techniques used": {
+      "num_rows": 4628,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ]
+    },
+    "attributed campaigns": {
+      "num_rows": 26,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ]
+    },
+    "citations": {
+      "num_rows": 1814,
+      "num_columns": 3,
+      "columns": [
+        "reference",
+        "citation",
+        "url"
+      ]
+    }
+  },
+  "enterprise-attack-v19.2-relationships.xlsx": {
+    "relationships": {
+      "num_rows": 20628,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ],
+      "relationships": [
+        {
+          "mapping type": "attributed-to",
+          "source type": "campaign",
+          "target type": "group",
+          "count": 26
+        },
+        {
+          "mapping type": "detects",
+          "source type": "detectionstrategy",
+          "target type": "technique",
+          "count": 697
+        },
+        {
+          "mapping type": "mitigates",
+          "source type": "mitigation",
+          "target type": "technique",
+          "count": 1448
+        },
+        {
+          "mapping type": "uses",
+          "source type": "campaign",
+          "target type": "software",
+          "count": 172
+        },
+        {
+          "mapping type": "uses",
+          "source type": "campaign",
+          "target type": "technique",
+          "count": 1146
+        },
+        {
+          "mapping type": "uses",
+          "source type": "group",
+          "target type": "software",
+          "count": 1149
+        },
+        {
+          "mapping type": "uses",
+          "source type": "group",
+          "target type": "technique",
+          "count": 4628
+        },
+        {
+          "mapping type": "uses",
+          "source type": "software",
+          "target type": "technique",
+          "count": 11362
+        }
+      ]
+    },
+    "citations": {
+      "num_rows": 2258,
+      "num_columns": 3,
+      "columns": [
+        "reference",
+        "citation",
+        "url"
+      ]
+    }
+  },
+  "enterprise-attack-v19.2-tactics.xlsx": {
+    "tactics": {
+      "num_rows": 15,
+      "num_columns": 9,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version"
+      ]
+    }
+  },
+  "enterprise-attack-v19.2-techniques.xlsx": {
+    "techniques": {
+      "num_rows": 697,
+      "num_columns": 17,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "tactics",
+        "platforms",
+        "is sub-technique",
+        "sub-technique of",
+        "contributors",
+        "supports remote",
+        "impact type",
+        "relationship citations"
+      ]
+    },
+    "procedure examples": {
+      "num_rows": 17136,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ]
+    },
+    "associated mitigations": {
+      "num_rows": 1448,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ]
+    },
+    "associated detection strategies": {
+      "num_rows": 697,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ]
+    },
+    "citations": {
+      "num_rows": 4351,
+      "num_columns": 3,
+      "columns": [
+        "reference",
+        "citation",
+        "url"
+      ]
+    }
+  },
+  "enterprise-attack-v19.2.xlsx": {
+    "techniques": {
+      "num_rows": 697,
+      "num_columns": 17,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "tactics",
+        "platforms",
+        "is sub-technique",
+        "sub-technique of",
+        "contributors",
+        "supports remote",
+        "impact type",
+        "relationship citations"
+      ]
+    },
+    "tactics": {
+      "num_rows": 15,
+      "num_columns": 9,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version"
+      ]
+    },
+    "software": {
+      "num_rows": 825,
+      "num_columns": 14,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "contributors",
+        "platforms",
+        "aliases",
+        "type",
+        "relationship citations"
+      ]
+    },
+    "groups": {
+      "num_rows": 176,
+      "num_columns": 13,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "contributors",
+        "associated groups",
+        "associated groups citations",
+        "relationship citations"
+      ]
+    },
+    "campaigns": {
+      "num_rows": 56,
+      "num_columns": 17,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "associated campaigns",
+        "associated campaigns citations",
+        "first seen",
+        "first seen citation",
+        "last seen",
+        "last seen citation",
+        "contributors",
+        "relationship citations"
+      ]
+    },
+    "mitigations": {
+      "num_rows": 44,
+      "num_columns": 10,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "relationship citations"
+      ]
+    },
+    "Enterprise ATT&CK matrix": {
+      "num_rows": 132,
+      "num_columns": 30,
+      "columns": [
+        "Reconnaissance",
+        "Unnamed: 1",
+        "Resource Development",
+        "Unnamed: 3",
+        "Initial Access",
+        "Unnamed: 5",
+        "Execution",
+        "Unnamed: 7",
+        "Persistence",
+        "Unnamed: 9",
+        "Privilege Escalation",
+        "Unnamed: 11",
+        "Stealth",
+        "Unnamed: 13",
+        "Defense Impairment",
+        "Unnamed: 15",
+        "Credential Access",
+        "Unnamed: 17",
+        "Discovery",
+        "Unnamed: 19",
+        "Lateral Movement",
+        "Unnamed: 21",
+        "Collection",
+        "Unnamed: 23",
+        "Command and Control",
+        "Unnamed: 25",
+        "Exfiltration",
+        "Unnamed: 27",
+        "Impact",
+        "Unnamed: 29"
+      ]
+    },
+    "relationships": {
+      "num_rows": 20628,
+      "num_columns": 13,
+      "columns": [
+        "source ID",
+        "source name",
+        "source ref",
+        "source type",
+        "mapping type",
+        "target ID",
+        "target name",
+        "target ref",
+        "target type",
+        "mapping description",
+        "STIX ID",
+        "created",
+        "last modified"
+      ],
+      "relationships": [
+        {
+          "mapping type": "attributed-to",
+          "source type": "campaign",
+          "target type": "group",
+          "count": 26
+        },
+        {
+          "mapping type": "detects",
+          "source type": "detectionstrategy",
+          "target type": "technique",
+          "count": 697
+        },
+        {
+          "mapping type": "mitigates",
+          "source type": "mitigation",
+          "target type": "technique",
+          "count": 1448
+        },
+        {
+          "mapping type": "uses",
+          "source type": "campaign",
+          "target type": "software",
+          "count": 172
+        },
+        {
+          "mapping type": "uses",
+          "source type": "campaign",
+          "target type": "technique",
+          "count": 1146
+        },
+        {
+          "mapping type": "uses",
+          "source type": "group",
+          "target type": "software",
+          "count": 1149
+        },
+        {
+          "mapping type": "uses",
+          "source type": "group",
+          "target type": "technique",
+          "count": 4628
+        },
+        {
+          "mapping type": "uses",
+          "source type": "software",
+          "target type": "technique",
+          "count": 11362
+        }
+      ]
+    },
+    "datacomponents": {
+      "num_rows": 106,
+      "num_columns": 9,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version"
+      ]
+    },
+    "analytics": {
+      "num_rows": 1758,
+      "num_columns": 9,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "description",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version"
+      ]
+    },
+    "detectionstrategies": {
+      "num_rows": 697,
+      "num_columns": 9,
+      "columns": [
+        "ID",
+        "STIX ID",
+        "name",
+        "url",
+        "created",
+        "last modified",
+        "domain",
+        "version",
+        "analytic_refs"
+      ]
+    },
+    "defensive mappings": {
+      "num_rows": 4160,
+      "num_columns": 11,
+      "columns": [
+        "detection_strategy_attack_id",
+        "detection_strategy_id",
+        "detection_strategy_name",
+        "analytic_id",
+        "analytic_name",
+        "platforms",
+        "log_source_name",
+        "channel",
+        "data_component_id",
+        "data_component_name",
+        "data_component_attack_id"
+      ]
+    },
+    "citations": {
+      "num_rows": 4305,
+      "num_columns": 3,
+      "columns": [
+        "reference",
+        "citation",
+        "url"
+      ]
+    }
+  }
+}

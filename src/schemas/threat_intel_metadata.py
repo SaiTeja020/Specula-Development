@@ -36,7 +36,7 @@ class ThreatIntelRecordMetadata(BaseModel):
         default="",
         description="Full sanitized description text used to produce the embedding.",
     )
-    source: Literal["mitre_attack_stix", "nvd_cve"] = Field(
+    source: Literal["mitre_attack_stix", "nvd_cve", "mitre_attack_excel"] = Field(
         ...,
         description="Authoritative data source.",
     )
@@ -44,7 +44,8 @@ class ThreatIntelRecordMetadata(BaseModel):
         ...,
         description=(
             "STIX bundle release tag (e.g. 'ATT&CK-v15.1') "
-            "or NVD feed snapshot date (e.g. '2026-08-18')."
+            "or NVD feed snapshot date (e.g. '2026-08-18') "
+            "or Excel dataset version."
         ),
     )
     embedding_model_version: str = Field(
@@ -59,6 +60,14 @@ class ThreatIntelRecordMetadata(BaseModel):
             "CVE: CWE IDs (e.g. ['CWE-79', 'CWE-89'])."
         ),
     )
+    stix_id: Optional[str] = None
+    platforms: Optional[List[str]] = None
+    is_subtechnique: Optional[bool] = None
+    parent_technique_id: Optional[str] = None
+    created: Optional[str] = None
+    last_modified: Optional[str] = None
+    url: Optional[str] = None
+
 
     def to_dict(self) -> dict:
         """Return primitive-only dict (JSON-serializable, safe for metadata stores)."""

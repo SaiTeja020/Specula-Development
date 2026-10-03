@@ -59,9 +59,16 @@ class ThreatIntelRecord:
     record_type: str                        # "attack_technique" | "attack_group" | "cve"
     title: str                              # Short display name
     embed_text: str                         # Concatenated, pre-sanitised text to embed
-    source: str                             # "mitre_attack_stix" | "nvd_cve"
+    source: str                             # "mitre_attack_stix" | "nvd_cve" | "mitre_attack_excel"
     source_version: str                     # STIX bundle tag or NVD snapshot date
     tags: List[str] = field(default_factory=list)   # Tactic names or CWE IDs
+    stix_id: Optional[str] = None
+    platforms: Optional[List[str]] = None
+    is_subtechnique: Optional[bool] = None
+    parent_technique_id: Optional[str] = None
+    created: Optional[str] = None
+    last_modified: Optional[str] = None
+    url: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

@@ -46,6 +46,7 @@ export default function InvestigationConsole() {
   const [maxEvents, setMaxEvents] = useState(2000);
   const [excludePorts, setExcludePorts] = useState('80,443,53');
   const [query, setQuery] = useState('Investigate the available activity in this case and identify anything that may require attention.');
+  const [hitlInput, setHitlInput] = useState('');
 
   const onLaunch = () => {
     handleStart({
@@ -218,24 +219,44 @@ export default function InvestigationConsole() {
                         <div><strong>Reason:</strong> {hitlData.entryReason || 'unknown'}</div>
                         {hitlData.guardrailTier != null && <div><strong>Guardrail Tier:</strong> {hitlData.guardrailTier}</div>}
                         {hitlData.findingsCount != null && <div><strong>Findings:</strong> {hitlData.findingsCount}</div>}
-                        {hitlData.debateOutcome && <div><strong>Debate:</strong> {hitlData.debateOutcome}</div>}
+                        {hitlData.debateOutcome && <div><strong>Debate Outcome:</strong> {hitlData.debateOutcome}</div>}
+                        {hitlData.debateRound != null && <div><strong>Debate Round:</strong> {hitlData.debateRound}</div>}
+                        {hitlData.judgeVerdict && <div style={{ gridColumn: '1 / -1' }}><strong>Judge Verdict:</strong> {hitlData.judgeVerdict}</div>}
                       </div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--sp-color-text-secondary)', marginBottom: '0.75rem' }}>
                         This investigation is paused. Your decision will be sent to the real LangGraph via the HITL API.
                       </div>
+                      <textarea
+                        value={hitlInput}
+                        onChange={(e) => setHitlInput(e.target.value)}
+                        placeholder="Provide feedback, request evidence, or clarify context..."
+                        style={{
+                          width: '100%',
+                          minHeight: '60px',
+                          background: 'var(--sp-color-bg-void)',
+                          border: '1px solid var(--sp-color-border-subtle)',
+                          borderRadius: 'var(--sp-radius-soft)',
+                          color: 'var(--sp-color-text-primary)',
+                          padding: '0.5rem',
+                          fontFamily: 'var(--sp-font-mono)',
+                          fontSize: '0.85rem',
+                          marginBottom: '1rem',
+                          resize: 'vertical'
+                        }}
+                      />
                       <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <button
-                          onClick={() => handleHitlAction('approve')}
+                          onClick={() => { handleHitlAction('approve', hitlInput); setHitlInput(''); }}
                           style={{ background: 'var(--sp-color-status-admissible)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           APPROVE
                         </button>
                         <button
-                          onClick={() => handleHitlAction('clarify')}
+                          onClick={() => { handleHitlAction('clarify', hitlInput); setHitlInput(''); }}
                           style={{ background: 'var(--sp-color-accent-indigo)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
-                          CLARIFY
+                          CLARIFY / REQUEST
                         </button>
                         <button
-                          onClick={() => handleHitlAction('reject')}
+                          onClick={() => { handleHitlAction('reject', hitlInput); setHitlInput(''); }}
                           style={{ background: 'var(--sp-color-status-breach)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           REJECT / HALT
                         </button>
