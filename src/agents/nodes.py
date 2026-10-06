@@ -434,6 +434,9 @@ def hitl_node(state: dict) -> Command[Literal[
     )
 
     snapshot = {
+        "type": "hitl_required",
+        "message": f"Human input required: {entry_reason.replace('_', ' ').title()}",
+        "options": ["approve", "clarify", "reject"],
         "case_id": state.get("case_id"),
         "findings_count": len(state.get("findings", [])),
         "debate_outcome": state.get("debate_outcome"),
@@ -447,15 +450,25 @@ def hitl_node(state: dict) -> Command[Literal[
     # (guardrail/judge) *before* transitioning to this node. This ensures
     # the status is correctly visible in the state checkpoint while the graph
     # is paused here at the interrupt().
-    decision = interrupt(snapshot)
+    interrupt_val = interrupt(snapshot)
     
-    investigation_trace.record_event("hitl", "hitl_decision", {"decision": decision})
+    if isinstance(interrupt_val, dict):
+        decision = interrupt_val.get("decision", "approve")
+        query = interrupt_val.get("query", "")
+    else:
+        decision = interrupt_val
+        query = ""
+    
+    investigation_trace.record_event("hitl", "hitl_decision", {"decision": decision, "query": query})
 
     update: dict = {
         "hitl_decision": decision,
         "hitl_case_snapshot": snapshot,
         "case_status": "hitl_review",
     }
+    
+    if query:
+        update["raw_input"] = state.get("raw_input", "") + f"\n\n[HITL CLARIFICATION]: {query}"
 
     if decision == "reject":
         return Command(update=update, goto="case_closed_rejected")

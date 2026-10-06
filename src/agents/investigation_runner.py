@@ -169,7 +169,8 @@ def run_investigation(
     try:
         graph_state = graph.get_state(config)
         paused_at = list(graph_state.next) if hasattr(graph_state, "next") and graph_state.next else []
-        if "hitl" in paused_at:
+        has_interrupts = hasattr(graph_state, "tasks") and any(getattr(t, "interrupts", None) for t in graph_state.tasks)
+        if any(t in paused_at for t in ["hitl", "hitl_review", "__interrupt__"]) or has_interrupts:
             return _handle_hitl_pause(graph, config, thread_id, case_id)
     except Exception:
         pass  # Cannot read state — proceed with result
@@ -201,24 +202,24 @@ def run_investigation_with_hitl_stdin(
     result = run_investigation(query, case_id, checkpointer=checkpointer, **kwargs)
 
     while isinstance(result, HITLPausedResult):
-        print("\n" + "=" * 60)
-        print("SPECULA HITL — HUMAN REVIEW REQUIRED")
-        print("=" * 60)
+        print("\n========================================")
+        print("HUMAN REVIEW REQUIRED")
+        print("========================================")
         snapshot = result.snapshot
         print(f"Case: {result.case_id}")
         print(f"Thread: {result.thread_id}")
         if snapshot:
-            print(f"Paused reason: {snapshot.get('entry_reason', 'unknown')}")
-            print(f"Guardrail tier: {snapshot.get('guardrail_fail_tier', 'none')}")
-            print(f"Debate outcome: {snapshot.get('debate_outcome', 'none')}")
-        print("\nOptions: approve / reject / clarify")
+            for k, v in snapshot.items():
+                print(f"{k}: {v}")
+        print("\n1 = Approve\n2 = Clarify\n3 = Reject\n")
         try:
-            decision = input("Your decision: ").strip().lower()
+            choice = input("Choice: ").strip()
         except EOFError:
-            decision = "approve"  # non-interactive fallback
+            choice = "1"  # non-interactive fallback
 
-        if decision not in ("approve", "reject", "clarify"):
-            print(f"Invalid decision '{decision}'. Defaulting to 'approve'.")
+        decision = {"1": "approve", "2": "clarify", "3": "reject"}.get(choice)
+        if not decision:
+            print(f"Invalid choice '{choice}'. Defaulting to 'approve'.")
             decision = "approve"
 
         # Resume the graph with the HITL decision
@@ -257,7 +258,9 @@ def _resume_after_hitl(
     try:
         if on_node_event:
             result_state = current_state.values if current_state else {}
-            for s in graph.stream(Command(resume=decision), config):
+            # Pass both decision and query back into the graph
+            resume_payload = {"decision": decision, "query": query}
+            for s in graph.stream(Command(resume=resume_payload), config):
                 for node_id, state_update in s.items():
                     on_node_event("node_active", {"node": node_id, "data": {"status": "Processing"}})
                     emit_event("node_active", node=node_id, case_id=case_id)
@@ -270,7 +273,8 @@ def _resume_after_hitl(
             except:
                 pass
         else:
-            result_state = graph.invoke(Command(resume=decision), config)
+            resume_payload = {"decision": decision, "query": query}
+            result_state = graph.invoke(Command(resume=resume_payload), config)
     except Exception as exc:
         if _is_hitl_interrupt(exc):
             return _handle_hitl_pause(graph, config, thread_id, case_id)
@@ -294,18 +298,31 @@ def _handle_hitl_pause(
     """Extract snapshot from a paused graph and return HITLPausedResult."""
     try:
         graph_state = graph.get_state(config)
-        values = graph_state.values if hasattr(graph_state, "values") else {}
-        snapshot = {
-            "case_id": values.get("case_id"),
-            "findings_count": len(values.get("findings", [])),
-            "debate_outcome": values.get("debate_outcome"),
-            "guardrail_fail_tier": values.get("guardrail_fail_tier"),
-            "entry_reason": (
-                "guardrail_failure"
-                if values.get("guardrail_fail_tier") is not None
-                else "debate_exhaustion"
-            ),
-        }
+        
+        # Try to extract the exact interrupt payload if supported
+        interrupt_payload = None
+        if hasattr(graph_state, "tasks"):
+            for task in graph_state.tasks:
+                if getattr(task, "interrupts", None):
+                    for interrupt in task.interrupts:
+                        interrupt_payload = interrupt.value
+                        break
+        
+        if interrupt_payload and isinstance(interrupt_payload, dict):
+            snapshot = interrupt_payload
+        else:
+            values = graph_state.values if hasattr(graph_state, "values") else {}
+            snapshot = {
+                "case_id": values.get("case_id"),
+                "findings_count": len(values.get("findings", [])),
+                "debate_outcome": values.get("debate_outcome"),
+                "guardrail_fail_tier": values.get("guardrail_fail_tier"),
+                "entry_reason": (
+                    "guardrail_failure"
+                    if values.get("guardrail_fail_tier") is not None
+                    else "debate_exhaustion"
+                ),
+            }
     except Exception:
         snapshot = {}
 

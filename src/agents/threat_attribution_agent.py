@@ -28,8 +28,8 @@ def _build_system_prompt(state: dict, timeline_summary: str) -> str:
     prompt = cfg["system_prompt_template"].format(
         case_id=case_id,
         timeline_summary=timeline_summary,
-        retrieved_techniques="[Use forensic_threat_search tool with a \"query\" arg]",
-        retrieved_groups="[Use forensic_threat_search tool with a \"query\" arg]",
+        retrieved_techniques="[Use forensic_threat_context_search tool with a \"query\" arg]",
+        retrieved_groups="[Use forensic_threat_context_search tool with a \"query\" arg]",
         graph_entities="[Use query_dfkg tool with a \"query\" arg]",
         findings_summary="" # For formatting compatibility if required
     )
@@ -39,7 +39,7 @@ def _build_system_prompt(state: dict, timeline_summary: str) -> str:
         "\n\nYou operate in a loop of Thought, Action, Observation.\n"
         "You have the following tools available:\n"
         "- query_dfkg: Execute semantic search against the Neo4j GraphRAG. Args: {\"query\": \"...\"}\n"
-        "- forensic_threat_context_search: Args: {\"query\": \"...\", \"record_type\": \"...\"}\n"
+        "- forensic_threat_context_search: Search external threat intelligence (ATT&CK techniques/groups, CVEs). Args: {\"query\": \"...\", \"record_type\": \"attack_technique|attack_group|cve\"}\n"
         "- publish_finding: Args: {\"topic\": \"...\", \"finding\": {\"summary\": \"...\"}}\n\n"
         "To use a tool, you MUST output a SINGLE LINE exactly like this (NO markdown, NO json blocks):\n"
         "ACTION: tool_name {\"arg_name\": \"arg_value\"}\n\n"
@@ -114,10 +114,10 @@ def make_threat_attribution_node(redis_client, neo4j_driver):
             threat_tool = ForensicThreatContextSearchTool(ti_server)
         except Exception as e:
             from src.agents.react_engine import NotYetImplementedTool
-            threat_tool = NotYetImplementedTool("forensic_threat_search", f"Init failed: {e}")
+            threat_tool = NotYetImplementedTool("forensic_threat_context_search", f"Init failed: {e}")
 
         tools: dict[str, Tool] = {
-            "forensic_threat_search": threat_tool,
+            "forensic_threat_context_search": threat_tool,
             "query_dfkg": rag_tool,
             "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "threat_attribution", rag_tool),
         }

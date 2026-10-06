@@ -42,6 +42,10 @@ def _load_env() -> None:
 
 _load_env()
 
+_startup_backend = os.environ.get("SPECULA_LLM_BACKEND", "stub").lower()
+_startup_model = os.environ.get("SPECULA_LLM_MODEL", "default")
+print(f"[LLM] Backend: {_startup_backend}")
+print(f"[LLM] Default model: {_startup_model}")
 
 # ---------------------------------------------------------------------------
 # Agent config: role -> model + prompt template
@@ -348,65 +352,50 @@ def _get_gemini_model() -> str:
 
 
 def get_llm(agent_role: str, case_id: str = "unknown"):
-    """Return an LLM for *agent_role* based on SPECULA_LLM_BACKEND env var.
-
-    Backends:
-      stub   — deterministic, no API key (default)
-      gemini — langchain_google_genai.ChatGoogleGenerativeAI
-      ollama — langchain_ollama.ChatOllama
-
-    Environment is loaded once at module import via _load_env() — no repeated
-    dotenv calls here. Set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
-    D4: case_id passed through to StubLLM so report stubs can fill {case_id}
-        without regex-extracting it back out of the formatted prompt.
-    """
+    """Return an LLM for *agent_role* based on SPECULA_LLM_BACKEND env var."""
     backend = os.environ.get("SPECULA_LLM_BACKEND", "stub").lower()
+    
+    agent_specific_model = os.environ.get(f"SPECULA_LLM_MODEL_{agent_role.upper()}")
+    global_model = os.environ.get("SPECULA_LLM_MODEL")
 
-    if backend == "gemini":
-        # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
-        if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
-            os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
-            del os.environ["GEMINI_API_KEY"]
+    try:
+        if backend == "gemini":
+            if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
+                os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
+                if "GEMINI_API_KEY" in os.environ:
+                    del os.environ["GEMINI_API_KEY"]
 
-        from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
-        model_name = _get_gemini_model()  # D3: cached after first call
-        llm = ChatGoogleGenerativeAI(model=model_name, temperature=0)
-        return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
+            from langchain_google_genai import ChatGoogleGenerativeAI
+            model_name = agent_specific_model or global_model or _get_gemini_model()
+            llm = ChatGoogleGenerativeAI(model=model_name, temperature=0)
+            return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
 
-    if backend == "ollama":
-        try:
+        if backend == "ollama":
             from langchain_ollama import ChatOllama
-        except ImportError:
-            raise ImportError(
-                "Ollama support requires the 'langchain-ollama' package. "
-                "Please run: pip install langchain-ollama"
-            )
-        
-        model_name = os.environ.get("SPECULA_LLM_MODEL", "qwen2.5-coder:1.5b")
-        base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-        llm = ChatOllama(model=model_name, base_url=base_url, temperature=0)
-        return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
+            model_name = agent_specific_model or global_model or "qwen2.5-coder:1.5b"
+            base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+            llm = ChatOllama(model=model_name, base_url=base_url, temperature=0)
+            return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
 
-    if backend == "lmstudio":
-        try:
+        if backend == "lmstudio":
             from langchain_openai import ChatOpenAI
-        except ImportError:
-            raise ImportError(
-                "LM Studio support requires the 'langchain-openai' package. "
-                "Please run: pip install langchain-openai"
+            model_name = agent_specific_model or global_model or "local-model"
+            base_url = os.environ.get("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
+            llm = ChatOpenAI(
+                api_key="lm-studio",
+                base_url=base_url,
+                model=model_name,
+                temperature=0
             )
-        
-        model_name = os.environ.get("SPECULA_LLM_MODEL", "local-model")
-        base_url = os.environ.get("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
-        llm = ChatOpenAI(
-            api_key="lm-studio",
-            base_url=base_url,
-            model=model_name,
-            temperature=0
-        )
-        return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
+            return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
 
-    # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
+        if backend != "stub":
+            raise ValueError(f"Unknown backend: {backend}")
+
+    except Exception as e:
+        print(f"\n[LLM ERROR]\nBackend: {backend}\nModel: {agent_specific_model or global_model or 'default'}\nReason: {str(e)}\n")
+        raise
+
     stub = StubLLM(agent_role, case_id=case_id)
     return TelemetryLLMWrapper(stub, agent_role, "stub", "stub")
 
@@ -416,6 +405,7 @@ class TelemetryLLMWrapper:
         self._role = role
         self._backend = backend
         self._model_name = model_name
+        print(f"[LLM] {role} -> {backend}/{model_name}")
 
     def invoke(self, *args, **kwargs):
         emit_event("llm_start", node=self._role, backend=self._backend, model=self._model_name)
@@ -428,5 +418,6 @@ class TelemetryLLMWrapper:
         except Exception as e:
             elapsed = time.time() - start_time
             emit_event("llm_error", node=self._role, error=str(e), error_type=type(e).__name__, elapsed=elapsed)
+            print(f"\n[LLM ERROR]\nBackend: {self._backend}\nModel: {self._model_name}\nReason: {str(e)}\n")
             raise
 

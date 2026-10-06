@@ -212,7 +212,10 @@ export default function InvestigationConsole() {
                       padding: '1rem'
                     }}>
                       <div style={{ color: 'var(--sp-color-status-hitl)', fontWeight: 600, marginBottom: '0.75rem' }}>
-                        ⚠️ HITL Escalation Gate — Human Review Required
+                        ⚠️ HUMAN INPUT REQUIRED
+                      </div>
+                      <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--sp-color-text-primary)', marginBottom: '1rem' }}>
+                        {hitlData.message}
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', fontSize: '0.85rem', fontFamily: 'var(--sp-font-mono)' }}>
                         <div><strong>Thread:</strong> {hitlData.threadId || 'unknown'}</div>
@@ -246,19 +249,19 @@ export default function InvestigationConsole() {
                       />
                       <div style={{ display: 'flex', gap: '0.75rem' }}>
                         <button
+                          onClick={() => { handleHitlAction('clarify', hitlInput); setHitlInput(''); }}
+                          style={{ background: 'var(--sp-color-accent-indigo)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600, flex: 1 }}>
+                          CONTINUE INVESTIGATION
+                        </button>
+                        <button
                           onClick={() => { handleHitlAction('approve', hitlInput); setHitlInput(''); }}
-                          style={{ background: 'var(--sp-color-status-admissible)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
+                          style={{ background: 'transparent', color: 'var(--sp-color-text-secondary)', border: '1px solid var(--sp-color-border-grid)', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           APPROVE
                         </button>
                         <button
-                          onClick={() => { handleHitlAction('clarify', hitlInput); setHitlInput(''); }}
-                          style={{ background: 'var(--sp-color-accent-indigo)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
-                          CLARIFY / REQUEST
-                        </button>
-                        <button
                           onClick={() => { handleHitlAction('reject', hitlInput); setHitlInput(''); }}
-                          style={{ background: 'var(--sp-color-status-breach)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
-                          REJECT / HALT
+                          style={{ background: 'transparent', color: 'var(--sp-color-status-breach)', border: '1px solid var(--sp-color-border-grid)', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
+                          REJECT
                         </button>
                       </div>
                     </div>

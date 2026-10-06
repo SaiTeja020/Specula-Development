@@ -73,6 +73,7 @@ export function PipelineProvider({ children }) {
           threadId: payload.thread_id,
           caseId: payload.case_id,
           hitlUrl: payload.hitl_url,
+          message: payload.message || snap.message || 'Human input required.',
           entryReason: snap.entry_reason || 'review_required',
           guardrailTier: snap.guardrail_fail_tier ?? null,
           findingsCount: snap.findings_count ?? 0,
@@ -86,7 +87,7 @@ export function PipelineProvider({ children }) {
       } else if (type === 'hitl_resumed') {
         setCaseStatus('RUNNING');
         setHitlData(null);
-        appendLog(5, `[HITL] Graph resumed by human decision: ${payload.decision}`);
+        appendLog(5, `[HITL] RESUMING INVESTIGATION... (Decision: ${payload.decision})`);
 
       } else if (type === 'run_complete') {
         setCaseStatus('COMPLETED');

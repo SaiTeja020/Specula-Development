@@ -86,6 +86,30 @@ async def health_check() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/llm/status")
+async def llm_status() -> dict:
+    """Return the current LLM configuration and agent-specific overrides."""
+    import os
+    backend = os.environ.get("SPECULA_LLM_BACKEND", "stub").lower()
+    default_model = os.environ.get("SPECULA_LLM_MODEL", "default")
+    
+    # Check for agent-specific overrides in the environment
+    agents = {}
+    for k, v in os.environ.items():
+        if k.startswith("SPECULA_LLM_MODEL_") and v:
+            agent_role = k.replace("SPECULA_LLM_MODEL_", "").lower()
+            agents[agent_role] = {
+                "backend": backend,
+                "model": v
+            }
+            
+    return {
+        "backend": backend,
+        "default_model": default_model,
+        "agents": agents
+    }
+
+
 @app.get("/api/graph/topology")
 async def get_topology() -> dict[str, Any]:
     """Extract and return the graph's nodes and edges in a format suitable for React Flow."""
@@ -355,12 +379,20 @@ async def trigger_pipeline(config: dict):
             # Broadcast completion or HITL pause
             from src.agents.investigation_runner import HITLPausedResult
             if isinstance(result, HITLPausedResult):
-                await broadcast_event("hitl_required", {
+                payload = {
                     "case_id": case_id,
                     "thread_id": result.thread_id,
+                    "hitl_url": f"http://localhost:8300/api/hitl/{result.thread_id}",
+                    "message": result.snapshot.get("message", "Human input required."),
+                    "options": result.snapshot.get("options", ["approve", "clarify", "reject"]),
                     "snapshot": result.snapshot,
-                    "hitl_url": f"http://localhost:8200/hitl/{result.thread_id}",
-                })
+                }
+                # Also include properties from snapshot directly for frontend compatibility
+                for k, v in result.snapshot.items():
+                    if k not in payload:
+                        payload[k] = v
+                        
+                await broadcast_event("hitl_required", payload)
                 log.info(f"Investigation paused at HITL: case={case_id}, thread={thread_id}")
                 # Keep in active registry until HITL resolves
             else:
@@ -461,14 +493,20 @@ async def submit_decision(thread_id: str, body: HITLDecision):
             log.info(f"Resuming real investigation: case={case_id}, thread={thread_id}, decision={body.decision}")
             result = await asyncio.to_thread(run_real_resume)
 
-            from src.agents.investigation_runner import HITLPausedResult
             if isinstance(result, HITLPausedResult):
-                await broadcast_event("hitl_required", {
+                payload = {
                     "case_id": case_id,
                     "thread_id": result.thread_id,
-                    "snapshot": result.snapshot,
                     "hitl_url": f"http://localhost:8300/api/hitl/{result.thread_id}",
-                })
+                    "message": result.snapshot.get("message", "Human input required."),
+                    "options": result.snapshot.get("options", ["approve", "clarify", "reject"]),
+                    "snapshot": result.snapshot,
+                }
+                for k, v in result.snapshot.items():
+                    if k not in payload:
+                        payload[k] = v
+                        
+                await broadcast_event("hitl_required", payload)
                 log.info(f"Investigation paused again at HITL: case={case_id}")
             else:
                 await broadcast_event("run_complete", {
@@ -503,7 +541,7 @@ async def submit_decision(thread_id: str, body: HITLDecision):
 # Data-store proxy endpoints
 # ---------------------------------------------------------------------------
 @app.get("/api/data/neo4j")
-async def get_neo4j_data():
+async def get_neo4j_data(case_id: str = ""):
     """Proxy endpoint to fetch Neo4j graph data for the visualizer."""
     driver = _get_neo4j_driver()
     if driver is None:
@@ -512,7 +550,15 @@ async def get_neo4j_data():
         nodes_dict = {}
         edges_list = []
         with driver.session() as session:
-            result = session.run("MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100")
+            # Enforce case isolation if case_id is provided
+            if case_id:
+                query = "MATCH (n {case_id: $case_id})-[r]->(m {case_id: $case_id}) RETURN n, r, m LIMIT 300"
+                params = {"case_id": case_id}
+            else:
+                query = "MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100"
+                params = {}
+                
+            result = session.run(query, params)
             for record in result:
                 n = record["n"]
                 m = record["m"]
@@ -538,20 +584,6 @@ async def get_neo4j_data():
                     "type": r.type
                 })
                 
-        # If DB is empty, return a fallback so it doesn't crash the UI
-        if not nodes_dict:
-            return {
-                "status": "success",
-                "source": "neo4j",
-                "nodes": [
-                    {"id": "user_1", "label": "User", "properties": {"name": "Admin"}},
-                    {"id": "machine_1", "label": "Machine", "properties": {"ip": "10.0.0.5"}}
-                ],
-                "edges": [
-                    {"id": "e1", "source": "user_1", "target": "machine_1", "type": "LOGGED_IN_TO"}
-                ]
-            }
-
         return {
             "status": "success",
             "source": "neo4j",
@@ -559,73 +591,61 @@ async def get_neo4j_data():
             "edges": edges_list
         }
     except Exception as e:
-        log.warning(f"Failed to query Neo4j, returning offline fallback: {e}")
+        log.warning(f"Failed to query Neo4j: {e}")
         return {
-            "status": "offline_fallback",
+            "status": "error",
             "source": "neo4j",
             "message": str(e),
-            "nodes": [
-                {"id": "user_1", "label": "User", "properties": {"name": "Admin (Fallback)"}},
-                {"id": "machine_1", "label": "Machine", "properties": {"ip": "10.0.0.5"}}
-            ],
-            "edges": [
-                {"id": "e1", "source": "user_1", "target": "machine_1", "type": "LOGGED_IN_TO"}
-            ]
+            "nodes": [],
+            "edges": []
         }
 
 
 @app.get("/api/data/quickwit")
-async def get_quickwit_data():
+async def get_quickwit_data(case_id: str = ""):
     """Proxy endpoint to fetch Quickwit log data."""
-    # TODO: Connect to Quickwit REST API
+    # TODO: Connect to Quickwit REST API (placeholder)
     return {
-        "status": "success",
+        "status": "not_implemented",
         "source": "quickwit",
-        "logs": [
-            {"timestamp": "2026-09-15T10:00:00Z", "level": "INFO", "message": "Sysmon event 1 - Process Created", "event_id": "1"},
-            {"timestamp": "2026-09-15T10:00:05Z", "level": "WARN", "message": "Failed login attempt", "event_id": "4625"}
-        ]
+        "logs": []
     }
 
 
 @app.get("/api/data/chroma")
-async def get_chroma_data():
+async def get_chroma_data(case_id: str = ""):
     """Proxy endpoint to fetch ChromaDB embedding metadata."""
+    # TODO: Connect to ChromaDB (placeholder)
     return {
-        "status": "success",
+        "status": "not_implemented",
         "source": "chromadb",
-        "collections": ["evidence_embeddings", "report_embeddings"],
-        "recent_queries": [
-            {"query": "suspicious powershell activity", "matches": 12}
-        ]
+        "collections": [],
+        "recent_queries": []
     }
 
 
 @app.get("/api/data/duckdb")
-async def get_duckdb_data():
+async def get_duckdb_data(case_id: str = ""):
     """Proxy endpoint to fetch DuckDB analytical data."""
+    # TODO: Connect to DuckDB (placeholder)
     return {
-        "status": "success",
+        "status": "not_implemented",
         "source": "duckdb",
-        "tables": ["network_flow", "process_tree"],
-        "metrics": {
-            "total_bytes_transferred": "1.2 GB",
-            "unique_processes": 432
-        }
+        "tables": [],
+        "metrics": {}
     }
 
 
 @app.get("/api/data/faiss")
 async def get_faiss_data():
     """Proxy endpoint to fetch FAISS Threat Intel index data."""
+    # TODO: Fetch actual FAISS stats (placeholder)
     return {
-        "status": "success",
+        "status": "not_implemented",
         "source": "faiss",
         "index_type": "IndexIVFPQ",
-        "total_vectors": 150000,
-        "recent_hits": [
-            {"cve": "CVE-2024-1234", "score": 0.95}
-        ]
+        "total_vectors": 0,
+        "recent_hits": []
     }
 
 

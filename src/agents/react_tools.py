@@ -31,8 +31,8 @@ class DFKGQueryTool(Tool):
         "Args: cypher (str, must use $param placeholders), params (dict). "
         "NOTE: Do not assume specific property names like 'name' exist on all nodes. Always return n.uid, labels(n), and keys(n) when exploring. "
         "SCHEMA GUIDANCE: Raw evidence nodes are labeled ONLY by their OCSF type (Process, Host, User, File, NetworkEndpoint) and do NOT connect to a Case node via BELONGS_TO. Instead, they use a case_id property (e.g., MATCH (p:Process {case_id: $case_id})). "
-        "Actual implemented relationships for evidence include RUNS_ON and SPAWNED. "
-        "PROHIBITED: Do NOT assume a generic 'Event' label exists. Do NOT use the 'CONTAINS' relationship for raw evidence. "
+        "Actual implemented relationships: (Process)-[:RUNS_ON]->(Host), (Process)-[:SPAWNED]->(Process), (File)-[:RUNS_ON]->(Host), (User)-[:LOGGED_IN_TO]->(Host), (NetworkEndpoint)-[:CONNECTED_TO]->(NetworkEndpoint). "
+        "PROHIBITED: Do NOT assume generic 'Event', 'Environment', or 'Service' labels exist. Do NOT use the 'CONTAINS' relationship for raw evidence. "
         "Agent findings are labeled AgentFinding and DO use BELONGS_TO (e.g., MATCH (f:AgentFinding)-[:BELONGS_TO]->(c:Case {case_id: $case_id}))."
     )
 
@@ -241,16 +241,23 @@ class ForensicThreatContextSearchTool(Tool):
             formatted_obs = f"Query: {query}\nRecord Type: {record_type}\nSource: FAISS Threat Intel Corpus\n\nResults:\n"
             for i, r in enumerate(results, 1):
                 meta = r.get("metadata", {})
-                content = r.get("content", "")
-                title = meta.get("name") or meta.get("cve_id") or "Unknown"
-                uid = meta.get("uid") or "N/A"
+                # ThreatIntelIndex.query() returns 'title' at top level and in metadata;
+                # record_id is at top level; description is in metadata.
+                title = r.get("title") or meta.get("title") or meta.get("name") or "Unknown"
+                record_id = r.get("record_id") or meta.get("record_id") or "N/A"
+                content = meta.get("description") or meta.get("embed_text") or r.get("content", "")
                 
-                formatted_obs += f"[{i}] {title} (UID: {uid})\n"
-                formatted_obs += f"Context: {content[:300]}...\n"
-                if "technique_id" in meta:
-                    formatted_obs += f"Technique ID: {meta['technique_id']}\n"
-                if "group_id" in meta:
-                    formatted_obs += f"Group ID: {meta['group_id']}\n"
+                formatted_obs += f"[{i}] {title} (ID: {record_id})\n"
+                formatted_obs += f"Context: {content[:500]}\n"
+                # Include technique/group/CVE identifiers from metadata
+                if meta.get("stix_id"):
+                    formatted_obs += f"STIX ID: {meta['stix_id']}\n"
+                if meta.get("url"):
+                    formatted_obs += f"Reference: {meta['url']}\n"
+                if meta.get("tags"):
+                    formatted_obs += f"Tactics: {', '.join(meta['tags'])}\n"
+                if meta.get("platforms"):
+                    formatted_obs += f"Platforms: {', '.join(meta['platforms'])}\n"
                 formatted_obs += f"Score: {r.get('score', 0.0):.3f}\n\n"
             
             return ToolResult(ok=True, observation=formatted_obs, data=res)
