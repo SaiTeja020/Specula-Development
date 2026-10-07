@@ -63,7 +63,7 @@ def main() -> int:
     if dates != sorted(dates):
         raise SystemExit("Execution log is not chronological")
 
-    print(f"PROGRESS.md valid: {len(blocks)} unique tasks; active WIP {active}/2")
+    print(f"PROGRESS.md valid: {len(blocks)} unique tasks; occupied WIP {len(occupied_ids)}/2 ({active} active)")
     return 0
 
 

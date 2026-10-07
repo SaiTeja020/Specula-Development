@@ -8,7 +8,7 @@
 - **Active Phase:** Phase 6: Operational Readiness
 - **Active Tasks (WIP=2):**
   - `TASK-6.7` Validate live integrations and external configuration
-  - `TASK-6.9` Review and verify existing implementation edits
+  - `TASK-6.8` Execute production-readiness gates and define ownership
 - **Active WIP Count:** 2 (`|active| = 2 / 2`)
 - **Last Updated:** 2026-10-07
 
@@ -315,13 +315,13 @@ Task titles and verification results are retained. Registry and execution-log ID
 
 - **Task ID:** `TASK-6.8`
   - **Description:** Establish production-readiness checks for reliability, performance, security, backup/restore and operations ownership.
-  - **Status:** `not_started`
+  - **Status:** `blocked`
   - **Verification Command:** `pytest -m production_readiness tests/production_readiness -q`
   - **Acceptance Criteria:** Machine-executable checks and an owner/runbook exist for each category; thresholds and restore objectives are approved and results recorded.
 
 - **Task ID:** `TASK-6.9`
   - **Description:** Independently review and verify the existing uncommitted implementation changes before commit and deployment.
-  - **Status:** `active`
+  - **Status:** `passing`
   - **Verification Command:** `.\venv\Scripts\pytest.exe tests/agents tests/ingestion tests/test_skeleton_graph.py tests/test_visualizer_api.py tests/test_visualizer_api_db.py tests/test_visualizer_ws.py -m "not live_infra and not integration" -q -p no:cacheprovider --basetemp=.pytest-tmp-review-oracle`
   - **Acceptance Criteria:** Scope-specific code review findings are resolved or accepted; relevant tests pass; commit contains only reviewed project changes; deployment is attempted only to an authorized target with a recorded health check.
 
@@ -330,6 +330,32 @@ Task titles and verification results are retained. Registry and execution-log ID
   - **Status:** `passing`
   - **Verification Command:** `.\venv\Scripts\python.exe scripts/validate_progress.py`
   - **Acceptance Criteria:** The Phase 4 registry is ordered from TASK-4.1 through TASK-4.13 without gaps being fabricated; each corrected task ID is unique; associated verification commands and execution-log history remain attached to the intended task.
+
+### Phase 7: Production Gate Remediation (proposed backlog)
+
+- **Task ID:** `TASK-7.1`
+  - **Description:** Implement server-side identity/case authorization and an approved exposure policy for production APIs.
+  - **Status:** `not_started`
+  - **Verification Command:** `pytest -m production_readiness tests/production_readiness/test_readiness_gates.py::test_sensitive_graph_data_requires_authorization -q`
+  - **Acceptance Criteria:** Unauthenticated case/graph access rejected; role/case authorization negative cases and approved access pass; audit ownership and deployment exposure are documented.
+
+- **Task ID:** `TASK-7.2`
+  - **Description:** Deploy a supported persistent graph checkpointer and prove analyst approvals survive process restart.
+  - **Status:** `not_started`
+  - **Verification Command:** `pytest -m production_readiness tests/production_readiness/test_readiness_gates.py::test_checkpoint_durability_is_configured -q`
+  - **Acceptance Criteria:** Actual paused investigation survives fresh process initialization and resumes to a closed report; checkpoint backend and dependency/deployment decisions are recorded before implementation.
+
+- **Task ID:** `TASK-7.3`
+  - **Description:** Configure durable service storage and implement coordinated whole-system backup/restore to approved RPO/RTO.
+  - **Status:** `not_started`
+  - **Verification Command:** `pytest -m production_readiness tests/production_readiness/test_full_restore.py -q`
+  - **Acceptance Criteria:** A separate restore environment recovers Quickwit, Neo4j, Kafka/offsets/schema registry, Redis/checkpoints, Chroma, FAISS and reports; complete case oracle passes and measured recovery objectives are met.
+
+- **Task ID:** `TASK-7.4`
+  - **Description:** Verify authenticated browser investigation and review workflows against authorized production model/feed configurations.
+  - **Status:** `not_started`
+  - **Verification Command:** `pytest -m production_readiness tests/production_readiness/test_authenticated_browser.py -q`
+  - **Acceptance Criteria:** Approved test account performs case selection, live execution, refresh at HITL, approval/rejection and result review; backend authorization is enforced; real model/GCP evidence and browser results are recorded.
 
 ---
 
@@ -462,3 +488,15 @@ Task titles and verification results are retained. Registry and execution-log ID
 | 2026-10-07 | `TASK-6.9` | Reviewer confirmed closure after stale-case guard; final implementation oracle green; corrected PowerShell npm argument forwarding by starting the installed Vite executable directly | 354 passed, 16 deselected, zero exit; frontend source server started on 127.0.0.1:5173; initial npm invocation served wrong root and was stopped |
 | 2026-10-07 | `TASK-6.9` | Verified frontend HTML and investigation context module over HTTP; final diff whitespace check passed | Frontend HTTP 200; actual case/review integration asset HTTP 200; no authenticated browser session exercised |
 | 2026-10-07 | `TASK-6.9` | Reviewed staged file list and added ADR-012 index entry; tracker and staged diff checks passed | 43 unique tasks; occupied WIP 2/2 (one active, one blocked); 46 reviewed files staged; Word artifacts and secrets excluded |
+| 2026-10-07 | `TASK-6.9` | Independently reviewed fixes, local verification, source deployment and commit completed | Passing; implementation commit 145cf97; 354 selected tests passed; live case passed; Docker health/readiness and frontend asset/build checks green; no remote push |
+| 2026-10-07 | `TASK-6.8` | Began executable production-readiness gates and operational runbook after review slot closed | Active alongside blocked TASK-6.7; thresholds/owners not assigned |
+| 2026-10-07 | `TASK-6.7` | Added executable deployed service/API/WebSocket/frontend asset and external endpoint gates; explicit attribution probe confirmed missing endpoint/key | Live suite pending; availability failures remain failures, not skips |
+| 2026-10-07 | `TASK-6.8` | Registered production marker; added integration-evidence, measured Redis throughput, authorization, real isolated raw-evidence restore, checkpoint durability and owner/recovery-policy gates; wrote operational runbook with unapproved proposed values and full-store recovery gaps | Production gate execution pending; no production-ready claim |
+| 2026-10-07 | `TASK-6.7` | Executed all live integration gates against deployed services with host-network access | 2 passed, 3 failed, 1 deselected; service/API/WebSocket/frontend assets green; GCP ADC absent, Gemini 429 quota unavailable, attribution endpoint absent |
+| 2026-10-07 | `TASK-6.8` | Executed readiness gates and actual raw evidence restore | 2 passed, 4 failed; 4 restored records verified in 6.17s; Redis 94,292 ops/sec microbenchmark (unapproved threshold); authorization, checkpoint durability and owner/policy gates fail |
+| 2026-10-07 | `TASK-6.8` | Independent gate review found source-string durability check, zero-record restore loophole and incorrect restart instructions; replaced with two-process pause/restart/resume oracle, required four recorded digests and corrected recovery case lookup | Production oracle rerun pending |
+| 2026-10-07 | `TASK-6.8` | Revised executable production oracle completed; blocked state retains WIP slot while production policy/ownership and remediation are outstanding | 2 passed, 4 failed; real process restart lost paused checkpoint; API graph data HTTP 200 without authorization; owner/threshold unset; raw restore 4 records verified in 6.22s; Redis 89,658 ops/sec baseline |
+| 2026-10-07 | `TASK-6.7`, `TASK-6.8` | Defined Phase 7 remediation backlog; corrected validator display to count blocked WIP; excluded opt-in live/production gates from default pytest while preserving explicit gate commands | Both current tasks blocked, occupied WIP 2/2; final review and clock-out verification pending |
+| 2026-10-07 | `TASK-6.7`, `TASK-6.8` | Added readiness results document with exact passed/failed scopes, external blockers, real restart failure and limited restore/throughput scope | Final documentation/review and clock-out verification pending |
+| 2026-10-07 | `TASK-6.7`, `TASK-6.8` | Independent reviewer cleared corrected gate/runbook findings; clock-out environment/tracker/diff verification succeeded | 25 requirements / 282 constraints verified; pip check/imports green; 47 unique tasks, occupied WIP 2/2, both blocked; final selected test result and documentation commit pending |
+| 2026-10-07 | `TASK-6.7`, `TASK-6.8` | Clock-out selected implementation oracle and running application health verified; readiness gates remain explicitly failed/blocked | 354 passed, 16 deselected, zero exit; backend/frontend HTTP 200; no new packages installed; no remote push; credential and owner/target questions pending |
