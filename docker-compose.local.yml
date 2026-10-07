@@ -1,0 +1,33 @@
+# Local development source deployment using the existing HITL image.
+# Start with --no-build; dependency installation remains a human operation.
+services:
+  hitl-api:
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      SPECULA_LLM_BACKEND: stub
+      SPECULA_THREAT_ATTRIBUTION_BACKEND: stub
+  visualizer-api:
+    image: specula-skeleton-hitl-api
+    command: ["python", "-m", "uvicorn", "src.agents.visualizer_api:app", "--host", "0.0.0.0", "--port", "8300"]
+    ports:
+      - "127.0.0.1:8300:8300"
+    volumes:
+      - ./src:/app/src:ro
+      - ./data:/app/data:ro
+    environment:
+      SPECULA_LLM_BACKEND: stub
+      SPECULA_THREAT_ATTRIBUTION_BACKEND: stub
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: "8000"
+      QUICKWIT_ENDPOINT: http://quickwit:7280
+    depends_on:
+      - kafka
+      - neo4j
+      - redis
+      - quickwit
+      - chromadb

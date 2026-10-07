@@ -28,13 +28,13 @@ from .nodes import (
     proponent_node,
     report_generation_node,
     specialist_join_node,
-    threat_attribution_node,
     timeline_artifact_generation_node,
     timeline_reconstruction_node,
 )
 from .evidence_collection_agent import make_evidence_collection_node
 from .log_analysis_factory import make_log_analysis_node
 from .network_forensics_factory import make_network_forensics_node
+from .threat_attribution_factory import make_threat_attribution_node
 from .supervisor_factory import make_supervisor_node
 from .state import SpeculaState
 
@@ -84,7 +84,7 @@ def _dead_end_route(state: dict) -> str | list[Send]:
 # Graph builder
 # ===================================================================
 
-def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafka_producer=None, vector_client=None):
+def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafka_producer=None, vector_client=None, threat_intel=None, attribution_llm_factory=None):
     """Assemble and compile the full 23-node orchestration graph.
 
     Args:
@@ -107,7 +107,9 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     builder.add_node("log_analysis", make_log_analysis_node(kafka_producer, vector_client, redis_client, neo4j_driver))
     builder.add_node("network_forensics", make_network_forensics_node(neo4j_driver, kafka_producer))
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
-    builder.add_node("threat_attribution", threat_attribution_node)
+    builder.add_node("threat_attribution", make_threat_attribution_node(
+        neo4j_driver, kafka_producer, threat_intel, attribution_llm_factory,
+    ))
     builder.add_node("dag", dag_node)                           # F23 — Dynamic Attack Graph
     builder.add_node("memory_forensics", memory_forensics_node)
     builder.add_node("identity", identity_node)                 # F13a — Identity specialist

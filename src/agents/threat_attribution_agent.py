@@ -1,360 +1,219 @@
-"""
-Threat Attribution Agent — real implementation.
+"""Case-grounded Threat Attribution with deterministic ATT&CK profile scoring."""
 
-Replaces the generic _run_agent() stub with a grounded 3-lookup pipeline:
-
-  1. ATT&CK technique lookup  — ThreatIntelMCPServer.query_attack_techniques()
-  2. Threat group lookup       — ThreatIntelMCPServer.query_attack_groups()
-  3. Case graph entity fetch   — DFKGQueryTool (parameterized Cypher, read-only)
-
-The LLM is only invoked AFTER these lookups, with the real data injected into
-the prompt as grounding context. This eliminates hallucinated technique IDs
-and replaces them with FAISS-retrieved, score-ranked ATT&CK records.
-
-Degradation contract (all lookups are best-effort):
-  - FAISS not ready (index not built yet): skip lookups A & B, run LLM
-    with timeline only and mark attribution.confidence_basis = "llm_only".
-  - Neo4j unavailable (driver is None or query fails): skip lookup C,
-    run with FAISS results only.
-  - Any individual lookup failure is caught and logged; the agent never
-    raises from inside lookup failures.
-
-Reference: threat_attribution_plan.md (approved 2026-09-20)
-"""
 from __future__ import annotations
 
-import datetime
+from datetime import datetime, timezone
 import json
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
+from src.agents.threat_attribution.candidate_retriever import retrieve_group_profiles
+from src.agents.threat_attribution.models import ThreatAttributionResult
+from src.agents.threat_attribution.scoring import confidence_bounds, rank_candidates
+from src.agents.threat_attribution.ttp_extractor import extract_observed_ttps
+from src.schemas.uid_generator import generate_deterministic_uid
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Top-k constants — tunable without code changes
-# ---------------------------------------------------------------------------
-_TOP_K_TECHNIQUES = 7   # retrieve extra; LLM selects the most relevant
-_TOP_K_GROUPS = 5
-_MAX_GRAPH_ENTITIES = 30
+
+def _query_graph_evidence_uids(driver: Any, case_id: str) -> set[str]:
+    """Read case-linked events and case-tagged findings through parameterized Cypher."""
+    if driver is None:
+        return set()
+    queries = (
+        "MATCH (c:Case {uid: $case_id})-[:HAS_EVENT]->(e:Event) RETURN e.uid AS uid",
+        "MATCH (e:Entity {case_id: $case_id}) RETURN e.uid AS uid",
+    )
+    uids: set[str] = set()
+    for query in queries:
+        records, _, _ = driver.execute_query(query, case_id=case_id)
+        for record in records:
+            uid = record.get("uid") if hasattr(record, "get") else record["uid"]
+            if uid:
+                uids.add(uid)
+    return uids
 
 
-# ---------------------------------------------------------------------------
-# Lookup A + B — FAISS threat intel
-# ---------------------------------------------------------------------------
-
-def _query_threat_intel(
-    timeline_summary: str,
-) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], str]:
-    """
-    Query FAISS for ATT&CK techniques and groups matching the timeline.
-
-    Returns:
-        (techniques, groups, confidence_basis)
-        confidence_basis is "faiss+llm" on success, "llm_only" on failure.
-    """
+def _narrative(result: ThreatAttributionResult, case_id: str, llm_factory=None) -> tuple[str, str, bool]:
+    if result.top_candidate is None:
+        return "Attribution unavailable: no scored ATT&CK group profile is supported by this case's evidence.", "none", False
+    default = (f"Top ATT&CK profile is {result.top_candidate.name} "
+               f"({result.top_candidate.actor_id}; similarity {result.top_candidate.combined_score:.3f}). "
+               f"Evidence-adjusted confidence is {result.overall_confidence:.3f} "
+               f"(bounds {result.confidence_lower:.3f}-{result.confidence_upper:.3f}). "
+               "This profile comparison does not establish actor identity.")
+    explanations = {"profile_similarity": "The ranking compares the cited case TTPs with ATT&CK group profiles."}
+    if "actor_sequence_inferred" in result.degraded_flags:
+        explanations["inferred_sequence"] = "Profile sequence is inferred from ATT&CK tactic order, not a recorded actor chronology."
+    if "actor_sequence_unavailable" in result.degraded_flags:
+        explanations["missing_sequence"] = "No actor sequence is available for this comparison."
+    if "insufficient_evidence" in result.degraded_flags:
+        explanations["limited_evidence"] = "Fewer than two cited TTPs support this comparison."
+    if "stale_corpus" in result.degraded_flags:
+        explanations["stale_corpus"] = "The threat intelligence corpus is stale."
     try:
-        from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
-        server = ThreatIntelMCPServer()
-
-        tech_resp = server.query_attack_techniques(
-            query_text=timeline_summary,
-            top_k=_TOP_K_TECHNIQUES,
-        )
-        group_resp = server.query_attack_groups(
-            query_text=timeline_summary,
-            top_k=_TOP_K_GROUPS,
-        )
-
-        techniques = tech_resp.get("results", []) if tech_resp.get("status") == "ok" else []
-        groups = group_resp.get("results", []) if group_resp.get("status") == "ok" else []
-
-        logger.info(
-            "ThreatIntelMCP: retrieved %d techniques, %d groups for attribution.",
-            len(techniques), len(groups),
-        )
-        return techniques, groups, "faiss+llm"
-
+        from src.agents.config import get_llm
+        llm = llm_factory(case_id) if llm_factory else get_llm("threat_attribution", case_id=case_id)
+        if llm.__class__.__name__ == "StubLLM":
+            return default, "stub", False
+        model_id = (getattr(llm, "model_name", None) or getattr(llm, "model", None)
+                    or getattr(llm, "model_id", None) or llm.__class__.__name__)
+        prompt = json.dumps({
+            "instruction": "Select relevant explanation codes from allowed_explanations. "
+                           "Return JSON with only explanation_codes, a nonempty list of unique allowed codes. "
+                           "Do not return prose, actor identities, scores or additional fields.",
+            "allowed_explanations": explanations,
+            "case_id": case_id,
+            "observed_ttps": [item.model_dump(mode="json") for item in result.observed_ttps],
+            "candidate_actors": [item.model_dump(mode="json") for item in result.candidate_actors],
+            "confidence_bounds": [result.confidence_lower, result.confidence_upper],
+            "degraded_flags": result.degraded_flags,
+        }, sort_keys=True)
+        response = llm.invoke(prompt)
+        content = response.content if hasattr(response, "content") else str(response)
+        parsed = json.loads(str(content).strip())
+        codes = parsed.get("explanation_codes") if isinstance(parsed, dict) else None
+        usable = (isinstance(parsed, dict) and set(parsed) == {"explanation_codes"}
+                  and isinstance(codes, list) and bool(codes)
+                  and all(isinstance(code, str) and code in explanations for code in codes)
+                  and len(set(codes)) == len(codes))
+        narrative = default + " " + " ".join(explanations[code] for code in codes) if usable else default
+        return narrative, str(model_id), usable
     except Exception as exc:
-        logger.warning(
-            "ThreatAttributionAgent: FAISS lookup failed (%s) — "
-            "falling back to LLM-only attribution.",
-            exc,
-        )
-        return [], [], "llm_only"
+        logger.warning("Threat attribution explanation unavailable: %s", exc)
+        return default, "unavailable", False
 
 
-# ---------------------------------------------------------------------------
-# Lookup C — Neo4j case graph entities
-# ---------------------------------------------------------------------------
-
-def _query_graph_entities(
-    neo4j_driver,
-    case_id: str,
-) -> List[Dict[str, Any]]:
-    """
-    Fetch confirmed IOCs / entities already in the DFKG for this case.
-    Uses DFKGQueryTool (parameterized, read-only — no injection risk).
-
-    Returns empty list if driver is None or query fails.
-    """
+def run_threat_attribution(state: dict, neo4j_driver=None, threat_intel=None, llm_factory=None) -> tuple[dict, dict, dict]:
+    started = time.monotonic()
+    case_id = state.get("case_id")
+    if not case_id:
+        raise ValueError("Threat Attribution requires case_id")
+    trace_id = state.get("trace_id", "")
+    flags: set[str] = set()
+    health: dict = {}
+    try:
+        confirmed_uids = _query_graph_evidence_uids(neo4j_driver, case_id)
+    except Exception as exc:
+        logger.warning("Threat Attribution DFKG read failed for %s: %s", case_id, exc)
+        confirmed_uids = set()
+        flags.add("dfkg_unavailable")
     if neo4j_driver is None:
-        logger.debug("ThreatAttributionAgent: no Neo4j driver — skipping graph entity fetch.")
-        return []
-
+        flags.add("dfkg_unavailable")
+    if not confirmed_uids:
+        flags.add("no_confirmed_dfkg_evidence")
     try:
-        from src.agents.react_tools import DFKGQueryTool
-
-        tool = DFKGQueryTool(neo4j_driver, case_id)
-        cypher = (
-            "MATCH (e:Entity {case_id: $case_id}) "
-            "RETURN e.uid AS uid, e.type AS type, e.value AS value "
-            f"LIMIT {_MAX_GRAPH_ENTITIES}"
-        )
-        result = tool.run(cypher=cypher, params={})
-
-        if result.ok and result.data:
-            logger.info(
-                "ThreatAttributionAgent: %d graph entities fetched for case %s.",
-                len(result.data), case_id,
-            )
-            return result.data
-        else:
-            logger.debug(
-                "ThreatAttributionAgent: graph query returned no entities (%s).",
-                result.observation,
-            )
-            return []
-
+        if threat_intel is None:
+            from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
+            threat_intel = ThreatIntelMCPServer()
+        health = threat_intel.health_check()
+        if health.get("status") != "ready":
+            flags.add("corpus_unavailable")
+        if health.get("artifacts_verified") is False:
+            flags.update({"corpus_unavailable", "corpus_artifacts_unverified"})
+        if health.get("is_stale"):
+            flags.add("stale_corpus")
     except Exception as exc:
-        logger.warning(
-            "ThreatAttributionAgent: Neo4j entity fetch failed (%s) — skipping.", exc
-        )
-        return []
-
-
-# ---------------------------------------------------------------------------
-# Prompt builder — injects real lookup results
-# ---------------------------------------------------------------------------
-
-def _format_techniques(techniques: List[Dict[str, Any]]) -> str:
-    if not techniques:
-        return "No ATT&CK techniques retrieved (FAISS index not ready or no matches)."
-    lines = []
-    for t in techniques:
-        meta = t.get("metadata", {})
-        tactic = ", ".join(meta.get("tags", [])) or "unknown tactic"
-        lines.append(
-            f"  - {t['record_id']} | {t['title']} | tactic: {tactic} | score: {t['score']:.3f}"
-        )
-    return "\n".join(lines)
-
-
-def _format_groups(groups: List[Dict[str, Any]]) -> str:
-    if not groups:
-        return "No threat actor groups retrieved."
-    lines = []
-    for g in groups:
-        lines.append(
-            f"  - {g['record_id']} | {g['title']} | score: {g['score']:.3f}"
-        )
-    return "\n".join(lines)
-
-
-def _format_entities(entities: List[Dict[str, Any]]) -> str:
-    if not entities:
-        return "No entities in case graph yet."
-    lines = []
-    for e in entities:
-        lines.append(
-            f"  - [{e.get('type', '?')}] {e.get('value', '?')} (uid: {e.get('uid', '?')})"
-        )
-    return "\n".join(lines)
-
-
-def _build_grounded_prompt(
-    case_id: str,
-    timeline_summary: str,
-    techniques: List[Dict[str, Any]],
-    groups: List[Dict[str, Any]],
-    entities: List[Dict[str, Any]],
-) -> str:
-    return (
-        f"You are the Threat Attribution agent for case {case_id}.\n\n"
-        "## ATT&CK Techniques retrieved from threat-intel corpus (FAISS semantic search)\n"
-        f"{_format_techniques(techniques)}\n\n"
-        "## Threat actor groups retrieved from threat-intel corpus\n"
-        f"{_format_groups(groups)}\n\n"
-        "## Entities confirmed in the forensic graph for this case (Neo4j)\n"
-        f"{_format_entities(entities)}\n\n"
-        "## Timeline summary (from Timeline Reconstruction agent)\n"
-        f"{timeline_summary or 'No timeline available yet.'}\n\n"
-        "## Your task\n"
-        "Based ONLY on the data above (do not rely on general knowledge for technique IDs), "
-        "produce a structured JSON attribution report with EXACTLY this schema:\n"
-        "{\n"
-        '  "techniques": [\n'
-        '    {"id": "T1059.001", "name": "PowerShell", "confidence": 0.87, "tactic": "execution", "reasoning": "..."}\n'
-        "  ],\n"
-        '  "groups": [\n'
-        '    {"id": "G0016", "name": "APT29", "confidence": 0.72, "reasoning": "..."}\n'
-        "  ],\n"
-        '  "overall_confidence": 0.80,\n'
-        '  "low_confidence_flags": ["T1234 confidence < 0.5 — insufficient evidence"],\n'
-        '  "narrative": "One-paragraph plain-English summary of the attribution."\n'
-        "}\n"
-        "Flag any technique or group where confidence < 0.5 in low_confidence_flags. "
-        "Respond with ONLY the JSON object, no surrounding text."
+        logger.warning("Threat intel unavailable: %s", exc)
+        flags.add("corpus_unavailable")
+    timeline = dict(state.get("timeline") or {})
+    timeline["events"] = [
+        {**event, "dfkg_refs": sorted(set(event.get("dfkg_refs") or []) & confirmed_uids)}
+        for event in timeline.get("events", [])
+        if set(event.get("dfkg_refs") or []) & confirmed_uids
+    ]
+    observed = []
+    if "corpus_unavailable" not in flags:
+        try:
+            observed, extraction_flags = extract_observed_ttps(timeline, threat_intel)
+            flags.update(extraction_flags)
+        except Exception as exc:
+            logger.warning("TTP extraction failed: %s", exc)
+            flags.add("ttp_mapping_unavailable")
+    profiles = []
+    if observed:
+        try:
+            query = " ".join(item.technique_id for item in observed) + " " + str(timeline.get("summary", ""))[:500]
+            profiles, retrieval_flags = retrieve_group_profiles(threat_intel, query)
+            flags.update(retrieval_flags)
+        except Exception as exc:
+            logger.warning("Group profile retrieval failed: %s", exc)
+            flags.add("group_profiles_unavailable")
+    if "corpus_unavailable" not in flags:
+        try:
+            final_health = threat_intel.health_check()
+            if (final_health.get("status") != "ready"
+                    or not health.get("corpus_hash")
+                    or any(final_health.get(key) != health.get(key)
+                           for key in ("corpus_hash", "corpus_generation"))):
+                flags.add("corpus_changed_during_attribution")
+                observed, profiles = [], []
+                health = {}  # Mixed results must not carry either generation's provenance.
+        except Exception:
+            flags.add("corpus_provenance_unavailable")
+            observed, profiles, health = [], [], {}
+    candidates = rank_candidates([item.technique_id for item in observed], profiles)
+    if candidates and candidates[0].combined_score == 0:
+        flags.add("no_profile_match")
+    if candidates and not any(item.sequence_available for item in candidates):
+        flags.add("actor_sequence_unavailable")
+    if candidates and candidates[0].sequence_basis == "attack_tactic_order":
+        flags.add("actor_sequence_inferred")
+    if len(observed) < 2:
+        flags.add("insufficient_evidence")
+    refs = sorted({uid for item in observed for uid in item.evidence_uids})
+    intel_refs = sorted({ref for item in observed for ref in item.threat_intel_refs} |
+                        {f"{item.actor_id}:{item.source_hash}" for item in candidates if item.source_hash})
+    lower, confidence, upper = confidence_bounds(
+        candidates, len(observed), "stale_corpus" in flags,
+        bool(observed) and all(item.evidence_uids and item.threat_intel_refs for item in observed),
     )
-
-
-# ---------------------------------------------------------------------------
-# LLM call + response parsing
-# ---------------------------------------------------------------------------
-
-def _call_llm(prompt: str, case_id: str) -> str:
-    """Invoke the configured LLM for threat_attribution. Returns raw string."""
-    from src.agents.config import get_llm
-    llm = get_llm("threat_attribution", case_id=case_id)
-    response = llm.invoke(prompt)
-    return response.content if hasattr(response, "content") else str(response)
-
-
-def _parse_llm_response(raw: str) -> Dict[str, Any]:
-    """
-    Parse the LLM JSON response into a structured attribution dict.
-    Falls back to a minimal dict if JSON parsing fails (LLM didn't follow schema).
-    """
-    # Strip markdown code fences if LLM wrapped the JSON
-    cleaned = raw.strip()
-    if cleaned.startswith("```"):
-        lines = cleaned.splitlines()
-        cleaned = "\n".join(
-            l for l in lines if not l.strip().startswith("```")
-        ).strip()
-
-    try:
-        parsed = json.loads(cleaned)
-        # Ensure required keys are present
-        parsed.setdefault("techniques", [])
-        parsed.setdefault("groups", [])
-        parsed.setdefault("overall_confidence", 0.0)
-        parsed.setdefault("low_confidence_flags", [])
-        parsed.setdefault("narrative", raw[:500])
-        return parsed
-    except (json.JSONDecodeError, ValueError):
-        logger.warning(
-            "ThreatAttributionAgent: LLM did not return valid JSON — "
-            "storing raw response as narrative."
-        )
-        return {
-            "techniques": [],
-            "groups": [],
-            "overall_confidence": 0.0,
-            "low_confidence_flags": ["LLM response was not valid JSON — see narrative"],
-            "narrative": raw[:2000],
-        }
-
-
-# ---------------------------------------------------------------------------
-# Main entry point — called from nodes.py
-# ---------------------------------------------------------------------------
-
-def run_threat_attribution(
-    state: dict,
-    neo4j_driver=None,
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
-    """
-    Run the full grounded threat attribution pipeline.
-
-    Args:
-        state:         SpeculaState dict from LangGraph.
-        neo4j_driver:  Optional Neo4j driver for graph entity lookup (Lookup C).
-                       If None, graph lookup is skipped gracefully.
-
-    Returns:
-        (attribution, finding, trace)
-        - attribution: structured dict written to state["attribution"]
-        - finding:     standard finding dict written to state["findings"]
-        - trace:       standard trace dict written to state["agent_traces"]
-    """
-    t_start = time.time()
-    case_id = state.get("case_id", "unknown")
-    timeline_summary = str(state.get("timeline", {}).get("summary", ""))[:1000]
-
-    # ------------------------------------------------------------------
-    # Lookup A + B: FAISS
-    # ------------------------------------------------------------------
-    techniques, groups, confidence_basis = _query_threat_intel(timeline_summary)
-
-    # ------------------------------------------------------------------
-    # Lookup C: Neo4j graph entities
-    # ------------------------------------------------------------------
-    entities = _query_graph_entities(neo4j_driver, case_id)
-
-    # ------------------------------------------------------------------
-    # Build grounded prompt and call LLM
-    # ------------------------------------------------------------------
-    prompt = _build_grounded_prompt(
-        case_id=case_id,
-        timeline_summary=timeline_summary,
-        techniques=techniques,
-        groups=groups,
-        entities=entities,
+    if "insufficient_evidence" in flags:
+        confidence = min(confidence, 0.25)
+        upper = min(upper, 0.35)
+        lower = min(lower, confidence)
+    if "no_profile_match" in flags:
+        lower = confidence = upper = 0.0
+    result = ThreatAttributionResult(
+        observed_ttps=observed, candidate_actors=candidates,
+        top_candidate=candidates[0] if candidates and "no_profile_match" not in flags else None,
+        overall_confidence=confidence, confidence_lower=lower, confidence_upper=upper,
+        confidence_basis="deterministic_similarity_with_evidence" if candidates and "no_profile_match" not in flags else "unavailable",
+        dfkg_refs=refs, threat_intel_refs=intel_refs,
+        corpus_version=(candidates[0].source_version if candidates else
+                        (health.get("source_versions") or {}).get("mitre_attack_stix")),
+        corpus_hash=health.get("corpus_hash") if isinstance(health.get("corpus_hash"), str) else None,
+        degraded_flags=sorted(flags), narrative="", summary="",
     )
-    raw_response = _call_llm(prompt, case_id)
-    parsed = _parse_llm_response(raw_response)
-
-    latency_ms = round((time.time() - t_start) * 1000, 1)
-
-    # ------------------------------------------------------------------
-    # Collect dfkg_refs from graph entity UIDs returned by Lookup C
-    # ------------------------------------------------------------------
-    dfkg_refs = [e["uid"] for e in entities if e.get("uid")]
-
-    # ------------------------------------------------------------------
-    # Assemble structured attribution (written to state["attribution"])
-    # ------------------------------------------------------------------
-    attribution: Dict[str, Any] = {
-        "techniques": parsed["techniques"],
-        "groups": parsed["groups"],
-        "overall_confidence": parsed["overall_confidence"],
-        "low_confidence_flags": parsed["low_confidence_flags"],
-        "narrative": parsed["narrative"],
-        "dfkg_refs": dfkg_refs,
-        "confidence_basis": confidence_basis,   # "faiss+llm" | "llm_only"
-        "summary": parsed["narrative"],          # for downstream _summarise_findings()
+    narrative, model_id, explained = _narrative(result, case_id, llm_factory)
+    if result.top_candidate is not None and not explained:
+        flags.add("explanation_model_unavailable")
+    result.degraded_flags = sorted(flags)
+    result.narrative = narrative
+    result.summary = narrative
+    attribution = result.model_dump(mode="json")
+    finding = {
+        "uid": generate_deterministic_uid("threat_attribution", {
+            "case_id": case_id, "corpus_hash": result.corpus_hash,
+            "observed": [(item.technique_id, item.evidence_uids) for item in observed],
+        }),
+        "agent_role": "threat_attribution", "case_id": case_id, "trace_id": trace_id,
+        "summary": narrative, "dfkg_refs": refs, "threat_intel_refs": intel_refs,
+        "attribution_detail": attribution,
+        "timestamp": datetime.now(timezone.utc).isoformat(), "kafka_offset": None,
     }
-
-    # ------------------------------------------------------------------
-    # Standard finding + trace shapes (match existing agent conventions)
-    # ------------------------------------------------------------------
-    finding: Dict[str, Any] = {
-        "agent_role": "threat_attribution",
-        "summary": parsed["narrative"],
-        "dfkg_refs": dfkg_refs,
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "kafka_offset": None,
-        "attribution_detail": {
-            "techniques": parsed["techniques"],
-            "groups": parsed["groups"],
-            "overall_confidence": parsed["overall_confidence"],
-            "low_confidence_flags": parsed["low_confidence_flags"],
-            "confidence_basis": confidence_basis,
-        },
+    trace = {
+        "agent_role": "threat_attribution", "action": "deterministic_attack_profile_scoring",
+        "thought": f"Scored {len(profiles)} ATT&CK profiles from {len(observed)} cited TTPs.",
+        "observation": narrative[:300], "model_used": model_id,
+        "algorithm_version": result.algorithm_version,
+        "scoring_parameters": result.scoring_parameters,
+        "corpus_hash": result.corpus_hash, "corpus_version": result.corpus_version,
+        "dfkg_refs": refs, "threat_intel_refs": intel_refs,
+        "candidate_scores": [{"actor_id": item.actor_id, "combined_score": item.combined_score}
+                             for item in candidates],
+        "trace_id": trace_id, "degraded_flags": result.degraded_flags,
+        "latency_ms": round((time.monotonic() - started) * 1000, 1),
     }
-
-    trace: Dict[str, Any] = {
-        "agent_role": "threat_attribution",
-        "thought": (
-            f"Retrieved {len(techniques)} ATT&CK techniques, {len(groups)} groups "
-            f"from FAISS; {len(entities)} entities from Neo4j graph."
-        ),
-        "action": "grounded_attribution_pipeline",
-        "observation": parsed["narrative"][:300],
-        "model_used": "gemini-2.5-flash",
-        "latency_ms": latency_ms,
-        "confidence_basis": confidence_basis,
-    }
-
     return attribution, finding, trace

@@ -87,12 +87,17 @@ async def submit_decision(thread_id: str, body: HITLDecision):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import os
     import uvicorn
     from langgraph.checkpoint.memory import InMemorySaver
+    from neo4j import GraphDatabase
 
     from .graph import build_graph
 
-    graph = build_graph(checkpointer=InMemorySaver())
+    password = os.environ.get("NEO4J_PASSWORD", "")
+    auth = (os.environ.get("NEO4J_USER", "neo4j"), password) if password else None
+    neo4j_driver = GraphDatabase.driver(os.environ.get("NEO4J_URI", "bolt://localhost:7687"), auth=auth)
+    graph = build_graph(checkpointer=InMemorySaver(), neo4j_driver=neo4j_driver)
     set_graph(graph)
 
     log.info("Starting HITL API on port 8200")

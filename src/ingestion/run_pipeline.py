@@ -152,18 +152,19 @@ def run_pipeline_on_event(
     neo4j_client = None,
     exclude_ports: set[int] = None,
 ) -> list:
+    # Preserve the input serialization before adding any pipeline metadata.
+    raw_event = dict(raw_event)
+    raw_bytes = json.dumps(raw_event, sort_keys=True).encode("utf-8")
     trace_id = raw_event.get("trace_id", str(uuid.uuid4()))
     raw_event["trace_id"] = trace_id
     
     if qw_client is not None:
         raw_event["vct_merkle_root"] = vct_chain.current_chain_hash
-        sha256_hash = compute_sha256_bytes(json.dumps(raw_event, sort_keys=True).encode("utf-8"))
+        sha256_hash = compute_sha256_bytes(raw_bytes)
         raw_event["sha256_hash"] = sha256_hash
-        vct_chain.register(sha256_digest=sha256_hash, trace_id=trace_id)
         
         try:
-            uid = raw_event.get("uid", generate_deterministic_uid("raw_event", raw_event))
-            raw_bytes = json.dumps(raw_event, sort_keys=True).encode("utf-8")
+            uid = raw_event.get("uid", generate_deterministic_uid("raw_event", {"sha256": sha256_hash}))
             qw_client.commit_raw_evidence(
                 uid=uid,
                 trace_id=trace_id,
@@ -171,10 +172,11 @@ def run_pipeline_on_event(
                 raw_bytes=raw_bytes,
                 source_type=source_type
             )
+            vct_chain.register(sha256_digest=sha256_hash, trace_id=trace_id)
             qw_result = True
         except QuickwitClientError as e:
             logger.error(f"Preservation failure for trace {trace_id}: {e}")
-            qw_result = None
+            raise
     else:
         qw_result = None
 

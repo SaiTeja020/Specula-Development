@@ -1,330 +1,270 @@
-"""
-Tests for the real Threat Attribution Agent.
+"""End-to-end attribution contract with local DFKG, corpus and model doubles."""
 
-3 test scenarios per the approved implementation plan:
-  1. Happy path    — FAISS returns techniques+groups, Neo4j returns entities
-  2. FAISS not ready  — index not built; agent degrades to LLM-only
-  3. Neo4j down    — graph query fails; agent runs with FAISS results only
-
-All external I/O (FAISS, Neo4j, LLM) is mocked — no infrastructure required.
-"""
-from __future__ import annotations
-
-from unittest.mock import MagicMock, patch
-
+import json
 import pytest
+from unittest.mock import patch
 
-from src.agents.threat_attribution_agent import (
-    run_threat_attribution,
-    _query_threat_intel,
-    _query_graph_entities,
-    _parse_llm_response,
-)
+from src.agents.threat_attribution_agent import run_threat_attribution
+from src.agents.threat_attribution.ttp_extractor import extract_observed_ttps
 
 
-# ---------------------------------------------------------------------------
-# Shared fixtures
-# ---------------------------------------------------------------------------
-
-FAKE_TECHNIQUES = [
-    {
-        "record_id": "T1059.001",
-        "record_type": "attack_technique",
-        "title": "PowerShell",
-        "score": 0.91,
-        "metadata": {"tags": ["execution"]},
-    },
-    {
-        "record_id": "T1021.002",
-        "record_type": "attack_technique",
-        "title": "SMB/Windows Admin Shares",
-        "score": 0.74,
-        "metadata": {"tags": ["lateral-movement"]},
-    },
-]
-
-FAKE_GROUPS = [
-    {
-        "record_id": "G0016",
-        "record_type": "attack_group",
-        "title": "APT29",
-        "score": 0.81,
-        "metadata": {},
-    },
-]
-
-FAKE_ENTITIES = [
-    {"uid": "entity:abc123", "type": "Process", "value": "powershell.exe"},
-    {"uid": "entity:def456", "type": "NetworkConnection", "value": "10.0.0.5:445"},
-]
-
-FAKE_LLM_JSON = """{
-  "techniques": [
-    {"id": "T1059.001", "name": "PowerShell", "confidence": 0.87, "tactic": "execution", "reasoning": "PowerShell observed in timeline"},
-    {"id": "T1021.002", "name": "SMB/Windows Admin Shares", "confidence": 0.74, "tactic": "lateral-movement", "reasoning": "SMB traffic to internal host"}
-  ],
-  "groups": [
-    {"id": "G0016", "name": "APT29", "confidence": 0.72, "reasoning": "TTP overlap with known APT29 campaigns"}
-  ],
-  "overall_confidence": 0.80,
-  "low_confidence_flags": [],
-  "narrative": "Attribution points to APT29 with moderate confidence based on PowerShell and SMB lateral movement techniques."
-}"""
-
-FAKE_STATE = {
-    "case_id": "case-test-001",
-    "trace_id": "trace-abc",
-    "timeline": {
-        "summary": "PowerShell executed on host-A at 14:02; SMB lateral movement to host-B at 14:07.",
-        "dfkg_refs": [],
-    },
-    "findings": [],
+TECHNIQUES = {
+    "T1059.001": {"record_id": "T1059.001", "record_type": "attack_technique", "source_hash": "tech-a"},
+    "T1021.002": {"record_id": "T1021.002", "record_type": "attack_technique", "source_hash": "tech-b"},
+}
+PROFILES = {
+    "G0001": {"record_id": "G0001", "record_type": "attack_group", "title": "Actor A",
+              "technique_ids": ["T1059.001", "T1021.002"],
+              "technique_sequence": ["T1059.001", "T1021.002"],
+              "source_hash": "group-a", "source_version": "ATT&CK-v15.1"},
+    "G0002": {"record_id": "G0002", "record_type": "attack_group", "title": "Actor B",
+              "technique_ids": ["T1059.001", "T1021.002"],
+              "technique_sequence": ["T1021.002", "T1059.001"],
+              "source_hash": "group-b", "source_version": "ATT&CK-v15.1"},
+    "G0003": {"record_id": "G0003", "record_type": "attack_group", "title": "Actor C",
+              "technique_ids": ["T1059.001"], "technique_sequence": [],
+              "source_hash": "group-c", "source_version": "ATT&CK-v15.1"},
+}
+STATE = {
+    "case_id": "case-one", "trace_id": "trace-one",
+    "timeline": {"frozen": True, "summary": "PowerShell then SMB movement", "events": [
+        {"time": "2026-10-03T00:02:00Z", "attacks": ["T1021.002"],
+         "dfkg_refs": ["event-two"], "summary": "SMB lateral movement"},
+        {"time": "2026-10-03T00:01:00Z", "attacks": ["T1059.001"],
+         "dfkg_refs": ["event-one"], "summary": "PowerShell execution"},
+    ]},
 }
 
 
-# ---------------------------------------------------------------------------
-# Test 1: Happy path — FAISS ready, Neo4j available, LLM returns valid JSON
-# ---------------------------------------------------------------------------
+class FakeIntel:
+    def __init__(self, ready=True, stale=False):
+        self.ready, self.stale = ready, stale
 
-class TestHappyPath:
-    """FAISS returns techniques+groups, Neo4j returns entities, LLM returns valid JSON."""
+    def health_check(self):
+        return {"status": "ready" if self.ready else "not_ready", "is_stale": self.stale,
+                "corpus_hash": "corpus-hash"}
 
-    def test_attribution_contains_real_technique_ids(self):
-        """attribution["techniques"] must contain IDs from FAISS results, not hallucinated."""
-        fake_mcp = MagicMock()
-        fake_mcp.query_attack_techniques.return_value = {"status": "ok", "results": FAKE_TECHNIQUES}
-        fake_mcp.query_attack_groups.return_value = {"status": "ok", "results": FAKE_GROUPS}
+    def get_attack_technique(self, technique_id):
+        record = TECHNIQUES.get(technique_id)
+        return {"status": "ok" if record else "not_found", "record": record}
 
-        fake_neo4j_driver = MagicMock()
-        fake_tool_result = MagicMock(ok=True, data=FAKE_ENTITIES, observation="ok")
+    def query_attack_techniques(self, query_text, top_k):
+        return {"status": "ok", "results": []}
 
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            return_value=fake_mcp,
-        ), patch(
-            "src.agents.react_tools.DFKGQueryTool"
-        ) as MockTool, patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            MockTool.return_value.run.return_value = fake_tool_result
+    def query_attack_groups(self, query_text, top_k):
+        assert top_k >= 10
+        return {"status": "ok", "results": [{"record_id": key} for key in PROFILES]}
 
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=fake_neo4j_driver
-            )
-
-        # Technique IDs must match what FAISS + LLM agreed on
-        tech_ids = [t["id"] for t in attribution["techniques"]]
-        assert "T1059.001" in tech_ids
-        assert "T1021.002" in tech_ids
-
-    def test_attribution_contains_group(self):
-        """attribution["groups"] must contain the APT29 group returned by FAISS."""
-        fake_mcp = MagicMock()
-        fake_mcp.query_attack_techniques.return_value = {"status": "ok", "results": FAKE_TECHNIQUES}
-        fake_mcp.query_attack_groups.return_value = {"status": "ok", "results": FAKE_GROUPS}
-
-        fake_tool_result = MagicMock(ok=True, data=FAKE_ENTITIES, observation="ok")
-
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            return_value=fake_mcp,
-        ), patch(
-            "src.agents.react_tools.DFKGQueryTool"
-        ) as MockTool, patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            MockTool.return_value.run.return_value = fake_tool_result
-
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=MagicMock()
-            )
-
-        group_ids = [g["id"] for g in attribution["groups"]]
-        assert "G0016" in group_ids
-
-    def test_dfkg_refs_populated_from_entities(self):
-        """dfkg_refs in the finding must be the UIDs of Neo4j entities, not []."""
-        fake_mcp = MagicMock()
-        fake_mcp.query_attack_techniques.return_value = {"status": "ok", "results": FAKE_TECHNIQUES}
-        fake_mcp.query_attack_groups.return_value = {"status": "ok", "results": FAKE_GROUPS}
-
-        fake_tool_result = MagicMock(ok=True, data=FAKE_ENTITIES, observation="ok")
-
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            return_value=fake_mcp,
-        ), patch(
-            "src.agents.react_tools.DFKGQueryTool"
-        ) as MockTool, patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            MockTool.return_value.run.return_value = fake_tool_result
-
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=MagicMock()
-            )
-
-        assert "entity:abc123" in finding["dfkg_refs"]
-        assert "entity:def456" in finding["dfkg_refs"]
-
-    def test_confidence_basis_is_faiss_plus_llm(self):
-        """When FAISS succeeds, confidence_basis must be 'faiss+llm'."""
-        fake_mcp = MagicMock()
-        fake_mcp.query_attack_techniques.return_value = {"status": "ok", "results": FAKE_TECHNIQUES}
-        fake_mcp.query_attack_groups.return_value = {"status": "ok", "results": FAKE_GROUPS}
-
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            return_value=fake_mcp,
-        ), patch(
-            "src.agents.react_tools.DFKGQueryTool"
-        ) as MockTool, patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            MockTool.return_value.run.return_value = MagicMock(ok=True, data=[], observation="ok")
-
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=MagicMock()
-            )
-
-        assert attribution["confidence_basis"] == "faiss+llm"
+    def get_attack_group_profile(self, group_id):
+        return {"status": "ok", "profile": PROFILES[group_id]}
 
 
-# ---------------------------------------------------------------------------
-# Test 2: FAISS not ready — index not built, agent degrades gracefully
-# ---------------------------------------------------------------------------
+class FakeGraph:
+    def __init__(self, refs=("event-one", "event-two")):
+        self.refs = refs
+        self.queries = []
 
-class TestFaissNotReady:
-    """ThreatIntelMCPServer raises ThreatIntelIndexNotReadyError — agent must not crash."""
-
-    def test_runs_llm_without_crashing(self):
-        """Agent must complete and return valid attribution even when FAISS is unavailable."""
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            side_effect=Exception("faiss index not ready"),
-        ), patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=None
-            )
-
-        # Must still return a valid structure
-        assert "techniques" in attribution
-        assert "narrative" in attribution
-        assert isinstance(finding["summary"], str)
-
-    def test_confidence_basis_is_llm_only(self):
-        """When FAISS fails, confidence_basis must be 'llm_only'."""
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            side_effect=Exception("index not ready"),
-        ), patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=None
-            )
-
-        assert attribution["confidence_basis"] == "llm_only"
-
-    def test_dfkg_refs_empty_when_no_neo4j(self):
-        """With neo4j_driver=None and no FAISS, dfkg_refs must be []."""
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            side_effect=Exception("index not ready"),
-        ), patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=None
-            )
-
-        assert finding["dfkg_refs"] == []
+    def execute_query(self, query, **params):
+        self.queries.append((query, params))
+        assert params == {"case_id": "case-one"}
+        assert "RETURN" in query and "DELETE" not in query
+        if "HAS_EVENT" in query:
+            return [{"uid": uid} for uid in self.refs], None, None
+        return [], None, None
 
 
-# ---------------------------------------------------------------------------
-# Test 3: Neo4j down — graph query fails, agent runs with FAISS results only
-# ---------------------------------------------------------------------------
+class FakeModel:
+    model_name = "kimi-k2.6"
 
-class TestNeo4jDown:
-    """DFKGQueryTool.run() raises — agent must skip graph lookup and not crash."""
-
-    def test_runs_with_faiss_results_when_neo4j_fails(self):
-        """Agent must return FAISS-grounded attribution even when Neo4j is unavailable."""
-        fake_mcp = MagicMock()
-        fake_mcp.query_attack_techniques.return_value = {"status": "ok", "results": FAKE_TECHNIQUES}
-        fake_mcp.query_attack_groups.return_value = {"status": "ok", "results": FAKE_GROUPS}
-
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            return_value=fake_mcp,
-        ), patch(
-            "src.agents.react_tools.DFKGQueryTool",
-            side_effect=Exception("neo4j connection refused"),
-        ), patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=MagicMock()
-            )
-
-        # FAISS results should still be reflected in the output
-        assert attribution["confidence_basis"] == "faiss+llm"
-        assert isinstance(finding["summary"], str)
-
-    def test_dfkg_refs_empty_when_neo4j_fails(self):
-        """dfkg_refs must be [] when Neo4j is down (no entity UIDs to reference)."""
-        fake_mcp = MagicMock()
-        fake_mcp.query_attack_techniques.return_value = {"status": "ok", "results": FAKE_TECHNIQUES}
-        fake_mcp.query_attack_groups.return_value = {"status": "ok", "results": FAKE_GROUPS}
-
-        with patch(
-            "src.mcp.threat_intel_mcp.ThreatIntelMCPServer",
-            return_value=fake_mcp,
-        ), patch(
-            "src.agents.react_tools.DFKGQueryTool",
-            side_effect=Exception("neo4j down"),
-        ), patch(
-            "src.agents.threat_attribution_agent._call_llm",
-            return_value=FAKE_LLM_JSON,
-        ):
-            attribution, finding, trace = run_threat_attribution(
-                FAKE_STATE, neo4j_driver=MagicMock()
-            )
-
-        assert finding["dfkg_refs"] == []
+    def invoke(self, prompt):
+        class Response:
+            content = json.dumps({"explanation_codes": ["profile_similarity"]})
+        return Response()
 
 
-# ---------------------------------------------------------------------------
-# Unit tests: internal helpers
-# ---------------------------------------------------------------------------
+def test_ordered_ttp_extraction_requires_evidence_and_trusted_ids():
+    timeline = {"frozen": True, "events": [
+        {"time": "2026-10-03T00:02:00Z", "dfkg_refs": ["e2"], "attacks": ["T9999"]},
+        {"time": "2026-10-03T00:01:00Z", "dfkg_refs": ["e1"], "attacks": ["T1059.001"]},
+        {"time": "2026-10-03T00:03:00Z", "dfkg_refs": [], "attacks": ["T1021.002"]},
+    ]}
+    observed, flags = extract_observed_ttps(timeline, FakeIntel())
+    assert [item.technique_id for item in observed] == ["T1059.001"]
+    assert observed[0].evidence_uids == ["e1"]
+    assert "unsupported_technique_id" in flags
 
-class TestParseResponse:
-    """_parse_llm_response handles both valid JSON and malformed output."""
 
-    def test_parses_valid_json(self):
-        result = _parse_llm_response(FAKE_LLM_JSON)
-        assert result["techniques"][0]["id"] == "T1059.001"
-        assert result["overall_confidence"] == 0.80
+def test_unmapped_confirmed_behavior_uses_only_corpus_result():
+    class SemanticIntel(FakeIntel):
+        def query_attack_techniques(self, query_text, top_k):
+            return {"status": "ok", "results": [{
+                "record_id": "T1059.001", "score": 0.9,
+                "metadata": TECHNIQUES["T1059.001"],
+            }]}
+    timeline = {"frozen": True, "events": [{
+        "time": "2026-10-03T00:01:00Z", "dfkg_refs": ["event-one"],
+        "summary": "PowerShell execution", "attacks": [],
+    }]}
+    observed, flags = extract_observed_ttps(timeline, SemanticIntel())
+    assert [item.technique_id for item in observed] == ["T1059.001"]
+    assert observed[0].threat_intel_refs == ["T1059.001:tech-a"]
+    assert not flags
 
-    def test_handles_json_in_code_fence(self):
-        fenced = f"```json\n{FAKE_LLM_JSON}\n```"
-        result = _parse_llm_response(fenced)
-        assert result["techniques"][0]["id"] == "T1059.001"
 
-    def test_degrades_on_invalid_json(self):
-        """Malformed LLM output must not raise — returns narrative fallback."""
-        result = _parse_llm_response("Sorry, I cannot provide attribution for this case.")
-        assert result["techniques"] == []
-        assert result["overall_confidence"] == 0.0
-        assert "low_confidence_flags" in result
-        assert "narrative" in result
+def test_known_order_ranks_actor_and_ignores_model_score_edits():
+    graph = FakeGraph()
+    attribution, finding, trace = run_threat_attribution(
+        STATE, neo4j_driver=graph, threat_intel=FakeIntel(), llm_factory=lambda case_id: FakeModel())
+    assert [item["technique_id"] for item in attribution["observed_ttps"]] == ["T1059.001", "T1021.002"]
+    assert [item["actor_id"] for item in attribution["candidate_actors"]] == ["G0001", "G0002", "G0003"]
+    assert attribution["top_candidate"]["combined_score"] == 1.0
+    assert attribution["candidate_actors"][1]["combined_score"] == 0.7
+    assert "does not establish actor identity" in attribution["narrative"]
+    assert "ranking compares the cited case TTPs" in attribution["narrative"]
+    assert "G9999" not in json.dumps(attribution)
+    assert finding["attribution_detail"] == attribution
+    assert finding["dfkg_refs"] == ["event-one", "event-two"]
+    assert attribution["corpus_hash"] == "corpus-hash"
+    assert attribution["threat_intel_refs"]
+    assert trace["model_used"] == "kimi-k2.6"
+    assert trace["algorithm_version"] == "jaccard-sw-v1"
+    assert len(graph.queries) == 2
+
+
+def test_missing_corpus_never_uses_llm_only_attribution():
+    attribution, _, _ = run_threat_attribution(STATE, FakeGraph(), FakeIntel(ready=False))
+    assert attribution["candidate_actors"] == []
+    assert attribution["overall_confidence"] == 0
+    assert "corpus_unavailable" in attribution["degraded_flags"]
+
+
+def test_missing_graph_evidence_prevents_attribution():
+    attribution, finding, _ = run_threat_attribution(STATE, FakeGraph(refs=()), FakeIntel())
+    assert attribution["observed_ttps"] == []
+    assert attribution["candidate_actors"] == []
+    assert finding["dfkg_refs"] == []
+    assert "no_confirmed_dfkg_evidence" in attribution["degraded_flags"]
+
+
+def test_stale_corpus_lowers_confidence():
+    fresh, _, _ = run_threat_attribution(STATE, FakeGraph(), FakeIntel())
+    stale, _, _ = run_threat_attribution(STATE, FakeGraph(), FakeIntel(stale=True))
+    assert stale["overall_confidence"] < fresh["overall_confidence"]
+    assert "stale_corpus" in stale["degraded_flags"]
+
+
+def test_unmatched_profiles_keep_candidates_without_actor_claim():
+    class UnmatchedIntel(FakeIntel):
+        def get_attack_group_profile(self, group_id):
+            profile = PROFILES[group_id] | {"technique_ids": ["T1111"],
+                                            "technique_sequence": ["T1111"]}
+            return {"status": "ok", "profile": profile}
+    attribution, _, _ = run_threat_attribution(STATE, FakeGraph(), UnmatchedIntel())
+    assert len(attribution["candidate_actors"]) == 3
+    assert attribution["top_candidate"] is None
+    assert attribution["overall_confidence"] == 0
+    assert "no_profile_match" in attribution["degraded_flags"]
+
+
+def test_malformed_model_output_leaves_ranking_unchanged():
+    class BadModel:
+        model_name = "bad-model"
+        def invoke(self, prompt):
+            return "invalid json"
+    attribution, _, trace = run_threat_attribution(
+        STATE, FakeGraph(), FakeIntel(), llm_factory=lambda case_id: BadModel())
+    assert attribution["top_candidate"]["actor_id"] == "G0001"
+    assert "explanation_model_unavailable" in attribution["degraded_flags"]
+    assert trace["model_used"] == "unavailable"
+
+
+def test_model_narrative_cannot_introduce_unsupported_actor_id():
+    class HallucinatingModel:
+        model_name = "kimi-k2.6"
+        def invoke(self, prompt):
+            return json.dumps({"narrative": "G9999 carried out the attack."})
+    attribution, _, _ = run_threat_attribution(
+        STATE, FakeGraph(), FakeIntel(), llm_factory=lambda case_id: HallucinatingModel())
+    assert "G9999" not in attribution["narrative"]
+    assert attribution["top_candidate"]["actor_id"] == "G0001"
+    assert "explanation_model_unavailable" in attribution["degraded_flags"]
+
+
+def test_configured_kimi_backend_receives_explicit_endpoint(monkeypatch):
+    from src.agents.config import get_llm
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BACKEND", "openai_compatible")
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BASE_URL", "https://model.example/v1")
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_API_KEY", "test-key")
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_MODEL", "kimi-k2.6")
+    with patch("langchain_openai.ChatOpenAI") as model:
+        get_llm("threat_attribution", case_id="case-one")
+    assert model.call_args.kwargs["model"] == "kimi-k2.6"
+    assert model.call_args.kwargs["base_url"] == "https://model.example/v1"
+
+
+@pytest.mark.parametrize("content", [
+    {"narrative": "G0001 is confirmed as attacker with 100% confidence; score 1.0"},
+    {"narrative": "An unrelated named organization carried out the attack."},
+    {"explanation_codes": ["limited_evidence"]},
+    {"explanation_codes": ["profile_similarity"], "narrative": "Confirmed attacker"},
+    {"explanation_codes": ["profile_similarity", "profile_similarity"]},
+    {"explanation_codes": [{}]},
+])
+def test_model_cannot_add_unsupported_claims_or_explanations(content):
+    class Model:
+        def invoke(self, prompt): return json.dumps(content)
+    result, _, _ = run_threat_attribution(STATE, FakeGraph(), FakeIntel(), lambda case_id: Model())
+    assert "explanation_model_unavailable" in result["degraded_flags"]
+    assert "does not establish actor identity" in result["narrative"]
+    assert "100%" not in result["narrative"]
+
+
+@pytest.mark.parametrize("same_hash", [False, True])
+def test_corpus_refresh_rejects_mixed_generation_results(same_hash):
+    class ChangingIntel(FakeIntel):
+        calls = 0
+        def health_check(self):
+            self.calls += 1
+            return super().health_check() | {
+                "corpus_hash": "corpus-hash" if same_hash or self.calls == 1 else "new-corpus",
+                "corpus_generation": self.calls,
+            }
+    result, finding, trace = run_threat_attribution(STATE, FakeGraph(), ChangingIntel())
+    assert "corpus_changed_during_attribution" in result["degraded_flags"]
+    assert result["candidate_actors"] == []
+    assert result["overall_confidence"] == 0
+    assert result["corpus_hash"] is None
+    assert finding["threat_intel_refs"] == []
+    assert trace["candidate_scores"] == []
+
+
+def test_attribution_stub_overrides_global_gemini(monkeypatch):
+    from src.agents.config import get_llm, StubLLM
+    monkeypatch.setenv("SPECULA_LLM_BACKEND", "gemini")
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BACKEND", "stub")
+    assert isinstance(get_llm("threat_attribution"), StubLLM)
+
+
+def test_attribution_gemini_overrides_global_stub(monkeypatch):
+    from src.agents.config import get_llm
+    monkeypatch.setenv("SPECULA_LLM_BACKEND", "stub")
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BACKEND", "gemini")
+    with patch("src.agents.config._get_gemini_model", return_value="test-model"), \
+         patch("langchain_google_genai.ChatGoogleGenerativeAI") as model:
+        get_llm("threat_attribution")
+    assert model.call_args.kwargs["model"] == "test-model"
+
+
+def test_unknown_backend_is_explicit_configuration_error(monkeypatch):
+    from src.agents.config import get_llm
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BACKEND", "unknown")
+    with pytest.raises(ValueError, match="Unsupported model backend"):
+        get_llm("threat_attribution")
+
+
+def test_legacy_unverified_artifacts_cannot_support_attribution():
+    class LegacyIntel(FakeIntel):
+        def health_check(self): return super().health_check() | {"artifacts_verified": False}
+    result, _, _ = run_threat_attribution(STATE, FakeGraph(), LegacyIntel())
+    assert result["candidate_actors"] == []
+    assert "corpus_artifacts_unverified" in result["degraded_flags"]

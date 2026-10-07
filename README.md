@@ -1,6 +1,6 @@
 # Specula — Multi-Agent DFIR System (Ingestion Pipeline)
 
-Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **Qdrant**, and **FastAPI / MCP**.
+Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **ChromaDB**, and **FastAPI / MCP**.
 
 ---
 
@@ -33,7 +33,7 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
  7. Analytical Abstraction & Compression (Drain3 Log Parsing + SimHash Dedup + Shannon Entropy)
          │
          ▼
- 8. Dual Knowledge Store Ingestion (Neo4j DFKG :7687 + Qdrant Vector Index :6333)
+ 8. Dual Knowledge Store Ingestion (Neo4j DFKG :7687 + ChromaDB Evidence Vectors :8000)
 ```
 
 ---
@@ -50,7 +50,7 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
 | `src/ingestion/broker/` | Active case Redis KV cache (`active_cases_cache.py`), wire-serialized Kafka producer (`kafka_producer.py`), manual commit consumer with degraded checkpointing (`kafka_consumer.py`), and window reconciler (`reconcile_degraded_windows.py`). |
 | `src/ingestion/abstraction/` | Drain3 parametric log parser (`drain3_parser.py`), SimHash deduplicator (`simhash_dedup.py`), Shannon entropy clusterer (`entropy_clusterer.py`). |
 | `src/graph/` | Neo4j schema constraints (`schema_constraints.cypher`), APOC triggers (`apoc_triggers.cypher`), parameterized Cypher query builder (`cypher_builder.py`). |
-| `src/ingestion/indexing/` | Qdrant unstructured evidence vector indexer (`vector_indexer.py`). |
+| `src/ingestion/indexing/` | ChromaDB persistent vector store and in-memory fallback (`vector_store.py`); `vector_indexer.py` is a legacy in-memory compatibility helper and does not connect to Qdrant. |
 | `src/mcp/` | FastMCP gateways for normalization (:8100-8105) and DFKG write interface (`dfkg_cypher.py`). |
 | `src/ingestion/run_pipeline.py` | Multi-channel local extraction runner. |
 
@@ -92,8 +92,20 @@ Starts:
 - Redis (`:6379`)
 - Quickwit (`:7280`)
 - Neo4j (`:7474`, `:7687`)
-- Qdrant (`:6333`)
-- Rebuff (`:8080`)
+- ChromaDB (`:8000`)
+- Redpanda Console (`:8082`)
+- HITL API (`:8200`)
+
+### Evidence Vector Store
+ChromaDB is the persistent case-evidence vector store used by the ingestion consumer and vector-retrieval adapter. The Compose service exposes it on port 8000; the adapter uses `CHROMA_HOST` and `CHROMA_PORT` for HTTP access, or a local persistent directory when one is explicitly supplied. If ChromaDB cannot be imported or reached, `ChromaVectorStore` falls back to `InMemoryVectorStore`. That fallback is process-local and non-durable; it is suitable for tests or degraded development only. Qdrant is not part of the current Compose deployment or evidence-vector runtime. The older `vector_indexer.py` compatibility helper stores payloads in process memory.
+
+---
+
+### Model Backends
+The development dispatcher defaults to `SPECULA_LLM_BACKEND=stub`. Network forensics is deterministic; Threat Attribution defaults to deterministic scoring with a template narrative. Optional global Gemini and a dedicated attribution OpenAI-compatible endpoint are supported, but configured role model labels do not establish a production deployment. See [the complete role matrix and failure behavior](docs/model_runtime_matrix.md) and ADR-010. Production role assignments remain unconfirmed; ADR-003 records the intended future topology.
+
+### Fabric Anchoring Status
+Hyperledger Fabric anchoring is **deferred** for the current development milestone (ADR-011). The repository has event hashing and local Merkle/VCT handling, but no Fabric service, client, chaincode, or case-root anchoring integration. RSA/x509 case signing and Fabric anchoring described in ADR-004 are target capabilities, not demonstrated deployment features. This milestone does not claim Fabric-anchored evidence. A future anchoring task must define the trust model, owner, infrastructure, and executable integrity oracle.
 
 ---
 
@@ -159,7 +171,19 @@ $env:SPECULA_QUICKWIT_ENABLED = "true"
 
 This is a receiving listener: endpoint devices must be configured to forward logs to it, and the host/network firewall must permit the selected port. Device-specific parsing into detailed connection fields still depends on the vendor's syslog format; unparsed message text remains preserved in the event.
 
+### Threat Attribution Agent
+The Threat Attribution node consumes frozen, chronological, evidence-cited TTPs from Timeline Reconstruction. It validates ATT&CK IDs against the local corpus, discovers up to 20 groups with FAISS, then ranks the top three using `0.4 × Jaccard + 0.6 × Smith–Waterman`. ATT&CK group `uses` relationships have no recorded campaign order, so the corpus labels its profile sequence as canonical tactic order; the agent flags this inference and lowers confidence. It returns confidence bounds and explicit degradation flags when the graph or corpus cannot support attribution. The model supplies narrative only; calculated IDs, ranks, scores, and citations remain deterministic.
+
+Build or refresh the ATT&CK corpus after this upgrade so group records contain their `uses` relationships:
+
+```powershell
+.\venv\Scripts\python.exe scripts/build_threat_intel_index.py --no-nvd
+```
+
+The default model backend is the local stub. To use the designated Kimi model through an OpenAI-compatible endpoint, set `SPECULA_THREAT_ATTRIBUTION_BACKEND=openai_compatible`, `SPECULA_THREAT_ATTRIBUTION_BASE_URL`, `SPECULA_THREAT_ATTRIBUTION_API_KEY`, and optionally `SPECULA_THREAT_ATTRIBUTION_MODEL` (default `kimi-k2.6`). The attribution trace records the model actually invoked. No corpus or no confirmed DFKG evidence produces an unavailable attribution with zero confidence.
+
 ### Output File Locations
+
 - **Raw Extracted Logs**: `data/extracted_logs/raw_system_events.json`
 - **Validated OCSF Events**: `data/extracted_logs/ocsf_system_events.json`
 - **Quarantine / DLT Errors**: `quarantine/ingestion_errors/`, `quarantine/degraded_windows.json`

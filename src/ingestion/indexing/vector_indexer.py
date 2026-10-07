@@ -1,9 +1,10 @@
 """
-Specula Case Evidence Vector Indexer.
+Legacy in-memory case evidence vector payload helper.
 
-Indexes unstructured text evidence into vector collection for semantic search.
-Enforces separation between case evidence and threat intel corpora,
-and mandates that embeddings only run on post-Security-Gate sanitized text.
+The active persistent evidence-vector implementation is ``ChromaVectorStore``
+in ``vector_store.py``. This compatibility helper keeps payloads in a local
+process dictionary; it does not connect to Qdrant and is not durable. It also
+enforces that embeddings only run on post-Security-Gate sanitized text.
 
 Reference: specula_ingestion_final_plan.md §9.1
 """

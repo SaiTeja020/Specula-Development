@@ -30,29 +30,17 @@ const STAGES = [
   { 
     id: 5, 
     title: 'Guardrails, HITL & Final Assembly', 
-    desc: '3-tier zero-trust safety checks, Human-in-the-Loop escalation gate, and 17-section Daubert-admissible PDF generation.' 
+    desc: '3-tier zero-trust safety checks, Human-in-the-Loop escalation gate, and case report generation. Fabric anchoring and legal admissibility remain unverified.'
   }
 ];
 
 export default function InvestigationConsole() {
   const { 
-    isStarted, caseStatus, activeStage, stageLogs, hitlData, 
+    caseId, setCaseId, caseResult, isStarted, caseStatus, activeStage, stageLogs, hitlData,
     handleStart, handleHitlAction 
   } = usePipeline();
 
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [maxEvents, setMaxEvents] = useState(2000);
-  const [excludePorts, setExcludePorts] = useState('80,443,53');
-
-  const onLaunch = () => {
-    handleStart({
-      start_date: startDate,
-      end_date: endDate,
-      max_events: maxEvents,
-      exclude_ports: excludePorts
-    });
-  };
+  const onLaunch = () => handleStart({});
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem', overflowY: 'auto', paddingBottom: '2rem' }}>
@@ -70,26 +58,19 @@ export default function InvestigationConsole() {
             color: caseStatus === 'RUNNING' ? 'var(--sp-color-accent-indigo)' : 'var(--sp-color-text-secondary)'
           }}>{caseStatus}</span>
         </div>
+        <p>Case: {caseId}</p>
+        {caseResult && <section aria-live="polite" style={{ marginTop: '1rem' }}>
+          <p>{caseResult.findings?.length ?? 0} findings · {caseResult.agent_traces?.length ?? 0} execution traces</p>
+          <p>{caseResult.attribution?.summary || 'No supported attribution is available.'}</p>
+          <p>Report reference: {caseResult.final_output_ref || 'Not generated'}</p>
+        </section>}
         {!isStarted && (
           <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
-                Start Date:
-                <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
-                End Date:
-                <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
-                Max Events:
-                <input type="number" value={maxEvents} onChange={e => setMaxEvents(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '110px', fontSize: '0.85rem' }} />
-              </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.85rem', color: 'var(--sp-color-text-secondary)', fontWeight: 500 }}>
-                Exclude Ports:
-                <input type="text" value={excludePorts} onChange={e => setExcludePorts(e.target.value)} style={{ background: '#FFFFFF', border: '1px solid var(--sp-color-border-grid)', color: 'var(--sp-color-text-primary)', padding: '0.5rem 0.75rem', borderRadius: '6px', width: '150px', fontSize: '0.85rem' }} />
-              </label>
-            </div>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              Ingested case ID
+              <input value={caseId} onChange={e => setCaseId(e.target.value)} />
+            </label>
+            <p>Run analysis on evidence already ingested for this case.</p>
             <button className="primary-btn" onClick={onLaunch} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
           </div>
         )}
@@ -202,8 +183,8 @@ export default function InvestigationConsole() {
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
                         <div><strong>Confidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span></div>
-                        <div><strong>Blast Radius:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
-                        <div><strong>Tamper Check:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.tamperCheck}</span></div>
+                        <div><strong>Evidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
+                        <div><strong>Integrity:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.tamperCheck}</span></div>
                       </div>
                       <div style={{ display: 'flex', gap: '1rem' }}>
                         <button 

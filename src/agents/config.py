@@ -96,8 +96,8 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "threat_attribution": {
-        "model_id": "gemini-2.5-flash",
-        "provider": "google",
+        "model_id": "kimi-k2.6",
+        "provider": "openai_compatible",
         "system_prompt_template": (
             "You are the Threat Attribution agent for case {case_id}. "
             "ATT&CK techniques (FAISS): {retrieved_techniques}. "
@@ -174,6 +174,7 @@ AGENT_CONFIG: dict[str, dict] = {
             "You are the Proponent in the Evidentiary Adversarial Debate for case {case_id}. "
             "Present and defend the strongest hypothesis supported by DFKG evidence.\n"
             "Evidence: {evidence_summary}\n"
+            "Attribution evidence: {attribution_evidence}\n"
             "Previous critic argument: {critic_argument}"
         ),
     },
@@ -184,6 +185,7 @@ AGENT_CONFIG: dict[str, dict] = {
             "You are the Critic in the Evidentiary Adversarial Debate for case {case_id}. "
             "Challenge the proponent's hypothesis. Identify gaps and alternative explanations.\n"
             "Proponent argument: {proponent_argument}"
+            "\nAttribution evidence: {attribution_evidence}"
         ),
     },
     "judge": {
@@ -195,6 +197,7 @@ AGENT_CONFIG: dict[str, dict] = {
             "and a confidence score between 0.0 and 1.0.\n"
             "Proponent: {proponent_argument}\n"
             "Critic: {critic_argument}\n"
+            "Attribution evidence: {attribution_evidence}\n"
             "Round: {debate_round}"
         ),
     },
@@ -216,7 +219,7 @@ AGENT_CONFIG: dict[str, dict] = {
             "You are the Report Generation agent for case {case_id}. "
             "Produce a structured forensic investigation report.\n"
             "Findings: {findings_summary}\nTimeline: {timeline_summary}\n"
-            "Attribution: {attribution_summary}"
+            "Attribution: {attribution_summary}\nAttribution evidence: {attribution_evidence}"
         ),
     },
     "timeline_artifact_generation": {
@@ -345,6 +348,22 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
         without regex-extracting it back out of the formatted prompt.
     """
     backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
+
+    if agent_role == "threat_attribution":
+        backend = os.environ.get("SPECULA_THREAT_ATTRIBUTION_BACKEND", backend)
+        if backend == "openai_compatible":
+            from langchain_openai import ChatOpenAI
+            endpoint = os.environ.get("SPECULA_THREAT_ATTRIBUTION_BASE_URL")
+            key = os.environ.get("SPECULA_THREAT_ATTRIBUTION_API_KEY")
+            if not endpoint or not key:
+                raise ValueError("Threat Attribution model requires SPECULA_THREAT_ATTRIBUTION_BASE_URL and SPECULA_THREAT_ATTRIBUTION_API_KEY")
+            return ChatOpenAI(
+                model=os.environ.get("SPECULA_THREAT_ATTRIBUTION_MODEL", AGENT_CONFIG["threat_attribution"]["model_id"]),
+                base_url=endpoint, api_key=key, temperature=0,
+            )
+
+    if backend not in {"stub", "gemini"}:
+        raise ValueError(f"Unsupported model backend for {agent_role}: {backend}")
 
     if backend == "gemini":
         # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai

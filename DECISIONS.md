@@ -7,7 +7,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 ## 1. Document Purpose & Operational Rules
 
 - **Central ADR Repository:** Records all core architectural, cryptographic, model distribution, and algorithmic decisions made for Specula.
-- **Bidirectional Links:** Every ADR links directly to corresponding implementation phases and tasks in [PROGRESS.md](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md).
+- **Bidirectional Links:** Every ADR links directly to corresponding implementation phases and tasks in [PROGRESS.md](PROGRESS.md).
 - **Mandatory Agent Rule:** Any future architectural deviation, library swap, or parameter modification by the AI agent MUST first be logged as a new ADR entry in `DECISIONS.md` before updating codebase files or `PROGRESS.md`.
 
 ---
@@ -23,6 +23,11 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 | [ADR-005](#adr-005-adversarial-quality-control-via-ach-debate-loop) | 2026-08-14 | Adversarial Quality Control via ACH Debate Loop | Accepted | Phase 4 |
 | [ADR-006](#adr-006-dynamic-attack-graph-weighting-via-negative-log-transformation) | 2026-08-14 | Dynamic Attack Graph Weighting via Negative Log Transformation | Accepted | Phase 2 & Phase 3 |
 | [ADR-007](#adr-007-mcp-integration-scope) | 2026-08-14 | MCP Integration Scope | Accepted | Phase 5 |
+| [ADR-008](#adr-008-pcap-ingestion-and-binary-parsing) | Not recorded | PCAP Ingestion and Binary Parsing | Accepted | Phase 3 |
+| [ADR-009](#adr-009-evidence-vector-store-runtime) | 2026-10-06 | Evidence Vector Store Runtime | Accepted | Phase 3 |
+| [ADR-010](#adr-010-development-model-backend-and-fallbacks) | 2026-10-06 | Development Model Backend and Fallbacks | Accepted | Phase 4 |
+| [ADR-011](#adr-011-hyperledger-fabric-anchoring-status) | 2026-10-06 | Hyperledger Fabric Anchoring Status | Deferred | Phase 2 |
+| [ADR-012](#adr-012-evidence-bound-attribution-explanations-and-delivery-receipts) | 2026-10-07 | Evidence-bound Attribution Explanations and Delivery Receipts | Accepted | Phase 6 |
 
 ---
 
@@ -36,7 +41,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Rigid linear LangGraph chaining:* Inflexible execution path; unable to dynamically adapt to unexpected forensic evidence types.
   - *Unconstrained Agent Blackboard:* High risk of race conditions, infinite loops, and uncoordinated state corruption without supervisor control.
 - **Forensic & Research Consequences:** Reduces prompt token overhead by storing state in Neo4j/Kafka; maintains strict auditability of agent actions; enforces loop counters (`loop_count`) for deterministic execution.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 4 (LangGraph Blackboard Orchestration)](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-4-langgraph-orchestration-skeleton)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 4 (LangGraph Blackboard Orchestration)](PROGRESS.md#phase-4-langgraph-orchestration-skeleton)
 
 ---
 
@@ -50,12 +55,13 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Direct LLM ingestion of raw logs (GenDFIR baseline):* Exceeds context limits, cost-prohibitive, high latency.
   - *Prompt compression on raw evidence:* Distorts log structure, lacks deterministic reproducibility required in court.
 - **Forensic & Research Consequences:** Guarantees 100% evidentiary integrity in Quickwit while reducing downstream LLM prompt sizes by >90%.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 1 (Evidentiary Data Flow)](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-1-local-sandbox--data-schemas)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 1 (Evidentiary Data Flow)](PROGRESS.md#phase-1-local-sandbox--data-schemas)
 
 ---
 
 ### ADR-003: Model Distribution & Deployment Topology
 - **Status:** Accepted
+- **Implementation status (2026-10-06):** Target role-specific topology; not a verified production matrix. Current dispatcher behavior and deployment unknowns are documented in ADR-010 and [the runtime role matrix](docs/model_runtime_matrix.md).
 - **Context & Problem Statement:** DFIR tasks vary significantly in reasoning complexity. Using a single monolithic model for all tasks is inefficient and costly. Conversely, using low-parameter local quantizations for orchestrating complex forensic graphs causes reasoning breakdowns.
 - **Decision & Tech Choice:** Deploy a heterogeneous model topology across cloud and vLLM endpoints:
   - *Supervisor & Judge:* Nemotron-3 Ultra (High reasoning, debate evaluation, HITL gating).
@@ -67,12 +73,13 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Monolithic single-LLM architecture:* High cost, unnecessary compute wasted on simple tasks, single point of failure.
   - *Local quantizations for orchestration:* Higher error rate in structured JSON outputs and graph schema compliance.
 - **Forensic & Research Consequences:** Optimizes latency, cost, and accuracy by matching task complexity with specialized LLM capacities.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 4 & Phase 5](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-4-langgraph-orchestration-skeleton)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 4 & Phase 5](PROGRESS.md#phase-4-langgraph-orchestration-skeleton)
 
 ---
 
 ### ADR-004: Three-Tier Cryptographic Provenance Architecture (VCT)
 - **Status:** Accepted
+- **Implementation status (2026-10-06):** Local hashing/Merkle handling is implemented. Case-root RSA/x509 signing and Hyperledger Fabric anchoring are target capabilities; Fabric is explicitly deferred for this milestone under ADR-011.
 - **Context & Problem Statement:** Digital forensic evidence must satisfy the Daubert standard for legal admissibility in court, proving no tampering occurred post-collection across millions of incoming events.
 - **Decision & Tech Choice:** Implement a three-tier Verifiable Credential & Telemetry (VCT) provenance architecture:
   1. *Atomic SHA-256 Hash Chains:* Generated per event upon ingestion.
@@ -82,7 +89,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Unsigned plain text log storage:* Fails legal admissibility standards; vulnerable to silent corruption or alteration.
   - *Simple RDBMS audit log tables:* Database administrators can alter database logs directly without cryptographic trace.
 - **Forensic & Research Consequences:** Complete cryptographic integrity proof satisfies legal Daubert standards; tamper-evident verification.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 1 & Phase 2](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-2-forensic-preservation--vct-layer)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 1 & Phase 2](PROGRESS.md#phase-2-forensic-preservation--vct-layer)
 
 ---
 
@@ -98,7 +105,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Open-ended multi-turn LLM debates:* High risk of infinite loops and context exhaustion.
   - *Unconstrained single-pass generation:* High hallucination rate and unverified assumptions.
 - **Forensic & Research Consequences:** Enforces empirical evidence anchoring; prevents unbacked LLM assertions from reaching final reports.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 4 (StateGraph & ACH Nodes)](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-4-langgraph-orchestration-skeleton)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 4 (StateGraph & ACH Nodes)](PROGRESS.md#phase-4-langgraph-orchestration-skeleton)
 
 ---
 
@@ -112,7 +119,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Standard additive metric routing:* Fails to represent multiplicative probabilities of multi-step exploits.
   - *Static CVSS threshold filtering:* Ignores real-world threat intelligence (EPSS) and temporal exploit likelihood.
 - **Forensic & Research Consequences:** Mathematically sound attack path calculation directly inside graph databases.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 2 & Phase 3](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-3-graph-streaming-ingestion--vector-retrieval)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 2 & Phase 3](PROGRESS.md#phase-3-graph-streaming-ingestion--vector-retrieval)
 
 ---
 
@@ -123,7 +130,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 - **Alternatives Considered & Rejected:**
   - *Mandating MCP as strict prerequisite for core algorithms:* Creates architectural bloat, increases debugging complexity, hinders isolated unit testing.
 - **Forensic & Research Consequences:** Clear separation of concerns; fast execution; modular testing without external server overhead.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 5 (MCP & Skill Development)](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-5-visualization-layer)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 5 (MCP & Skill Development)](PROGRESS.md#phase-5-visualization-layer)
 
 ---
 
@@ -139,4 +146,37 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
   - *Direct text parsing of PCAPs:* Impossible due to binary format, leads to data corruption.
   - *Storing parsed JSON instead of raw PCAP:* Destroys chain of custody; raw evidence must be preserved before parsing.
 - **Forensic & Research Consequences:** Ensures legal admissibility of network captures while providing safe, standardized OCSF telemetry for the Network Forensics Agent.
-- **Link to Progress.md:** [PROGRESS.md -> Phase 3](file:///c:/Users/S%20Srirama%20Mithilesh/Specula/Specula-Development/PROGRESS.md#phase-3-graph-streaming-ingestion--vector-retrieval)
+- **Link to Progress.md:** [PROGRESS.md -> Phase 3](PROGRESS.md#phase-3-graph-streaming-ingestion--vector-retrieval)
+
+### ADR-009: Evidence Vector Store Runtime
+- **Status:** Accepted
+- **Date:** 2026-10-06
+- **Context:** Repository documentation described Qdrant, while the active ingestion runner, vector retrieval adapter, visualizer, requirements, and Compose stack use ChromaDB. An in-memory adapter is also available for tests and degraded local operation.
+- **Decision:** ChromaDB is the persistent vector store for case evidence in the current development deployment. The `ChromaVectorStore` adapter may fall back to `InMemoryVectorStore` when ChromaDB is missing or unreachable; this fallback is process-local and is not durable. Qdrant is not part of the current deployment contract. The older `vector_indexer.py` helper remains a separate in-memory compatibility helper and does not establish a Qdrant service dependency.
+- **Consequences:** Documentation, task records, and deployment examples must identify ChromaDB as persistent storage and InMemory as a non-durable fallback/test adapter. Qdrant references must be explicitly labeled legacy or removed when that helper is retired.
+- **Link to Progress.md:** [PROGRESS.md -> Phase 6 (Operational Readiness)](PROGRESS.md)
+
+### ADR-012: Evidence-bound Attribution Explanations and Delivery Receipts
+- **Status:** Accepted
+- **Date:** 2026-10-07
+- **Context:** Independent review found that free-form model explanations can contradict deterministic scores, corpus refreshes can mix provenance, and Kafka queue acceptance does not establish delivery.
+- **Decision:** Render attribution facts from validated deterministic results. Models may select only predefined explanation codes supported by those results; no model prose enters findings. Reject attribution computed across a detected corpus generation change. Record Kafka publication as pending, acknowledged, failed or unavailable, with non-blocking delivery callbacks; pending is explicitly unconfirmed and late outcomes are logged rather than mutating returned graph state.
+- **Consequences:** Development remains non-blocking on Kafka. Confirmed delivery and downstream ingestion require separate live verification. Threat Attribution backend overrides apply to every supported selector, and unknown selectors fail explicitly.
+- **Corpus build contract:** New manifests bind hashes of the FAISS, ID-map and metadata artifacts. Loaders deserialize the verified bytes and retain the prior snapshot if a generation is incomplete. Legacy manifests can be queried for compatibility, but cannot support case attribution until rebuilt with artifact hashes.
+- **Link to Progress.md:** [PROGRESS.md](PROGRESS.md)
+
+### ADR-010: Development Model Backend and Fallbacks
+- **Status:** Accepted
+- **Date:** 2026-10-06
+- **Context:** ADR-003 describes a role-specific hosted model topology, while the checked-in runtime configuration defaults to deterministic stubs. No deployment environment or production credentials were available for inspection.
+- **Decision:** The checked-in development default is `SPECULA_LLM_BACKEND=stub`, which returns `StubLLM` for roles unless overridden. The optional global `gemini` backend currently resolves a Gemini Flash model and applies it to roles routed through `get_llm`; it does not implement ADR-003's role-specific production matrix. Threat Attribution can independently use an OpenAI-compatible endpoint when `SPECULA_THREAT_ATTRIBUTION_BACKEND=openai_compatible` and its endpoint/key are configured; its model defaults to `kimi-k2.6`. Production role assignments are unconfirmed and must be supplied by deployment owners before a production claim.
+- **Consequences:** README and config documentation must distinguish the development default and optional integrations from ADR-003's proposed production topology. Tests and traces should record the backend actually invoked. No secrets or credential values are recorded in this ADR.
+- **Link to Progress.md:** [PROGRESS.md -> Phase 6 (Operational Readiness)](PROGRESS.md)
+
+### ADR-011: Hyperledger Fabric Anchoring Status
+- **Status:** Deferred
+- **Date:** 2026-10-06
+- **Context:** ADR-004 describes signing a case Merkle root and anchoring it to Hyperledger Fabric, but this repository contains no Fabric service, client, chaincode, or anchoring integration in the current Compose stack.
+- **Decision:** Fabric anchoring is deferred beyond the current development milestone. Current VCT scope is local event hashing and Merkle-chain handling; it must not be represented as Fabric-anchored or production legal anchoring. Reconsider Fabric only with an approved trust model, deployment owner, integration criteria, and verification environment.
+- **Consequences:** ADR-004 remains the target architecture for a future phase; implementation status is explicitly deferred. No Fabric deployment will be attempted as part of local documentation reconciliation.
+- **Link to Progress.md:** [PROGRESS.md -> Phase 6 (Operational Readiness)](PROGRESS.md)

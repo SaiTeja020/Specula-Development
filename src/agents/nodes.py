@@ -9,6 +9,7 @@ Node types:
 from __future__ import annotations
 
 import re
+import json
 import time
 from datetime import datetime, timezone
 from typing import Literal
@@ -44,6 +45,17 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
         "findings_summary": _summarise_findings(state),
         "timeline_summary": str(state.get("timeline", {}).get("summary", ""))[:300],
         "attribution_summary": str(state.get("attribution", {}).get("summary", ""))[:300],
+        "attribution_evidence": json.dumps({
+            "candidate_actors": [{
+                "actor_id": actor.get("actor_id"),
+                "combined_score": actor.get("combined_score"),
+                "matched_techniques": actor.get("matched_techniques", []),
+            } for actor in state.get("attribution", {}).get("candidate_actors", [])],
+            "dfkg_refs": state.get("attribution", {}).get("dfkg_refs", []),
+            "threat_intel_refs": state.get("attribution", {}).get("threat_intel_refs", []),
+            "confidence_bounds": [state.get("attribution", {}).get("confidence_lower", 0),
+                                  state.get("attribution", {}).get("confidence_upper", 0)],
+        }, default=str),
         "proponent_argument": str(state.get("proponent_argument", ""))[:300],
         "critic_argument": str(state.get("critic_argument", ""))[:300],
         "debate_round": str(state.get("debate_round", 1)),
@@ -65,7 +77,8 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     finding = {
         "agent_role": role,
         "summary": content,
-        "dfkg_refs": [],
+        "dfkg_refs": list(state.get("attribution", {}).get("dfkg_refs", [])) if role in {"proponent", "critic", "judge", "report_generation"} else [],
+        "threat_intel_refs": list(state.get("attribution", {}).get("threat_intel_refs", [])) if role in {"proponent", "critic", "judge", "report_generation"} else [],
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "kafka_offset": None,
     }
@@ -127,44 +140,30 @@ def _summarise_output(state: dict) -> str:
 # --- 5. Timeline Reconstruction ---
 def timeline_reconstruction_node(state: dict) -> dict:
     finding, trace = _run_agent("timeline_reconstruction", state)
+    events = []
+    for prior in state.get("findings", []):
+        if not prior.get("dfkg_refs"):
+            continue
+        source_time = prior.get("event_time")
+        if source_time is None and prior.get("agent_role") == "log_analysis":
+            source_time = prior.get("timestamp")  # log_analysis timestamps come from OCSF event.time
+        try:
+            event_time = datetime.fromisoformat(str(source_time).replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            continue
+        if event_time.tzinfo is None:
+            event_time = event_time.replace(tzinfo=timezone.utc)
+        events.append({
+            "time": event_time.astimezone(timezone.utc).isoformat(),
+            "attacks": list(prior.get("attacks") or []), "dfkg_refs": list(prior["dfkg_refs"]),
+            "summary": prior.get("summary", ""),
+        })
+    events.sort(key=lambda item: item["time"])
     return {
         "case_status": "synthesis",
-        "timeline": {"summary": finding["summary"], "dfkg_refs": finding["dfkg_refs"]},
-        "findings": [finding],
-        "agent_traces": [trace],
-    }
-
-
-# --- 6. Threat Attribution ---
-def threat_attribution_node(state: dict) -> dict:
-    """
-    Grounded threat attribution: queries FAISS (ATT&CK techniques + groups) and
-    Neo4j (case graph entities) BEFORE calling the LLM, so the model reasons
-    over real retrieved data rather than training-weight hallucinations.
-
-    Degradation: if FAISS index is not ready or Neo4j is unavailable, the agent
-    falls back gracefully — it still runs the LLM with whatever data is available.
-    """
-    try:
-        from src.agents.threat_attribution_agent import run_threat_attribution
-
-        # neo4j_driver is not threaded through SpeculaState — pass None here so
-        # the graph-entity lookup degrades gracefully until driver injection is
-        # wired in build_graph() (same pattern as evidence_collection_node factory).
-        attribution, finding, trace = run_threat_attribution(state, neo4j_driver=None)
-
-    except Exception as exc:
-        # Hard fallback: if the new agent crashes for any reason, revert to the
-        # generic stub so the graph does not halt.
-        import logging
-        logging.getLogger(__name__).error(
-            "threat_attribution_node: real agent raised %s — falling back to stub.", exc
-        )
-        finding, trace = _run_agent("threat_attribution", state)
-        attribution = {"summary": finding["summary"], "dfkg_refs": finding["dfkg_refs"]}
-
-    return {
-        "attribution": attribution,
+        "timeline": {"summary": finding["summary"], "dfkg_refs": sorted({
+            uid for event in events for uid in event["dfkg_refs"]
+        }), "events": events, "frozen": True},
         "findings": [finding],
         "agent_traces": [trace],
     }

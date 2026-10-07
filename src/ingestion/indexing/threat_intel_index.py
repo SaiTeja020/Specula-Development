@@ -69,8 +69,11 @@ class ThreatIntelIndex:
         self._id_map: Dict[int, str] = {}      # faiss int id -> record_id string
         self._metadata: Dict[str, dict] = {}   # record_id -> metadata dict
         self._manifest_hash: Optional[str] = None
+        self._generation = 0
+        self._artifacts_verified = False
         self._corpus_size: int = 0
         self._build_timestamp: Optional[str] = None
+        self._source_versions: Dict[str, str] = {}
 
         self._load()
 
@@ -149,43 +152,39 @@ class ThreatIntelIndex:
             vec = gen.embed(query_text)
             query_vec = np.array([vec], dtype="float32")
 
-            # Over-fetch when filtering by record_type to avoid short results
-            fetch_k = top_k * 3 if record_type else top_k
+            # CVEs can vastly outnumber ATT&CK groups in the shared index.
+            # Expand the FAISS search until the requested type has enough hits.
+            total = self._faiss_index.ntotal
+            fetch_k = min(total, top_k * 3 if record_type else top_k)
 
             eff_nprobe = nprobe if nprobe is not None else self.default_nprobe
             if hasattr(self._faiss_index, "nprobe"):
                 self._faiss_index.nprobe = eff_nprobe
 
-            distances, indices = self._faiss_index.search(query_vec, fetch_k)
-
-            results: List[Dict[str, Any]] = []
-            for dist, idx in zip(distances[0], indices[0]):
-                if idx < 0:
-                    # FAISS returns -1 for empty slots
-                    continue
-                record_id = self._id_map.get(int(idx))
-                if record_id is None:
-                    continue
-                meta = self._metadata.get(record_id, {})
-
-                # Post-search filter by record_type
-                if record_type and meta.get("record_type") != record_type:
-                    continue
-
-                results.append(
-                    {
+            while fetch_k:
+                distances, indices = self._faiss_index.search(query_vec, fetch_k)
+                results: List[Dict[str, Any]] = []
+                for dist, idx in zip(distances[0], indices[0]):
+                    if idx < 0:
+                        continue
+                    record_id = self._id_map.get(int(idx))
+                    if record_id is None:
+                        continue
+                    meta = self._metadata.get(record_id, {})
+                    if record_type and meta.get("record_type") != record_type:
+                        continue
+                    results.append({
                         "record_id": record_id,
                         "record_type": meta.get("record_type"),
                         "title": meta.get("title", ""),
-                        "score": float(dist),
-                        "metadata": meta,
-                    }
-                )
-
-                if len(results) >= top_k:
-                    break
-
-            return results
+                        "score": float(dist), "metadata": meta,
+                    })
+                    if len(results) >= top_k:
+                        return results
+                if not record_type or fetch_k >= total:
+                    return results
+                fetch_k = min(total, fetch_k * 2)
+            return []
 
     @property
     def corpus_size(self) -> int:
@@ -198,6 +197,29 @@ class ThreatIntelIndex:
         """ISO-8601 UTC timestamp of the last successful corpus build."""
         with self._lock:
             return self._build_timestamp
+
+    def get_record_metadata(self, record_id: str) -> Optional[dict]:
+        """Return a stable-ID profile from the loaded corpus without a vector search."""
+        with self._lock:
+            record = self._metadata.get(record_id)
+            return dict(record) if record is not None else None
+
+    @property
+    def corpus_hash(self) -> Optional[str]:
+        with self._lock:
+            return self._manifest_hash
+
+    @property
+    def provenance(self) -> dict:
+        """Read hash and reload generation atomically, including A/B/A refreshes."""
+        with self._lock:
+            return {"corpus_hash": self._manifest_hash, "corpus_generation": self._generation,
+                    "artifacts_verified": self._artifacts_verified}
+
+    @property
+    def source_versions(self) -> Dict[str, str]:
+        with self._lock:
+            return dict(self._source_versions)
 
     def is_ready(self) -> bool:
         """Return True if a corpus has been successfully loaded."""
@@ -229,9 +251,30 @@ class ThreatIntelIndex:
             )
             return
 
+        # Deserialize the exact bytes verified against one manifest. Rebuilding
+        # replaces files individually, so disk reads alone are not a snapshot.
+        try:
+            with open(manifest_path, "rb") as source:
+                manifest_bytes = source.read()
+            manifest = json.loads(manifest_bytes)
+            artifacts = {}
+            for path in (index_path, id_map_path, metadata_path):
+                with open(path, "rb") as source:
+                    artifacts[os.path.basename(path)] = source.read()
+            expected = manifest.get("artifact_hashes")
+            if expected is not None and any(
+                    expected.get(name) != hashlib.sha256(data).hexdigest()
+                    for name, data in artifacts.items()):
+                logger.warning("ThreatIntelIndex: incomplete or modified artifact generation; retaining current snapshot")
+                return
+        except Exception as exc:
+            logger.error("ThreatIntelIndex: artifact snapshot unavailable: %s", exc)
+            return
+
         try:
             import faiss
-            new_index = faiss.read_index(index_path)
+            import numpy as np
+            new_index = faiss.deserialize_index(np.frombuffer(artifacts[_FAISS_INDEX_FILE], dtype="uint8").copy())
         except ImportError as exc:
             raise RuntimeError(
                 "faiss-cpu is not installed. "
@@ -242,26 +285,16 @@ class ThreatIntelIndex:
             return
 
         try:
-            with open(id_map_path, "r", encoding="utf-8") as f:
-                # Keys are stored as strings in JSON; convert back to int
-                raw_id_map = json.load(f)
+            raw_id_map = json.loads(artifacts[_ID_MAP_FILE])
             new_id_map = {int(k): v for k, v in raw_id_map.items()}
         except Exception as exc:
             logger.error("ThreatIntelIndex: failed to load id_map: %s", exc)
             return
 
         try:
-            with open(metadata_path, "r", encoding="utf-8") as f:
-                new_metadata = json.load(f)
+            new_metadata = json.loads(artifacts[_METADATA_FILE])
         except Exception as exc:
             logger.error("ThreatIntelIndex: failed to load metadata_store: %s", exc)
-            return
-
-        try:
-            with open(manifest_path, "r", encoding="utf-8") as f:
-                manifest = json.load(f)
-        except Exception as exc:
-            logger.error("ThreatIntelIndex: failed to load build_manifest: %s", exc)
             return
 
         # Atomic swap under lock
@@ -269,9 +302,12 @@ class ThreatIntelIndex:
             self._faiss_index = new_index
             self._id_map = new_id_map
             self._metadata = new_metadata
-            self._manifest_hash = self._file_hash(manifest_path)
+            self._manifest_hash = hashlib.sha256(manifest_bytes).hexdigest()
+            self._generation += 1
+            self._artifacts_verified = expected is not None
             self._corpus_size = new_index.ntotal
             self._build_timestamp = manifest.get("build_timestamp")
+            self._source_versions = manifest.get("source_versions", {})
 
         logger.info(
             "ThreatIntelIndex loaded: %d vectors, build_timestamp=%s",

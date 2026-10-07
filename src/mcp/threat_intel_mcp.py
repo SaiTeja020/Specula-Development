@@ -134,6 +134,22 @@ class ThreatIntelMCPServer:
             tool_name="query_cves",
         )
 
+    def get_attack_group_profile(self, group_id: str) -> Dict[str, Any]:
+        """Load the complete ATT&CK group profile by its stable group ID."""
+        self._index.reload_if_stale()
+        metadata = self._index.get_record_metadata(group_id)
+        if not metadata or metadata.get("record_type") != "attack_group":
+            return {"status": "not_found", "profile": None}
+        return {"status": "ok", "profile": metadata}
+
+    def get_attack_technique(self, technique_id: str) -> Dict[str, Any]:
+        """Validate an observed ATT&CK ID against this corpus version."""
+        self._index.reload_if_stale()
+        metadata = self._index.get_record_metadata(technique_id)
+        if not metadata or metadata.get("record_type") != "attack_technique":
+            return {"status": "not_found", "record": None}
+        return {"status": "ok", "record": metadata}
+
     def health_check(self) -> Dict[str, Any]:
         """
         Tool: health_check
@@ -184,6 +200,8 @@ class ThreatIntelMCPServer:
             "is_stale": is_stale,
             "staleness_threshold_secs": self._staleness_threshold,
             "reloaded_on_this_call": reloaded,
+            **self._index.provenance,
+            "source_versions": self._index.source_versions,
         }
 
     # ------------------------------------------------------------------

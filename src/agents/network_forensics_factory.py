@@ -91,6 +91,15 @@ def make_network_forensics_node(neo4j_driver: Any, kafka_producer: Any):
             result = run_network_forensics_analysis(agent_state, deps)
             partial_batches += result["status"] != "complete"
             for anomaly in result["anomalies_detected"]:
+                evidence_times = []
+                for evidence_uid in anomaly["dfkg_refs"]:
+                    value = events_by_uid.get(evidence_uid, {}).get("time")
+                    if value:
+                        try:
+                            moment = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+                            evidence_times.append(moment.replace(tzinfo=timezone.utc) if moment.tzinfo is None else moment.astimezone(timezone.utc))
+                        except ValueError:
+                            pass
                 findings.append({
                     "agent_role": "network_forensics", "case_id": case_id,
                     "trace_id": trace_id, "canonical_host_id": host,
@@ -99,6 +108,7 @@ def make_network_forensics_node(neo4j_driver: Any, kafka_producer: Any):
                     "severity_id": anomaly["severity_id"],
                     "attacks": [anomaly["technique"]],
                     "dfkg_refs": anomaly["dfkg_refs"],
+                    "event_time": min(evidence_times).isoformat() if evidence_times else None,
                     "bytes_out": anomaly.get("bytes_out", 0),
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                     "kafka_offset": None,

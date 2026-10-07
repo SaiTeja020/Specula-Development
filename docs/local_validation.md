@@ -1,0 +1,52 @@
+# Local Docker verification — 2026-10-07
+
+## Verified scope
+
+The development investigation oracle passed twice after corrections. It uses four synthetic Zeek network records, actual Docker services, an actual fixture FAISS index, deterministic/stub model execution, an in-process LangGraph checkpoint, HTTP analyst approval and actual dashboard WebSocket events. No service availability skips or infrastructure mocks count as a pass.
+
+Acceptance assertions cover original bytes and SHA-256 search round-trip in Quickwit; VCT chain verification; schema-registry serialization and four Kafka offsets; Neo4j case/event membership; Redis checkpoint round-trip; four persistent Chroma records; cited network findings and attribution; paused HITL snapshot; HTTP approval; a closed case with report citations; final WebSocket result and HTTP snapshot.
+
+The harness composes existing ingestion, deserialization and graph-write functions. It does not prove unattended background-daemon recovery, hosted model quality, real MITRE feed quality, GCP ingestion, authenticated browser workflows or restart-safe HITL persistence. The fixture profile is labeled `local-validation-fixture`, not a validated actor identity.
+
+## Repeatable commands
+
+Run from the repository root in PowerShell:
+
+```powershell
+docker compose up -d kafka schema-registry redis quickwit neo4j chromadb redpanda-console
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --no-build hitl-api visualizer-api
+.\venv\Scripts\python.exe scripts/check_environment.py
+.\venv\Scripts\python.exe scripts/validate_progress.py
+.\venv\Scripts\pytest.exe -m integration tests/integration/test_case_investigation_e2e.py -q -p no:cacheprovider --basetemp=.pytest-tmp-case-run
+$env:SPECULA_LLM_BACKEND='stub'
+$env:SPECULA_THREAT_ATTRIBUTION_BACKEND='stub'
+.\venv\Scripts\pytest.exe tests/agents tests/ingestion tests/test_skeleton_graph.py tests/test_visualizer_api.py tests/test_visualizer_api_db.py tests/test_visualizer_ws.py -m 'not live_infra and not integration' -q -p no:cacheprovider --basetemp=.pytest-tmp-unit-run
+```
+
+Use a fresh temporary directory name for overlapping test runs. The verification fixture intentionally retains labeled validation evidence, graph nodes, Chroma records and Kafka topics; it never deletes unrelated data. Latest machine evidence is `data/verification/local_case_latest.json`.
+
+Frontend commands (installed dependencies already present):
+
+```powershell
+Set-Location visualization
+npm run build
+.\node_modules\.bin\vite.cmd --host=127.0.0.1 --port=5173
+```
+
+API: `http://localhost:8300`; frontend: `http://localhost:5173`. Select an ingested case ID in Live Investigation. Existing checkpoints restore review/results within the same running visualizer process. Supabase authentication remains required for protected frontend routes. No browser login was performed by the test oracle.
+
+## Deployment limits
+
+The local override reuses the existing `specula-skeleton-hitl-api` image and mounts current source read-only. No image was rebuilt and no packages were installed. Visualizer health returned HTTP 200; real Redis, Kafka, Quickwit, Neo4j and Chroma readiness probes passed. The separate gateway on port 8200 has its own checkpoint and does not share visualizer investigations: use the visualizer's `/api/investigations/{case_id}/review` endpoint for these cases.
+
+The visualizer checkpoint is in memory and is lost on process restart. Backend APIs currently have no production authentication/authorization layer. Compose backing services are development services. Quickwit is an evidence index; retention/immutability enforcement and Fabric anchoring are not demonstrated. These are production gates, not production claims.
+
+## External checks
+
+```powershell
+.\venv\Scripts\python.exe scripts/check_external_services.py gcp
+.\venv\Scripts\python.exe scripts/check_external_services.py gemini
+.\venv\Scripts\python.exe scripts/check_external_services.py attribution
+```
+
+The scripts write sanitized evidence under `data/verification`. GCP project ID is present, but default credentials were unavailable. A Gemini key is configured; the host-network probe returned HTTP 429 (provider quota unavailable). Attribution endpoint/key are absent. Credential contents and provider responses are never printed.

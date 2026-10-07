@@ -32,6 +32,7 @@ Reference: faiss_threat_intel_implementation_plan.md §4
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -113,6 +114,12 @@ def _embed_records(
             source=record.source,
             source_version=record.source_version,
             tags=record.tags if record.tags else None,
+            technique_ids=record.technique_ids,
+            technique_sequence=record.technique_sequence,
+            sequence_basis=record.sequence_basis,
+            source_hash=record.source_hash,
+            retrieved_at=record.retrieved_at,
+            feed_provider=record.feed_provider,
         )
         metadata_dicts.append(meta.to_dict())
 
@@ -254,7 +261,11 @@ def _write_artifacts_atomic(
     _atomic_write_json(metadata_store, _METADATA_FILE)
     logger.info("  [OK] %s", _METADATA_FILE)
 
-    _atomic_write_json(build_meta, _MANIFEST_FILE)
+    artifact_hashes = {}
+    for name in (_FAISS_INDEX_FILE, _ID_MAP_FILE, _METADATA_FILE):
+        with open(os.path.join(output_dir, name), "rb") as artifact:
+            artifact_hashes[name] = hashlib.sha256(artifact.read()).hexdigest()
+    _atomic_write_json({**build_meta, "artifact_hashes": artifact_hashes}, _MANIFEST_FILE)
     logger.info("  [OK] %s", _MANIFEST_FILE)
 
 
