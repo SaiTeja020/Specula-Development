@@ -5,6 +5,7 @@ exercise real stores and graph execution; hosted models are not claimed here.
 """
 import hashlib
 import json
+import os
 from pathlib import Path
 import socket
 import threading
@@ -17,7 +18,7 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
-def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monkeypatch):
+def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monkeypatch, api_auth):
     import chromadb
     import faiss
     import numpy as np
@@ -44,8 +45,10 @@ def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monk
     from src.ingestion.validation.schema_registry_client import OCSF_BASE_JSON_SCHEMA
     from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
 
-    monkeypatch.setenv("SPECULA_LLM_BACKEND", "stub")
-    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BACKEND", "stub")
+    backend = os.environ.get("SPECULA_VALIDATION_BACKEND", "stub")
+    assert backend in {"stub", "ollama"}, "Only offline/local validation is authorized"
+    monkeypatch.setenv("SPECULA_LLM_BACKEND", backend)
+    monkeypatch.setenv("SPECULA_THREAT_ATTRIBUTION_BACKEND", backend)
     run_id = uuid.uuid4().hex
     case_id = "VALIDATION-" + run_id
     topic = "specula.validation." + run_id
@@ -147,13 +150,21 @@ def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monk
         while not server.started and time.monotonic() < deadline: time.sleep(0.05)
         assert server.started
         base = f"http://127.0.0.1:{port}"
-        with connect(f"ws://127.0.0.1:{port}/api/graph/stream", open_timeout=5) as websocket:
+        # Long local inference can emit more than the client's default 16 frames
+        # while this thread waits for HTTP. Keep receiving protocol pongs.
+        with connect(f"ws://127.0.0.1:{port}/api/graph/stream", open_timeout=5, max_queue=None,
+                     additional_headers=api_auth) as websocket:
+            assert json.loads(websocket.recv(timeout=5))["type"] == "authenticated"
             websocket.send("ping")
             assert websocket.recv(timeout=5) == "pong"
             response = requests.post(base + "/api/investigations", json={"case_id": case_id,
-                "raw_input": "Investigate periodic network egress. FORCE_GUARDRAIL3_FAIL"}, timeout=45)
+                "raw_input": "Investigate periodic network egress. FORCE_GUARDRAIL3_FAIL"}, timeout=600, headers=api_auth)
             assert response.status_code == 200, response.text
             paused = response.json()
+            destination = Path("data/verification")
+            destination.mkdir(parents=True, exist_ok=True)
+            (destination / "full_run_paused_latest.json").write_text(json.dumps({
+                "backend": backend, "snapshot": paused}, indent=2), encoding="utf-8")
             assert "hitl" in paused["paused_at"]
             assert paused["attribution"]["top_candidate"] is not None
             assert set(paused["attribution"]["dfkg_refs"]) == set(event_uids)
@@ -164,9 +175,20 @@ def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monk
                 if event["type"] == "hitl_required": break
             assert any(event["payload"].get("node") == "threat_attribution" for event in streamed)
             reviewed = requests.post(base + f"/api/investigations/{case_id}/review",
-                                     json={"decision": "approve"}, timeout=30)
+                                     json={"decision": "approve"}, timeout=600, headers=api_auth)
             assert reviewed.status_code == 200, reviewed.text
             completed = reviewed.json()
+            approvals = 1
+            # Real debate may exhaust before guardrails. Approval can then
+            # reach a second, distinct guardrail review; do not assume one gate.
+            while "hitl" in completed["paused_at"] and approvals < 3:
+                reviewed = requests.post(base + f"/api/investigations/{case_id}/review",
+                                         json={"decision": "approve"}, timeout=600, headers=api_auth)
+                assert reviewed.status_code == 200, reviewed.text
+                completed = reviewed.json()
+                approvals += 1
+            (destination / "full_run_reviewed_latest.json").write_text(json.dumps({
+                "backend": backend, "approvals": approvals, "snapshot": completed}, indent=2), encoding="utf-8")
             assert completed["case_status"] == "closed" and not completed["paused_at"]
             assert any(f["agent_role"] == "report_generation" and set(f["dfkg_refs"]) == set(event_uids)
                        for f in completed["findings"])
@@ -175,7 +197,11 @@ def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monk
                 if event["type"] == "run_complete":
                     assert event["payload"]["case_id"] == case_id
                     break
-        assert requests.get(base + f"/api/investigations/{case_id}", timeout=5).json()["case_status"] == "closed"
+        assert requests.get(base + f"/api/investigations/{case_id}", timeout=5, headers=api_auth).json()["case_status"] == "closed"
+        assert completed["evidence_collection"]["status"] == "complete"
+        assert set(completed["report_metadata"]["dfkg_refs"]) == set(event_uids)
+        assert completed["report_output"].endswith("END OF SPECULA REPORT")
+        assert completed["timeline_artifact"].endswith("END OF SPECULA TIMELINE")
         assert finding_producer.flush(10) == 0
         deadline = time.monotonic() + 40
         preserved = {}
@@ -188,7 +214,13 @@ def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monk
                     preserved[digest] = record["sha256"]
             if len(preserved) < len(originals): time.sleep(0.5)
         assert len(preserved) == 4, "Preservation must be searchable and hash-verifiable"
-        result = {"case_id": case_id, "backend": "stub", "corpus": "local-validation-fixture",
+        if backend == "ollama":
+            assert any(trace.get("model_used") == os.environ.get("SPECULA_OLLAMA_MODEL", "qwen3:8b")
+                       for trace in completed["agent_traces"]), "No actual Ollama model trace"
+        result = {"case_id": case_id, "backend": backend, "corpus": "local-validation-fixture",
+                  "agent_traces": completed["agent_traces"],
+                  "findings": completed["findings"],
+                  "analyst_approvals": approvals,
                   "kafka_topic": topic, "kafka_offsets": offsets, "preserved_hashes": preserved,
                   "event_uids": event_uids, "case_status": completed["case_status"],
                   "http_review": "approved", "websocket_result": "run_complete",
@@ -196,6 +228,8 @@ def test_preserved_network_case_through_http_review_and_dashboard(tmp_path, monk
         destination = Path("data/verification")
         destination.mkdir(parents=True, exist_ok=True)
         (destination / "local_case_latest.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+        issues = [trace for trace in completed["agent_traces"] if trace.get("terminal") is False]
+        assert not issues, "One or more workers returned incomplete execution; see saved agent traces"
     finally:
         server.should_exit = True
         thread.join(timeout=10)

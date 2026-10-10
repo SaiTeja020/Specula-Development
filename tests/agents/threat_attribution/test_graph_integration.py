@@ -8,7 +8,10 @@ from tests.agents.test_threat_attribution_agent import FakeGraph, FakeIntel, Fak
 
 def test_full_graph_carries_scored_attribution_and_citations(monkeypatch):
     monkeypatch.setenv("SPECULA_LLM_BACKEND", "stub")
-    monkeypatch.setattr(graph_module, "make_evidence_collection_node", lambda *args: lambda state: {})
+    monkeypatch.setattr(graph_module, "make_evidence_collection_node", lambda *args: lambda state: {
+        "evidence_collection": {"case_id": "case-one", "status": "complete", "records": [
+            {"uid": "event-one", "time": "2026-10-03T00:01:00Z"},
+            {"uid": "event-two", "time": "2026-10-03T00:02:00Z"}], "degraded_flags": []}})
     monkeypatch.setattr(graph_module, "make_log_analysis_node", lambda *args: lambda state: {})
     monkeypatch.setattr(graph_module, "make_network_forensics_node", lambda *args: lambda state: {})
 

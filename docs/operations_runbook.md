@@ -1,5 +1,7 @@
 # Specula operational runbook — local Docker milestone
 
+Current local behavior and open work are summarized in [project status](PROJECT_STATUS.md). The checkpoint and backend access controls below were verified on 2026-10-07; production ownership and whole-system recovery remain open.
+
 ## Ownership and acceptance policy
 
 Production service owner, security owner, backup operator and escalation contact are **unassigned**. Record named owners before production deployment. The local development operator starts and checks the existing stack using [local_validation.md](local_validation.md).
@@ -10,7 +12,7 @@ The readiness suite measures actual Redis throughput and restores four preserved
 
 1. Start Docker Desktop.
 2. Run the backing-service and local override commands in local_validation.md. Reuse images with `--no-build` until a human performs dependency installation/builds.
-3. Check `http://localhost:8300/health` and `/api/system/readiness`.
+3. Check `http://localhost:8300/health` anonymously; query `/api/system/readiness` with an authenticated session.
 4. Start the installed Vite executable. Protected frontend routes use existing Supabase authentication.
 5. Select an ingested case; run analysis; review the actual checkpoint when HITL requests an analyst decision.
 
@@ -20,7 +22,7 @@ The dashboard startup checks services; it never tears down containers or deletes
 
 - Stop the frontend process with Ctrl+C.
 - Stop individual services with `docker compose -f docker-compose.yml -f docker-compose.local.yml stop visualizer-api hitl-api` when planned. Preserve existing containers and evidence.
-- After restarting the visualizer, rerun the existing ingested case ID: its in-memory checkpoint is gone, while its Neo4j evidence remains. The API uses case ID as checkpoint thread ID; an invented case ID will fail evidence lookup unless a new Case and its evidence relationships are explicitly created. Pending analyst approvals do not survive restart in this configuration. Persistent checkpoint deployment is an open production gate.
+- The two API containers share the `specula-checkpoints` Docker named volume. Restart the APIs without removing that volume, then fetch the same case ID. Paused HITL state survived both an engine shutdown and a deliberate API restart in the local oracle. If a dependency stopped during execution, restore it and use the authorized case retry endpoint; a normal HITL pause still uses the review endpoint. See [local remediation](local_remediation.md) for commands. Full multi-store recovery remains a production gate.
 - If preservation fails, ingestion must stop; investigate Quickwit, then retry the preserved source. Never invent a successful preservation result.
 - Kafka `pending` receipts establish queueing only. Check broker acknowledgements/consumption, offsets and dead-letter records before claiming delivery. Attribution callback failures are logged; returned checkpoint state is not retroactively mutated.
 - If a corpus refresh is incomplete, the loader retains its last verified snapshot. Rebuild legacy corpora with artifact hashes before using them for case attribution.
@@ -33,8 +35,8 @@ A production backup still needs a coordinated, owner-approved procedure for Quic
 
 ## Security and release gates
 
-Current development APIs lack production authentication/authorization. The graph-data gate deliberately fails on HTTP 200 without credentials. Add server-side identity, case authorization and approved audit controls before exposure beyond the local development environment. Restrict development service ports and define a production deployment topology. Supabase frontend login alone does not secure backend endpoints.
+Current development APIs verify identity and case ownership or membership before protected HTTP/WebSocket access. Local negative checks returned 401 anonymously and 403 for another case. A real signed-in Supabase browser workflow, audit ownership, approved deployment exposure and production security review remain open. The local synthetic credential is restricted to its fixture case.
 
-Model endpoints need successful bounded live probes and appropriate quota. GCP requires authorized credentials, real audit-log extraction, preservation and downstream ingestion evidence. Credentials belong in configured secret locations, never tracker/docs/archives. Fabric anchoring remains deferred under ADR-011.
+Local Ollama inference passed. GCP audit ingestion remains deferred under the user's no-billable-services constraint; do not run legacy hosted/GCP probes. Credentials belong in configured secret locations, never tracker/docs/archives. Fabric anchoring remains deferred under ADR-011.
 
 Run the production gate command and record every failure. A successful development case, microbenchmark or raw-record restore cannot establish production readiness.

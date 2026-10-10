@@ -1,4 +1,8 @@
-# Readiness results — 2026-10-07
+4# Readiness results — 2026-10-07
+
+## Current interpretation of earlier gates
+
+The table below records the **earlier** production gate run before the October 7 repairs. After that run, a local Ollama case collected all four events, generated complete cited report/timeline artifacts, enforced backend case access and survived a restart. [Project status](PROJECT_STATUS.md) and [local remediation](local_remediation.md) are the current interpretation. The deployed corpus, delivery receipts, browser workflow, owners, thresholds and whole-system restore remain open. Hosted/GCP checks are excluded under the current user instruction.
 
 ## Completed development work
 
@@ -24,7 +28,7 @@ Result: **2 passed, 3 failed, 1 deselected**. Deployed store readiness and API/W
 
 Authenticated browser workflow was not exercised. Frontend authentication alone does not protect backend APIs.
 
-## Production gates
+## Historical production gates (before local remediation)
 
 Command: `pytest -m production_readiness tests/production_readiness -q`
 
@@ -39,6 +43,6 @@ Result: **2 passed, 4 failed**.
 | Persistence | Actual paused graph did not survive fresh process initialization; restart/resume gate fails |
 | Operations | Owner and approved RPO/RTO are unset; gate fails |
 
-Raw-record restore and Redis microbenchmark are narrow baselines. Coordinated multi-store recovery and end-to-end throughput remain unverified. Phase 7 backlog covers authorization/exposure, persistent checkpoints, whole-system restore and authenticated browser validation. TASK-6.7 and TASK-6.8 remain blocked and retain both WIP slots; they are not marked passing.
+Raw-record restore and Redis microbenchmark are narrow baselines. Local authorization and checkpoint restart defects were later repaired and verified; the table above remains an execution record, not the current behavior. Coordinated multi-store recovery and end-to-end throughput remain unverified. Phase 7 keeps the broader production exposure, restore and authenticated browser criteria. TASK-6.7 and TASK-6.8 remain blocked and retain both WIP slots.
 
 See [operations_runbook.md](operations_runbook.md), [local_validation.md](local_validation.md), and [implementation_review.md](implementation_review.md). Sanitized machine evidence is stored under `data/verification` and is excluded from version control along with runtime data.

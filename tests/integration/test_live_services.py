@@ -6,12 +6,13 @@ import sys
 
 import pytest
 import requests
+from tests.api_auth_helpers import local_verification_headers
 
 pytestmark = pytest.mark.live_infra
 
 
 def test_deployed_backing_services_are_ready():
-    response = requests.get("http://localhost:8300/api/system/readiness", timeout=30)
+    response = requests.get("http://localhost:8300/api/system/readiness", timeout=30, headers=local_verification_headers())
     response.raise_for_status()
     result = response.json()
     assert result["status"] == "success"
@@ -22,10 +23,12 @@ def test_deployed_backing_services_are_ready():
 
 def test_deployed_api_websocket_and_frontend_assets():
     from websockets.sync.client import connect
-    topology = requests.get("http://localhost:8300/api/graph/topology", timeout=20)
+    topology = requests.get("http://localhost:8300/api/graph/topology", timeout=20, headers=local_verification_headers())
     topology.raise_for_status()
     assert len(topology.json()["nodes"]) >= 23
-    with connect("ws://localhost:8300/api/graph/stream", open_timeout=5) as socket:
+    with connect("ws://localhost:8300/api/graph/stream", open_timeout=5,
+                 additional_headers=local_verification_headers()) as socket:
+        assert json.loads(socket.recv(timeout=5))["type"] == "authenticated"
         socket.send("ping")
         assert socket.recv(timeout=5) == "pong"
     frontend = requests.get("http://127.0.0.1:5173", timeout=5)

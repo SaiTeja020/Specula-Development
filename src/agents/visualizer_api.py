@@ -14,10 +14,11 @@ import os
 import subprocess
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
+from .api_auth import install_http_auth, authenticate_websocket, authorize, refresh_principal
 
 load_dotenv()  # Load local configuration before readiness or cached drivers.
 
@@ -54,9 +55,9 @@ def _get_specula_graph():
     global _specula_graph
     if _specula_graph is None:
         try:
-            from langgraph.checkpoint.memory import InMemorySaver
+            from .checkpointer import build_persistent_checkpointer
             from .graph import build_graph
-            checkpointer = InMemorySaver()
+            checkpointer = build_persistent_checkpointer()
             from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
             from redis import Redis
             _specula_graph = build_graph(checkpointer=checkpointer, neo4j_driver=_get_neo4j_driver(),
@@ -71,11 +72,12 @@ def _get_specula_graph():
 # FastAPI app — lightweight, starts without numpy
 # ---------------------------------------------------------------------------
 app = FastAPI(title="Specula Visualizer API", version="1.0.0")
+install_http_auth(app)
 
 # Allow CORS for the Vite frontend (usually runs on port 5173)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000", "*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -83,6 +85,7 @@ app.add_middleware(
 
 # Global set of active websocket connections
 active_connections: set[WebSocket] = set()
+connection_authorizations = {}
 
 @app.get("/health")
 async def health_check() -> dict[str, str]:
@@ -129,17 +132,36 @@ async def get_topology() -> dict[str, Any]:
 @app.websocket("/api/graph/stream")
 async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint to stream real-time graph events."""
-    await websocket.accept()
+    identity = await authenticate_websocket(websocket, _get_neo4j_driver())
+    if identity is None:
+        return
+    principal, selected_case = identity
+    connection_authorizations[websocket] = identity
     active_connections.add(websocket)
     log.info(f"WebSocket client connected. Total clients: {len(active_connections)}")
     try:
         while True:
             # Keep connection alive, wait for client messages if any
-            data = await websocket.receive_text()
+            import time
+            remaining = principal.expires_at - time.time()
+            if remaining <= 0:
+                await websocket.close(code=1008)
+                break
+            data = await asyncio.wait_for(websocket.receive_text(), timeout=remaining)
             if data == "ping":
+                principal = await asyncio.to_thread(refresh_principal, principal)
+                await asyncio.to_thread(authorize, principal, selected_case, driver=_get_neo4j_driver())
+                connection_authorizations[websocket] = (principal, selected_case)
                 await websocket.send_text("pong")
     except WebSocketDisconnect:
+        pass
+    except asyncio.TimeoutError:
+        await websocket.close(code=1008)
+    except HTTPException:
+        await websocket.close(code=1008)
+    finally:
         active_connections.discard(websocket)
+        connection_authorizations.pop(websocket, None)
         log.info(f"WebSocket client disconnected. Total clients: {len(active_connections)}")
 
 
@@ -153,13 +175,27 @@ async def broadcast_event(event_type: str, payload: dict):
     
     for connection in list(active_connections):
         try:
+            identity = connection_authorizations.get(connection)
+            if identity is None:
+                continue
+            principal, selected_case = identity
+            principal = await asyncio.to_thread(refresh_principal, principal)
+            connection_authorizations[connection] = (principal, selected_case)
+            case_id = payload.get("case_id")
+            await asyncio.to_thread(authorize, principal, case_id, administrator=not bool(case_id),
+                                    driver=_get_neo4j_driver())
+            if selected_case is not None and selected_case != case_id:
+                continue
             await asyncio.wait_for(connection.send_text(message), timeout=1)
+        except HTTPException:
+            continue
         except Exception:
             stale_connections.add(connection)
             
     # Clean up dead connections
     for connection in stale_connections:
         active_connections.discard(connection)
+        connection_authorizations.pop(connection, None)
 
 
 # ---------------------------------------------------------------------------
@@ -189,7 +225,7 @@ register_investigation_routes(app, _get_specula_graph, _get_neo4j_driver, broadc
 # Data-store proxy endpoints
 # ---------------------------------------------------------------------------
 @app.get("/api/data/neo4j")
-async def get_neo4j_data():
+async def get_neo4j_data(request: Request):
     """Proxy endpoint to fetch Neo4j graph data for the visualizer."""
     driver = _get_neo4j_driver()
     if driver is None:
@@ -197,8 +233,16 @@ async def get_neo4j_data():
     try:
         nodes_dict = {}
         edges_list = []
+        principal = request.state.principal
         with driver.session() as session:
-            result = session.run("MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100")
+            if principal.role == "admin" and "*" in principal.cases:
+                result = session.run("MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100")
+            else:
+                result = session.run(
+                    "MATCH (n:Case)-[r:HAS_EVENT]->(m:Event) "
+                    "WHERE n.owner_user_id = $subject OR $subject IN coalesce(n.member_user_ids, []) "
+                    "OR n.uid IN $cases RETURN n, r, m LIMIT 100",
+                    subject=principal.subject, cases=list(principal.cases))
             for record in result:
                 n = record["n"]
                 m = record["m"]

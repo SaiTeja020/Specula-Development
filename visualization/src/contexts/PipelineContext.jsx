@@ -1,4 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
+import { useAuth } from './AuthContext';
+import { apiFetch } from '../lib/api';
 
 const PipelineContext = createContext();
 
@@ -19,8 +21,12 @@ const mapNodeToStage = (nodeId) => {
 };
 
 export function PipelineProvider({ children }) {
+  const { session } = useAuth();
+  const accessToken = session?.access_token;
   const [caseId, setCaseId] = useState(new URLSearchParams(window.location.search).get('case') || 'CASE-2026-0915-ALPHA');
   const socketRef = useRef(null);
+  const connectionRef = useRef(null);
+  const generationRef = useRef(0);
   const [isStarted, setIsStarted] = useState(false);
   const [caseStatus, setCaseStatus] = useState('IDLE');
   
@@ -32,14 +38,19 @@ export function PipelineProvider({ children }) {
   const applySnapshot = (snapshot) => {
     setCaseResult(snapshot);
     setIsStarted(true);
-    if (snapshot.paused_at?.includes('hitl')) {
+    if (snapshot.failed_nodes?.length) {
+      setCaseStatus('PAUSED AFTER ERROR');
+      setIsStarted(false);
+      setHitlData(null);
+    } else if (snapshot.paused_at?.includes('hitl')) {
       setCaseStatus('AWAITING REVIEW');
       setActiveStage(5);
       setHitlData({ confidence: snapshot.attribution?.overall_confidence ?? 0,
         blastRadius: `${snapshot.attribution?.dfkg_refs?.length ?? 0} cited events`,
         tamperCheck: 'Integrity review required; Fabric deferred' });
     } else if (snapshot.case_status === 'closed') {
-      setCaseStatus('COMPLETED'); setActiveStage(6); setHitlData(null);
+      setCaseStatus(snapshot.acceptance_status === 'incomplete' ? 'CLOSED WITH LIMITATIONS' : 'COMPLETED');
+      setActiveStage(6); setHitlData(null);
     } else {
       setCaseStatus('RUNNING');
     }
@@ -54,93 +65,150 @@ export function PipelineProvider({ children }) {
 
   useEffect(() => {
     let cancelled = false;
+    let reconnectTimer;
+    let handshakeTimer;
+    let currentSocket;
+    const generation = ++generationRef.current;
+    const current = () => !cancelled && generationRef.current === generation;
     setCaseResult(null); setHitlData(null); setIsStarted(false);
     setCaseStatus('IDLE'); setActiveStage(-1);
     setStageLogs({ 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] });
-    const ws = new WebSocket('ws://localhost:8300/api/graph/stream');
-    socketRef.current = ws;
-    ws.onopen = async () => {
-      try {
-        const res = await fetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}`);
-        if (res.ok) {
-          const snapshot = await res.json();
-          if (cancelled || snapshot.case_id !== caseId) return;
-          applySnapshot(snapshot);
-          snapshot.agent_traces?.forEach(trace => {
-            const stage = mapNodeToStage(trace.agent_role);
-            if (stage >= 0) appendLog(stage, `[SAVED] ${trace.observation || trace.action || trace.agent_role}`);
-          });
+    if (!accessToken) {
+      connectionRef.current = null;
+      socketRef.current = null;
+      return () => { cancelled = true; };
+    }
+
+    const connect = () => {
+      if (!current()) return;
+      const ws = new WebSocket('ws://localhost:8300/api/graph/stream');
+      currentSocket = ws;
+      socketRef.current = ws;
+      let resolveReady, rejectReady;
+      let authenticated = false;
+      const ready = new Promise((resolve, reject) => {
+        resolveReady = resolve; rejectReady = reject;
+      });
+      // A connection may be idle without a run waiting for its handshake.
+      ready.catch(() => {});
+      connectionRef.current = { ws, ready, generation };
+      handshakeTimer = setTimeout(() => {
+        rejectReady(new Error('Live update authentication timed out'));
+        ws.close();
+      }, 10000);
+      ws.onopen = () => {
+        if (!current()) { ws.close(); return; }
+        ws.send(JSON.stringify({ type: 'authenticate', token: accessToken, case_id: caseId }));
+      };
+      ws.onmessage = async (event) => {
+        if (!current()) return;
+        let data;
+        try { data = JSON.parse(event.data); } catch { return; }
+        const { type } = data;
+        const payload = data.payload || {};
+        if (type === 'authenticated') {
+          authenticated = true;
+          clearTimeout(handshakeTimer);
+          resolveReady();
+          try {
+            const res = await apiFetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}`);
+            if (!res.ok) return;
+            const snapshot = await res.json();
+            if (!current() || snapshot.case_id !== caseId) return;
+            applySnapshot(snapshot);
+            snapshot.agent_traces?.forEach(trace => {
+              const stage = mapNodeToStage(trace.agent_role);
+              if (stage >= 0) appendLog(stage, `[SAVED] ${trace.observation || trace.action || trace.agent_role}`);
+            });
+          } catch { if (current()) appendLog(5, '[SNAPSHOT ERROR] Unable to retrieve investigation'); }
+          return;
         }
-      } catch (e) { if (!cancelled) appendLog(5, `[SNAPSHOT ERROR] ${e.message}`); }
+        if (!authenticated || (payload.case_id && payload.case_id !== caseId)) return;
+        if (type === 'pipeline_started') {
+          setActiveStage(0);
+          appendLog(0, `[INGEST] Pipeline initialized for ${payload.case_id}`);
+        } else if (type === 'node_active') {
+          const stageIndex = mapNodeToStage(payload.node);
+          if (stageIndex >= 0) {
+            setActiveStage(stageIndex);
+            appendLog(stageIndex, `[NODE ACTIVE] ${payload.node.toUpperCase()} :: ${payload.data?.status || 'Processing'}`);
+          }
+        } else if (type === 'node_complete') {
+          const stageIndex = mapNodeToStage(payload.node);
+          if (stageIndex >= 0) appendLog(stageIndex, `[NODE FINISHED] ${payload.node.toUpperCase()}`);
+          if (payload.node === 'hitl') setHitlData(null);
+        } else if (type === 'hitl_required') {
+          setCaseResult(payload);
+          setCaseStatus('AWAITING REVIEW');
+          setHitlData({ confidence: payload.attribution?.overall_confidence ?? 0,
+            blastRadius: `${payload.attribution?.dfkg_refs?.length ?? 0} cited events`,
+            tamperCheck: 'Integrity review required; Fabric deferred' });
+        } else if (type === 'run_complete') {
+          setCaseResult(payload); setHitlData(null);
+          setCaseStatus(payload.acceptance_status === 'incomplete' ? 'CLOSED WITH LIMITATIONS' : 'COMPLETED');
+          setActiveStage(6);
+          appendLog(5, `[SYSTEM] Run ended: Case ${payload.case_id}`);
+        }
+      };
+      ws.onerror = () => rejectReady(new Error('Live update connection failed'));
+      ws.onclose = (event) => {
+        clearTimeout(handshakeTimer);
+        rejectReady(new Error('Live update connection closed'));
+        if (!current()) return;
+        if ([1008, 4401, 4403].includes(event.code)) {
+          appendLog(5, '[AUTH] Live update access denied; sign in again or select an owned case');
+          return;
+        }
+        reconnectTimer = setTimeout(connect, 2000);
+      };
     };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const { type, payload } = data;
-      if (payload.case_id && payload.case_id !== caseId) return;
-
-      if (type === 'pipeline_started') {
-        setActiveStage(0);
-        appendLog(0, `[INGEST] Pipeline initialized for ${payload.case_id}`);
-      } else if (type === 'node_active') {
-        const stageIndex = mapNodeToStage(payload.node);
-        if (stageIndex >= 0) {
-          setActiveStage(stageIndex);
-          appendLog(stageIndex, `[NODE ACTIVE] ${payload.node.toUpperCase()} :: ${payload.data?.status || 'Processing'}`);
-        }
-
-      } else if (type === 'node_complete') {
-        const stageIndex = mapNodeToStage(payload.node);
-        if (stageIndex >= 0) {
-          appendLog(stageIndex, `[OK] ${payload.node.toUpperCase()} completed successfully.`);
-        }
-        if (payload.node === 'hitl') setHitlData(null);
-
-      } else if (type === 'hitl_required') {
-        setCaseResult(payload);
-        setCaseStatus('AWAITING REVIEW');
-        setHitlData({
-          confidence: payload.attribution?.overall_confidence ?? 0,
-          blastRadius: `${payload.attribution?.dfkg_refs?.length ?? 0} cited events`,
-          tamperCheck: 'Integrity review required; Fabric deferred'
-        });
-      } else if (type === 'run_complete') {
-        setCaseResult(payload);
-        setHitlData(null);
-        setCaseStatus('COMPLETED');
-        setActiveStage(6); // Moves beyond the last stage
-        appendLog(5, `[SYSTEM] Run Completed: Case ${payload.case_id}`);
-      }
+    connect();
+    return () => {
+      cancelled = true;
+      clearTimeout(reconnectTimer); clearTimeout(handshakeTimer);
+      currentSocket?.close();
+      socketRef.current = null; connectionRef.current = null;
     };
-
-    return () => { cancelled = true; ws.close(); socketRef.current = null; };
-  }, [caseId]);
+  }, [caseId, accessToken]);
 
   const handleStart = async (config) => {
+    const generation = generationRef.current;
+    if (!accessToken) { alert('Sign in to run an investigation'); return; }
     setIsStarted(true);
     setCaseStatus('RUNNING');
     setActiveStage(0);
     setStageLogs({ 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] });
     try {
-      const ws = socketRef.current;
-      if (!ws || ws.readyState > WebSocket.OPEN) throw new Error('Live update connection unavailable');
-      if (ws.readyState !== WebSocket.OPEN) await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('Live update connection timed out')), 5000);
-        ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
-        ws.addEventListener('error', () => { clearTimeout(timer); reject(new Error('Live update connection failed')); }, { once: true });
-      });
-      const res = await fetch('http://localhost:8300/api/trigger_pipeline', {
+      const connection = connectionRef.current;
+      if (!connection || connection.ws.readyState > WebSocket.OPEN) throw new Error('Live update connection unavailable');
+      await connection.ready;
+      if (generationRef.current !== generation) return;
+      const retry = caseResult?.case_id === caseId && caseResult.failed_nodes?.length;
+      const endpoint = retry
+        ? `http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}/retry`
+        : 'http://localhost:8300/api/trigger_pipeline';
+      const res = await apiFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          case_id: caseId,
-          ...config
+          ...config,
+          case_id: caseId
         })
       });
       
       const data = await res.json();
+      if (generationRef.current !== generation || (data.case_id && data.case_id !== caseId)) return;
       if (res.ok) applySnapshot(data);
       if (!res.ok || data.status === 'error') {
+        const saved = await apiFetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}`);
+        if (saved.ok && generationRef.current === generation) {
+          const checkpoint = await saved.json();
+          if (checkpoint.case_id === caseId && checkpoint.failed_nodes?.length) {
+            applySnapshot(checkpoint);
+            appendLog(5, '[SYSTEM] Checkpoint retained. Restore dependencies, then start to retry.');
+            return;
+          }
+        }
         setIsStarted(false);
         setCaseStatus('IDLE');
         setActiveStage(-1);
@@ -154,7 +222,7 @@ export function PipelineProvider({ children }) {
         }
       }
     } catch (e) {
-      console.error("Failed to trigger pipeline", e);
+      if (generationRef.current !== generation) return;
       setIsStarted(false);
       setCaseStatus('IDLE');
       setActiveStage(-1);
@@ -163,17 +231,20 @@ export function PipelineProvider({ children }) {
   };
 
   const handleHitlAction = async (action) => {
+    const generation = generationRef.current;
     try {
-      const res = await fetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}/review`, {
+      const res = await apiFetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}/review`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision: action === 'clarification' ? 'clarify' : action })
       });
       const data = await res.json();
+      if (generationRef.current !== generation || (data.case_id && data.case_id !== caseId)) return;
       if (!res.ok) throw new Error(data.detail || 'Analyst decision failed');
       applySnapshot(data);
       appendLog(5, `[HITL] Analyst decision accepted: ${action.toUpperCase()}`);
       if (!data.paused_at?.length) setHitlData(null);
     } catch (e) {
+      if (generationRef.current !== generation) return;
       appendLog(5, `[HITL ERROR] ${e.message}`);
     }
   };

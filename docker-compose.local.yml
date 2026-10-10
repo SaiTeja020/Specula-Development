@@ -2,12 +2,24 @@
 # Start with --no-build; dependency installation remains a human operation.
 services:
   hitl-api:
+    env_file:
+      - ./data/private/backend.env
     volumes:
       - ./src:/app/src:ro
+      - ./data:/app/data:ro
+      - specula-checkpoints:/app/checkpoints
+      - ./data/private:/app/private:ro
     environment:
-      SPECULA_LLM_BACKEND: stub
-      SPECULA_THREAT_ATTRIBUTION_BACKEND: stub
+      SPECULA_AUTH_POLICY_PATH: /app/private/auth_policy.json
+      SPECULA_CHECKPOINT_BACKEND: sqlite
+      SPECULA_CHECKPOINT_PATH: /app/checkpoints/specula.sqlite3
+      SPECULA_LLM_BACKEND: ollama
+      SPECULA_THREAT_ATTRIBUTION_BACKEND: ollama
+      SPECULA_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      SPECULA_OLLAMA_MODEL: qwen3:8b
   visualizer-api:
+    env_file:
+      - ./data/private/backend.env
     image: specula-skeleton-hitl-api
     command: ["python", "-m", "uvicorn", "src.agents.visualizer_api:app", "--host", "0.0.0.0", "--port", "8300"]
     ports:
@@ -15,9 +27,16 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./data:/app/data:ro
+      - specula-checkpoints:/app/checkpoints
+      - ./data/private:/app/private:ro
     environment:
-      SPECULA_LLM_BACKEND: stub
-      SPECULA_THREAT_ATTRIBUTION_BACKEND: stub
+      SPECULA_AUTH_POLICY_PATH: /app/private/auth_policy.json
+      SPECULA_CHECKPOINT_BACKEND: sqlite
+      SPECULA_CHECKPOINT_PATH: /app/checkpoints/specula.sqlite3
+      SPECULA_LLM_BACKEND: ollama
+      SPECULA_THREAT_ATTRIBUTION_BACKEND: ollama
+      SPECULA_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      SPECULA_OLLAMA_MODEL: qwen3:8b
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       NEO4J_URI: bolt://neo4j:7687
       REDIS_HOST: redis
@@ -31,3 +50,6 @@ services:
       - redis
       - quickwit
       - chromadb
+
+volumes:
+  specula-checkpoints:

@@ -5,14 +5,16 @@ from src.agents.visualizer_api import app, broadcast_event
 
 client = TestClient(app)
 
-def test_websocket_stream_connect_and_ping():
-    with client.websocket_connect("/api/graph/stream") as websocket:
+def test_websocket_stream_connect_and_ping(api_auth):
+    with client.websocket_connect("/api/graph/stream", headers=api_auth) as websocket:
+        assert websocket.receive_json()["type"] == "authenticated"
         websocket.send_text("ping")
         data = websocket.receive_text()
         assert data == "pong"
 
-def test_broadcast_reaches_connected_websocket():
-    with TestClient(app) as active_client, active_client.websocket_connect("/api/graph/stream") as websocket:
+def test_broadcast_reaches_connected_websocket(api_auth):
+    with TestClient(app) as active_client, active_client.websocket_connect("/api/graph/stream", headers=api_auth) as websocket:
+        assert websocket.receive_json()["type"] == "authenticated"
         websocket.send_text("ping")
         assert websocket.receive_text() == "pong"
         active_client.portal.call(broadcast_event, "node_active", {

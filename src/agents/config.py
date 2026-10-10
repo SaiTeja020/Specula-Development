@@ -340,6 +340,7 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
 
     Backends:
       stub   — deterministic, no API key (default)
+      ollama — installed local model, no hosted fallback
       gemini — langchain_google_genai.ChatGoogleGenerativeAI
 
     Environment is loaded once at module import via _load_env() — no repeated
@@ -361,6 +362,13 @@ def get_llm(agent_role: str, case_id: str = "unknown"):
                 model=os.environ.get("SPECULA_THREAT_ATTRIBUTION_MODEL", AGENT_CONFIG["threat_attribution"]["model_id"]),
                 base_url=endpoint, api_key=key, temperature=0,
             )
+
+    if backend == "ollama":
+        from .ollama_backend import OllamaLLM
+        return OllamaLLM(model=os.environ.get("SPECULA_OLLAMA_MODEL", "qwen3:8b"),
+                         base_url=os.environ.get("SPECULA_OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+                         timeout=float(os.environ.get("SPECULA_OLLAMA_TIMEOUT", "120")),
+                         explanation_codes_only=agent_role == "threat_attribution")
 
     if backend not in {"stub", "gemini"}:
         raise ValueError(f"Unsupported model backend for {agent_role}: {backend}")

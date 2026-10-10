@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiFetch } from '../lib/api';
 import { Database, Search, Activity, Box, Maximize2, X } from 'lucide-react';
 
 export default function DatabaseVisualizers() {
@@ -15,10 +16,10 @@ export default function DatabaseVisualizers() {
     const fetchData = async () => {
       try {
         const [qw, ch, dd, fa] = await Promise.all([
-          fetch('http://localhost:8300/api/data/quickwit').then(r => r.json()),
-          fetch('http://localhost:8300/api/data/chroma').then(r => r.json()),
-          fetch('http://localhost:8300/api/data/duckdb').then(r => r.json()),
-          fetch('http://localhost:8300/api/data/faiss').then(r => r.json())
+          apiFetch('http://localhost:8300/api/data/quickwit').then(r => r.json()),
+          apiFetch('http://localhost:8300/api/data/chroma').then(r => r.json()),
+          apiFetch('http://localhost:8300/api/data/duckdb').then(r => r.json()),
+          apiFetch('http://localhost:8300/api/data/faiss').then(r => r.json())
         ]);
         
         setData({

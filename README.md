@@ -2,7 +2,15 @@
 
 Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **ChromaDB**, and **FastAPI / MCP**.
 
+**Start here:** [Project status](docs/PROJECT_STATUS.md) lists verified local work, remaining work and readiness limits. [Documentation map](docs/README.md) distinguishes current operational guides from historical plans. The four split ZIPs and two Word summaries in the repository root are older deliverables; use the source tree for current changes.
+
 ---
+
+## Current local testing configuration (verified 2026-10-07)
+
+The local Docker override selects **Ollama `qwen3:8b`** for model calls, including Threat Attribution. Gemini and hosted attribution endpoints are not selected. No billable GCP services are authorized for this validation; gcloud checks are limited to local authentication/configuration. Follow [local model testing](docs/local_model_testing.md) for current commands; its restrictions supersede older external-service probe instructions below.
+
+The evidence, report, access-control and restart fixes passed focused tests and a deployed synthetic case. Overall case acceptance remains incomplete because the deployed threat-intelligence corpus and attribution delivery receipts are missing. Follow [local remediation](docs/local_remediation.md) for the current authenticated Docker setup; the general installation steps below are architectural context.
 
 ## 1. Architecture Overview
 
@@ -83,8 +91,10 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
    The Threat Attribution Agent degrades gracefully if the index is not built.
 
 ### Start Backing Services (Docker)
+
+This starts the infrastructure only. For the current authenticated API deployment, follow [local remediation](docs/local_remediation.md); its validation credential setup expects a retained synthetic fixture case.
 ```powershell
-docker-compose up -d
+docker compose up -d kafka schema-registry redis quickwit neo4j chromadb redpanda-console
 ```
 Starts:
 - Kafka (`:9092`)
@@ -94,7 +104,8 @@ Starts:
 - Neo4j (`:7474`, `:7687`)
 - ChromaDB (`:8000`)
 - Redpanda Console (`:8082`)
-- HITL API (`:8200`)
+
+The HITL API (`:8200`) and visualizer (`:8300`) are started separately with the local Compose override and its ignored authentication configuration.
 
 ### Evidence Vector Store
 ChromaDB is the persistent case-evidence vector store used by the ingestion consumer and vector-retrieval adapter. The Compose service exposes it on port 8000; the adapter uses `CHROMA_HOST` and `CHROMA_PORT` for HTTP access, or a local persistent directory when one is explicitly supplied. If ChromaDB cannot be imported or reached, `ChromaVectorStore` falls back to `InMemoryVectorStore`. That fallback is process-local and non-durable; it is suitable for tests or degraded development only. Qdrant is not part of the current Compose deployment or evidence-vector runtime. The older `vector_indexer.py` compatibility helper stores payloads in process memory.
@@ -190,7 +201,7 @@ The default model backend is the local stub. To use the designated Kimi model th
 
 ### Run Evaluation Tests
 ```powershell
-python scratch/test_ingestion_components.py
+See [local validation](docs/local_validation.md) for current executable checks.
 ```
 
 ---

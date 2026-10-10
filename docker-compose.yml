@@ -107,7 +107,7 @@ services:
       dockerfile: Dockerfile.hitl
     container_name: specula-hitl-api
     ports:
-      - "8200:8200"
+      - "127.0.0.1:8200:8200"
     depends_on:
       - kafka
       - neo4j

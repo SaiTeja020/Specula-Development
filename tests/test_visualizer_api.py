@@ -12,8 +12,8 @@ def test_health_check():
     assert "access-control-allow-origin" in response.headers
     assert response.headers["access-control-allow-origin"] in ["*", "http://localhost:5173"]
 
-def test_get_topology():
-    response = client.get("/api/graph/topology")
+def test_get_topology(api_auth):
+    response = client.get("/api/graph/topology", headers=api_auth)
     assert response.status_code == 200
     data = response.json()
     assert "nodes" in data

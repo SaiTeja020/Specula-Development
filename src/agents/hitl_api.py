@@ -12,15 +12,25 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
+from .api_auth import install_http_auth, authorize
 
 log = logging.getLogger(__name__)
 
 app = FastAPI(title="Specula HITL Gateway", version="0.1.0")
+install_http_auth(app)
 
 # Graph instance set by the caller before starting uvicorn
 _graph = None
+
+
+def get_graph():
+    global _graph
+    if _graph is None:
+        from .visualizer_api import _get_specula_graph
+        _graph = _get_specula_graph()
+    return _graph
 
 
 class HITLDecision(BaseModel):
@@ -34,18 +44,23 @@ def set_graph(graph) -> None:
 
 
 @app.get("/hitl/{thread_id}")
-async def get_snapshot(thread_id: str):
+async def get_snapshot(thread_id: str, request: Request):
     """Fetch the HITL case snapshot for a paused graph run."""
-    if _graph is None:
+    from .visualizer_api import _get_neo4j_driver
+    authorize(request.state.principal, thread_id, driver=_get_neo4j_driver())
+    graph = get_graph()
+    if graph is None:
         raise HTTPException(status_code=503, detail="Graph not initialised")
 
     config = {"configurable": {"thread_id": thread_id}}
     try:
-        state = _graph.get_state(config)
+        state = graph.get_state(config)
     except Exception as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
     values = state.values if hasattr(state, "values") else {}
+    if not values:
+        raise HTTPException(404, "Investigation not found")
     return {
         "thread_id": thread_id,
         "case_id": values.get("case_id"),
@@ -58,9 +73,12 @@ async def get_snapshot(thread_id: str):
 
 
 @app.post("/hitl/{thread_id}")
-async def submit_decision(thread_id: str, body: HITLDecision):
+async def submit_decision(thread_id: str, body: HITLDecision, request: Request):
     """Submit analyst decision and resume the paused graph."""
-    if _graph is None:
+    from .visualizer_api import _get_neo4j_driver
+    authorize(request.state.principal, thread_id, write=True, driver=_get_neo4j_driver())
+    graph = get_graph()
+    if graph is None:
         raise HTTPException(status_code=503, detail="Graph not initialised")
 
     if body.decision not in ("approve", "reject", "clarify"):
@@ -70,7 +88,18 @@ async def submit_decision(thread_id: str, body: HITLDecision):
 
     from langgraph.types import Command
     try:
-        result = _graph.invoke(Command(resume=body.decision), config)
+        import asyncio
+        from .checkpointer import durable_case_lock, CheckpointBusyError
+        def resume():
+            with durable_case_lock(graph.checkpointer, thread_id):
+                if "hitl" not in graph.get_state(config).next:
+                    raise HTTPException(409, "Investigation is not awaiting analyst review")
+                return graph.invoke(Command(resume=body.decision), config)
+        result = await asyncio.to_thread(resume)
+    except CheckpointBusyError:
+        raise HTTPException(409, "Investigation is already running in another worker") from None
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -89,15 +118,7 @@ async def submit_decision(thread_id: str, body: HITLDecision):
 if __name__ == "__main__":
     import os
     import uvicorn
-    from langgraph.checkpoint.memory import InMemorySaver
-    from neo4j import GraphDatabase
-
-    from .graph import build_graph
-
-    password = os.environ.get("NEO4J_PASSWORD", "")
-    auth = (os.environ.get("NEO4J_USER", "neo4j"), password) if password else None
-    neo4j_driver = GraphDatabase.driver(os.environ.get("NEO4J_URI", "bolt://localhost:7687"), auth=auth)
-    graph = build_graph(checkpointer=InMemorySaver(), neo4j_driver=neo4j_driver)
+    graph = get_graph()
     set_graph(graph)
 
     log.info("Starting HITL API on port 8200")

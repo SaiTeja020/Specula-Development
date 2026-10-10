@@ -28,10 +28,27 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 | [ADR-010](#adr-010-development-model-backend-and-fallbacks) | 2026-10-06 | Development Model Backend and Fallbacks | Accepted | Phase 4 |
 | [ADR-011](#adr-011-hyperledger-fabric-anchoring-status) | 2026-10-06 | Hyperledger Fabric Anchoring Status | Deferred | Phase 2 |
 | [ADR-012](#adr-012-evidence-bound-attribution-explanations-and-delivery-receipts) | 2026-10-07 | Evidence-bound Attribution Explanations and Delivery Receipts | Accepted | Phase 6 |
+| [ADR-013](#adr-013-local-ollama-and-no-billable-gcp-validation) | 2026-10-07 | Local Ollama and No Billable GCP Validation | Accepted | Phase 6 |
+| [ADR-014](#adr-014-evidence-collection-grounded-reports-and-local-runtime-protection) | 2026-10-07 | Evidence Collection, Grounded Reports and Local Runtime Protection | Accepted | Phase 6 |
 
 ---
 
 ## 3. Baseline ADR Entries
+
+### ADR-014: Evidence Collection, Grounded Reports and Local Runtime Protection
+- **Status:** Accepted
+- **Date:** 2026-10-07
+- **Decision:** User authorizes repair of evidence collection, report defects, backend authorization and restart recovery. Evidence membership and triage are executed against case-scoped parameterized DFKG reads with deterministic relevance rules. Model narration may summarize only verified results; it cannot select arbitrary Cypher, fabricate evidence or silently complete an unprocessed batch. Reports and timeline artifacts render structured case evidence with explicit UTC timestamps and citations, preserving incomplete/degraded status rather than treating model prose as verified facts.
+- **Runtime protection:** All sensitive HTTP and WebSocket endpoints require server-verified identity with case/role authorization. Browser identity must be conveyed to the backend. Local validation credentials are isolated and never committed or printed. Anonymous health may expose only liveness. Authentication configuration errors fail closed.
+- **Persistence:** Use an installed supported durable checkpoint adapter if compatible with the existing infrastructure; otherwise use the installed LangGraph checkpoint contract with a local SQLite transaction/WAL backend using Python's standard library, explicitly scoped to single-host local Docker. Both API processes must share the durable checkpoint location. No dependency installation, hosted model or GCP service is authorized. Persistent checkpoint behavior must pass a real fresh-process pause/resume oracle.
+- **Tracking:** Resume TASK-6.7 for evidence/report fixes and TASK-6.8 for authorization/recovery fixes; both broader acceptance criteria remain in force. Phase 7 items remain backlog until their complete oracles are run.
+
+### ADR-013: Local Ollama and No Billable GCP Validation
+- **Status:** Accepted
+- **Date:** 2026-10-07
+- **Decision:** User directs current model testing to local Ollama, using the installed qwen3:8b model. Local runtime selects Ollama explicitly; Gemini/hosted endpoint probes are removed from the active verification workflow. The Ollama adapter rejects remote/cloud models and non-local endpoints and never pulls models or falls back to a hosted provider.
+- **GCP boundary:** Validate only local gcloud CLI authentication/project configuration and ADC-file presence. Do not query Cloud Logging, enable services, create resources, change billing, or invoke GCP services that may require billing. CLI authentication does not establish Python ADC or audit ingestion. GCP ingestion remains unverified/deferred under this constraint.
+- **Consequences:** Existing stub fixture evidence remains labeled as such. Live model verification must invoke Ollama through the actual role dispatcher and attribution explanation contract. No packages are installed.
 
 ### ADR-001: Blackboard Coordination + Supervisor Governance Model
 - **Status:** Accepted

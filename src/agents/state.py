@@ -21,6 +21,12 @@ class SpeculaState(TypedDict, total=False):
     trace_id: str
     input_type: str                          # siem_alert | investigator_query
     raw_input: str
+    evidence_collection: Optional[dict]
+    report_generated_at: str
+    report_metadata: Optional[dict]
+    timeline_artifact_metadata: Optional[dict]
+    acceptance_status: str
+    loop_count: int
     case_status: str                         # open | primary_tier | specialist_tier | synthesis | debate | guardrail | hitl_review | report | closed
 
     # §2.2 Findings (multi-writer, append-only reducer)

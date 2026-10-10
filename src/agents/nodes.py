@@ -88,7 +88,7 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
         "thought": f"Analysing case as {role}",
         "action": "single_pass_llm_call",
         "observation": content[:200],
-        "model_used": cfg["model_id"],
+        "model_used": getattr(llm, "model_name", None) or getattr(llm, "model", None) or llm.__class__.__name__,
         "latency_ms": latency_ms,
     }
 
@@ -375,10 +375,18 @@ def guardrail_tier3_node(state: dict) -> Command[Literal[
 
 # --- 15. Report Generation ---
 def report_generation_node(state: dict) -> dict:
-    finding, trace = _run_agent("report_generation", state)
+    from .grounded_report import render_report
+    content, metadata = render_report(state)
+    finding = {"agent_role": "report_generation", "summary": content,
+               "dfkg_refs": metadata["dfkg_refs"], "threat_intel_refs": metadata["threat_intel_refs"],
+               "timestamp": metadata["generated_at"], "kafka_offset": None}
+    trace = {"agent_role": "report_generation", "model_used": "deterministic_evidence_renderer",
+             "action": "render_cited_report", "observation": metadata["status"],
+             "terminal": True, "degraded_flags": metadata["degraded_flags"]}
     return {
         "case_status": "report",
-        "report_output": finding["summary"],
+        "report_output": content,
+        "report_metadata": metadata,
         "findings": [finding],
         "agent_traces": [trace],
     }
@@ -386,9 +394,17 @@ def report_generation_node(state: dict) -> dict:
 
 # --- 16. Timeline Artifact Generation ---
 def timeline_artifact_generation_node(state: dict) -> dict:
-    finding, trace = _run_agent("timeline_artifact_generation", state)
+    from .grounded_report import render_timeline_artifact
+    content, metadata = render_timeline_artifact(state)
+    finding = {"agent_role": "timeline_artifact_generation", "summary": content,
+               "dfkg_refs": metadata["dfkg_refs"], "threat_intel_refs": metadata["threat_intel_refs"],
+               "timestamp": metadata["generated_at"], "kafka_offset": None}
+    trace = {"agent_role": "timeline_artifact_generation", "model_used": "deterministic_evidence_renderer",
+             "action": "render_cited_timeline", "observation": metadata["status"],
+             "terminal": True, "degraded_flags": metadata["degraded_flags"]}
     return {
-        "timeline_artifact": finding["summary"],
+        "timeline_artifact": content,
+        "timeline_artifact_metadata": metadata,
         "findings": [finding],
         "agent_traces": [trace],
     }
@@ -560,6 +576,8 @@ def final_output_join_node(state: dict) -> dict:
         ref = f"case-{state.get('case_id', 'unknown')}-final"
     return {
         "final_output_ref": ref,
+        "acceptance_status": "complete" if (state.get("report_metadata") or {}).get("status") == "complete"
+                             and (state.get("timeline_artifact_metadata") or {}).get("status") == "complete" else "incomplete",
         "case_status": "closed",
     }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 import { 
   CheckCircle2, 
   CircleDashed, 
@@ -46,7 +47,7 @@ export default function StartupPage() {
       }]);
 
       // Start the actual backend boot process and WAIT for it
-      const bootResult = await fetch('http://localhost:8300/api/system/readiness')
+      const bootResult = await apiFetch('http://localhost:8300/api/system/readiness')
         .then(res => res.json())
         .catch(err => ({ status: 'error', message: err.message }));
 

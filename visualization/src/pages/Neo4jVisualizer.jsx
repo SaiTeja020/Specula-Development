@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { apiFetch } from '../lib/api';
 import ReactFlow, { Background, Controls, Handle } from 'reactflow';
 import 'reactflow/dist/style.css';
 import * as d3 from 'd3-force';
@@ -142,7 +143,7 @@ export default function Neo4jVisualizer() {
   const nodeTypes = useMemo(() => ({ neo4j: Neo4jNode }), []);
 
   useEffect(() => {
-    fetch('http://localhost:8300/api/data/neo4j')
+    apiFetch('http://localhost:8300/api/data/neo4j')
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
