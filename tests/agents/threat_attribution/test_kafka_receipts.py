@@ -16,8 +16,23 @@ class Producer:
         self.callback = kwargs["on_delivery"]
 
     def poll(self, timeout):
-        if self.outcome == "acknowledged": self.callback(None, None)
-        if self.outcome == "failed": self.callback("delivery failed", None)
+        pass
+
+    def flush(self, timeout):
+        assert timeout <= 2.0
+        if self.outcome == "acknowledged":
+            self.callback(None, Message())
+            return 0
+        if self.outcome == "failed":
+            self.callback("delivery failed", None)
+            return 0
+        return 1
+
+
+class Message:
+    def topic(self): return "findings.attribution"
+    def partition(self): return 0
+    def offset(self): return 42
 
 
 @pytest.mark.parametrize("outcome,expected,flag", [
@@ -31,6 +46,8 @@ def test_delivery_status_distinguishes_queueing_and_acknowledgement(outcome, exp
     assert result["agent_traces"][0]["kafka_publication"]["status"] == expected
     assert result["findings"][0]["kafka_publication"]["status"] == expected
     if flag: assert flag in result["attribution"]["degraded_flags"]
+    if outcome == "acknowledged":
+        assert result["findings"][0]["kafka_publication"]["offset"] == 42
 
 
 def test_late_failure_logs_without_mutating_returned_state(caplog):

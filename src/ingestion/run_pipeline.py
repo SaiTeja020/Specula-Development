@@ -151,6 +151,7 @@ def run_pipeline_on_event(
     source_type: str = "evtx",
     neo4j_client = None,
     exclude_ports: set[int] = None,
+    case_id: str = "UNASSIGNED_CONTINUOUS",
 ) -> list:
     # Preserve the input serialization before adding any pipeline metadata.
     raw_event = dict(raw_event)
@@ -267,6 +268,7 @@ def run_pipeline_on_event(
     
     results = []
     for ocsf_evt in ocsf_evts:
+        ocsf_evt.case_id = case_id
         if exclude_ports and source_type not in ("zeek", "suricata"):
             # Check if this event has endpoints with excluded ports
             dst_port = getattr(getattr(ocsf_evt, "dst_endpoint", None), "port", None)

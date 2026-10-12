@@ -24,6 +24,9 @@ def make_threat_attribution_node(neo4j_driver: Any, kafka_producer: Any,
             if error:
                 log.warning("Threat Attribution Kafka delivery failed for %s: %s", finding["uid"], error)
             else:
+                if message is not None:
+                    receipt.update({"topic": message.topic(), "partition": message.partition(),
+                                    "offset": message.offset()})
                 log.info("Threat Attribution Kafka delivery acknowledged for %s", finding["uid"])
         try:
             producer = kafka_producer if kafka_producer is not None else _get_producer()
@@ -36,6 +39,10 @@ def make_threat_attribution_node(neo4j_driver: Any, kafka_producer: Any,
                     on_delivery=delivered,
                 )
                 producer.poll(0)
+                if receipt["status"] == "pending" and hasattr(producer, "flush"):
+                    # A bounded wait captures the broker receipt in checkpointed state.
+                    # A timeout remains explicitly unconfirmed.
+                    producer.flush(2.0)
         except Exception as exc:
             log.warning("Threat Attribution Kafka publication failed: %s", exc)
             receipt["status"] = "failed"

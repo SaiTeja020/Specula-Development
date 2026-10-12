@@ -1,13 +1,13 @@
 """
-FAISS IndexIVFPQ Threat-Intel Corpus Index.
+FAISS Threat-Intel Corpus Index.
 
 Loads, queries, and hot-reloads the pre-built FAISS index for ATT&CK
 techniques/groups and CVE records. This is the in-process, read-only
 component consumed by threat_intel_mcp.py.
 
 Key design rules (from the implementation plan §3 & §6):
-- IndexIVFPQ MUST be trained before vectors can be added (build script handles
-  this; ThreatIntelIndex.load() trusts that the on-disk file is already trained).
+- IndexIVFPQ builds must be trained before vectors can be added; small local
+  corpora may instead use exact IndexFlatIP search.
 - FAISS has no native metadata filter. record_type filtering is done
   post-search by over-fetching (top_k * 3) and filtering, then truncating.
 - Hot-reload is atomic: check build_manifest.json hash, reload all three files
@@ -74,6 +74,7 @@ class ThreatIntelIndex:
         self._corpus_size: int = 0
         self._build_timestamp: Optional[str] = None
         self._source_versions: Dict[str, str] = {}
+        self._embedding_model_version: Optional[str] = None
 
         self._load()
 
@@ -204,6 +205,12 @@ class ThreatIntelIndex:
             record = self._metadata.get(record_id)
             return dict(record) if record is not None else None
 
+    def list_record_metadata(self, record_type: str) -> List[dict]:
+        """Return every profile of a type from one loaded corpus generation."""
+        with self._lock:
+            return [dict(self._metadata[key]) for key in sorted(self._metadata)
+                    if self._metadata[key].get("record_type") == record_type]
+
     @property
     def corpus_hash(self) -> Optional[str]:
         with self._lock:
@@ -220,6 +227,11 @@ class ThreatIntelIndex:
     def source_versions(self) -> Dict[str, str]:
         with self._lock:
             return dict(self._source_versions)
+
+    @property
+    def embedding_model_version(self) -> Optional[str]:
+        with self._lock:
+            return self._embedding_model_version
 
     def is_ready(self) -> bool:
         """Return True if a corpus has been successfully loaded."""
@@ -308,6 +320,7 @@ class ThreatIntelIndex:
             self._corpus_size = new_index.ntotal
             self._build_timestamp = manifest.get("build_timestamp")
             self._source_versions = manifest.get("source_versions", {})
+            self._embedding_model_version = manifest.get("embedding_model_version")
 
         logger.info(
             "ThreatIntelIndex loaded: %d vectors, build_timestamp=%s",

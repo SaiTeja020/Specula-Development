@@ -16,7 +16,7 @@ Run from the repository root in PowerShell:
 
 ```powershell
 docker compose up -d kafka schema-registry redis quickwit neo4j chromadb redpanda-console
-docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --no-build hitl-api visualizer-api
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --no-build hitl-api visualizer-api dfkg-consumer
 .\venv\Scripts\python.exe scripts/check_environment.py
 .\venv\Scripts\python.exe scripts/validate_progress.py
 .\venv\Scripts\pytest.exe -m integration tests/integration/test_case_investigation_e2e.py -q -p no:cacheprovider --basetemp=.pytest-tmp-case-run

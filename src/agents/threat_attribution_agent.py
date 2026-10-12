@@ -160,13 +160,14 @@ def run_threat_attribution(state: dict, neo4j_driver=None, threat_intel=None, ll
         flags.add("actor_sequence_unavailable")
     if candidates and candidates[0].sequence_basis == "attack_tactic_order":
         flags.add("actor_sequence_inferred")
-    if len(observed) < 2:
+    unique_observed_count = len({item.technique_id for item in observed})
+    if unique_observed_count < 2:
         flags.add("insufficient_evidence")
     refs = sorted({uid for item in observed for uid in item.evidence_uids})
     intel_refs = sorted({ref for item in observed for ref in item.threat_intel_refs} |
                         {f"{item.actor_id}:{item.source_hash}" for item in candidates if item.source_hash})
     lower, confidence, upper = confidence_bounds(
-        candidates, len(observed), "stale_corpus" in flags,
+        candidates, unique_observed_count, "stale_corpus" in flags,
         bool(observed) and all(item.evidence_uids and item.threat_intel_refs for item in observed),
     )
     if "insufficient_evidence" in flags:
@@ -182,7 +183,8 @@ def run_threat_attribution(state: dict, neo4j_driver=None, threat_intel=None, ll
         confidence_basis="deterministic_similarity_with_evidence" if candidates and "no_profile_match" not in flags else "unavailable",
         dfkg_refs=refs, threat_intel_refs=intel_refs,
         corpus_version=(candidates[0].source_version if candidates else
-                        (health.get("source_versions") or {}).get("mitre_attack_stix")),
+                        ((health.get("source_versions") or {}).get("local_attack_xlsx")
+                         or (health.get("source_versions") or {}).get("mitre_attack_stix"))),
         corpus_hash=health.get("corpus_hash") if isinstance(health.get("corpus_hash"), str) else None,
         degraded_flags=sorted(flags), narrative="", summary="",
     )

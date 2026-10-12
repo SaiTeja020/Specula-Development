@@ -42,8 +42,10 @@ def normalize_evtx_process_creation(
     event_id = system_block.get("EventID", raw_parsed_event.get("Id", 0))
     
     raw_cmdline = event_data.get("CommandLine") or raw_parsed_event.get("Message") or event_data.get("ScriptBlockText") or ""
-    raw_process_name = event_data.get("NewProcessName") or raw_parsed_event.get("ProviderName") or event_data.get("Path") or ""
-    raw_parent_process_name = event_data.get("ParentProcessName") or ""
+    raw_process_name = (event_data.get("NewProcessName") or event_data.get("Image") or
+                        event_data.get("Path") or raw_parsed_event.get("ProviderName") or "")
+    raw_parent_process_name = (event_data.get("ParentProcessName") or event_data.get("ParentImage") or
+                               event_data.get("CreatorProcessName") or "")
     
     # For PowerShell 4104, force process name to "powershell.exe" if not found
     if event_id in [4104, 4103] and not raw_process_name:
@@ -87,8 +89,9 @@ def normalize_evtx_process_creation(
         except ValueError:
             return 0
 
-    pid = _parse_pid(event_data.get("NewProcessId", 0))
-    ppid = _parse_pid(event_data.get("ProcessId", 0))
+    pid = _parse_pid(event_data.get("NewProcessId") or event_data.get("ProcessId", 0))
+    ppid = _parse_pid(event_data.get("ParentProcessId") or event_data.get("CreatorProcessId") or
+                      (event_data.get("ProcessId", 0) if "NewProcessId" in event_data else 0))
 
     uid = generate_deterministic_uid("process", {
         "event_id": event_id,

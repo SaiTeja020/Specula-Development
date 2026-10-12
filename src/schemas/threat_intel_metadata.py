@@ -39,7 +39,7 @@ class ThreatIntelRecordMetadata(BaseModel):
         default="",
         description="Full sanitized description text used to produce the embedding.",
     )
-    source: Literal["mitre_attack_stix", "nvd_cve"] = Field(
+    source: Literal["mitre_attack_stix", "local_attack_xlsx", "nvd_cve"] = Field(
         ...,
         description="Authoritative data source.",
     )

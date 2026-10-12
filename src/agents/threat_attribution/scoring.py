@@ -31,13 +31,15 @@ def rank_candidates(observed: list[str], profiles: list[dict]) -> list[ThreatAct
         ids = profile.get("technique_ids") or []
         sequence = profile.get("technique_sequence") or []
         jaccard = jaccard_similarity(observed, ids)
-        alignment = smith_waterman_similarity(observed, sequence) if sequence else 0.0
+        recorded_sequence = bool(sequence) and profile.get("sequence_basis") != "attack_tactic_order"
+        alignment = smith_waterman_similarity(observed, sequence) if recorded_sequence else 0.0
+        combined = 0.4 * jaccard + 0.6 * alignment
         candidates.append(ThreatActorCandidate(
             actor_id=profile["record_id"], name=profile.get("title", profile["record_id"]),
             jaccard=jaccard, smith_waterman=alignment,
-            combined_score=0.4 * jaccard + 0.6 * alignment,
+            combined_score=combined,
             matched_techniques=sorted(set(observed) & set(ids)),
-            profile_techniques=list(ids), sequence_available=bool(sequence),
+            profile_techniques=list(ids), sequence_available=recorded_sequence,
             sequence_basis=profile.get("sequence_basis"),
             source_hash=profile.get("source_hash"), source_version=profile.get("source_version"),
         ))

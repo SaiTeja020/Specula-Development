@@ -10,7 +10,7 @@ Autonomous, event-driven digital forensics ingestion pipeline built with **Pydan
 
 The local Docker override selects **Ollama `qwen3:8b`** for model calls, including Threat Attribution. Gemini and hosted attribution endpoints are not selected. No billable GCP services are authorized for this validation; gcloud checks are limited to local authentication/configuration. Follow [local model testing](docs/local_model_testing.md) for current commands; its restrictions supersede older external-service probe instructions below.
 
-The evidence, report, access-control and restart fixes passed focused tests and a deployed synthetic case. Overall case acceptance remains incomplete because the deployed threat-intelligence corpus and attribution delivery receipts are missing. Follow [local remediation](docs/local_remediation.md) for the current authenticated Docker setup; the general installation steps below are architectural context.
+The evidence, report, access-control and restart fixes passed focused tests and a deployed synthetic case. An offline ATT&CK v19.2 corpus was built and verified in local Docker on 2026-10-10. A later case-bounded probe used Ollama, received a Kafka broker acknowledgement and verified the same finding UID/offset in Neo4j through the local DFKG consumer. The earlier stored case remains incomplete; ranking quality and a new unattended complete case remain unverified. Follow [local remediation](docs/local_remediation.md) for the current authenticated Docker setup; the general installation steps below are architectural context.
 
 ## 1. Architecture Overview
 
@@ -79,16 +79,11 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
    ```powershell
    pip install -r requirements.txt
    ```
-3. Build the threat-intel FAISS index (one-time, ~2 min for ATT&CK only):
+3. Build the threat-intel FAISS index from the included workbook without network feeds:
    ```powershell
-   # ATT&CK techniques + groups only (no API key needed):
-   python scripts/build_threat_intel_index.py --no-nvd
-
-   # ATT&CK + NVD CVEs (set NVD_API_KEY in .env first, ~10 min):
-   python scripts/build_threat_intel_index.py
+   .\venv\Scripts\python.exe scripts/build_threat_intel_index.py --attack-xlsx known_attacks/enterprise-attack-v19.2.xlsx --no-nvd
    ```
-   This populates `data/threat_intel/` which is excluded from git (derived artifact).
-   The Threat Attribution Agent degrades gracefully if the index is not built.
+   This populates ignored `data/threat_intel/` with 873 ATT&CK technique/group records and a hash-verified manifest. This local build uses the current deterministic placeholder embedding; retrieval quality requires separate validation. The Threat Attribution Agent degrades gracefully if the index is not built.
 
 ### Start Backing Services (Docker)
 
@@ -183,12 +178,12 @@ $env:SPECULA_QUICKWIT_ENABLED = "true"
 This is a receiving listener: endpoint devices must be configured to forward logs to it, and the host/network firewall must permit the selected port. Device-specific parsing into detailed connection fields still depends on the vendor's syslog format; unparsed message text remains preserved in the event.
 
 ### Threat Attribution Agent
-The Threat Attribution node consumes frozen, chronological, evidence-cited TTPs from Timeline Reconstruction. It validates ATT&CK IDs against the local corpus, discovers up to 20 groups with FAISS, then ranks the top three using `0.4 × Jaccard + 0.6 × Smith–Waterman`. ATT&CK group `uses` relationships have no recorded campaign order, so the corpus labels its profile sequence as canonical tactic order; the agent flags this inference and lowers confidence. It returns confidence bounds and explicit degradation flags when the graph or corpus cannot support attribution. The model supplies narrative only; calculated IDs, ranks, scores, and citations remain deterministic.
+The Threat Attribution node consumes frozen, chronological, evidence-cited TTPs from Timeline Reconstruction. It validates ATT&CK IDs against the local corpus, enumerates every verified group profile and ranks the top three using `0.4 × Jaccard + 0.6 × Smith–Waterman` only when a profile has recorded chronology. ATT&CK group `uses` relationships have no recorded campaign order: tactic order is labeled as inferred and contributes no alignment score. Hash-vector search cannot infer a technique from free-text summaries in the local build. Repeated sightings of one technique do not satisfy the two-distinct-TTP evidence minimum. Scores are heuristic profile similarities, not actor-identity probabilities. The model selects bounded explanation codes; calculated IDs, ranks, scores and citations remain deterministic.
 
 Build or refresh the ATT&CK corpus after this upgrade so group records contain their `uses` relationships:
 
 ```powershell
-.\venv\Scripts\python.exe scripts/build_threat_intel_index.py --no-nvd
+.\venv\Scripts\python.exe scripts/build_threat_intel_index.py --attack-xlsx known_attacks/enterprise-attack-v19.2.xlsx --no-nvd
 ```
 
 The default model backend is the local stub. To use the designated Kimi model through an OpenAI-compatible endpoint, set `SPECULA_THREAT_ATTRIBUTION_BACKEND=openai_compatible`, `SPECULA_THREAT_ATTRIBUTION_BASE_URL`, `SPECULA_THREAT_ATTRIBUTION_API_KEY`, and optionally `SPECULA_THREAT_ATTRIBUTION_MODEL` (default `kimi-k2.6`). The attribution trace records the model actually invoked. No corpus or no confirmed DFKG evidence produces an unavailable attribution with zero confidence.

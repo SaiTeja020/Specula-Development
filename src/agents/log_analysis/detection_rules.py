@@ -22,6 +22,7 @@ All such data lives exclusively in log_analysis_signatures.yaml.
 from __future__ import annotations
 
 import logging
+import ntpath
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -125,8 +126,8 @@ def _rule_unusual_parent(
     if not parent or not child:
         return None
 
-    parent_lower = parent.lower().strip()
-    child_lower = child.lower().strip()
+    parent_lower = ntpath.basename(parent.strip().strip('"')).lower()
+    child_lower = ntpath.basename(child.strip().strip('"')).lower()
 
     lolbas: dict = sigs.get("lolbas_parent_child", {})
 

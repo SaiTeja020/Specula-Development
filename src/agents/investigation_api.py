@@ -1,11 +1,13 @@
 """Local investigation HTTP routes sharing one graph/checkpointer with HITL."""
 import asyncio
 import logging
+import json
+from hashlib import sha256
 import uuid
 from datetime import datetime, timezone
 from typing import Literal
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from .api_auth import authorize
 
@@ -62,17 +64,64 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
             raise HTTPException(404, "Investigation not found")
         values = state.values
         return {"case_id": values.get("case_id"), "case_status": values.get("case_status"),
+                "started_at": values.get("report_generated_at"),
                 "paused_at": list(state.next), "findings": values.get("findings", []),
                 "failed_nodes": [task.name for task in state.tasks if task.error],
                 "agent_traces": values.get("agent_traces", []),
                 "attribution": values.get("attribution"), "timeline": values.get("timeline"),
                 "evidence_collection": values.get("evidence_collection"),
+                "ingestion_provenance": values.get("ingestion_provenance"),
                 "report_output": values.get("report_output"),
                 "report_metadata": values.get("report_metadata"),
+                "report_documents": values.get("report_documents"),
                 "timeline_artifact": values.get("timeline_artifact"),
                 "timeline_artifact_metadata": values.get("timeline_artifact_metadata"),
                 "acceptance_status": values.get("acceptance_status"),
                 "final_output_ref": values.get("final_output_ref")}
+
+    @app.get("/api/investigations/history")
+    async def investigation_history(request: Request):
+        principal = request.state.principal
+        driver = get_driver()
+        graph = get_graph()
+        if driver is None or graph is None:
+            raise HTTPException(503, "Investigation history unavailable")
+        rows, _, _ = await asyncio.to_thread(driver.execute_query,
+            "MATCH (c:Case) WHERE $all_cases OR c.owner_user_id = $subject "
+            "OR $subject IN coalesce(c.member_user_ids, []) OR c.uid IN $cases "
+            "OPTIONAL MATCH (c)-[:HAS_EVENT]->(e:Event) "
+            "RETURN c.uid AS uid, count(DISTINCT e) AS event_count",
+            all_cases=principal.role == "admin" and "*" in principal.cases,
+            subject=principal.subject, cases=list(principal.cases))
+
+        def summaries():
+            result = []
+            for row in rows:
+                case_id = row["uid"]
+                state = graph.get_state({"configurable": {"thread_id": case_id}})
+                if not state.values:
+                    continue
+                values = state.values
+                result.append({
+                    "case_id": case_id,
+                    "started_at": values.get("report_generated_at"),
+                    "case_status": values.get("case_status"),
+                    "acceptance_status": values.get("acceptance_status"),
+                    "paused_at": list(state.next),
+                    "agent_count": len(values.get("agent_traces") or []),
+                    "finding_count": len(values.get("findings") or []),
+                    "event_count": row["event_count"],
+                    "has_timeline": bool(values.get("timeline_artifact") or
+                                         (values.get("timeline") or {}).get("events")),
+                    "has_attack_analysis": any(f.get("agent_role") == "dag"
+                                               for f in values.get("findings") or []),
+                    "has_report": bool(values.get("report_output")),
+                    "report_status": (values.get("report_metadata") or {}).get("status"),
+                })
+            result.sort(key=lambda item: item["started_at"] or "", reverse=True)
+            return result
+
+        return {"investigations": await asyncio.to_thread(summaries)}
 
     async def execute(graph, config, value):
         loop = asyncio.get_running_loop()
@@ -85,9 +134,11 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                 log.warning("Live update delivery unavailable; investigation continues")
         def stream():
             from .checkpointer import durable_case_lock, CheckpointBusyError
+            from .agent_graph import persist_case_execution
             try:
                 with durable_case_lock(graph.checkpointer, config["configurable"]["thread_id"]):
                     current = graph.get_state(config)
+                    trace_index = len(current.values.get("agent_traces", [])) if current.values else 0
                     if isinstance(value, dict) and current.values:
                         raise HTTPException(409, "Investigation already exists; review or select a new case")
                     if value is None and not any(task.error for task in current.tasks):
@@ -98,6 +149,16 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                         for node, data in update.items():
                             if node == "__interrupt__":
                                 continue
+                            if isinstance(data, dict):
+                                traces = data.get("agent_traces") or []
+                                try:
+                                    if traces or data.get("report_output"):
+                                        persist_case_execution(get_driver(), config["configurable"]["thread_id"],
+                                            traces, data.get("findings") or [], data.get("report_output"),
+                                            data.get("report_metadata"), trace_index)
+                                except Exception:
+                                    log.exception("Agent graph projection failed; checkpoint remains authoritative")
+                                trace_index += len(traces)
                             payload = {"node": node, "case_id": config["configurable"]["thread_id"],
                                        "data": {"status": "completed", "update": data}}
                             emit("node_complete", payload)
@@ -135,14 +196,18 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
             if driver is None:
                 raise HTTPException(503, "Evidence graph unavailable")
             records, _, _ = await asyncio.to_thread(driver.execute_query,
-                "MATCH (c:Case {uid: $case_id})-[:HAS_EVENT]->(e:Event) RETURN count(e) AS count",
+                "MATCH (c:Case {uid: $case_id})-[:HAS_EVENT]->(e:Event) "
+                "RETURN count(e) AS count, c.ingestion_provenance_json AS provenance",
                 case_id=body.case_id)
             if not records or not records[0]["count"]:
                 raise HTTPException(404, "No ingested evidence exists for this case")
             await broadcast("pipeline_started", {"case_id": body.case_id})
+            from .examination_reports import runtime_manifest
             return await execute(graph, config, {
                 "case_id": body.case_id, "trace_id": uuid.uuid4().hex,
                 "report_generated_at": datetime.now(timezone.utc).isoformat(),
+                "ingestion_provenance": json.loads(records[0].get("provenance") or "{}"),
+                "execution_manifest": runtime_manifest(),
                 "input_type": "siem_alert", "raw_input": body.raw_input,
                 "case_status": "open", "findings": [], "agent_traces": [],
                 "debate_round": 1, "debate_history": [], "specialists_completed": [],
@@ -154,6 +219,23 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
         await asyncio.to_thread(authorize, request.state.principal, case_id, driver=get_driver())
         graph, config = graph_for_case(case_id)
         return snapshot(graph, config)
+
+    @app.get("/api/investigations/{case_id}/reports/{kind}")
+    async def get_examination_report(case_id: str, kind: Literal["court", "technical"], request: Request):
+        await asyncio.to_thread(authorize, request.state.principal, case_id, driver=get_driver())
+        graph, config = graph_for_case(case_id)
+        state = await asyncio.to_thread(graph.get_state, config)
+        if not state.values or not state.values.get("report_output"):
+            raise HTTPException(409, "Final report generation has not completed for this case")
+        document = state.values.get(f"{kind}_report_output")
+        if not document:
+            from .examination_reports import render_examination_report
+            document, _ = await asyncio.to_thread(render_examination_report, dict(state.values), kind)
+        return Response(document, media_type="text/html", headers={
+            "Content-Disposition": f'attachment; filename="specula-{kind}-report.html"',
+            "X-Report-SHA256": sha256(document.encode()).hexdigest(),
+            "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+        })
 
     @app.post("/api/investigations/{case_id}/retry")
     async def retry_case(case_id: str, request: Request):

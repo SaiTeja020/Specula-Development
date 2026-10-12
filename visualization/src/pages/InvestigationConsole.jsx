@@ -1,5 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { usePipeline } from '../contexts/PipelineContext';
+import { AgentsView, AttackGraphView, HistoryView, ReportView, TimelineView } from './InvestigationViews';
+
+const VIEWS = [
+  { id: 'pipeline', label: 'Pipeline' },
+  { id: 'history', label: 'History' },
+  { id: 'agents', label: 'Agents' },
+  { id: 'timeline', label: 'Timeline' },
+  { id: 'attack-graph', label: 'Attack Graph' },
+  { id: 'report', label: 'Report' },
+];
 
 const STAGES = [
   { 
@@ -35,12 +46,68 @@ const STAGES = [
 ];
 
 export default function InvestigationConsole() {
+  const initialView = new URLSearchParams(window.location.search).get('view');
+  const [view, setView] = useState(VIEWS.some(item => item.id === initialView) ? initialView : 'pipeline');
+  const tabRefs = useRef({});
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [maxEvents, setMaxEvents] = useState(2000);
+  const [excludedPorts, setExcludedPorts] = useState('80,443,53');
+  const [formError, setFormError] = useState('');
+  const [source, setSource] = useState('local');
+  const [archiveFile, setArchiveFile] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
   const { 
     caseId, setCaseId, caseResult, isStarted, caseStatus, activeStage, stageLogs, hitlData,
-    handleStart, handleHitlAction 
+    launchError, ingestionPhase, isReviewing, handleIngestAndStart, handleHitlAction, resetPipeline
   } = usePipeline();
 
-  const onLaunch = () => handleStart({});
+  useEffect(() => {
+    const requested = new URLSearchParams(location.search).get('case');
+    if (requested && requested !== caseId) setCaseId(requested);
+  }, [location.search, caseId, setCaseId]);
+
+  const onLaunch = () => {
+    setFormError('');
+    if (source === 'upload' && (!archiveFile || archiveFile.size > 50 * 1024 * 1024)) {
+      setFormError('Select a ZIP archive no larger than 50 MiB.'); return;
+    }
+    const ports = excludedPorts.split(',').map(value => value.trim()).filter(Boolean);
+    if (ports.some(value => !/^\d+$/.test(value) || Number(value) > 65535)) {
+      setFormError('Enter excluded ports as comma-separated numbers from 0 to 65535.'); return;
+    }
+    if (Boolean(startDate) !== Boolean(endDate) || (startDate && startDate >= endDate)) {
+      setFormError('Choose a start date before the end date, or leave both dates blank.'); return;
+    }
+    handleIngestAndStart({ start_date: startDate, end_date: endDate,
+      max_events: Number(maxEvents), exclude_ports: ports.map(Number), archiveFile: source === 'upload' ? archiveFile : null });
+  };
+
+  const selectView = (id) => {
+    setView(id);
+    const query = new URLSearchParams(location.search);
+    query.set('view', id);
+    navigate({ pathname: location.pathname, search: query.toString() }, { replace: true });
+  };
+
+  const onNewInvestigation = () => {
+    const query = new URLSearchParams(location.search);
+    query.delete('case'); query.set('view', 'pipeline');
+    navigate({ pathname: location.pathname, search: query.toString() }, { replace: true });
+    setView('pipeline'); resetPipeline();
+  };
+
+  const onTabKeyDown = (event, index) => {
+    const target = event.key === 'Home' ? 0 : event.key === 'End' ? VIEWS.length - 1
+      : event.key === 'ArrowRight' ? (index + 1) % VIEWS.length
+        : event.key === 'ArrowLeft' ? (index - 1 + VIEWS.length) % VIEWS.length : -1;
+    if (target >= 0) {
+      event.preventDefault();
+      selectView(VIEWS[target].id);
+      tabRefs.current[VIEWS[target].id]?.focus();
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem', overflowY: 'auto', paddingBottom: '2rem' }}>
@@ -58,26 +125,80 @@ export default function InvestigationConsole() {
             color: caseStatus === 'RUNNING' ? 'var(--sp-color-accent-indigo)' : 'var(--sp-color-text-secondary)'
           }}>{caseStatus}</span>
         </div>
-        <p>Case: {caseId}</p>
+        <p>Case: {caseId || 'A new local case will be created from the selected logs.'}</p>
+        {caseId && !caseResult && !launchError && <p role="status">Loading case data or waiting for the first saved checkpoint…</p>}
+        {(formError || launchError) && <p role="alert" style={{ color: 'var(--sp-color-status-breach)' }}>
+          {formError || launchError}
+        </p>}
+        {isStarted && ingestionPhase && <p aria-live="polite">Pipeline stage: {ingestionPhase}</p>}
+        {['COMPLETED', 'CLOSED WITH LIMITATIONS', 'AWAITING REVIEW', 'PAUSED AFTER ERROR'].includes(caseStatus) && (
+          <button className="secondary-btn" onClick={onNewInvestigation}>New Investigation</button>
+        )}
         {caseResult && <section aria-live="polite" style={{ marginTop: '1rem' }}>
           <p>{caseResult.findings?.length ?? 0} findings · {caseResult.agent_traces?.length ?? 0} execution traces</p>
           <p>{caseResult.attribution?.summary || 'No supported attribution is available.'}</p>
           <p>Report reference: {caseResult.final_output_ref || 'Not generated'}</p>
         </section>}
-        {!isStarted && (
+        {view === 'pipeline' && !isStarted && (
           <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              Ingested case ID
-              <input value={caseId} onChange={e => setCaseId(e.target.value)} />
+            <label>Evidence source{' '}
+              <select value={source} onChange={e => setSource(e.target.value)}>
+                <option value="local">Collect local Windows logs</option>
+                <option value="upload">Upload exported logs (ZIP)</option>
+              </select>
             </label>
-            <p>Run analysis on evidence already ingested for this case.</p>
+            {source === 'upload' && <div>
+              <label>Log archive <input type="file" accept=".zip,application/zip"
+                onChange={e => setArchiveFile(e.target.files?.[0] || null)} /></label>
+              <details style={{ marginTop: '0.75rem' }}>
+                <summary>Required ZIP folder structure and supported formats</summary>
+                <pre>{`evidence.zip\n├── manifest.json (optional acquisition/examiner metadata)\n├── windows/     Security.json, Sysmon.jsonl\n├── edr/         events.jsonl\n├── memory/      findings.json\n├── malware/     findings.json\n├── ueba/        events.json\n├── vuln_scan/   findings.json\n├── gcp_audit/   events.json\n└── mft/         records.json`}</pre>
+                <p>Include only the folders you need, directly at the archive root. JSON files contain an object or array of objects; JSONL contains one object per line. Binary .evtx files must first be exported to JSON. Maximum: 50 MiB ZIP, 200 MiB expanded, 25 MiB per file, 500 entries.</p>
+                <p>Original archive and file SHA-256 hashes are recorded. Date filters require ISO 8601 timestamps with UTC offsets; event limits apply per uploaded file.</p>
+              </details>
+            </div>}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                Start Date
+                <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                End Date
+                <input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {source === 'upload' ? 'Max Events per Uploaded File' : 'Max Events per Channel'}
+                <input type="number" min="1" max="5000" value={maxEvents}
+                  onChange={e => setMaxEvents(e.target.value)} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                Excluded Ports
+                <input type="text" value={excludedPorts} onChange={e => setExcludedPorts(e.target.value)}
+                  placeholder="80,443,53" />
+              </label>
+            </div>
+            <p>{source === 'upload'
+              ? 'Preserve the uploaded archive, normalize supported logs and investigate a new case. Leave dates blank to use all selected records.'
+              : 'Collect local Windows logs in the selected interval, preserve and normalize them, then investigate a new case. Leave both dates blank for the most recent logs.'}</p>
             <button className="primary-btn" onClick={onLaunch} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
           </div>
         )}
       </div>
 
-      <div style={{ maxWidth: '1000px', width: '100%', margin: '0 auto', padding: '0 1.5rem' }}>
-        {STAGES.map((stage, idx) => {
+      <div role="tablist" aria-label="Investigation views" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', padding: '0 1.5rem' }}>
+        {VIEWS.map((item, index) => <button key={item.id} type="button" role="tab"
+          id={`view-tab-${item.id}`} aria-controls="investigation-view-panel"
+          aria-selected={view === item.id} tabIndex={view === item.id ? 0 : -1}
+          ref={element => { tabRefs.current[item.id] = element; }}
+          onClick={() => selectView(item.id)} onKeyDown={event => onTabKeyDown(event, index)}
+          className={view === item.id ? 'primary-btn' : 'secondary-btn'}>
+          {item.label}
+        </button>)}
+      </div>
+
+      <div id="investigation-view-panel" role="tabpanel" aria-labelledby={`view-tab-${view}`}
+        style={{ maxWidth: '1100px', width: '100%', margin: '0 auto', padding: '0 1.5rem' }}>
+        {view === 'pipeline' && STAGES.map((stage, idx) => {
           const isCompleted = activeStage > idx || caseStatus === 'COMPLETED';
           const isActive = activeStage === idx && caseStatus !== 'COMPLETED';
           const isIdle = activeStage < idx;
@@ -182,21 +303,24 @@ export default function InvestigationConsole() {
                         ⚠️ HITL Escalation Gate
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                        <div><strong>Confidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span></div>
-                        <div><strong>Evidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
+                        <div><strong>Attribution confidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span></div>
+                        <div><strong>Attribution citations:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
                         <div><strong>Integrity:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.tamperCheck}</span></div>
                       </div>
                       <div style={{ display: 'flex', gap: '1rem' }}>
                         <button 
                           onClick={() => handleHitlAction('approve')}
+                          disabled={isReviewing}
                           style={{ background: 'var(--sp-color-status-admissible)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           APPROVE
                         </button>
                         <button 
                           onClick={() => handleHitlAction('reject')}
+                          disabled={isReviewing}
                           style={{ background: 'var(--sp-color-status-breach)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
                           REJECT / HALT
                         </button>
+                        {isReviewing && <span role="status">Processing review and guardrails...</span>}
                       </div>
                     </div>
                   )}
@@ -205,6 +329,11 @@ export default function InvestigationConsole() {
             </div>
           );
         })}
+        {view === 'history' && <HistoryView />}
+        {view === 'agents' && <AgentsView snapshot={caseResult} />}
+        {view === 'timeline' && <TimelineView snapshot={caseResult} />}
+        {view === 'attack-graph' && <AttackGraphView snapshot={caseResult} />}
+        {view === 'report' && <ReportView snapshot={caseResult} />}
       </div>
     </div>
   );

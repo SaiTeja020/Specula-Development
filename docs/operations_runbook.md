@@ -11,7 +11,7 @@ The readiness suite measures actual Redis throughput and restores four preserved
 ## Start and check
 
 1. Start Docker Desktop.
-2. Run the backing-service and local override commands in local_validation.md. Reuse images with `--no-build` until a human performs dependency installation/builds.
+2. Run the backing-service and local override commands in local_validation.md, including `dfkg-consumer` for finding consumption. Reuse images with `--no-build` until a human performs dependency installation/builds.
 3. Check `http://localhost:8300/health` anonymously; query `/api/system/readiness` with an authenticated session.
 4. Start the installed Vite executable. Protected frontend routes use existing Supabase authentication.
 5. Select an ingested case; run analysis; review the actual checkpoint when HITL requests an analyst decision.
@@ -21,11 +21,11 @@ The dashboard startup checks services; it never tears down containers or deletes
 ## Stop and recover
 
 - Stop the frontend process with Ctrl+C.
-- Stop individual services with `docker compose -f docker-compose.yml -f docker-compose.local.yml stop visualizer-api hitl-api` when planned. Preserve existing containers and evidence.
+- Stop individual services with `docker compose -f docker-compose.yml -f docker-compose.local.yml stop visualizer-api hitl-api dfkg-consumer` when planned. Preserve existing containers and evidence.
 - The two API containers share the `specula-checkpoints` Docker named volume. Restart the APIs without removing that volume, then fetch the same case ID. Paused HITL state survived both an engine shutdown and a deliberate API restart in the local oracle. If a dependency stopped during execution, restore it and use the authorized case retry endpoint; a normal HITL pause still uses the review endpoint. See [local remediation](local_remediation.md) for commands. Full multi-store recovery remains a production gate.
 - If preservation fails, ingestion must stop; investigate Quickwit, then retry the preserved source. Never invent a successful preservation result.
-- Kafka `pending` receipts establish queueing only. Check broker acknowledgements/consumption, offsets and dead-letter records before claiming delivery. Attribution callback failures are logged; returned checkpoint state is not retroactively mutated.
-- If a corpus refresh is incomplete, the loader retains its last verified snapshot. Rebuild legacy corpora with artifact hashes before using them for case attribution.
+- Attribution publication waits at most two seconds for a Kafka delivery callback. `acknowledged` records topic/partition/offset; `pending` after the bound is unconfirmed. The local `dfkg-consumer` writes matching UID/offset to Neo4j, then commits its Kafka offset. Confirm both broker and Neo4j receipts before claiming local delivery; callback failures after return do not rewrite checkpointed state. Replay/restore of the complete pipeline remains unverified.
+- If a corpus refresh is incomplete, the loader retains its last verified snapshot. Rebuild legacy corpora with artifact hashes before using them for case attribution. The pinned local workbook uses version-based freshness rather than the 26-hour daily-feed timer; it is not evidence that the pinned ATT&CK release is the latest available.
 
 ## Backup and restore scope
 

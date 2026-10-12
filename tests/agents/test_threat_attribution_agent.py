@@ -58,6 +58,9 @@ class FakeIntel:
     def get_attack_group_profile(self, group_id):
         return {"status": "ok", "profile": PROFILES[group_id]}
 
+    def list_attack_group_profiles(self):
+        return {"status": "ok", "profiles": list(PROFILES.values())}
+
 
 class FakeGraph:
     def __init__(self, refs=("event-one", "event-two")):
@@ -111,6 +114,19 @@ def test_unmapped_confirmed_behavior_uses_only_corpus_result():
     assert not flags
 
 
+def test_hash_vectors_cannot_infer_technique_from_summary():
+    class HashIntel(FakeIntel):
+        def health_check(self):
+            return super().health_check() | {"embedding_model_version": "sha384-byte-repeat-v1"}
+        def query_attack_techniques(self, query_text, top_k):
+            raise AssertionError("hash-vector similarity is not semantic mapping")
+    observed, flags = extract_observed_ttps({"frozen": True, "events": [{
+        "time": "2026-10-03T00:01:00Z", "dfkg_refs": ["event-one"], "summary": "PowerShell",
+    }]}, HashIntel())
+    assert observed == []
+    assert "semantic_mapping_unavailable" in flags
+
+
 def test_known_order_ranks_actor_and_ignores_model_score_edits():
     graph = FakeGraph()
     attribution, finding, trace = run_threat_attribution(
@@ -127,7 +143,7 @@ def test_known_order_ranks_actor_and_ignores_model_score_edits():
     assert attribution["corpus_hash"] == "corpus-hash"
     assert attribution["threat_intel_refs"]
     assert trace["model_used"] == "kimi-k2.6"
-    assert trace["algorithm_version"] == "jaccard-sw-v1"
+    assert trace["algorithm_version"] == "jaccard-sw-v2"
     assert len(graph.queries) == 2
 
 
@@ -146,6 +162,33 @@ def test_missing_graph_evidence_prevents_attribution():
     assert "no_confirmed_dfkg_evidence" in attribution["degraded_flags"]
 
 
+def test_repeated_single_technique_remains_insufficient_evidence():
+    repeated = STATE | {"timeline": {"frozen": True, "events": [
+        {"time": "2026-10-03T00:01:00Z", "attacks": ["T1059.001"], "dfkg_refs": ["event-one"]},
+        {"time": "2026-10-03T00:02:00Z", "attacks": ["T1059.001"], "dfkg_refs": ["event-two"]},
+    ]}}
+    result, _, _ = run_threat_attribution(repeated, FakeGraph(), FakeIntel())
+    assert "insufficient_evidence" in result["degraded_flags"]
+    assert result["overall_confidence"] <= 0.25
+
+
+def test_exhaustive_profile_listing_does_not_use_hash_vector_shortlist():
+    class ListedIntel(FakeIntel):
+        def query_attack_groups(self, query_text, top_k):
+            raise AssertionError("attribution must not use hash-vector group search")
+    result, _, _ = run_threat_attribution(STATE, FakeGraph(), ListedIntel())
+    assert result["top_candidate"] is not None
+
+
+def test_legacy_search_only_adapter_cannot_shortlist_attribution_profiles():
+    from src.agents.threat_attribution.candidate_retriever import retrieve_group_profiles
+    class SearchOnly:
+        def query_attack_groups(self, **kwargs):
+            raise AssertionError("hash-vector shortlist must never be used")
+    profiles, flags = retrieve_group_profiles(SearchOnly(), "T1059.001")
+    assert profiles == [] and flags == ["group_profiles_unavailable"]
+
+
 def test_stale_corpus_lowers_confidence():
     fresh, _, _ = run_threat_attribution(STATE, FakeGraph(), FakeIntel())
     stale, _, _ = run_threat_attribution(STATE, FakeGraph(), FakeIntel(stale=True))
@@ -155,10 +198,10 @@ def test_stale_corpus_lowers_confidence():
 
 def test_unmatched_profiles_keep_candidates_without_actor_claim():
     class UnmatchedIntel(FakeIntel):
-        def get_attack_group_profile(self, group_id):
-            profile = PROFILES[group_id] | {"technique_ids": ["T1111"],
-                                            "technique_sequence": ["T1111"]}
-            return {"status": "ok", "profile": profile}
+        def list_attack_group_profiles(self):
+            profiles = [profile | {"technique_ids": ["T1111"],
+                                   "technique_sequence": ["T1111"]} for profile in PROFILES.values()]
+            return {"status": "ok", "profiles": profiles}
     attribution, _, _ = run_threat_attribution(STATE, FakeGraph(), UnmatchedIntel())
     assert len(attribution["candidate_actors"]) == 3
     assert attribution["top_candidate"] is None

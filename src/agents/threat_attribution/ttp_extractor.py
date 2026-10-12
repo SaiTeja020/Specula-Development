@@ -40,6 +40,10 @@ def extract_observed_ttps(timeline: dict, threat_intel: Any) -> tuple[list[Obser
                 else:
                     flags.append("unsupported_technique_id")
         if not technique_ids and item.get("summary"):
+            health = threat_intel.health_check()
+            if health.get("embedding_model_version") == "sha384-byte-repeat-v1":
+                flags.append("semantic_mapping_unavailable")
+                continue
             response = threat_intel.query_attack_techniques(item["summary"], top_k=3)
             if response.get("status") == "ok":
                 records = [record.get("metadata", {}) for record in response.get("results", [])

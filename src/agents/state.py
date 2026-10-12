@@ -22,6 +22,8 @@ class SpeculaState(TypedDict, total=False):
     input_type: str                          # siem_alert | investigator_query
     raw_input: str
     evidence_collection: Optional[dict]
+    ingestion_provenance: Optional[dict]
+    execution_manifest: Optional[dict]
     report_generated_at: str
     report_metadata: Optional[dict]
     timeline_artifact_metadata: Optional[dict]
@@ -64,6 +66,9 @@ class SpeculaState(TypedDict, total=False):
 
     # §2.8 Output
     report_output: Optional[str]             # Report Generation only
+    court_report_output: Optional[str]
+    technical_report_output: Optional[str]
+    report_documents: Optional[dict]
     timeline_artifact: Optional[str]         # Timeline Artifact Generation only
     final_output_ref: Optional[str]          # set once both converge
 

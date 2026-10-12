@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiFetch } from '../lib/api';
 import { 
   CheckCircle2, 
   CircleDashed, 
@@ -43,13 +42,42 @@ export default function StartupPage() {
       setLogs(prev => [...prev, { 
         time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
         tag: 'INIT', 
-        msg: 'Checking the existing local Docker services...'
+        msg: 'Preparing Docker Compose teardown and recreate...'
       }]);
 
-      // Start the actual backend boot process and WAIT for it
-      const bootResult = await apiFetch('http://localhost:8300/api/system/readiness')
-        .then(res => res.json())
-        .catch(err => ({ status: 'error', message: err.message }));
+      let bootResult;
+      try {
+        const bootFetch = (url, options = {}) => fetch(url, {
+          ...options, headers: { ...options.headers, 'X-Specula-Local-Boot': '1' }
+        });
+        const start = await bootFetch('http://127.0.0.1:8400/api/system/boot', { method: 'POST' });
+        const job = await start.json();
+        if (!start.ok) throw new Error(job.detail || `Boot controller returned HTTP ${start.status}`);
+        for (let attempt = 0; attempt < 420; attempt++) {
+          if (isCancelled) return;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const response = await bootFetch(`http://127.0.0.1:8400/api/system/boot/${job.id}`);
+          bootResult = await response.json();
+          if (!response.ok) throw new Error(bootResult.detail || `Boot status returned HTTP ${response.status}`);
+          if (bootResult.phase === 'error') throw new Error(bootResult.message);
+          if (bootResult.phase === 'complete') break;
+        }
+        if (bootResult?.phase !== 'complete') throw new Error('Docker recreate timed out');
+        setLogs(prev => [...prev, {
+          time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          tag: 'OK', msg: 'Specula containers recreated. Checking service connections...'
+        }]);
+        for (let attempt = 0; attempt < 30; attempt++) {
+          if (isCancelled) return;
+          const response = await bootFetch('http://127.0.0.1:8400/api/system/readiness');
+          bootResult = await response.json();
+          if (response.ok && bootResult.status === 'success') break;
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      } catch (error) {
+        bootResult = { status: 'error', message: error.message === 'Failed to fetch'
+          ? 'Local boot controller unavailable. Start it on port 8400 and retry.' : error.message };
+      }
 
       if (isCancelled) return;
 
@@ -57,7 +85,7 @@ export default function StartupPage() {
         setLogs(prev => [...prev, { 
           time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
           tag: 'ERROR', 
-          msg: `Failed to boot: ${bootResult.message}` 
+          msg: `Failed to boot: ${bootResult.message || 'Service connections remain unavailable. Check the Docker logs.'}`
         }]);
         setHasError(true);
         return;
@@ -107,7 +135,7 @@ export default function StartupPage() {
           System Initialization
         </h1>
         <p style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-          Checking local service connections and model configuration.
+          Recreating local Docker containers and checking service connections.
         </p>
       </div>
 
@@ -268,7 +296,7 @@ export default function StartupPage() {
             }}
             style={{ padding: '0.85rem 2.25rem', fontSize: '1rem', border: '1px solid var(--sp-color-border-hover)' }}
           >
-            Retry Boot Process
+            Retry Container Recreate
           </button>
         )}
         {isComplete && (

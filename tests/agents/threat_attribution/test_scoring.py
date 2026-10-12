@@ -35,6 +35,20 @@ def test_exact_weighted_top_three_and_tie_break():
     assert [item.actor_id for item in tied] == ["G0000", "G0003"]
 
 
+def test_inferred_tactic_order_does_not_change_actor_ranking():
+    observed = ["T1001", "T1002"]
+    profiles = [
+        {"record_id": "G0002", "technique_ids": observed,
+         "technique_sequence": observed, "sequence_basis": "attack_tactic_order"},
+        {"record_id": "G0001", "technique_ids": observed,
+         "technique_sequence": observed[::-1], "sequence_basis": "attack_tactic_order"},
+    ]
+    ranked = rank_candidates(observed, profiles)
+    assert [item.actor_id for item in ranked] == ["G0001", "G0002"]
+    assert all(item.combined_score == pytest.approx(0.4) and item.smith_waterman == 0.0
+               for item in ranked)
+
+
 def test_confidence_is_lower_for_stale_and_sparse_evidence():
     profile = {"record_id": "G1", "technique_ids": ["T1001", "T1002"],
                "technique_sequence": ["T1001", "T1002"]}

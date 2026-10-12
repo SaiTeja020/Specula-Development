@@ -87,9 +87,11 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
         "agent_role": role,
         "thought": f"Analysing case as {role}",
         "action": "single_pass_llm_call",
-        "observation": content[:200],
+        "observation": content,
         "model_used": getattr(llm, "model_name", None) or getattr(llm, "model", None) or llm.__class__.__name__,
         "latency_ms": latency_ms,
+        "timestamp": finding["timestamp"],
+        "dfkg_refs": finding["dfkg_refs"],
     }
 
     # Fire-and-forget Kafka publish
@@ -376,7 +378,10 @@ def guardrail_tier3_node(state: dict) -> Command[Literal[
 # --- 15. Report Generation ---
 def report_generation_node(state: dict) -> dict:
     from .grounded_report import render_report
+    from .examination_reports import render_examination_report
     content, metadata = render_report(state)
+    court, court_meta = render_examination_report(state, "court")
+    technical, technical_meta = render_examination_report(state, "technical")
     finding = {"agent_role": "report_generation", "summary": content,
                "dfkg_refs": metadata["dfkg_refs"], "threat_intel_refs": metadata["threat_intel_refs"],
                "timestamp": metadata["generated_at"], "kafka_offset": None}
@@ -387,6 +392,9 @@ def report_generation_node(state: dict) -> dict:
         "case_status": "report",
         "report_output": content,
         "report_metadata": metadata,
+        "court_report_output": court,
+        "technical_report_output": technical,
+        "report_documents": {"court": court_meta, "technical": technical_meta},
         "findings": [finding],
         "agent_traces": [trace],
     }

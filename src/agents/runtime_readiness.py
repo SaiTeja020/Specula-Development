@@ -27,6 +27,20 @@ def register_readiness_route(app, get_driver):
                     results[name] = {"status": "ready"}
                 except Exception:
                     results[name] = {"status": "unavailable"}
+            try:
+                from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
+                corpus = ThreatIntelMCPServer(index_dir=os.getenv(
+                    "SPECULA_THREAT_INTEL_DIR", "data/threat_intel")).health_check()
+                results["threat_intel"] = {
+                    "status": "ready" if corpus.get("status") == "ready"
+                    and corpus.get("artifacts_verified") is True
+                    and not corpus.get("is_stale") else "unavailable",
+                    "corpus_size": corpus.get("corpus_size", 0),
+                    "artifacts_verified": corpus.get("artifacts_verified", False),
+                }
+            except Exception:
+                results["threat_intel"] = {"status": "unavailable", "corpus_size": 0,
+                                           "artifacts_verified": False}
             # This reports configuration; provider inference has a separate live oracle.
             results["llm"] = {"status": "configured", "backend": os.getenv("SPECULA_LLM_BACKEND", "stub")}
             return {"status": "success" if all(item["status"] != "unavailable" for item in results.values()) else "error",

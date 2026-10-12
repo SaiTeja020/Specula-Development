@@ -23,6 +23,7 @@ from .api_auth import install_http_auth, authenticate_websocket, authorize, refr
 load_dotenv()  # Load local configuration before readiness or cached drivers.
 
 log = logging.getLogger(__name__)
+CASE_GRAPH_TYPE_LIMIT = 300
 
 # ---------------------------------------------------------------------------
 # Lazy-loaded heavy dependencies (neo4j, langgraph pull in numpy which
@@ -199,14 +200,11 @@ async def broadcast_event(event_type: str, payload: dict):
 
 
 # ---------------------------------------------------------------------------
-# System Boot — Docker teardown + recreate
+# The Docker controller runs on the host so it survives Compose teardown.
 # ---------------------------------------------------------------------------
-boot_lock = asyncio.Lock()
-
 @app.post("/api/system/boot")
 async def system_boot():
-    """Compatibility endpoint: inspect an existing stack without rebuilding it."""
-    return await system_readiness()
+    raise HTTPException(409, "Start the local boot controller on port 8400")
 
 
 from .runtime_readiness import register_readiness_route
@@ -225,56 +223,94 @@ register_investigation_routes(app, _get_specula_graph, _get_neo4j_driver, broadc
 # Data-store proxy endpoints
 # ---------------------------------------------------------------------------
 @app.get("/api/data/neo4j")
-async def get_neo4j_data(request: Request):
-    """Proxy endpoint to fetch Neo4j graph data for the visualizer."""
+async def get_neo4j_data(request: Request, case_id: str | None = None):
+    """Return a bounded case graph with complete counts and explicit derived links."""
     driver = _get_neo4j_driver()
     if driver is None:
         return {"status": "error", "message": "Neo4j driver not available"}
     try:
-        nodes_dict = {}
-        edges_list = []
         principal = request.state.principal
         with driver.session() as session:
-            if principal.role == "admin" and "*" in principal.cases:
-                result = session.run("MATCH (n)-[r]->(m) RETURN n, r, m LIMIT 100")
-            else:
-                result = session.run(
-                    "MATCH (n:Case)-[r:HAS_EVENT]->(m:Event) "
-                    "WHERE n.owner_user_id = $subject OR $subject IN coalesce(n.member_user_ids, []) "
-                    "OR n.uid IN $cases RETURN n, r, m LIMIT 100",
-                    subject=principal.subject, cases=list(principal.cases))
-            for record in result:
-                n = record["n"]
-                m = record["m"]
-                r = record["r"]
-                
-                if n.element_id not in nodes_dict:
-                    nodes_dict[n.element_id] = {
-                        "id": str(n.element_id),
-                        "label": list(n.labels)[0] if n.labels else "Node",
-                        "properties": dict(n.items())
-                    }
-                if m.element_id not in nodes_dict:
-                    nodes_dict[m.element_id] = {
-                        "id": str(m.element_id),
-                        "label": list(m.labels)[0] if m.labels else "Node",
-                        "properties": dict(m.items())
-                    }
-                
-                edges_list.append({
-                    "id": str(r.element_id),
-                    "source": str(n.element_id),
-                    "target": str(m.element_id),
-                    "type": r.type
-                })
-                
+            rows = list(session.run(
+                "MATCH (c:Case) WHERE $all_cases OR c.owner_user_id = $subject "
+                "OR $subject IN coalesce(c.member_user_ids, []) OR c.uid IN $cases "
+                "RETURN c.uid AS uid ORDER BY c.uid",
+                all_cases=principal.role == "admin" and "*" in principal.cases,
+                subject=principal.subject, cases=list(principal.cases)))
+            cases = [row["uid"] for row in rows]
+            selected = case_id or (cases[-1] if cases else None)
+            if selected and selected not in cases:
+                raise HTTPException(403, "Case access denied")
+            if not selected:
+                return {"status": "success", "source": "neo4j", "cases": [],
+                        "case_id": None, "nodes": [], "edges": [], "totals": {}, "sampled": False}
+
+            nodes, edges, counts = {}, [], {}
+            root = session.run("MATCH (c:Case {uid: $case_id}) RETURN c", case_id=selected).single()["c"]
+
+            def add(node):
+                node_id = str(node.element_id)
+                nodes[node_id] = {"id": node_id, "label": next(iter(node.labels), "Node"),
+                                  "properties": dict(node.items())}
+                return node_id
+
+            root_id = add(root)
+            counts["Event"] = session.run(
+                "MATCH (:Case {uid: $case_id})-[:HAS_EVENT]->(e:Event) "
+                "RETURN count(DISTINCT e) AS n", case_id=selected).single()["n"]
+            for row in session.run(
+                "MATCH (c:Case {uid: $case_id})-[r:HAS_EVENT]->(e:Event) "
+                "RETURN e, r ORDER BY e.time DESC, e.uid LIMIT $limit",
+                case_id=selected, limit=CASE_GRAPH_TYPE_LIMIT):
+                node_id = add(row["e"])
+                edges.append({"id": str(row["r"].element_id), "source": root_id,
+                              "target": node_id, "type": "HAS_EVENT", "derived": False})
+
+            for label in ("Process", "DetectionFinding", "Entity", "Host"):
+                # Labels are a fixed allowlist, never interpolated from a request.
+                counts[label] = session.run(
+                    f"MATCH (n:{label} {{case_id: $case_id}}) RETURN count(n) AS n",
+                    case_id=selected).single()["n"]
+                for row in session.run(
+                    f"MATCH (n:{label} {{case_id: $case_id}}) RETURN n "
+                    "ORDER BY n.severity_id DESC, n.first_seen DESC, n.uid LIMIT $limit",
+                    case_id=selected, limit=CASE_GRAPH_TYPE_LIMIT):
+                    node_id = add(row["n"])
+                    edges.append({"id": f"case-member-{node_id}", "source": root_id,
+                                  "target": node_id, "type": "CASE_TAG", "derived": True})
+
+            for label, relation in (("AgentRun", "HAS_AGENT_RUN"),
+                                    ("Report", "HAS_REPORT")):
+                counts[label] = session.run(
+                    f"MATCH (:Case {{uid: $case_id}})-[:{relation}]->(n:{label}) "
+                    "RETURN count(n) AS n", case_id=selected).single()["n"]
+                for row in session.run(
+                    f"MATCH (c:Case {{uid: $case_id}})-[r:{relation}]->(n:{label}) "
+                    "RETURN n, r ORDER BY n.sequence, n.generated_at LIMIT $limit",
+                    case_id=selected, limit=CASE_GRAPH_TYPE_LIMIT):
+                    node_id = add(row["n"])
+                    edges.append({"id": str(row["r"].element_id), "source": root_id,
+                                  "target": node_id, "type": relation, "derived": False})
+
+            ids = list(nodes)
+            for row in session.run(
+                "MATCH (a)-[r]->(b) WHERE elementId(a) IN $ids AND elementId(b) IN $ids "
+                "AND NOT type(r) IN ['HAS_EVENT', 'HAS_AGENT_RUN', 'HAS_REPORT'] "
+                "RETURN a, r, b LIMIT $limit", ids=ids, limit=CASE_GRAPH_TYPE_LIMIT * 7):
+                edges.append({"id": str(row["r"].element_id),
+                              "source": str(row["a"].element_id), "target": str(row["b"].element_id),
+                              "type": row["r"].type, "derived": False})
         return {
-            "status": "success",
-            "source": "neo4j",
-            "nodes": list(nodes_dict.values()),
-            "edges": edges_list
+            "status": "success", "source": "neo4j", "cases": cases, "case_id": selected,
+            "nodes": list(nodes.values()), "edges": edges, "totals": {"Case": 1, **counts},
+            "per_type_limit": CASE_GRAPH_TYPE_LIMIT,
+            "sampled": any(counts[label] > sum(n["label"] == label for n in nodes.values())
+                           for label in counts),
         }
+    except HTTPException:
+        raise
     except Exception:
+        log.exception("Case graph view failed")
         return {"status": "unavailable", "source": "neo4j", "nodes": [], "edges": []}
 
 

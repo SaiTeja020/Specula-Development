@@ -30,10 +30,70 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 | [ADR-012](#adr-012-evidence-bound-attribution-explanations-and-delivery-receipts) | 2026-10-07 | Evidence-bound Attribution Explanations and Delivery Receipts | Accepted | Phase 6 |
 | [ADR-013](#adr-013-local-ollama-and-no-billable-gcp-validation) | 2026-10-07 | Local Ollama and No Billable GCP Validation | Accepted | Phase 6 |
 | [ADR-014](#adr-014-evidence-collection-grounded-reports-and-local-runtime-protection) | 2026-10-07 | Evidence Collection, Grounded Reports and Local Runtime Protection | Accepted | Phase 6 |
+| [ADR-015](#adr-015-offline-attack-workbook-corpus-for-local-validation) | 2026-10-10 | Offline ATT&CK Workbook Corpus for Local Validation | Accepted | Phase 6 |
+| [ADR-016](#adr-016-deterministic-attribution-and-local-delivery-verification) | 2026-10-10 | Deterministic Attribution and Local Delivery Verification | Accepted | Phase 6 |
+| [ADR-017](#adr-017-local-dashboard-store-visibility) | 2026-10-12 | Local Dashboard Store Visibility | Accepted | Phase 6 |
+| [ADR-018](#adr-018-case-graph-and-agent-execution-visibility) | 2026-10-12 | Case Graph and Agent Execution Visibility | Accepted | Phase 6 |
+| [ADR-019](#adr-019-local-case-graph-display-cap) | 2026-10-12 | Local Case Graph Display Cap | Accepted | Phase 6 |
+| [ADR-020](#adr-020-investigation-history-and-result-views) | 2026-10-12 | Investigation History and Result Views | Accepted | Phase 6 |
+| [ADR-021](#adr-021-uploaded-evidence-and-dual-examination-reports) | 2026-10-12 | Uploaded Evidence and Dual Examination Reports | Accepted | Phase 6 |
 
 ---
 
 ## 3. Baseline ADR Entries
+
+### ADR-021: Uploaded Evidence and Dual Examination Reports
+- **Status:** Accepted
+- **Date:** 2026-10-12
+- **Decision:** Accept a ZIP of exported JSON/JSONL logs under documented source folders through the loopback dashboard. Validate the complete archive before ingestion; reject traversal, symlinks, encryption, duplicate paths, unsupported files and excessive sizes. Preserve original ZIP bytes, SHA-256, per-file inventory and receipt time before normalizing through the existing preservation/OCSF/case pipeline. Treat uploaded collection/custody/examiner metadata as uploader declarations, not independently verified facts.
+- **Reports:** Produce separate court-submission draft and technical examination reports from the saved case evidence. Provide formal standalone printable HTML, numbered sections, exhibits, integrity inventory, methods, limitations and unsigned examiner/reviewer fields. Report Daubert/Rule 702 factors as documented, missing or unvalidated; never certify admissibility, qualification, error rate, peer review, signatures or chain of custody from appearance or model output. Preserve the original report and expose regenerated dual reports with their own generation time and digest.
+- **Coverage correction:** Preserve source-specific fields when reading already validated OCSF case records into log analysis. Record an actual model invocation only when one occurred; absence of a detection after lossy schema conversion is not reliable clean-host evidence.
+- **Windows exports:** Normalize Security and Sysmon process/parent field aliases and compare Windows executable basenames in parent/child signatures so native exported paths do not defeat the detection rules.
+- **Tracking:** TASK-6.7 upload integration; TASK-6.8 report reliability/review subset. No packages or hosted services required.
+
+### ADR-020: Investigation History and Result Views
+- **Status:** Accepted
+- **Date:** 2026-10-12
+- **Context:** Prior case checkpoints, agent outputs, timeline data and reports exist, but the dashboard exposes them only through a single current-case screen. The Dynamic Attack Graph node saves a model finding, not a verified structured exploit path. Some cases have an evidence timeline artifact even when `timeline.events` is empty.
+- **Decision:** Add an authorized, lightweight investigation-history endpoint backed by accessible Case nodes and saved LangGraph checkpoints, with a local loopback proxy. Provide separate dashboard tabs for live pipeline, history, executed agents, reconstructed timeline and evidence chronology, Dynamic Attack Graph analysis, and final report. Agent documentation must distinguish each role's purpose from what actually ran, including model, action, output and citations. The attack graph tab must not claim a verified path when only prose is saved; display that limitation and link to the actual case knowledge graph. History selection loads the persisted case snapshot rather than replaying the investigation.
+- **Tracking:** TASK-6.7 local investigation visibility subset; broader production authorization remains TASK-6.8.
+
+### ADR-019: Local Case Graph Display Cap
+- **Status:** Accepted
+- **Date:** 2026-10-12
+- **Context:** The case graph overview displays only 20 Events, 12 Processes, 12 DetectionFindings, 12 Entities, 3 Hosts, 30 AgentRuns and one Report. The user requests up to 300 nodes per type to inspect more of the graph.
+- **Decision:** Raise the display cap to 300 for each queried node type, including Event, Process, DetectionFinding, Entity, Host, AgentRun and Report. Keep complete counts and the sampled indicator so a case with more than 300 of a type is not mistaken for the full store. Raise the sampled relationship cap to cover the displayed nodes, and reduce layout iterations for large responses so the browser remains responsive.
+- **Tracking:** TASK-6.7 local graph visibility subset.
+
+### ADR-018: Case Graph and Agent Execution Visibility
+- **Status:** Accepted
+- **Date:** 2026-10-12
+- **Context:** The local graph view samples 100 Case-to-Event edges and advertises node types absent from the response. Agent outputs and the final report are saved in LangGraph checkpoints but are difficult to inspect. Existing case-tagged process, detection and finding nodes are not necessarily connected to Case nodes.
+- **Decision:** Use the installed local `qwen3:8b` for every role that invokes an LLM. Keep evidence triage, network rules, attribution scoring and report rendering deterministic to protect evidence integrity, and identify those steps honestly in execution traces. Persist complete agent output and cited refs in the existing checkpoint; present live checkpoint progress and the report in the dashboard. Query a bounded, case-scoped Neo4j view across actual case-tagged types, mark case membership links derived from `case_id` separately from stored relationships, report complete counts and sampling limits, and build the legend from returned node types.
+- **Limits:** Agent output is observable analysis, not private model chain of thought. A model label must reflect actual invocation. Older checkpoints retain their historical trace text. The graph view must never imply a derived case-membership link is a stored Neo4j edge.
+- **Tracking:** TASK-6.7 local integration subset; production graph policies remain TASK-6.8.
+
+### ADR-017: Local Dashboard Store Visibility
+- **Status:** Accepted
+- **Date:** 2026-10-12
+- **Decision:** For the single-host development dashboard, expose local store views through the existing loopback controller guarded by dashboard Origin and its custom header. Use the controller's private validation credential for the case-scoped Neo4j graph; read Quickwit, Chroma and FAISS from the same local host without changing the production API's administrator or case authorization rules. The dashboard must show access and service errors instead of rendering an empty graph.
+- **Limits:** This local controller is for a trusted development machine only. Production store views continue to require server-verified identity and approved authorization. DuckDB has no live store in this stack and must remain explicitly unavailable.
+- **Tracking:** TASK-6.7 local dashboard subset; production exposure policy remains TASK-6.8/TASK-7.1.
+
+### ADR-016: Deterministic Attribution and Local Delivery Verification
+- **Status:** Accepted
+- **Date:** 2026-10-10
+- **Context:** The local corpus uses hash-derived vectors, so a FAISS top-20 shortlist can omit relevant groups; ATT&CK `uses` relations have no actor chronology; duplicate observations can satisfy the TTP count; a versioned static workbook becomes stale after the daily feed threshold; and asynchronous Kafka callbacks leave checkpointed delivery unconfirmed.
+- **Decision:** For case attribution, enumerate verified ATT&CK group profiles and rank against distinct, evidence-cited technique IDs. Use chronological alignment only for a profile with an actual recorded sequence; inferred tactic order may be displayed but contributes no sequence score. Do not infer unlisted techniques from hash-vector similarity. A pinned local workbook has version-based freshness, while daily feed builds retain time-based freshness. For local attribution publication, wait a bounded interval for broker acknowledgement, record the final known status and verify consumption separately; an unacknowledged message remains explicitly unconfirmed. Preserve deterministic finding UID and case-scoped evidence checks.
+- **Consequences:** Local attribution no longer depends on pseudo-semantic FAISS shortlist quality. Scores and algorithm version change, so stored older case results are historical. Bounded broker acknowledgement adds a small maximum latency; it does not prove downstream consumption or replace durable outbox/replay infrastructure. No new package, model download or GCP service is required.
+- **Tracking:** TASK-6.7 local integration subset; TASK-6.8 production delivery/recovery remains open.
+
+### ADR-015: Offline ATT&CK Workbook Corpus for Local Validation
+- **Status:** Accepted
+- **Date:** 2026-10-10
+- **Decision:** Build the local FAISS threat-intelligence corpus from the repository's existing Enterprise ATT&CK v19.2 workbook using Python's standard-library XLSX reader. Record the workbook SHA-256, source format/version and artifact hashes in the manifest. Use an exact FAISS index for this sub-1,000-record corpus; retain the existing IVFPQ path for larger remote-source builds. Load the artifacts through the existing verified-generation loader and report corpus readiness from the live API.
+- **Limits:** Workbook hashes prove local input identity, not upstream authenticity. Existing deterministic hash embeddings provide only a development retrieval baseline; actor attribution remains evidence-bounded and must not be presented as independently validated identity. Do not download NVD, install packages or call GCP services. Current local Docker remains on Ollama.
+- **Tracking:** TASK-6.7's local corpus subset resumes in its occupied WIP slot. Broader live integration and production readiness gates remain open.
 
 ### ADR-014: Evidence Collection, Grounded Reports and Local Runtime Protection
 - **Status:** Accepted

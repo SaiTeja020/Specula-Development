@@ -444,15 +444,21 @@ def test_network_finding_reaches_dfkg_with_evidence_and_volume(monkeypatch):
             return json.dumps(finding).encode()
         def topic(self):
             return "findings.network_forensics"
+        def partition(self):
+            return 0
+        def offset(self):
+            return 42
     class Consumer:
         def __init__(self, config):
-            pass
+            assert config["enable.auto.commit"] is False
         def subscribe(self, topics):
             pass
         def poll(self, timeout):
             return Message()
         def close(self):
             pass
+        def commit(self, **kwargs):
+            calls.append(("commit", kwargs))
     class Session:
         def __enter__(self):
             return self
@@ -460,6 +466,7 @@ def test_network_finding_reaches_dfkg_with_evidence_and_volume(monkeypatch):
             pass
         def run(self, query, **params):
             calls.append((query, params))
+            return types.SimpleNamespace(consume=lambda: calls.append(("consume", {})))
     class Driver:
         def session(self):
             return Session()
@@ -476,3 +483,5 @@ def test_network_finding_reaches_dfkg_with_evidence_and_volume(monkeypatch):
     assert calls[0][1]["uid"] == "finding-uid"
     assert calls[0][1]["refs"] == ["network-event-1"]
     assert calls[0][1]["bytes_out"] == 2_000_000
+    assert calls[0][1]["offset"] == 42
+    assert calls[1][0] == "consume" and calls[2][0] == "commit"

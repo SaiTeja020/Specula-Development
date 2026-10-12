@@ -40,8 +40,9 @@ class ThreatAttributionResult(BaseModel):
     degraded_flags: list[str] = Field(default_factory=list)
     narrative: str
     summary: str
-    algorithm_version: str = "jaccard-sw-v1"
+    algorithm_version: str = "jaccard-sw-v2"
     scoring_parameters: dict = Field(default_factory=lambda: {
         "jaccard_weight": 0.4, "smith_waterman_weight": 0.6,
+        "inferred_sequence_weight": 0.0,
         "match": 2, "mismatch": -1, "gap": -1,
     })

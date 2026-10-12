@@ -1,12 +1,17 @@
 """Factory for Log Analysis Node."""
 import json
 import logging
+import time
 from typing import Any
 from src.agents.config import get_llm
 from src.agents.log_analysis.agent import LogAnalysisAgent
 from src.schemas.ocsf_base import OCSFBaseEvent
 
 logger = logging.getLogger(__name__)
+
+class CaseLogRecord(OCSFBaseEvent):
+    """Retain fields from already validated case evidence for detection rules."""
+    model_config = {**OCSFBaseEvent.model_config, "extra": "allow"}
 
 class DummyProducer:
     def __init__(self):
@@ -30,6 +35,8 @@ class DummyRedis:
 
 def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client: Any, neo4j_driver: Any):
     def log_analysis_node(state: dict) -> dict:
+        started = time.monotonic()
+        invocations = 0
         case_id = state.get("case_id", "unknown")
         
         if not neo4j_driver:
@@ -40,6 +47,8 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
         # model_router is just a callable that takes a string prompt and returns a string
         llm = get_llm("log_analysis", case_id=case_id)
         def model_router(prompt: str) -> str:
+            nonlocal invocations
+            invocations += 1
             response = llm.invoke(prompt)
             return response.content if hasattr(response, "content") else str(response)
             
@@ -68,10 +77,12 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
         for r in records:
             event_node = r["e"]
             event_dict = dict(event_node.items())
-            events.append(OCSFBaseEvent(**event_dict))
+            events.append(CaseLogRecord(**event_dict))
             
         if not events:
-            return {"findings": [], "agent_traces": []}
+            return {"findings": [], "agent_traces": [{"agent_role": "log_analysis",
+                "action": "case_scoped_log_analysis", "observation": "No process or file events were available for log-analysis rules.",
+                "model_used": "deterministic_rules", "latency_ms": round((time.monotonic() - started) * 1000, 1)}]}
             
         try:
             findings = agent.run_on_batch(events, kafka_offset=0, case_dedup_ttl_seconds=3600)
@@ -84,8 +95,10 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
                     "thought": f"Analyzed {len(events)} log events.",
                     "action": "run_on_batch",
                     "observation": f"Produced {len(findings)} findings.",
-                    "model_used": "hybrid_rules_and_llm",
-                    "latency_ms": 10,
+                    "model_used": (getattr(llm, "model_name", None) or getattr(llm, "model", None) or llm.__class__.__name__)
+                                  if invocations else "deterministic_rules",
+                    "model_invocations": invocations,
+                    "latency_ms": round((time.monotonic() - started) * 1000, 1),
                 }]
             }
         except Exception as e:

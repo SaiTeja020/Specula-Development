@@ -18,6 +18,8 @@ CREATE CONSTRAINT file_uid_unique IF NOT EXISTS FOR (f:File) REQUIRE f.uid IS UN
 // §5.2: Entity-level uniqueness for DFKG consumer writes (skeleton phase)
 // Prevents duplicate nodes from Kafka consumer retries / message replays.
 CREATE CONSTRAINT entity_uid_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.uid IS UNIQUE;
+CREATE CONSTRAINT agent_run_uid_unique IF NOT EXISTS FOR (a:AgentRun) REQUIRE a.uid IS UNIQUE;
+CREATE CONSTRAINT report_uid_unique IF NOT EXISTS FOR (r:Report) REQUIRE r.uid IS UNIQUE;
 
 
 

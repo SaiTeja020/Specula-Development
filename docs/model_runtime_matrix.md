@@ -6,7 +6,7 @@ Originally reviewed 2026-10-06 against `src/agents/config.py`, graph factories, 
 
 `docker-compose.local.yml` now sets both model selectors to `ollama`, with installed `qwen3:8b` at `http://host.docker.internal:11434`. Model calls through `get_llm` use that adapter; deterministic nodes still do not call a model. Host and container inference and the live attribution explanation contract passed. Gemini and hosted endpoints are unused in this configuration. No billable GCP services are authorized. See [current testing instructions](local_model_testing.md).
 
-The table below records default and optional configurations. The default remains `stub` for isolated regressions. An actual deployed Ollama investigation reached HITL and closed after restart; its attribution remained unavailable because the corpus was missing. This proves local inference and the workflow path, not every proposed role model.
+The table below records default and optional configurations. The default remains `stub` for isolated regressions. An actual deployed Ollama investigation reached HITL and closed after restart; its attribution remained unavailable because the corpus was missing at the time. After the local corpus build, a separate retained-case attribution probe used Ollama `qwen3:8b`, received a Kafka broker acknowledgement and verified Neo4j consumption. No new complete case attribution has been verified. This proves local inference and the scoped delivery path, not every proposed role model.
 
 ## Roles and execution
 
