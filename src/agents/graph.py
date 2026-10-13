@@ -68,13 +68,28 @@ def _dead_end_route(state: dict) -> str | list[Send]:
     No dead-end -> skip directly to Timeline Reconstruction.
     Dead-end   -> conditional Send to relevant specialists.
     """
-    if not state.get("dead_end_detected") or not state.get("dead_end_categories"):
+    from .case_analysis import records
+    events = records(state)
+    categories = set(state.get("dead_end_categories") or [])
+    if events:
+        classes = {row.get("class_uid") for row in events}
+        if 3002 in classes or any(row.get("source_event_type") == "credential_access" for row in events):
+            categories.add("identity")
+        if 6003 in classes:
+            categories.add("cloud_container")
+        if any(row.get("source_type") == "memory" or (isinstance(row.get("details"), dict) and row["details"].get("plugin")) for row in events):
+            categories.add("memory")
+        if any(row.get("source_type") == "ueba" for row in events):
+            categories.add("insider")
+        if any("unsigned" in str(row.get("source_finding", "")).lower() for row in events):
+            categories.add("malware")
+    if not categories:
         return "timeline_reconstruction"
 
     s = dict(state)
     sends = [
         Send(_SPECIALIST_MAP[cat], s)
-        for cat in state["dead_end_categories"]
+        for cat in sorted(categories)
         if cat in _SPECIALIST_MAP
     ]
     return sends if sends else "timeline_reconstruction"
@@ -102,7 +117,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     # ---- Add all 23 nodes ----
 
     # 18 ReAct-stub LLM agent nodes
-    builder.add_node("supervisor", make_supervisor_node())
+    builder.add_node("supervisor", make_supervisor_node(neo4j_driver))
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", make_log_analysis_node(kafka_producer, vector_client, redis_client, neo4j_driver))
     builder.add_node("network_forensics", make_network_forensics_node(neo4j_driver, kafka_producer))

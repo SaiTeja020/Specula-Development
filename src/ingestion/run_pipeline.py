@@ -152,6 +152,7 @@ def run_pipeline_on_event(
     neo4j_client = None,
     exclude_ports: set[int] = None,
     case_id: str = "UNASSIGNED_CONTINUOUS",
+    exported_log_path: str | None = None,
 ) -> list:
     # Preserve the input serialization before adding any pipeline metadata.
     raw_event = dict(raw_event)
@@ -186,6 +187,10 @@ def run_pipeline_on_event(
     if gate_result.injection_blocked:
         logger.warning(f"Event blocked by Security Gate — injection detected (trace={trace_id})")
         return []
+
+    if exported_log_path is not None:
+        from src.ingestion.export_aliases import adapt_export
+        raw_event = adapt_export(raw_event, source_type, exported_log_path)
 
     time_str = raw_event.get("TimeCreated", "") or raw_event.get("LastRecordChange", "") or raw_event.get("eventTime", "")
     if time_str and "/Date(" in str(time_str):
@@ -269,10 +274,16 @@ def run_pipeline_on_event(
     results = []
     for ocsf_evt in ocsf_evts:
         ocsf_evt.case_id = case_id
+        # Some findings omit canonical IDs while retaining an actual source host.
+        hostname = raw_event.get("host_name") or raw_event.get("host") or raw_event.get("MachineName")
+        if isinstance(hostname, str) and hostname.strip():
+            if not ocsf_evt.canonical_host_id:
+                ocsf_evt.canonical_host_id = resolver.resolve_any(hostname=hostname) or f"host-{hostname.strip()}"
+            resolver.register_hostname(hostname, ocsf_evt.canonical_host_id)
         if exclude_ports and source_type not in ("zeek", "suricata"):
             # Check if this event has endpoints with excluded ports
-            dst_port = getattr(getattr(ocsf_evt, "dst_endpoint", None), "port", None)
-            src_port = getattr(getattr(ocsf_evt, "src_endpoint", None), "port", None)
+            dst_port = getattr(getattr(ocsf_evt, "dst_endpoint", None), "port", None) or getattr(ocsf_evt, "dst_port", None)
+            src_port = getattr(getattr(ocsf_evt, "src_endpoint", None), "port", None) or getattr(ocsf_evt, "src_port", None)
             if (dst_port in exclude_ports) or (src_port in exclude_ports):
                 continue
 

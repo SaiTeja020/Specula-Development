@@ -250,6 +250,38 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 - **Consequences:** README and config documentation must distinguish the development default and optional integrations from ADR-003's proposed production topology. Tests and traces should record the backend actually invoked. No secrets or credential values are recorded in this ADR.
 - **Link to Progress.md:** [PROGRESS.md -> Phase 6 (Operational Readiness)](PROGRESS.md)
 
+### ADR-026: Evidence-grounded Case Analysis and Activity Graph
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** Replace synthesis/specialist stubs for evidence-bearing cases with case-scoped deterministic observations and model selections validated against their IDs. Store model assessments as audit data; uncited or invented claims never become findings. Resolve log citations against actual HAS_EVENT membership. Route specialists by available evidence, independently of idle timers. Reconstruct structured chronology from cited evidence. Persist an observed activity DAG with explicit temporal PRECEDES links; decline exploit probabilities/path calculations without validated vulnerability topology and calibrated edge probabilities. CVSS itself is not a probability. No actor attribution is inferred merely from finding an attack.
+- **Preservation:** Keep original ZIP/records and historical checkpoints unchanged; store source event identifiers/outcomes needed by detection alongside normalized case records. Missing acquisition timestamps remain explicit exclusions.
+- **Verification:** Fixture-specific positive/negative controls, adversarial model outputs, case isolation, real Neo4j writes and a new qwen3:8b run with cited results and dual reports. Existing HITL approval remains human controlled.
+
+### ADR-025: Nullable Source Host Identity in Graph Writes
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** Resolve source-provided host names through the existing resolver before database writes. Retain missing host identity as unknown; graph templates persist valid evidence entities and conditionally create host nodes/relationships only with a non-null host UID. No shared UNKNOWN_HOST entity is fabricated. Verify the actual uploaded record queries against live Neo4j inside a transaction that rolls back.
+- **Context:** Upload normalization passed mocked writes but a live DetectionFinding query attempted to MERGE Host uid=null and aborted ingestion after raw preservation.
+
+### ADR-024: Explicit Uploaded Export Aliases
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** Uploaded JSON supports explicit common field aliases before OCSF normalization, after original record preservation/security scanning. Native fields take precedence. Source folders and filenames may identify Windows providers; conflicting or unsupported shapes produce record diagnostics. No event time or malicious verdict is inferred from upload time, manifest narratives or missing fields. Untimed records remain in the original archive and are reported as excluded from normalized chronology. Local Windows collection retains its existing normalization path.
+- **UI:** ZIP structure and compact source examples move to a native modal dialog with keyboard focus and Escape handling. Detailed fields stay in the guide, outside the upload form.
+- **Verification:** Real uploaded ZIP offline normalization, preservation/alias regressions, frontend build/lint and tracker checks.
+
+### ADR-023: Automatic Local Controller Credential Renewal
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** After validating a loopback dashboard request, the controller may renew the existing matching `local-validation` credential for 24 hours when less than one hour remains. It never creates a credential or changes principal/case grants; missing, revoked or malformed credentials fail closed. Writes replace the policy atomically under a process lock. Backend policy checks and browser authentication remain enforced.
+- **Context:** Docker recreation succeeded but readiness returned 401 because the existing credential expired. The one-time runtime configuration did not renew it on subsequent boots.
+
+### ADR-022: Independent Saved Case Review
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** History moves to sidebar routes `/history` and `/history/:caseId`. Saved-case reviews fetch their own authorized checkpoint without changing the live pipeline context. Agents, timeline, DAG, reports, stores and Neo4j stay bound to the selected case. Store requests authorize case access; Quickwit searches only evidence identifiers in that checkpoint. Shared threat intelligence is explicitly labelled; unavailable case stores remain explicit. Existing local-dashboard trust and case authorization remain in force.
+- **Verification:** Frontend build/lint, case store isolation tests and tracker validation. No production ownership or admissibility claim.
+
 ### ADR-011: Hyperledger Fabric Anchoring Status
 - **Status:** Deferred
 - **Date:** 2026-10-06

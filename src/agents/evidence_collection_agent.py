@@ -54,7 +54,8 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
                 relevance = RelevanceCheckTool()
                 for row in fetched:
                     try:
-                        event = dict(row["e"])
+                        from .case_analysis import decode_record
+                        event = decode_record(row["e"])
                         uid = event.get("uid")
                         if not isinstance(uid, str) or not uid.strip():
                             flags.append("malformed_event_uid")

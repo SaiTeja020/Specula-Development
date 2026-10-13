@@ -1,4 +1,5 @@
 from typing import TypedDict
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -50,7 +51,8 @@ def test_failed_checkpoint_retry_preserves_prior_work(api_auth, monkeypatch, tmp
 
 def test_retry_requires_case_write_access(monkeypatch, tmp_path):
     headers = configure_test_auth(monkeypatch, tmp_path, {"test-user": {"role": "viewer", "cases": ["C1"]}})
-    monkeypatch.setattr(visualizer_api, "_get_neo4j_driver", lambda: None)
+    monkeypatch.setattr(visualizer_api, "_neo4j_driver", SimpleNamespace(
+        execute_query=lambda *args, **kwargs: ([], None, None)))
     client = TestClient(visualizer_api.app)
     assert client.post("/api/investigations/C1/retry").status_code == 401
     assert client.post("/api/investigations/C1/retry", headers=headers).status_code == 403

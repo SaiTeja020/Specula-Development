@@ -114,15 +114,22 @@ def detect_data_exfiltration(events: list[dict[str, Any]], volume_threshold: int
     for event in events:
         if event.get("class_uid") != 4001 or not event.get("uid"):
             continue
-        src, dst, size = _ip(event, "src"), _ip(event, "dst"), _bytes_out(event)
-        if not src or not dst or not size or not _is_ip(dst, public=True):
+        src, dst, size = _ip(event, "src") or event.get("canonical_host_id"), _ip(event, "dst"), _bytes_out(event)
+        if not src or not dst or not size:
+            continue
+        try:
+            destination = ipaddress.ip_address(dst)
+        except ValueError:
+            continue
+        if destination.is_loopback or destination.is_multicast or destination.is_link_local:
             continue
         key = (src, dst)
         totals[key] += size
         refs[key].append(event["uid"])
         if size > volume_threshold:
             findings.append({
-                "type": "Potential Data Exfiltration", "technique": "T1048", "severity_id": 5,
+                "type": "Potential Data Exfiltration" if destination.is_global else "High Outbound Transfer (Nonpublic Destination)",
+                "technique": "T1048" if destination.is_global else None, "severity_id": 5 if destination.is_global else 3,
                 "description": f"High outbound volume from {src} to {dst}: {size} bytes in one event.",
                 "bytes_out": size, "destination_ip": dst, "dfkg_refs": [event["uid"]],
             })

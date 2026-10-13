@@ -144,13 +144,13 @@ const runForceLayout = (nodes, edges) => {
   });
 };
 
-export default function Neo4jVisualizer() {
+export default function Neo4jVisualizer({ caseId = '' }) {
   const { caseId: activeCaseId } = usePipeline();
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [totals, setTotals] = useState({});
   const [cases, setCases] = useState([]);
-  const [selectedCase, setSelectedCase] = useState('');
+  const [selectedCase, setSelectedCase] = useState(caseId);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, data: null });
@@ -164,6 +164,7 @@ export default function Neo4jVisualizer() {
       try {
         let response;
         try {
+          if (caseId && !caseId.startsWith('LOCAL-')) throw new Error('Use authenticated case API');
           response = await localFetch(`/api/local/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`);
         } catch {
           response = await apiFetch(`http://localhost:8300/api/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`);
@@ -213,7 +214,7 @@ export default function Neo4jVisualizer() {
     };
     load();
     return () => { cancelled = true; };
-  }, [selectedCase, activeCaseId]);
+  }, [selectedCase, activeCaseId, caseId]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
@@ -222,8 +223,9 @@ export default function Neo4jVisualizer() {
           <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
           <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Knowledge Graph (Neo4j)</h1>
           <label style={{ marginLeft: 'auto', fontSize: '0.85rem' }}>Case{' '}
-            <select value={selectedCase} onChange={e => { setLoading(true); setSelectedCase(e.target.value); }}>
+            <select disabled={!!caseId} value={selectedCase} onChange={e => { setLoading(true); setSelectedCase(e.target.value); }}>
               {!selectedCase && <option value="">Latest available case</option>}
+              {caseId && !cases.includes(caseId) && <option value={caseId}>{caseId}</option>}
               {cases.map(id => <option key={id} value={id}>{id}</option>)}
             </select>
           </label>

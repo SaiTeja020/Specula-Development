@@ -71,7 +71,7 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
     now = datetime.now(timezone.utc).isoformat()
     verified_uids = set(meta["dfkg_refs"])
     supported = [f for f in state.get("findings") or []
-                 if f.get("agent_role") in {"log_analysis", "network_forensics"} and
+                 if (f.get("source") == "validated_case_rule" or f.get("agent_role") in {"log_analysis", "network_forensics"}) and
                  f.get("dfkg_refs") and set(f["dfkg_refs"]) <= verified_uids]
     input_digest = sha256(json.dumps({"case_id": state.get("case_id"), "events": events,
         "provenance": provenance}, sort_keys=True, default=str).encode()).hexdigest()
@@ -140,8 +140,7 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
     section("Recorded automated detection results", '<p>Automated screening results require examiner validation. '
             'Citations establish record membership, not independent correctness of an inference.</p>' +
             (''.join('<article><h3>' + _text(f.get("agent_role")) + '</h3><p>' +
-            (_text(f.get("summary")) if kind == "technical" else _text({
-                "finding_type": f.get("finding_type"), "severity_id": f.get("severity_id"), "attacks": f.get("attacks")})) +
+            _text(f.get("summary")) +
             '</p><p>Evidence references: ' + _text(', '.join(f["dfkg_refs"])) + '</p></article>'
             for f in supported) or '<p>No supported detection finding is available. This is a coverage-limited result.</p>')
             )
@@ -156,6 +155,7 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
                 "selection": provenance.get("selection"), "processing": provenance.get("processing"),
                 "triage": (state.get("evidence_collection") or {}).get("triage"),
                 "guardrails": {k: state.get(k) for k in ("guardrail_tier1_result", "guardrail_tier2_result", "guardrail_tier3_result", "hitl_decision")}}))
+        section("Observed activity graph", _json(state.get("attack_graph") or {"status": "unavailable"}))
         section("Agent execution, synthesis and hypotheses", '<p>Model-generated hypotheses and attack-path prose are unverified unless '
                 'supported by independently checked evidence. No structured exploit path is certified by prose.</p>' +
                 _json({"agent_traces": state.get("agent_traces") or [],

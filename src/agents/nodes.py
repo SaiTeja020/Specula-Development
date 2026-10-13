@@ -35,6 +35,26 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     D4: passes case_id to get_llm so StubLLM can fill {case_id} in responses
     without fragile regex extraction from the formatted prompt.
     """
+    from . import case_analysis as analysis
+    if analysis.records(state) and role in {"proponent", "critic", "judge", "guardrail_tier3"}:
+        allowed = {row["uid"] for row in analysis.records(state)}
+        facts = [fact for fact in state.get("findings", []) if fact.get("dfkg_refs") and set(fact["dfkg_refs"]) <= allowed
+                 and fact.get("agent_role") not in {"supervisor", "evidence_collection", "proponent", "critic", "judge"}]
+        trace = analysis.review(role, state, facts)
+        summary = (f"{len(facts)} cited incident observations available. Actor attribution remains separately unestablished. "
+                   "Missing source timestamps and unverified exploit topology remain limitations.")
+        if role == "proponent":
+            summary += " Supported observations: " + "; ".join(fact["summary"] for fact in facts[:8])
+        if role == "critic":
+            summary += " Review legitimate administration, file copying/restoration and source-reported findings as alternative explanations; temporal order does not establish causation."
+        if role == "judge":
+            summary = "VERDICT: ACCEPT\nConfidence: 0.0\nAccept cited observations for analyst review; no calibrated probability asserted. " + summary
+        if role == "guardrail_tier3":
+            invalid = any(fact.get("source") == "validated_case_rule" and (not fact.get("dfkg_refs") or not set(fact["dfkg_refs"]) <= allowed) for fact in state.get("findings", []))
+            summary = ("RESULT: FAIL\nInvalid case evidence reference. " if invalid else "RESULT: PASS\nCitations validated against this case; model-generated claims excluded from facts. ") + summary
+        finding = {"agent_role": role, "summary": summary, "dfkg_refs": trace["dfkg_refs"],
+                   "timestamp": trace["timestamp"], "kafka_offset": None, "finding_type": "case_review"}
+        return finding, trace
     cfg = AGENT_CONFIG.get(role, AGENT_CONFIG["supervisor"])
     # D4: forward case_id so StubLLM fills report template without prompt regex
     llm = get_llm(role, case_id=state.get("case_id", "unknown"))
@@ -141,6 +161,9 @@ def _summarise_output(state: dict) -> str:
 
 # --- 5. Timeline Reconstruction ---
 def timeline_reconstruction_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.timeline(state)
     finding, trace = _run_agent("timeline_reconstruction", state)
     events = []
     for prior in state.get("findings", []):
@@ -173,6 +196,9 @@ def timeline_reconstruction_node(state: dict) -> dict:
 
 # --- 7. Dynamic Attack Graph (Sequential Synthesis) ---
 def dag_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.activity_graph(state)
     """Dynamic Attack Graph Agent — Sequential Synthesis (F23).
 
     Reads confirmed preconditions from DFKG (via mcp-dfkg-cypher) and EPSS
@@ -189,6 +215,9 @@ def dag_node(state: dict) -> dict:
 
 # --- 8–12. Specialist tier (conditional, parallel-if-multiple) ---
 def memory_forensics_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("memory_forensics", "memory", state)
     finding, trace = _run_agent("memory_forensics", state)
     return {
         "findings": [finding],
@@ -198,6 +227,9 @@ def memory_forensics_node(state: dict) -> dict:
 
 
 def identity_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("identity", "identity", state)
     """Identity Agent — AD/Kerberos/cloud-IAM forensics specialist (F13a)."""
     finding, trace = _run_agent("identity", state)
     return {
@@ -208,6 +240,9 @@ def identity_node(state: dict) -> dict:
 
 
 def cloud_container_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("cloud_container", "cloud_container", state)
     """Cloud & Container Agent — K8s/Falco/Docker runtime forensics specialist (F13b)."""
     finding, trace = _run_agent("cloud_container", state)
     return {
@@ -218,6 +253,9 @@ def cloud_container_node(state: dict) -> dict:
 
 
 def malware_stylometry_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("malware_stylometry", "malware", state)
     finding, trace = _run_agent("malware_stylometry", state)
     return {
         "findings": [finding],
@@ -227,6 +265,9 @@ def malware_stylometry_node(state: dict) -> dict:
 
 
 def insider_threat_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("insider_threat", "insider", state)
     finding, trace = _run_agent("insider_threat", state)
     return {
         "findings": [finding],

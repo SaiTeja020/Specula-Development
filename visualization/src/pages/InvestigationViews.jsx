@@ -1,4 +1,6 @@
+import ReactFlow, { Background, Controls } from 'reactflow';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { localFetch } from '../lib/localApi';
 
@@ -91,8 +93,8 @@ export function HistoryView() {
     {items.map(item => <article key={item.case_id} style={panelStyle}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.75rem' }}>
         <div>
-          <a href={`/investigate?case=${encodeURIComponent(item.case_id)}&view=agents`}
-            style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{item.case_id}</a>
+          <Link to={`/history/${encodeURIComponent(item.case_id)}?view=agents`}
+            style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{item.case_id}</Link>
           <div style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.85rem' }}>
             Started {item.started_at ? new Date(item.started_at).toLocaleString() : 'time unavailable'}
           </div>
@@ -144,6 +146,10 @@ export function AgentsView({ snapshot }) {
           {trace.timestamp && ` · ${new Date(trace.timestamp).toLocaleString()}`}
         </div>
         <pre style={proseStyle}>{finding?.summary || trace.observation || 'No output text recorded.'}</pre>
+        {trace.model_output && <details><summary>Recorded model assessment · {trace.model_output_validated ? 'validated selections' : 'rejected output'}</summary>
+          <pre style={proseStyle}>{trace.model_output}</pre>
+          <p>Only validated observation selections are accepted. This audit output is not an independent evidence fact.</p>
+        </details>}
         {refs.length > 0 && <div style={{ fontSize: '0.8rem', overflowWrap: 'anywhere' }}>
           Evidence ({refs.length}): {refs.slice(0, 8).join(', ')}{refs.length > 8 && ` and ${refs.length - 8} more`}
         </div>}
@@ -164,6 +170,7 @@ export function TimelineView({ snapshot }) {
     summary: item.summary || item.process_name || item.command_line ||
       [item.host_name, item.class_uid != null && `OCSF class ${item.class_uid}`].filter(Boolean).join(' · ') || 'Evidence event',
     severity: item.severity_id,
+    timeBasis: item.time_basis,
     refs: item.dfkg_refs || (item.uid ? [item.uid] : []),
   })).sort((a, b) => String(a.time).localeCompare(String(b.time)));
   const pageSize = 50;
@@ -182,6 +189,7 @@ export function TimelineView({ snapshot }) {
         {events.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((event, index) => <li
           key={`${event.id}-${currentPage}-${index}`} style={panelStyle}>
           <time style={{ fontFamily: 'var(--sp-font-mono)', fontSize: '0.8rem' }}>{event.time || 'Time unavailable'}</time>
+          {event.timeBasis === 'file_metadata' && <small> · File metadata timestamp; not execution time</small>}
           <p style={{ margin: '0.4rem 0', overflowWrap: 'anywhere' }}>{event.summary}</p>
           <small>UID: {event.id}{event.severity != null ? ` · Severity ${event.severity}` : ''}</small>
           {event.refs.length > 1 && <small> · {event.refs.length} cited events</small>}
@@ -202,21 +210,37 @@ export function TimelineView({ snapshot }) {
 
 export function AttackGraphView({ snapshot }) {
   if (!snapshot) return <EmptyView title="No case selected" detail="Open a saved investigation to view its attack graph analysis." />;
+  const graph = snapshot.attack_graph;
   const finding = (snapshot.findings || []).find(item => item.agent_role === 'dag');
   const trace = (snapshot.agent_traces || []).find(item => item.agent_role === 'dag');
   return <section aria-label="Dynamic attack graph" style={{ display: 'grid', gap: '0.75rem' }}>
     <div style={panelStyle}>
       <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Dynamic attack graph</h2>
-      <p style={{ marginBottom: 0 }}>No verified exploit-path nodes or edges were saved for this case. The agent output below is analysis text, not a computed graph path.</p>
+      <p style={{ marginBottom: 0 }}>{graph ? 'Observed activity graph: cited findings linked by recorded temporal precedence. These links do not establish causation or a verified exploit path.' : 'No verified exploit-path nodes or edges were saved for this case. Historical model prose is unverified.'}</p>
     </div>
-    {finding ? <article style={panelStyle}>
+    {graph && <>
+      <div style={{ height: '60vh', minHeight: 400, border: 'var(--sp-border-thin)' }}>
+        <ReactFlow fitView nodes={graph.nodes.map((node, index) => ({ id: node.id,
+          position: { x: (index % 3) * 280, y: Math.floor(index / 3) * 180 },
+          data: { label: `${node.label.replaceAll('_', ' ')} ? ${node.dfkg_refs.length} cited events` } }))}
+          edges={graph.edges.map(edge => ({ ...edge, label: edge.type }))}>
+          <Background /><Controls />
+        </ReactFlow>
+      </div>
+      <p>{graph.nodes.length} observation nodes ? {graph.edges.length} temporal links ? Exploit probabilities unavailable</p>
+      {graph.nodes.map(node => <article key={node.id} style={panelStyle}>
+        <strong>{node.label.replaceAll('_', ' ')}</strong><p>{node.summary}</p>
+        <small>{node.time} ? Evidence: {node.dfkg_refs.join(', ')}</small>
+      </article>)}
+    </>}
+    {!graph && finding ? <article style={panelStyle}>
       <h3 style={{ marginTop: 0 }}>Agent analysis</h3>
       <p style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.85rem' }}>
         Model: {trace?.model_used || 'not recorded'} · Evidence references: {finding.dfkg_refs?.length || 0}
       </p>
       <pre style={proseStyle}>{finding.summary}</pre>
-    </article> : <EmptyView title="Attack graph step pending" detail="The Dynamic Attack Graph agent has not saved analysis for this case." />}
-    <a href={`/neo4j?case=${encodeURIComponent(snapshot.case_id)}`}>View this case’s stored Neo4j relationships</a>
+    </article> : <EmptyView title={graph ? "Exploit-path calculation unavailable" : "Attack graph step pending"} detail={graph ? graph.limitations.join(" ") : "The Dynamic Attack Graph agent has not saved analysis for this case."} />}
+    <Link to={`/history/${encodeURIComponent(snapshot.case_id)}?view=neo4j`}>View this case’s stored Neo4j relationships</Link>
   </section>;
 }
 

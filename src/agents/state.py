@@ -42,6 +42,7 @@ class SpeculaState(TypedDict, total=False):
 
     # §2.4 Sequential synthesis
     timeline: Optional[dict]                 # Timeline Reconstruction only
+    attack_graph: Optional[dict]
     attribution: Optional[dict]              # Threat Attribution only (after timeline non-null)
 
     # §2.5 Debate subsystem

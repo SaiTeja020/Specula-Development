@@ -139,6 +139,8 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str, entity_r
                 src_port=raw_payload.get("src_port"),
                 dst_port=raw_payload.get("dst_port"),
                 protocol=raw_payload.get("protocol"),
+                bytes_in=raw_payload.get("bytes_in"),
+                bytes_out=raw_payload.get("bytes_out"),
                 canonical_host_id=canonical_host_id,
             )
         )

@@ -41,12 +41,14 @@ export function PipelineProvider({ children }) {
   const [caseResult, setCaseResult] = useState(null);
   const [launchError, setLaunchError] = useState('');
   const [ingestionPhase, setIngestionPhase] = useState('');
+  const [ingestionDiagnostics, setIngestionDiagnostics] = useState(null);
   const [isReviewing, setIsReviewing] = useState(false);
   const reviewingRef = useRef(false);
   const observedTracesRef = useRef(0);
 
   const applySnapshot = (snapshot) => {
     setCaseResult(snapshot);
+    setIngestionDiagnostics(snapshot.ingestion_provenance?.processing || null);
     observedTracesRef.current = snapshot.agent_traces?.length || 0;
     setIsStarted(true);
     if (snapshot.failed_nodes?.length) {
@@ -277,7 +279,7 @@ export function PipelineProvider({ children }) {
   };
 
   const handleIngestAndStart = async (config) => {
-    setLaunchError(''); setCaseResult(null); setIsStarted(true);
+    setLaunchError(''); setCaseResult(null); setIsStarted(true); setIngestionDiagnostics(null);
     setCaseStatus('INGESTING'); setActiveStage(0);
     setStageLogs({ 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] });
     try {
@@ -314,6 +316,10 @@ export function PipelineProvider({ children }) {
       const job = await response.json();
       if (!response.ok) throw new Error(job.detail || `Investigation status returned HTTP ${response.status}`);
       if (cancelled()) return;
+      if (job.ingestion) setIngestionDiagnostics({
+        ...job.ingestion,
+        selected_records_without_normalized_events: job.ingestion.excluded_records,
+      });
       if (job.phase !== priorPhase) {
         priorPhase = job.phase;
         setIngestionPhase(job.phase);
@@ -437,14 +443,14 @@ export function PipelineProvider({ children }) {
     pendingLocalCaseRef.current = '';
     setCaseId(''); setCaseResult(null); setIsStarted(false);
     setCaseStatus('IDLE'); setActiveStage(-1); setHitlData(null);
-    setLaunchError(''); setIngestionPhase('');
+    setLaunchError(''); setIngestionPhase(''); setIngestionDiagnostics(null);
     setStageLogs({ 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] });
   };
 
   return (
     <PipelineContext.Provider value={{
       caseId, setCaseId, caseResult, isStarted, caseStatus, activeStage, stageLogs, hitlData,
-      launchError, ingestionPhase, isReviewing, handleStart, handleIngestAndStart, handleHitlAction, resetPipeline
+      launchError, ingestionPhase, ingestionDiagnostics, isReviewing, handleStart, handleIngestAndStart, handleHitlAction, resetPipeline
     }}>
       {children}
     </PipelineContext.Provider>

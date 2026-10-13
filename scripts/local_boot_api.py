@@ -5,10 +5,17 @@ The controller must survive the Compose teardown. Named volumes are retained.
 """
 
 import asyncio
+import hashlib
+import hmac
 import json
+import math
+import os
 from datetime import datetime
 from pathlib import Path
 import subprocess
+import tempfile
+import threading
+import time
 from typing import Literal
 import uuid
 
@@ -20,6 +27,37 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 TOKEN_PATH = ROOT / "data" / "private" / "verification_token"
+_credential_lock = threading.Lock()
+
+
+def _local_token():
+    """Renew only the already provisioned controller identity; never grant access."""
+    with _credential_lock:
+        token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+        policy_path = TOKEN_PATH.parent / "auth_policy.json"
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        digest = hashlib.sha256(token.encode()).hexdigest()
+        matches = [item for item in policy.get("local_tokens", [])
+                   if item.get("subject") == "local-validation"
+                   and hmac.compare_digest(str(item.get("token_sha256", "")), digest)]
+        if len(matches) != 1 or "local-validation" not in policy.get("principals", {}):
+            raise ValueError("Local controller credential is not provisioned")
+        expiry = float(matches[0]["expires_at"])
+        if not math.isfinite(expiry):
+            raise ValueError("Invalid local credential expiry")
+        now = time.time()
+        if expiry < now + 3600:
+            matches[0]["expires_at"] = now + 86400
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=policy_path.parent,
+                                             delete=False) as handle:
+                temporary = Path(handle.name)
+                json.dump(policy, handle, indent=2)
+            try:
+                os.chmod(temporary, 0o600)
+                os.replace(temporary, policy_path)
+            finally:
+                temporary.unlink(missing_ok=True)
+        return token
 
 COMPOSE = ["docker", "compose", "-f", str(ROOT / "docker-compose.yml"),
            "-f", str(ROOT / "docker-compose.local.yml")]
@@ -115,7 +153,7 @@ async def local_readiness(request: Request):
 
     def check():
         try:
-            token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+            token = _local_token()
             with requests.Session() as session:
                 session.trust_env = False
                 response = session.get("http://127.0.0.1:8300/api/system/readiness",
@@ -239,7 +277,7 @@ async def local_investigation_history(request: Request):
     _local_dashboard(request)
 
     def read():
-        token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+        token = _local_token()
         with requests.Session() as session:
             session.trust_env = False
             response = session.get("http://127.0.0.1:8300/api/investigations/history",
@@ -274,7 +312,7 @@ async def local_case_review(case_id: str, body: LocalReviewRequest, request: Req
         raise HTTPException(403, "Local case required")
 
     def review():
-        token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+        token = _local_token()
         with requests.Session() as session:
             session.trust_env = False
             response = session.post(
@@ -299,7 +337,7 @@ async def local_case_snapshot(case_id: str, request: Request):
         raise HTTPException(403, "Local case required")
 
     def read():
-        token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+        token = _local_token()
         with requests.Session() as session:
             session.trust_env = False
             response = session.get(
@@ -323,7 +361,7 @@ async def local_examination_report(case_id: str, kind: Literal["court", "technic
         raise HTTPException(403, "Local case required")
 
     def read():
-        token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+        token = _local_token()
         with requests.Session() as session:
             session.trust_env = False
             from urllib.parse import quote
@@ -352,11 +390,28 @@ async def local_examination_report(case_id: str, kind: Literal["court", "technic
 async def local_store_data(store: Literal["neo4j", "quickwit", "chroma", "faiss", "duckdb"], request: Request,
                            case_id: str | None = None):
     _local_dashboard(request)
+    if case_id and store != "neo4j":
+        def scoped_view():
+            token = _local_token()
+            with requests.Session() as session:
+                session.trust_env = False
+                response = session.get(
+                    f"http://127.0.0.1:8300/api/investigations/{requests.utils.quote(case_id, safe='')}/stores/{store}",
+                    headers={"Authorization": f"Bearer {token}"}, timeout=20)
+            return response.status_code, response.json()
+
+        try:
+            status, payload = await asyncio.to_thread(scoped_view)
+        except (OSError, requests.RequestException, ValueError):
+            raise HTTPException(503, "Case store view unavailable") from None
+        if status != 200:
+            raise HTTPException(status, payload.get("detail", "Case store view unavailable"))
+        return payload
     if store == "duckdb":
         return {"status": "unavailable", "source": "duckdb", "tables": [], "metrics": {}}
     if store == "neo4j":
         def graph_view():
-            token = TOKEN_PATH.read_text(encoding="utf-8").strip()
+            token = _local_token()
             with requests.Session() as session:
                 session.trust_env = False
                 response = session.get("http://127.0.0.1:8300/api/data/neo4j",

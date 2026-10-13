@@ -12,6 +12,7 @@ const STORES = [
 
 function storeSummary(id, payload) {
   if (payload.error) return payload.error;
+  if (payload.detail) return payload.detail;
   if (payload.status !== 'success' && payload.status !== 'ready') return 'Store unavailable';
   if (id === 'quickwit') return `${payload.logs?.length ?? 0} recent preserved records`;
   if (id === 'chroma') return `${payload.collections?.length ?? 0} collections`;
@@ -19,7 +20,7 @@ function storeSummary(id, payload) {
   return `${payload.tables?.length ?? 0} tables`;
 }
 
-export default function DatabaseVisualizers() {
+export default function DatabaseVisualizers({ caseId = '' }) {
   const [data, setData] = useState({});
   const [activeStore, setActiveStore] = useState(null);
 
@@ -29,9 +30,12 @@ export default function DatabaseVisualizers() {
       try {
         let response;
         try {
-          response = await localFetch(`/api/local/data/${id}`);
+          if (caseId && !caseId.startsWith('LOCAL-')) throw new Error('Use authenticated case API');
+          response = await localFetch(`/api/local/data/${id}${caseId ? `?case_id=${encodeURIComponent(caseId)}` : ''}`);
         } catch {
-          response = await apiFetch(`http://localhost:8300/api/data/${id}`);
+          response = await apiFetch(caseId
+            ? `http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}/stores/${id}`
+            : `http://localhost:8300/api/data/${id}`);
         }
         const payload = await response.json();
         return [id, response.ok ? payload : { error: response.status === 403
@@ -41,11 +45,12 @@ export default function DatabaseVisualizers() {
       }
     })).then(entries => { if (!cancelled) setData(Object.fromEntries(entries)); });
     return () => { cancelled = true; };
-  }, []);
+  }, [caseId]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1.5rem', overflowY: 'auto' }}>
       <h1 style={{ margin: 0 }}>Data Store Monitors</h1>
+      {caseId && <p>Evidence stores for {caseId}. FAISS is shared threat intelligence, not case evidence.</p>}
       <div className="db-grid">
         {STORES.map(({ id, name, icon: Icon }) => (
           <button key={id} type="button" className="db-card glass-panel"

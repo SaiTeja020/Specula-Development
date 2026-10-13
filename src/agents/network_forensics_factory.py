@@ -31,6 +31,8 @@ def _event_dict(record: Any) -> dict:
     else:
         result = dict(event)
     for field in ("src_endpoint", "dst_endpoint", "traffic", "dns"):
+        if field not in result and field + "_json" in result:
+            result[field] = result[field + "_json"]
         if isinstance(result.get(field), str):
             try:
                 result[field] = json.loads(result[field])
@@ -106,7 +108,8 @@ def make_network_forensics_node(neo4j_driver: Any, kafka_producer: Any):
                     "summary": anomaly["description"],
                     "finding_type": anomaly["type"],
                     "severity_id": anomaly["severity_id"],
-                    "attacks": [anomaly["technique"]],
+                    "attacks": [anomaly["technique"]] if anomaly.get("technique") else [],
+                    "source": "validated_case_rule",
                     "dfkg_refs": anomaly["dfkg_refs"],
                     "event_time": min(evidence_times).isoformat() if evidence_times else None,
                     "bytes_out": anomaly.get("bytes_out", 0),

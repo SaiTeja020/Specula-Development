@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import ZipFormatGuide from './ZipFormatGuide';
 import { usePipeline } from '../contexts/PipelineContext';
-import { AgentsView, AttackGraphView, HistoryView, ReportView, TimelineView } from './InvestigationViews';
+import { AgentsView, AttackGraphView, ReportView, TimelineView } from './InvestigationViews';
 
 const VIEWS = [
   { id: 'pipeline', label: 'Pipeline' },
-  { id: 'history', label: 'History' },
   { id: 'agents', label: 'Agents' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'attack-graph', label: 'Attack Graph' },
@@ -49,6 +49,7 @@ export default function InvestigationConsole() {
   const initialView = new URLSearchParams(window.location.search).get('view');
   const [view, setView] = useState(VIEWS.some(item => item.id === initialView) ? initialView : 'pipeline');
   const tabRefs = useRef({});
+  const zipGuideRef = useRef(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [maxEvents, setMaxEvents] = useState(2000);
@@ -60,7 +61,7 @@ export default function InvestigationConsole() {
   const navigate = useNavigate();
   const { 
     caseId, setCaseId, caseResult, isStarted, caseStatus, activeStage, stageLogs, hitlData,
-    launchError, ingestionPhase, isReviewing, handleIngestAndStart, handleHitlAction, resetPipeline
+    launchError, ingestionPhase, ingestionDiagnostics, isReviewing, handleIngestAndStart, handleHitlAction, resetPipeline
   } = usePipeline();
 
   useEffect(() => {
@@ -111,6 +112,7 @@ export default function InvestigationConsole() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem', overflowY: 'auto', paddingBottom: '2rem' }}>
+      <ZipFormatGuide dialogRef={zipGuideRef} />
       <div className="header" style={{ padding: '1.5rem', margin: 0, borderBottom: 'var(--sp-border-thin)', background: 'var(--sp-color-bg-surface)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
@@ -131,6 +133,13 @@ export default function InvestigationConsole() {
           {formError || launchError}
         </p>}
         {isStarted && ingestionPhase && <p aria-live="polite">Pipeline stage: {ingestionPhase}</p>}
+        {!!ingestionDiagnostics?.selected_records_without_normalized_events && <details>
+          <summary>{ingestionDiagnostics.selected_records_without_normalized_events} records excluded from normalized evidence — view ingestion diagnostics</summary>
+          <ul>{ingestionDiagnostics.record_errors_sample?.map((item, index) => <li key={index}>
+            {item.file || 'Source'} · record {item.record}: {item.reason}
+          </li>)}</ul>
+          <p>Original uploaded records remain in the preserved ZIP. This list shows up to 20 exclusions.</p>
+        </details>}
         {['COMPLETED', 'CLOSED WITH LIMITATIONS', 'AWAITING REVIEW', 'PAUSED AFTER ERROR'].includes(caseStatus) && (
           <button className="secondary-btn" onClick={onNewInvestigation}>New Investigation</button>
         )}
@@ -150,12 +159,10 @@ export default function InvestigationConsole() {
             {source === 'upload' && <div>
               <label>Log archive <input type="file" accept=".zip,application/zip"
                 onChange={e => setArchiveFile(e.target.files?.[0] || null)} /></label>
-              <details style={{ marginTop: '0.75rem' }}>
-                <summary>Required ZIP folder structure and supported formats</summary>
-                <pre>{`evidence.zip\n├── manifest.json (optional acquisition/examiner metadata)\n├── windows/     Security.json, Sysmon.jsonl\n├── edr/         events.jsonl\n├── memory/      findings.json\n├── malware/     findings.json\n├── ueba/        events.json\n├── vuln_scan/   findings.json\n├── gcp_audit/   events.json\n└── mft/         records.json`}</pre>
-                <p>Include only the folders you need, directly at the archive root. JSON files contain an object or array of objects; JSONL contains one object per line. Binary .evtx files must first be exported to JSON. Maximum: 50 MiB ZIP, 200 MiB expanded, 25 MiB per file, 500 entries.</p>
-                <p>Original archive and file SHA-256 hashes are recorded. Date filters require ISO 8601 timestamps with UTC offsets; event limits apply per uploaded file.</p>
-              </details>
+              <button type="button" className="secondary-btn" style={{ marginTop: '0.75rem' }}
+                aria-haspopup="dialog" onClick={() => zipGuideRef.current?.showModal()}>
+                ZIP format guide
+              </button>
             </div>}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -329,7 +336,6 @@ export default function InvestigationConsole() {
             </div>
           );
         })}
-        {view === 'history' && <HistoryView />}
         {view === 'agents' && <AgentsView snapshot={caseResult} />}
         {view === 'timeline' && <TimelineView snapshot={caseResult} />}
         {view === 'attack-graph' && <AttackGraphView snapshot={caseResult} />}

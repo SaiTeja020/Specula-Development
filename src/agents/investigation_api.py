@@ -69,6 +69,7 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                 "failed_nodes": [task.name for task in state.tasks if task.error],
                 "agent_traces": values.get("agent_traces", []),
                 "attribution": values.get("attribution"), "timeline": values.get("timeline"),
+                "attack_graph": values.get("attack_graph"),
                 "evidence_collection": values.get("evidence_collection"),
                 "ingestion_provenance": values.get("ingestion_provenance"),
                 "report_output": values.get("report_output"),
@@ -219,6 +220,14 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
         await asyncio.to_thread(authorize, request.state.principal, case_id, driver=get_driver())
         graph, config = graph_for_case(case_id)
         return snapshot(graph, config)
+
+    @app.get("/api/investigations/{case_id}/stores/{store}")
+    async def get_case_store(case_id: str, store: Literal["quickwit", "chroma", "faiss", "duckdb"], request: Request):
+        await asyncio.to_thread(authorize, request.state.principal, case_id, driver=get_driver())
+        graph, config = graph_for_case(case_id)
+        from .store_views import case_store_view
+        saved = await asyncio.to_thread(snapshot, graph, config)
+        return await asyncio.to_thread(case_store_view, store, case_id, saved)
 
     @app.get("/api/investigations/{case_id}/reports/{kind}")
     async def get_examination_report(case_id: str, kind: Literal["court", "technical"], request: Request):

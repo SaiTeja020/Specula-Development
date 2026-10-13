@@ -1,6 +1,9 @@
 """The local boot operation may replace only this Compose stack's containers."""
 
 import asyncio
+import hashlib
+import json
+import time
 from subprocess import CompletedProcess
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -9,6 +12,15 @@ import pytest
 from fastapi import HTTPException
 
 from scripts import local_boot_api
+
+
+def provision_policy(path, token, expiry=None):
+    policy = {"principals": {"local-validation": {"role": "analyst", "cases": ["C1"]}},
+              "local_tokens": [{"subject": "local-validation",
+                                "token_sha256": hashlib.sha256(token.encode()).hexdigest(),
+                                "expires_at": expiry if expiry is not None else time.time() + 86400}]}
+    (path.parent / "auth_policy.json").write_text(json.dumps(policy), encoding="utf-8")
+    return policy
 
 
 def result(args, code=0, stdout=""):
@@ -76,6 +88,7 @@ def test_readiness_uses_host_token_without_exposing_it(tmp_path, monkeypatch):
     token = "specula_local_example_only"
     path = tmp_path / "verification_token"
     path.write_text(token, encoding="utf-8")
+    provision_policy(path, token)
     monkeypatch.setattr(local_boot_api, "TOKEN_PATH", path)
     request = SimpleNamespace(client=SimpleNamespace(host="127.0.0.1"),
                               headers={"origin": "http://localhost:5173", "x-specula-local-boot": "1"})
@@ -120,6 +133,7 @@ def test_current_job_can_be_recovered_after_page_refresh(monkeypatch):
 def test_local_graph_view_uses_host_credential(tmp_path, monkeypatch):
     path = tmp_path / "verification_token"
     path.write_text("local-only-example", encoding="utf-8")
+    provision_policy(path, "local-only-example")
     monkeypatch.setattr(local_boot_api, "TOKEN_PATH", path)
     request = SimpleNamespace(client=SimpleNamespace(host="127.0.0.1"),
                               headers={"origin": "http://localhost:5173", "x-specula-local-boot": "1"})
@@ -140,3 +154,20 @@ def test_local_store_view_is_restricted_to_dashboard_origin():
     with pytest.raises(HTTPException) as error:
         asyncio.run(local_boot_api.local_store_data("quickwit", request))
     assert error.value.status_code == 403
+
+
+def test_expired_local_credential_renews_without_changing_grants(tmp_path, monkeypatch):
+    path = tmp_path / "verification_token"
+    token = "local-only-expiry-test-token"
+    path.write_text(token, encoding="utf-8")
+    before = provision_policy(path, token, time.time() - 60)
+    monkeypatch.setattr(local_boot_api, "TOKEN_PATH", path)
+    assert local_boot_api._local_token() == token
+    after = json.loads((tmp_path / "auth_policy.json").read_text())
+    assert after["principals"] == before["principals"]
+    assert after["local_tokens"][0]["token_sha256"] == before["local_tokens"][0]["token_sha256"]
+    assert time.time() + 86300 < after["local_tokens"][0]["expires_at"] < time.time() + 86500
+    path.write_text("revoked-or-replaced-token", encoding="utf-8")
+    with pytest.raises(ValueError, match="not provisioned"):
+        local_boot_api._local_token()
+    assert json.loads((tmp_path / "auth_policy.json").read_text()) == after

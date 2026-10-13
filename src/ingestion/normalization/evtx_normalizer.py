@@ -281,8 +281,10 @@ def normalize_evtx_network(
     canonical_src_host = entity_resolver.resolve_any(ip=src_ip, event_timestamp=utc_time) if src_ip else None
     canonical_dst_ip_host = entity_resolver.resolve_any(ip=dst_ip, event_timestamp=utc_time) if dst_ip else None
     
-    src_endpoint = NetworkEndpoint(ip_address=src_ip, port=src_port, canonical_host_uid=canonical_src_host)
-    dst_endpoint = NetworkEndpoint(ip_address=dst_ip, port=dst_port, canonical_host_uid=canonical_dst_ip_host)
+    src_endpoint = NetworkEndpoint(ip_address=src_ip if src_ip and src_ip.strip() != "-" else None,
+                                   port=src_port, canonical_host_uid=canonical_src_host)
+    dst_endpoint = NetworkEndpoint(ip_address=dst_ip if dst_ip and dst_ip.strip() != "-" else None,
+                                   port=dst_port, canonical_host_uid=canonical_dst_ip_host)
     
     activity_id = 1
     if event_id == 22:

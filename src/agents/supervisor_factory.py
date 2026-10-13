@@ -5,10 +5,19 @@ from src.agents.nodes import _run_agent
 
 logger = logging.getLogger(__name__)
 
-def make_supervisor_node():
+def make_supervisor_node(neo4j_driver=None):
     def supervisor_node(state: dict) -> dict:
         # Standard ReAct stub as fallback/baseline
-        finding, trace = _run_agent("supervisor", state)
+        if neo4j_driver is not None:
+            from .case_analysis import observation, review
+            rows, _, _ = neo4j_driver.execute_query(
+                "MATCH (:Case {uid:$case_id})-[:HAS_EVENT]->(e:Event) RETURN e ORDER BY e.uid", case_id=state["case_id"])
+            facts = [{"summary": observation(dict(row["e"])), "dfkg_refs": [row["e"]["uid"]]} for row in rows]
+            trace = review("supervisor", state, facts)
+            finding = {"agent_role": "supervisor", "summary": f"Primary agents dispatched for {len(facts)} case events; specialist routing follows actual evidence after collection.",
+                       "dfkg_refs": [], "timestamp": trace["timestamp"], "kafka_offset": None}
+        else:
+            finding, trace = _run_agent("supervisor", state)
         
         # Restore legacy test injection for test_skeleton_graph.py
         raw_input = state.get("raw_input", "")

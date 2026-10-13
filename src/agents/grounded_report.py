@@ -100,7 +100,9 @@ def _event_line(event: dict) -> str:
     facts = []
     for key in ("class_uid", "activity_id", "type_uid", "status_id", "severity_id",
                 "src_endpoint", "dst_endpoint", "bytes", "bytes_in", "bytes_out",
-                "traffic", "connection_info", "protocol_name"):
+                "traffic", "connection_info", "protocol_name", "process_name", "parent_process_name",
+                "command_line", "file_path", "si_created", "fn_created", "api_operation",
+                "user_identity", "finding_title", "source_event_id", "source_outcome"):
         if key in event:
             value = event[key]
             if isinstance(value, dict):
@@ -133,6 +135,10 @@ def render_report(state: dict) -> tuple[str, dict]:
             rendered_triage += 1
     if not rendered_triage:
         lines.append("No per-event triage decisions are recorded.")
+    lines.extend(["", "## Validated incident observations"])
+    for finding in state.get("findings", []):
+        if finding.get("source") == "validated_case_rule" and finding.get("dfkg_refs") and set(finding["dfkg_refs"]) <= set(meta["dfkg_refs"]):
+            lines.append("- " + _safe(finding.get("summary")) + " " + " ".join(f"[event:{_safe(uid)}]" for uid in finding["dfkg_refs"]))
     attr = state.get("attribution") or {}
     valid_refs = sorted(set(attr.get("dfkg_refs") or []) & set(meta["dfkg_refs"]))
     lines.extend(["", "## Attribution comparison", "Profile similarity does not establish actor identity or intent."])

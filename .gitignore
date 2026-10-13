@@ -40,6 +40,7 @@ dist/
 causal-flame-473819-n4-c8ecca4a7e60.json
 
 # OS Metadata
+.pytest*/
 .DS_Store
 Thumbs.db
 

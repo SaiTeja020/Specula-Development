@@ -19,12 +19,15 @@ class DummyProducer:
     def produce(self, topic, key, value):
         self.messages.append((topic, key, value))
 
-class DummyDFKGClient:
-    def __init__(self, neo4j_driver):
+class CaseDFKGClient:
+    def __init__(self, neo4j_driver, case_id):
         self.neo4j_driver = neo4j_driver
+        self.case_id = case_id
     def query(self, uid: str):
-        # Stub for the DFKG read client if required by LLM reasoner
-        return []
+        rows, _, _ = self.neo4j_driver.execute_query(
+            "MATCH (:Case {uid:$case_id})-[:HAS_EVENT]->(e:Event {uid:$uid}) RETURN e.uid AS uid",
+            case_id=self.case_id, uid=uid)
+        return [row["uid"] for row in rows]
 
 class DummyRedis:
     def get(self, key):
@@ -37,6 +40,7 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
     def log_analysis_node(state: dict) -> dict:
         started = time.monotonic()
         invocations = 0
+        model_outputs = []
         case_id = state.get("case_id", "unknown")
         
         if not neo4j_driver:
@@ -50,11 +54,27 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
             nonlocal invocations
             invocations += 1
             response = llm.invoke(prompt)
-            return response.content if hasattr(response, "content") else str(response)
+            text = response.content if hasattr(response, "content") else str(response)
+            model_outputs.append(text)
+            return text
             
-        real_producer = kafka_producer or DummyProducer()
+        def real_producer(topic, finding):
+            from .kafka_utils import _get_producer
+            producer = kafka_producer if kafka_producer is not None else _get_producer()
+            finding["model_narrative"] = finding["summary"]
+            finding["summary"] = f"Deterministic {finding['pattern']} signal; cited source events: " + ", ".join(finding["dfkg_refs"])
+            finding["case_id"] = case_id
+            finding["agent_role"] = "log_analysis"
+            finding["source"] = "validated_case_rule"
+            if producer is None:
+                raise RuntimeError("Kafka producer unavailable")
+            if callable(producer):
+                producer(topic, finding)
+            else:
+                producer.produce(topic, key=case_id.encode(), value=json.dumps(finding).encode())
+                producer.poll(0)
         real_redis = redis_client or DummyRedis()
-        dfkg_client = DummyDFKGClient(neo4j_driver)
+        dfkg_client = CaseDFKGClient(neo4j_driver, case_id)
         
         agent = LogAnalysisAgent(
             model_router=model_router,
@@ -77,6 +97,7 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
         for r in records:
             event_node = r["e"]
             event_dict = dict(event_node.items())
+            event_dict["case_id"] = case_id  # HAS_EVENT establishes membership, even for shared immutable events.
             events.append(CaseLogRecord(**event_dict))
             
         if not events:
@@ -86,6 +107,18 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
             
         try:
             findings = agent.run_on_batch(events, kafka_offset=0, case_dedup_ttl_seconds=3600)
+            for finding in findings:
+                finding["agent_role"] = "log_analysis"
+                finding["event_time"] = finding["timestamp"]
+                finding.setdefault("model_narrative", finding["summary"])
+                from .case_analysis import observation
+                cited = next((e for e in events if e.uid in finding["dfkg_refs"]), None)
+                finding["summary"] = f"Deterministic {finding['pattern']} signal: " + (observation(cited.model_dump(mode="json")) if cited else "Cited source event")
+                finding["source"] = "validated_case_rule"
+                finding["finding_type"] = finding["pattern"]
+            from .case_analysis import detections
+            extra = detections({"case_id": case_id, "trace_id": state.get("trace_id"), "evidence_collection": {"records": [e.model_dump(mode="json") for e in events]}}, "log_analysis")
+            findings.extend(extra)
             
             # The agent.run_on_batch() returns a list of finding dicts
             return {
@@ -98,6 +131,8 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
                     "model_used": (getattr(llm, "model_name", None) or getattr(llm, "model", None) or llm.__class__.__name__)
                                   if invocations else "deterministic_rules",
                     "model_invocations": invocations,
+                    "model_output": "\n".join(model_outputs),
+                    "model_output_validated": False,
                     "latency_ms": round((time.monotonic() - started) * 1000, 1),
                 }]
             }

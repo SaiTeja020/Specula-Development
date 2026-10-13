@@ -73,7 +73,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 canonical_host_id=raw_payload.get("canonical_host_id"),
             )
         )
-    elif "malfind" in plugin_name or "hollowfind" in plugin_name or "injected" in plugin_name:
+    elif "malfind" in plugin_name or "hollowfind" in plugin_name or "injected" in plugin_name or raw_payload.get("finding"):
         events.append(
             DetectionFindingEvent(
                 case_id=case_id,
@@ -85,10 +85,10 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 clock_skew_offset_ms=skew_ms,
                 clock_skew_unverified=unverified,
                 uid=uid,
-                finding_title=f"Memory Injection Finding: {plugin_name}",
+                finding_title=f"Source-reported memory finding: {plugin_name}",
                 analytic_name=f"Volatility {plugin_name}",
-                confidence="High",
-                raw_verdict="Injected Memory Region Detected",
+                confidence=str(raw_payload.get("confidence", "Unspecified")),
+                raw_verdict=str(raw_payload.get("finding") or "Source-reported memory injection finding"),
                 canonical_host_id=raw_payload.get("canonical_host_id"),
                 details=raw_payload,
             )
