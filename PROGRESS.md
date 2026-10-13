@@ -7,11 +7,17 @@
 ---
 
 ## Current Build Status
-- **Active Phase:** Phase I: Integration & UI prep (Complete)
+- **Active Phase:** Phase 6 — Per-Agent LLM Runtime & Session Isolation
 - **Active Tasks (WIP=2):**
   - None
 - **Active WIP Count:** 0 (`|active| = 0 / 2`)
-- **Last Updated:** 2026-09-19
+- **Last Updated:** 2026-10-13
+
+### Phase LLM-Runtime — Per-Agent LLM Runtime & Concurrency Control — PASSING ✅ (2026-10-13)
+- **Verification:** `pytest tests/test_per_agent_llm_runtime.py -v` → **11/11 passed**
+- **Architecture:** Isolated logical `AgentSession` per `(case_id, agent_role)` with private conversation memory (`SPECULA_LLM_MAX_HISTORY`). Semaphore-based concurrency limiter (`SPECULA_LLM_MAX_CONCURRENT=3`) preventing thread starvation and leaks. Weight-sharing via reusable client caching. Deterministic model override resolution (`SPECULA_LLM_MODEL_<AGENT>`) without silent fallback. Plain-text structured observability logs. Real model discovery and inference verification API for LM Studio.
+- **Files created:** `src/agents/llm_runtime.py`, `tests/test_per_agent_llm_runtime.py`
+- **Files modified:** `src/agents/config.py` (wired `get_llm`), `tests/test_llm_backends.py`, `tests/test_hitl_resume.py`
 
 ### Phase E2E — End-to-End Investigation Integration — PASSING ✅ (2026-09-20)
 - **Verification:** `pytest tests/integration/test_end_to_end_investigation.py -v` → **10/10 passed**
@@ -303,6 +309,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-24 | Boot Connectivity Fix (3 root causes) | **P1 Frontend blank:** `vite.config.js` was missing `envDir: '../'` — Vite read from `visualization/` directory and couldn't find root `.env` Supabase vars; `createClient('', undefined)` crashed React app. Fixed by adding `envDir: '../'`. **P2 Port 8300 conflict:** `start_full_pipeline.py` blindly started uvicorn on 8300 even if already listening → `WinError 10048`. Fixed by calling `is_port_listening()` before starting and skipping if already up. **P3 Kafka topics:** `create_topics()` existed in `kafka_utils.py` but was never called in the pipeline script; also `specula-winlogbeat-raw` was missing from `TOPICS`. Fixed by adding the topic to manifest and calling `create_topics()` after `wait_for_kafka()` poll. | `pytest test_health_check/test_cors_preflight`: 2/2 PASSED; `npm run lint`: 0 errors; `GET :8300/health`: 200; `is_port_listening()` verified; all 3 required topics in manifest |
 | 2026-10-03 | Threat Intel Integration | Implemented Threat Intel FAISS index build from master known_attacks Excel file. Successfully mapped extended metadata and populated local vector store. Verified Threat Attribution Agent access via MCP retrieval loop. | Verified (Exact/Semantic lookup tests passed) |
 | 2026-10-03 | Frontend Trace Artifacts | Fixed frontend-triggered investigations to correctly initialize the `investigation_runs` trace artifacts exactly like the CLI. Hooked `investigation_trace` into `visualizer_api.py` and implemented error finalization handling. | Verified (Artifacts successfully created in test run) |
+| 2026-10-13 | `Phase LLM-Runtime` | Implemented isolated logical sessions per agent/case, private conversational memory, concurrency limiter (`SPECULA_LLM_MAX_CONCURRENT=3`), reusable client cache, deterministic model overrides without silent fallback, plain-text observability logging, and LM Studio discovery API. | 11/11 Passed (`tests/test_per_agent_llm_runtime.py`), 4/4 Passed (`tests/test_llm_backends.py`), 1/1 Passed (`tests/test_hitl_resume.py`), 28/28 Passed (`tests/test_skeleton_graph.py`), 16/16 Passed (`tests/agents/test_debate_agents.py`) |
 ---
 
 | State | Phase/Task | Acceptance Criteria |

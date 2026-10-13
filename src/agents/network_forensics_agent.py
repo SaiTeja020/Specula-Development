@@ -41,9 +41,9 @@ def _build_system_prompt(state: dict) -> str:
     return prompt
 
 
-def _llm_call(system_prompt: str, steps: list) -> str:
+def _llm_call(system_prompt: str, steps: list, case_id: str = "unknown") -> str:
     """Wrapper to call the network forensics model."""
-    llm = get_llm("network_forensics", case_id="unknown")
+    llm = get_llm("network_forensics", case_id=case_id)
     transcript = "\n".join(f"[{s.iteration}] {s.thought} -> {s.observation}" for s in steps)
     response = llm.invoke(f"{system_prompt}\n\nTranscript so far:\n{transcript}")
     
@@ -114,7 +114,7 @@ def make_network_forensics_node(redis_client: Optional[Any], neo4j_driver: Optio
         result = run_react_loop(
             system_prompt=_build_system_prompt(state),
             tools=tools,
-            llm_call=_llm_call,
+            llm_call=lambda p, s: _llm_call(p, s, case_id=case_id),
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,

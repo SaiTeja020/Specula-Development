@@ -130,10 +130,10 @@ def _build_system_prompt(state: dict) -> str:
     )
 
 
-def _llm_call(system_prompt: str, steps: list) -> str:
+def _llm_call(system_prompt: str, steps: list, case_id: str = "unknown") -> str:
     """A2: Extract .content with hasattr guard — same pattern as _run_agent."""
     from src.agents.config import get_llm
-    llm = get_llm("evidence_collection")
+    llm = get_llm("evidence_collection", case_id=case_id)
     transcript = "\n".join(f"[{s.iteration}] {s.thought} -> {s.observation}" for s in steps)
     response = llm.invoke(f"{system_prompt}\n\nTranscript so far:\n{transcript}")
     
@@ -212,7 +212,7 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
         result = run_react_loop(
             system_prompt=_build_system_prompt(state),
             tools=tools,
-            llm_call=_llm_call,
+            llm_call=lambda p, s: _llm_call(p, s, case_id=case_id),
             parse_llm_output=_parse_llm_output,
             budget=budget,
             scratchpad=scratchpad,

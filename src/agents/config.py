@@ -352,60 +352,24 @@ def _get_gemini_model() -> str:
 
 
 def get_llm(agent_role: str, case_id: str = "unknown"):
-    """Return an LLM for *agent_role* based on SPECULA_LLM_BACKEND env var."""
-    backend = os.environ.get("SPECULA_LLM_BACKEND", "stub").lower()
-    
-    agent_specific_model = os.environ.get(f"SPECULA_LLM_MODEL_{agent_role.upper()}")
-    global_model = os.environ.get("SPECULA_LLM_MODEL")
+    """Return a managed runtime proxy for *agent_role* with per-agent session memory,
+    concurrency management, and model override resolution.
+    """
+    from src.agents.llm_runtime import get_runtime_manager
+    manager = get_runtime_manager()
+    return manager.get_agent_runtime(agent_role=agent_role, case_id=case_id)
 
-    try:
-        if backend == "gemini":
-            if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
-                os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
-                if "GEMINI_API_KEY" in os.environ:
-                    del os.environ["GEMINI_API_KEY"]
-
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            model_name = agent_specific_model or global_model or _get_gemini_model()
-            llm = ChatGoogleGenerativeAI(model=model_name, temperature=0)
-            return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
-
-        if backend == "ollama":
-            from langchain_ollama import ChatOllama
-            model_name = agent_specific_model or global_model or "qwen2.5-coder:1.5b"
-            base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-            llm = ChatOllama(model=model_name, base_url=base_url, temperature=0)
-            return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
-
-        if backend == "lmstudio":
-            from langchain_openai import ChatOpenAI
-            model_name = agent_specific_model or global_model or "local-model"
-            base_url = os.environ.get("LMSTUDIO_BASE_URL", "http://localhost:1234/v1")
-            llm = ChatOpenAI(
-                api_key="lm-studio",
-                base_url=base_url,
-                model=model_name,
-                temperature=0
-            )
-            return TelemetryLLMWrapper(llm, agent_role, backend, model_name)
-
-        if backend != "stub":
-            raise ValueError(f"Unknown backend: {backend}")
-
-    except Exception as e:
-        print(f"\n[LLM ERROR]\nBackend: {backend}\nModel: {agent_specific_model or global_model or 'default'}\nReason: {str(e)}\n")
-        raise
-
-    stub = StubLLM(agent_role, case_id=case_id)
-    return TelemetryLLMWrapper(stub, agent_role, "stub", "stub")
 
 class TelemetryLLMWrapper:
+    """Retained for backward compatibility with existing tests and imports."""
     def __init__(self, llm, role, backend, model_name):
         self._llm = llm
         self._role = role
         self._backend = backend
         self._model_name = model_name
-        print(f"[LLM] {role} -> {backend}/{model_name}")
+        self.role = role
+        self.model = model_name
+        self.model_name = model_name
 
     def invoke(self, *args, **kwargs):
         emit_event("llm_start", node=self._role, backend=self._backend, model=self._model_name)
@@ -420,4 +384,5 @@ class TelemetryLLMWrapper:
             emit_event("llm_error", node=self._role, error=str(e), error_type=type(e).__name__, elapsed=elapsed)
             print(f"\n[LLM ERROR]\nBackend: {self._backend}\nModel: {self._model_name}\nReason: {str(e)}\n")
             raise
+
 
