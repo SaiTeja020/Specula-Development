@@ -107,7 +107,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     builder.add_node("network_forensics", make_network_forensics_node(redis_client, neo4j_driver))
     builder.add_node("timeline_reconstruction", make_timeline_reconstruction_node(redis_client, neo4j_driver))
     builder.add_node("threat_attribution", make_threat_attribution_node(redis_client, neo4j_driver))
-    builder.add_node("memory_forensics", make_memory_forensics_node(redis_client, neo4j_driver))
+    builder.add_node("memory_forensics", make_memory_forensics_node(redis_client, neo4j_driver, kafka_producer))
     builder.add_node("dag", dag_node)
     builder.add_node("identity", identity_node)
     builder.add_node("cloud_container", cloud_container_node)

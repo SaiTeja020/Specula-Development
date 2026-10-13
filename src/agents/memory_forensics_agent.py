@@ -1,5 +1,5 @@
 import time
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 from src.agents.state import SpeculaState
 from src.agents.react_engine import (
     ReActStep, ReActResult, ToolResult,
@@ -10,7 +10,7 @@ from src.agents.evidence_collection_agent import TrackingDFKGQueryTool
 from src.agents.config import get_llm
 
 
-def _build_system_prompt(state: dict) -> str:
+def _build_system_prompt(state: dict, det_findings: list[dict] | None = None) -> str:
     """Builds the ReAct system prompt for Memory Forensics."""
     case_id = state.get("case_id", "unknown")
     
@@ -21,7 +21,8 @@ def _build_system_prompt(state: dict) -> str:
         "and other in-memory attacker techniques.\n\n"
         "You operate in a loop of Thought, Action, Observation.\n"
         "You have the following tools available:\n"
-        "- query_dfkg: Execute semantic search against the Neo4j GraphRAG. Args: {\"query\": \"...\"}\n"
+        "- query_dfkg: Execute Cypher query against the Neo4j DFKG. Args: {\"cypher\": \"...\"}\n"
+        "- forensic_rag_search: Execute semantic search against the Neo4j GraphRAG. Args: {\"query\": \"...\"}\n"
         "- publish_finding: Publish your forensic conclusion. Args: {\"topic\": \"...\", \"finding\": {\"summary\": \"...\"}}\n\n"
         "To use a tool, you MUST output a SINGLE LINE exactly like this (NO markdown, NO json blocks):\n"
         "ACTION: tool_name {\"arg_name\": \"arg_value\"}\n\n"
@@ -39,6 +40,18 @@ def _build_system_prompt(state: dict) -> str:
         "5. Your queries must be bounded and targeted to memory-forensics-relevant evidence. "
         "   Do not retrieve the entire case graph.\n"
     )
+
+    if det_findings:
+        summary_lines = [
+            f"- [{f.get('rule_id', 'RULE')}] {f.get('title', 'Detection')}: {f.get('summary', '')} (UIDs: {f.get('dfkg_refs', [])})"
+            for f in det_findings
+        ]
+        prompt += (
+            f"\nPRE-COMPUTED VOLATILITY 3 DETECTIONS:\n"
+            + "\n".join(summary_lines)
+            + "\n\nReason over these detections and gather any supporting DFKG context before issuing your final answer.\n"
+        )
+
     return prompt
 
 
@@ -79,14 +92,52 @@ def _parse_llm_output(raw: str) -> tuple[str, str | None, dict, str | None]:
     return raw, None, {}, None
 
 
-def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Optional[Any]):
-    """Factory to create a memory forensics ReAct agent node."""
+def make_memory_forensics_node(
+    redis_client: Optional[Any] = None,
+    neo4j_driver: Optional[Any] = None,
+    kafka_producer: Optional[Any] = None,
+    artifact_provider: Optional[Callable[[dict], list[dict]]] = None,
+):
+    """Factory to create a hybrid memory forensics node (deterministic rules + ReAct reasoning)."""
     
     def memory_forensics_node(state: dict) -> dict:
         case_id = state.get("case_id", "unknown")
         trace_id = state.get("trace_id", "")
         
-        # Tools
+        # 1. Deterministic Analysis Pipeline (Volatility 3 detection rules)
+        from src.agents.memory_forensics_factory import _load_artifacts
+        from src.agents.memory_forensics.agent import run_memory_forensics_analysis
+        from src.agents.memory_forensics.kafka_publisher import publish_findings
+
+        artifacts = _load_artifacts(state, neo4j_driver, artifact_provider)
+        det_findings: list[dict] = []
+        det_traces: list[dict] = []
+
+        if artifacts:
+            try:
+                started_det = time.perf_counter()
+                det_findings = run_memory_forensics_analysis(artifacts, case_id=case_id)
+                if kafka_producer is not None:
+                    publish_findings(det_findings, kafka_producer)
+                det_traces.append({
+                    "agent_role": "memory_forensics",
+                    "thought": f"Analyzed {len(artifacts)} case-scoped memory artifacts via Volatility3 detection rules.",
+                    "action": "deterministic_memory_rules",
+                    "observation": f"Produced {len(det_findings)} evidence-cited findings.",
+                    "model_used": "deterministic_rules",
+                    "latency_ms": round((time.perf_counter() - started_det) * 1000, 2),
+                })
+            except Exception as e:
+                det_traces.append({
+                    "agent_role": "memory_forensics",
+                    "thought": f"Deterministic memory analysis encountered error: {e}",
+                    "action": "deterministic_memory_rules",
+                    "observation": f"Analysis halted: {e}",
+                    "model_used": "deterministic_rules",
+                    "latency_ms": 0.0,
+                })
+
+        # 2. ReAct Specialist Agent reasoning over evidence
         if neo4j_driver is not None:
             from src.agents.react_tools import get_rag_tool
             dfkg_tool = TrackingDFKGQueryTool(neo4j_driver, case_id)
@@ -94,11 +145,12 @@ def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Option
         else:
             from src.agents.react_engine import NotYetImplementedTool
             dfkg_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
-            rag_tool = NotYetImplementedTool("query_dfkg", "Requires neo4j_driver")
+            rag_tool = NotYetImplementedTool("forensic_rag_search", "Requires neo4j_driver")
             
         tools: dict[str, Tool] = {
-            "query_dfkg": rag_tool,
-            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "memory_forensics", rag_tool),
+            "query_dfkg": dfkg_tool,
+            "forensic_rag_search": rag_tool,
+            "publish_finding": KafkaPublishFindingTool(case_id, trace_id, "memory_forensics", dfkg_tool),
         }
         
         if redis_client is not None:
@@ -112,8 +164,9 @@ def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Option
             
         budget = LoopBudget(max_iterations=8, max_tool_calls=10, timeout_seconds=60.0)
         
+        system_prompt = _build_system_prompt(state, det_findings=det_findings)
         result = run_react_loop(
-            system_prompt=_build_system_prompt(state),
+            system_prompt=system_prompt,
             tools=tools,
             llm_call=lambda p, s: _llm_call(p, s, case_id=case_id),
             parse_llm_output=_parse_llm_output,
@@ -128,13 +181,15 @@ def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Option
         else:
             summary = f"INCOMPLETE ({result.termination_reason}): partial analysis only."
             
-        # Collect UIDs from query_dfkg
+        # Collect UIDs from DFKG queries and deterministic detections
         dfkg_refs: list[str] = []
         if hasattr(dfkg_tool, "collected_uids"):
             dfkg_refs.extend(dfkg_tool.collected_uids)
+        for df in det_findings:
+            dfkg_refs.extend(df.get("dfkg_refs", []))
         dfkg_refs = list(set(dfkg_refs))
         
-        trace_entry = {
+        react_trace = {
             "agent_role": "memory_forensics",
             "thought": "; ".join(s.thought for s in result.steps[-1:]) if result.steps else "Direct execution",
             "action": "react_loop",
@@ -145,15 +200,18 @@ def make_memory_forensics_node(redis_client: Optional[Any], neo4j_driver: Option
             "termination_reason": result.termination_reason,
         }
         
-        finding = {
+        react_finding = {
             "agent_role": "memory_forensics",
             "summary": summary,
             "dfkg_refs": dfkg_refs
         }
         
+        all_findings = det_findings + [react_finding] if det_findings else [react_finding]
+        all_traces = det_traces + [react_trace]
+
         return {
-            "findings": [finding],
-            "agent_traces": [trace_entry],
+            "findings": all_findings,
+            "agent_traces": all_traces,
             "specialists_completed": ["memory"],
         }
         

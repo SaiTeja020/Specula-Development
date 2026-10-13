@@ -98,6 +98,26 @@ class OCSFBaseEvent(BaseModel):
         ),
     )
 
+    # --- Memory-snapshot provenance ---
+    # These fields supplement, rather than replace, the canonical dual
+    # timestamps above.  They are populated by memory-image normalizers when
+    # a point-in-time capture is the source of an artifact.
+    capture_time: Optional[datetime] = Field(
+        default=None,
+        description="Corrected UTC time at which the source memory image was acquired.",
+    )
+    raw_capture_timestamp: Optional[str] = Field(
+        default=None,
+        description="Original, unedited memory-image acquisition timestamp.",
+    )
+    artifact_time_unverified: bool = Field(
+        default=False,
+        description=(
+            "True when canonical time was inferred from memory-image capture "
+            "time because the artifact did not provide a native timestamp."
+        ),
+    )
+
     # --- Security gate metadata ---
     security_scan_degraded: bool = Field(
         default=False,
