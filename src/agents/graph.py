@@ -1,6 +1,6 @@
 """LangGraph StateGraph assembly — §4 graph topology & conditional routing.
 
-25 nodes, wired per the implementation plan's control-flow topology.
+26 nodes, including separate primary and specialist network analysis.
 Uses Send for primary-tier and specialist fan-out, Command for debate
 loop routing and guardrail/HITL branching.
 """
@@ -37,6 +37,7 @@ from .network_forensics_factory import make_network_forensics_node
 from .threat_attribution_factory import make_threat_attribution_node
 from .supervisor_factory import make_supervisor_node
 from .state import SpeculaState
+from .network_specialist import network_specialist_node
 
 
 # ===================================================================
@@ -54,6 +55,7 @@ def _supervisor_primary_dispatch(state: dict) -> list[Send]:
 
 
 _SPECIALIST_MAP = {
+    "network":         "network_specialist",
     "memory":          "memory_forensics",
     "identity":        "identity",          # F13a — split from identity_cloud
     "cloud_container": "cloud_container",   # F13b — split from identity_cloud
@@ -77,11 +79,15 @@ def _dead_end_route(state: dict) -> str | list[Send]:
             categories.add("identity")
         if 6003 in classes:
             categories.add("cloud_container")
+        if any(row.get('source_type')=='container' for row in events):
+            categories.add('cloud_container')
+        if 4001 in classes:
+            categories.add("network")
         if any(row.get("source_type") == "memory" or (isinstance(row.get("details"), dict) and row["details"].get("plugin")) for row in events):
             categories.add("memory")
         if any(row.get("source_type") == "ueba" for row in events):
             categories.add("insider")
-        if any("unsigned" in str(row.get("source_finding", "")).lower() for row in events):
+        if any(row.get('source_type')=='malware' or "unsigned" in str(row.get("source_finding", "")).lower() for row in events):
             categories.add("malware")
     if not categories:
         return "timeline_reconstruction"
@@ -114,13 +120,14 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     """
     builder = StateGraph(SpeculaState)
 
-    # ---- Add all 23 nodes ----
+    # ---- Add the registered nodes ----
 
     # 18 ReAct-stub LLM agent nodes
     builder.add_node("supervisor", make_supervisor_node(neo4j_driver))
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", make_log_analysis_node(kafka_producer, vector_client, redis_client, neo4j_driver))
     builder.add_node("network_forensics", make_network_forensics_node(neo4j_driver, kafka_producer))
+    builder.add_node("network_specialist", network_specialist_node)
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
     builder.add_node("threat_attribution", make_threat_attribution_node(
         neo4j_driver, kafka_producer, threat_intel, attribution_llm_factory,
@@ -175,6 +182,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
         [
             "timeline_reconstruction",
             "memory_forensics",
+            "network_specialist",
             "identity",
             "cloud_container",
             "malware_stylometry",
@@ -184,6 +192,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
 
     # Specialist agents -> join
     builder.add_edge("memory_forensics", "specialist_join")
+    builder.add_edge("network_specialist", "specialist_join")
     builder.add_edge("identity", "specialist_join")
     builder.add_edge("cloud_container", "specialist_join")
     builder.add_edge("malware_stylometry", "specialist_join")

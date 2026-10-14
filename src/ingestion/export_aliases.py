@@ -44,12 +44,16 @@ def record_timestamp(record, source):
 
 
 def adapt_export(record, source, filename=""):
+    if source=='ad_auth':
+        return adapt_export(record,'evtx',filename or 'Security.json')
     result = deepcopy(record)
     stamp = record_timestamp(result, source)
     for target in ("timestamp", "TimeCreated", "eventTime", "LastRecordChange"):
         if result.get(target) in (None, ""):
             result[target] = stamp
     _alias(result, "host_name", "host", "hostname", "MachineName")
+    if not result.get("host_name") and isinstance(result.get("System"), dict):
+        result["host_name"] = result["System"].get("Computer")
     _alias(result, "user_name", "user", "username")
     _alias(result, "process_name", "process", "image")
     _alias(result, "process_pid", "pid")

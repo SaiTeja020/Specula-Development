@@ -79,7 +79,7 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str) -> List[
                 case_id=case_id,
                 trace_id=trace_id,
                 activity_id=1,
-                severity_id=int(raw_payload.get("severity_id", 5)),
+                severity_id=1 if raw_payload.get("result_status") == "negative" else int(raw_payload.get("severity_id", 5)),
                 time=utc_time,
                 raw_source_timestamp=raw_timestamp,
                 clock_skew_offset_ms=skew_ms,

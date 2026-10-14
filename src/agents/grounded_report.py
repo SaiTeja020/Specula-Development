@@ -75,6 +75,16 @@ def _prepared(state: dict) -> tuple[list[dict], dict]:
             flags.add("invalid_report_generation_time")
     attr = state.get("attribution") or {}
     flags.update(flag for flag in attr.get("degraded_flags", []) if isinstance(flag, str))
+    if state.get("review_status") == "incomplete" or state.get("debate_outcome") == "review_incomplete" or state.get('judge_verdict') in {'incomplete','revise'}:
+        flags.add("agent_review_incomplete")
+    from .case_analysis import current_traces
+    traces=current_traces(state)
+    if any(t.get("review_coverage", {}).get("complete") is False for t in traces):
+        flags.add("model_review_coverage_incomplete")
+    if any(r.get('status')=='unavailable' for t in traces for r in t.get('semantic_retrieval',[])):
+        flags.add('semantic_retrieval_unavailable')
+    if any(t.get('examination_coverage',{}).get('unavailable',0) for t in traces):
+        flags.add('native_examination_incomplete')
     refs = sorted(events)
     claimed = attr.get("dfkg_refs") or []
     if any(ref not in events for ref in claimed):
@@ -102,7 +112,7 @@ def _event_line(event: dict) -> str:
                 "src_endpoint", "dst_endpoint", "bytes", "bytes_in", "bytes_out",
                 "traffic", "connection_info", "protocol_name", "process_name", "parent_process_name",
                 "command_line", "file_path", "si_created", "fn_created", "api_operation",
-                "user_identity", "finding_title", "source_event_id", "source_outcome"):
+                "user_identity", "finding_title", "source_event_id", "source_outcome", "canonical_host_id", "unmapped"):
         if key in event:
             value = event[key]
             if isinstance(value, dict):
@@ -135,10 +145,15 @@ def render_report(state: dict) -> tuple[str, dict]:
             rendered_triage += 1
     if not rendered_triage:
         lines.append("No per-event triage decisions are recorded.")
-    lines.extend(["", "## Validated incident observations"])
-    for finding in state.get("findings", []):
+    lines.extend(["", "## Cited observations and counter-evidence"])
+    from .case_analysis import current_findings
+    for finding in current_findings(state):
         if finding.get("source") == "validated_case_rule" and finding.get("dfkg_refs") and set(finding["dfkg_refs"]) <= set(meta["dfkg_refs"]):
-            lines.append("- " + _safe(finding.get("summary")) + " " + " ".join(f"[event:{_safe(uid)}]" for uid in finding["dfkg_refs"]))
+            lines.append("- " + _safe(finding.get("classification", "unresolved")) + ": " + _safe(finding.get("summary")) + " " + " ".join(f"[event:{_safe(uid)}]" for uid in finding["dfkg_refs"]))
+    lines.extend(["", "## Model assessments (analysis, not source evidence)"])
+    for role in ("proponent", "critic", "judge"):
+        assessment = state.get(role + "_review")
+        lines.append(f"- {role}: " + (_safe(assessment) if assessment else "No validated assessment available."))
     attr = state.get("attribution") or {}
     valid_refs = sorted(set(attr.get("dfkg_refs") or []) & set(meta["dfkg_refs"]))
     lines.extend(["", "## Attribution comparison", "Profile similarity does not establish actor identity or intent."])

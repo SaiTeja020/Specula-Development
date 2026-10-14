@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 KAFKA_BROKER = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 
 TOPICS = [
+    "findings.specialist.network",
     "findings.evidence_collection",
     "findings.log_analysis",
     "findings.network_forensics",
@@ -36,6 +37,7 @@ TOPICS = [
 
 # Agent role -> Kafka topic
 ROLE_TOPIC_MAP: dict[str, str] = {
+    "network_specialist": "findings.specialist.network",
     "evidence_collection":  "findings.evidence_collection",
     "log_analysis":         "findings.log_analysis",
     "network_forensics":    "findings.network_forensics",

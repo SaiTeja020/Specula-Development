@@ -151,6 +151,10 @@ def test_uploaded_sources_dates_and_provenance_reach_shared_ingestion(monkeypatc
     monkeypatch.setattr("src.ingestion.preservation.quickwit_client.QuickwitClient",
                         lambda: SimpleNamespace(ensure_index=lambda: None))
     monkeypatch.setattr("src.graph.neo4j_client.Neo4jClient", Graph)
+    monkeypatch.setattr("src.graph.process_lineage.persist_lineage",lambda *a:{"resolved":0})
+    monkeypatch.setattr("src.ingestion.indexing.case_evidence.CaseEvidenceIndex",lambda:SimpleNamespace(index=lambda *a:{"status":"verified"}))
+    monkeypatch.setattr("src.agents.case_analytics.write_case_analytics",lambda *a:{"status":"verified"})
+    monkeypatch.setattr("src.ingestion.broker.case_stream.publish_normalized_case",lambda *a:{"status":"verified"})
     result = ingest_uploaded_case("LOCAL-fixture", path, receipt, "2026-10-12T08:00:00+00:00",
                                  "2026-10-12T10:00:00+00:00", 1, [443])
     assert result["accepted"] == 2

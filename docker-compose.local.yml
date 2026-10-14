@@ -19,6 +19,7 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./data:/app/data:ro
+      - ./data/analytics:/app/data/analytics
       - specula-checkpoints:/app/checkpoints
       - ./data/private:/app/private:ro
     environment:
@@ -39,6 +40,7 @@ services:
     volumes:
       - ./src:/app/src:ro
       - ./data:/app/data:ro
+      - ./data/analytics:/app/data/analytics
       - specula-checkpoints:/app/checkpoints
       - ./data/private:/app/private:ro
     environment:
@@ -73,6 +75,23 @@ services:
     depends_on:
       - kafka
       - neo4j
+    restart: on-failure
+  normalized-consumer:
+    image: specula-skeleton-hitl-api
+    command: ["python", "-m", "src.ingestion.broker.ingestion_consumer"]
+    volumes:
+      - ./src:/app/src:ro
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      NEO4J_URI: bolt://neo4j:7687
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: "8000"
+      SPECULA_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      SPECULA_EMBEDDING_MODEL: qwen3-embedding:0.6b
+    depends_on:
+      - kafka
+      - neo4j
+      - chromadb
     restart: on-failure
 
 volumes:

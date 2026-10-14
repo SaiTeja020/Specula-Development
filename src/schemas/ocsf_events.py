@@ -48,6 +48,9 @@ class ProcessActivity(OCSFBaseEvent):
     process_uid: Optional[str] = Field(
         default=None, description="Deterministic UID for this process entity."
     )
+    parent_process_uid: Optional[str] = Field(default=None, description="Source-resolved parent process identity; never PID alone.")
+    process_guid: Optional[str] = None
+    parent_process_guid: Optional[str] = None
     parent_process_name: Optional[str] = Field(
         default=None, description="Parent process executable name."
     )

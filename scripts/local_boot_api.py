@@ -408,7 +408,8 @@ async def local_store_data(store: Literal["neo4j", "quickwit", "chroma", "faiss"
             raise HTTPException(status, payload.get("detail", "Case store view unavailable"))
         return payload
     if store == "duckdb":
-        return {"status": "unavailable", "source": "duckdb", "tables": [], "metrics": {}}
+        from src.agents.case_analytics import analytics_catalog_view
+        return await asyncio.to_thread(analytics_catalog_view)
     if store == "neo4j":
         def graph_view():
             token = _local_token()

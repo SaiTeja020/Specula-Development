@@ -15,12 +15,16 @@ def runtime_manifest():
     fingerprints = {}
     for relative in ("src/agents/examination_reports.py", "src/agents/grounded_report.py",
                      "src/ingestion/run_pipeline.py", "src/agents/log_analysis_factory.py",
-                     "src/agents/log_analysis/detection_rules.py"):
+                     "src/agents/log_analysis/detection_rules.py", "src/agents/case_analysis.py",
+                     "src/agents/evidence_review.py", "src/agents/nodes.py", "src/agents/ollama_backend.py",
+                     "src/schemas/ocsf_base.py", "src/agents/forensic_tools.py", "src/agents/network_specialist.py",
+                     "src/agents/behavior_analysis.py", "src/agents/exploit_paths.py", "src/agents/case_analytics.py",
+                     "src/ingestion/indexing/case_evidence.py", "src/graph/process_lineage.py"):
         path = Path(__file__).resolve().parents[2] / relative
         if path.is_file():
             fingerprints[relative] = sha256(path.read_bytes()).hexdigest()
     packages = {}
-    for name in ("langgraph", "neo4j", "pydantic", "fastapi"):
+    for name in ("langgraph", "neo4j", "pydantic", "fastapi", "duckdb", "chromadb", "pefile", "capstone", "volatility3"):
         try:
             packages[name] = version(name)
         except PackageNotFoundError:
@@ -140,8 +144,9 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
     section("Recorded automated detection results", '<p>Automated screening results require examiner validation. '
             'Citations establish record membership, not independent correctness of an inference.</p>' +
             (''.join('<article><h3>' + _text(f.get("agent_role")) + '</h3><p>' +
-            _text(f.get("summary")) +
-            '</p><p>Evidence references: ' + _text(', '.join(f["dfkg_refs"])) + '</p></article>'
+            _text(f.get("summary")) + '</p><p>Classification: ' + _text(f.get("classification", "unresolved")) +
+            '; operation outcome: ' + _text(f.get("operation_outcome", "unknown")) + '</p>' +
+            '<p>Evidence references: ' + _text(', '.join(f["dfkg_refs"])) + '</p></article>'
             for f in supported) or '<p>No supported detection finding is available. This is a coverage-limited result.</p>')
             )
     section("Event chronology and exhibit index", '<p>Exhibit hashes below identify normalized JSON, not original source-file bytes.</p>' +
@@ -156,11 +161,18 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
                 "triage": (state.get("evidence_collection") or {}).get("triage"),
                 "guardrails": {k: state.get(k) for k in ("guardrail_tier1_result", "guardrail_tier2_result", "guardrail_tier3_result", "hitl_decision")}}))
         section("Observed activity graph", _json(state.get("attack_graph") or {"status": "unavailable"}))
+        section("Analyst-reviewed exploit topology and conditional model", _json(state.get('exploit_topology') or
+                {'status':'unavailable','reason':'No analyst-reviewed topology/calibration was supplied; temporal edges are not exploit transitions.'}))
+        section("Independent byte examination and imported coverage", _json([
+            {'agent':t.get('agent_role'),'coverage':t.get('examination_coverage')} for t in state.get('agent_traces',[])
+            if t.get('examination_coverage')]))
         section("Agent execution, synthesis and hypotheses", '<p>Model-generated hypotheses and attack-path prose are unverified unless '
                 'supported by independently checked evidence. No structured exploit path is certified by prose.</p>' +
                 _json({"agent_traces": state.get("agent_traces") or [],
                        "findings": [f for f in state.get("findings") or [] if f.get("agent_role") not in {"report_generation", "timeline_artifact_generation"}],
                        "attribution": state.get("attribution"), "timeline": state.get("timeline")}))
+        section("Structured analyst assessments (not source facts)", _json({"review_status": state.get("review_status"),
+                "proponent": state.get("proponent_review"), "critic": state.get("critic_review"), "judge": state.get("judge_review")}))
         section("Normalized evidence appendix", _json(events))
         section("Cyber-team follow-up", '<ol><li>Review cited raw artifacts and confirm source clock/custody assumptions.</li>'
                 '<li>Validate detections against additional endpoint/network telemetry and document counter-evidence.</li>'

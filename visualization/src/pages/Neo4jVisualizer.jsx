@@ -17,6 +17,13 @@ const NODE_COLORS = {
   User: '#4ADE80',
   File: '#FBBF24',
   NetworkConnection: '#F87171',
+  NetworkEndpoint: '#F87171',
+  CloudAudit: '#22D3EE',
+  VulnerabilityFinding: '#FB923C',
+  AuditActivity: '#E879F9',
+  Observation: '#FBBF24',
+  TimelineEntry: '#38BDF8',
+  AttackStep: '#F87171',
   Host: '#A78BFA',
   Default: '#94A3B8'
 };
@@ -66,7 +73,7 @@ const Legend = ({ nodes }) => (
         <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{label}</span>
       </div>
     ))}
-    {nodes.length > 0 && <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Dashed link = case tag only</span>}
+    {nodes.length > 0 && <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Dashed link = evidence membership</span>}
   </div>
 );
 

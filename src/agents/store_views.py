@@ -35,6 +35,12 @@ def faiss_view():
 
 def case_store_view(store, case_id, snapshot):
     """Never substitute global evidence for an empty case checkpoint."""
+    if store == "chroma":
+        from src.ingestion.indexing.case_evidence import case_chroma_view
+        return case_chroma_view(case_id)
+    if store == "duckdb":
+        from .case_analytics import case_analytics_view
+        return case_analytics_view(case_id)
     if store == "quickwit":
         records = (snapshot.get("evidence_collection") or {}).get("records", [])
         identifiers = sorted({("trace_id", str(record["trace_id"])) if record.get("trace_id")

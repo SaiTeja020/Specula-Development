@@ -46,7 +46,12 @@ def _get_neo4j_driver():
             password = os.environ.get("NEO4J_PASSWORD", "")
             auth = (os.environ.get("NEO4J_USER", "neo4j"), password) if password else None
             _neo4j_driver = GraphDatabase.driver(uri, auth=auth)
+            from src.graph.runtime_schema import apply_runtime_schema
+            apply_runtime_schema(_neo4j_driver)
         except Exception as e:
+            if _neo4j_driver is not None:
+                _neo4j_driver.close()
+                _neo4j_driver=None
             log.warning(f"Neo4j driver initialization failed: {e}")
     return _neo4j_driver
 
@@ -61,8 +66,10 @@ def _get_specula_graph():
             checkpointer = build_persistent_checkpointer()
             from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
             from redis import Redis
+            from src.ingestion.indexing.case_evidence import CaseEvidenceRetriever
             _specula_graph = build_graph(checkpointer=checkpointer, neo4j_driver=_get_neo4j_driver(),
                 redis_client=Redis(host=os.getenv("REDIS_HOST", "localhost"), port=int(os.getenv("REDIS_PORT", "6379"))),
+                vector_client=CaseEvidenceRetriever(),
                 threat_intel=ThreatIntelMCPServer(index_dir=os.getenv("SPECULA_THREAT_INTEL_DIR", "data/threat_intel")))
         except Exception as e:
             log.warning(f"LangGraph initialization failed: {e}")
@@ -245,68 +252,10 @@ async def get_neo4j_data(request: Request, case_id: str | None = None):
                 return {"status": "success", "source": "neo4j", "cases": [],
                         "case_id": None, "nodes": [], "edges": [], "totals": {}, "sampled": False}
 
-            nodes, edges, counts = {}, [], {}
-            root = session.run("MATCH (c:Case {uid: $case_id}) RETURN c", case_id=selected).single()["c"]
-
-            def add(node):
-                node_id = str(node.element_id)
-                nodes[node_id] = {"id": node_id, "label": next(iter(node.labels), "Node"),
-                                  "properties": dict(node.items())}
-                return node_id
-
-            root_id = add(root)
-            counts["Event"] = session.run(
-                "MATCH (:Case {uid: $case_id})-[:HAS_EVENT]->(e:Event) "
-                "RETURN count(DISTINCT e) AS n", case_id=selected).single()["n"]
-            for row in session.run(
-                "MATCH (c:Case {uid: $case_id})-[r:HAS_EVENT]->(e:Event) "
-                "RETURN e, r ORDER BY e.time DESC, e.uid LIMIT $limit",
-                case_id=selected, limit=CASE_GRAPH_TYPE_LIMIT):
-                node_id = add(row["e"])
-                edges.append({"id": str(row["r"].element_id), "source": root_id,
-                              "target": node_id, "type": "HAS_EVENT", "derived": False})
-
-            for label in ("Process", "DetectionFinding", "Entity", "Host"):
-                # Labels are a fixed allowlist, never interpolated from a request.
-                counts[label] = session.run(
-                    f"MATCH (n:{label} {{case_id: $case_id}}) RETURN count(n) AS n",
-                    case_id=selected).single()["n"]
-                for row in session.run(
-                    f"MATCH (n:{label} {{case_id: $case_id}}) RETURN n "
-                    "ORDER BY n.severity_id DESC, n.first_seen DESC, n.uid LIMIT $limit",
-                    case_id=selected, limit=CASE_GRAPH_TYPE_LIMIT):
-                    node_id = add(row["n"])
-                    edges.append({"id": f"case-member-{node_id}", "source": root_id,
-                                  "target": node_id, "type": "CASE_TAG", "derived": True})
-
-            for label, relation in (("AgentRun", "HAS_AGENT_RUN"),
-                                    ("Report", "HAS_REPORT")):
-                counts[label] = session.run(
-                    f"MATCH (:Case {{uid: $case_id}})-[:{relation}]->(n:{label}) "
-                    "RETURN count(n) AS n", case_id=selected).single()["n"]
-                for row in session.run(
-                    f"MATCH (c:Case {{uid: $case_id}})-[r:{relation}]->(n:{label}) "
-                    "RETURN n, r ORDER BY n.sequence, n.generated_at LIMIT $limit",
-                    case_id=selected, limit=CASE_GRAPH_TYPE_LIMIT):
-                    node_id = add(row["n"])
-                    edges.append({"id": str(row["r"].element_id), "source": root_id,
-                                  "target": node_id, "type": relation, "derived": False})
-
-            ids = list(nodes)
-            for row in session.run(
-                "MATCH (a)-[r]->(b) WHERE elementId(a) IN $ids AND elementId(b) IN $ids "
-                "AND NOT type(r) IN ['HAS_EVENT', 'HAS_AGENT_RUN', 'HAS_REPORT'] "
-                "RETURN a, r, b LIMIT $limit", ids=ids, limit=CASE_GRAPH_TYPE_LIMIT * 7):
-                edges.append({"id": str(row["r"].element_id),
-                              "source": str(row["a"].element_id), "target": str(row["b"].element_id),
-                              "type": row["r"].type, "derived": False})
-        return {
-            "status": "success", "source": "neo4j", "cases": cases, "case_id": selected,
-            "nodes": list(nodes.values()), "edges": edges, "totals": {"Case": 1, **counts},
-            "per_type_limit": CASE_GRAPH_TYPE_LIMIT,
-            "sampled": any(counts[label] > sum(n["label"] == label for n in nodes.values())
-                           for label in counts),
-        }
+            from .case_graph import read_case_graph
+            payload = read_case_graph(session, selected, CASE_GRAPH_TYPE_LIMIT)
+        return {"status": "success", "source": "neo4j", "cases": cases,
+                "case_id": selected, **payload}
     except HTTPException:
         raise
     except Exception:
@@ -326,7 +275,8 @@ async def get_chroma_data():
 
 @app.get("/api/data/duckdb")
 async def get_duckdb_data():
-    return {"status": "unavailable", "source": "duckdb", "tables": [], "metrics": {}}
+    from .case_analytics import analytics_catalog_view
+    return await asyncio.to_thread(analytics_catalog_view)
 
 @app.get("/api/data/faiss")
 async def get_faiss_data():

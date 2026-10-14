@@ -9,11 +9,15 @@ from zipfile import BadZipFile, ZipFile
 
 SOURCE_FOLDERS = {"windows": "evtx", "edr": "edr", "memory": "memory",
                   "malware": "malware", "ueba": "ueba", "vuln_scan": "vuln_scan",
-                  "gcp_audit": "gcp_audit", "mft": "mft"}
+                  "gcp_audit": "gcp_audit", "mft": "mft", "container":"container", "ad_auth":"ad_auth"}
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
 MAX_EXPANDED_BYTES = 200 * 1024 * 1024
 MAX_FILE_BYTES = 25 * 1024 * 1024
 MAX_RECORDS = 100000
+
+
+class ExaminedArtifactRecord(dict):
+    """In-process marker; an uploader cannot create it through JSON fields."""
 
 
 def records_from_bytes(data: bytes, name: str) -> list[dict]:
@@ -64,6 +68,14 @@ def validate_archive(data: bytes) -> dict:
                     if not isinstance(declared, dict):
                         raise ValueError("manifest.json must be an object")
                     continue
+                native = (len(path.parts)>=3 and
+                          ((path.parts[:2]==('malware','samples') and path.suffix.lower() in {'.exe','.dll'}) or
+                           (path.parts[:2]==('memory','regions') and path.suffix.lower()=='.bin') or
+                           (path.parts[:2]==('memory','processes') and path.suffix.lower()=='.dmp')))
+                if native:
+                    inventory.append({"path":name,"source_type":SOURCE_FOLDERS[path.parts[0]],
+                                      "bytes":len(payload),"sha256":sha256(payload).hexdigest(),"records":1,"native_artifact":True})
+                    continue
                 if (len(path.parts) < 2 or path.parts[0] not in SOURCE_FOLDERS or
                         path.suffix.lower() not in {".json", ".jsonl"}):
                     raise ValueError(f"{name}: use a supported source folder and .json/.jsonl export")
@@ -78,6 +90,14 @@ def validate_archive(data: bytes) -> dict:
         raise ValueError("Unreadable ZIP or manifest") from exc
     if not inventory:
         raise ValueError("ZIP contains no supported logs")
+    for item in inventory:
+        if item.get('native_artifact'):
+            metadata = (declared.get('artifacts') or {}).get(item['path'])
+            if not isinstance(metadata,dict) or not metadata.get('timestamp'):
+                raise ValueError(item['path']+": manifest.artifacts entry with timestamp is required")
+            from .export_aliases import record_timestamp
+            record_timestamp(metadata,item['source_type'])
+            item['artifact_metadata']=metadata
     return {"source": "uploaded_zip", "archive_sha256": sha256(data).hexdigest(),
             "archive_bytes": len(data), "received_at": datetime.now(timezone.utc).isoformat(),
             "files": inventory, "declared_metadata": declared,
@@ -87,4 +107,20 @@ def validate_archive(data: bytes) -> dict:
 def archive_batches(path, inventory):
     with ZipFile(path) as archive:
         for item in inventory["files"]:
-            yield item["source_type"], records_from_bytes(archive.read(item["path"]), item["path"].lower())
+            data = archive.read(item['path'])
+            if not item.get('native_artifact'):
+                yield item["source_type"], records_from_bytes(data,item["path"].lower())
+                continue
+            from src.agents.forensic_tools import examine_pe,examine_memory_region,examine_minidump
+            metadata = item['artifact_metadata']
+            if item['source_type']=='malware':
+                analysis=examine_pe(data)
+                rows=[{**metadata,"severity_id":1,"confidence":"Measured features, no malicious verdict",
+                       "sample_name":item['path'],"sha256":item['sha256'],"analysis":analysis,
+                       "analysis_origin":analysis['analysis_origin'],"verdict":"unresolved","finding":"Independent PE static features; no malicious verdict"}]
+            else:
+                analysis=examine_minidump(data) if item['path'].lower().endswith('.dmp') else examine_memory_region(data)
+                rows=[{**metadata,"severity_id":1,"capture_observation":True,"plugin":"targeted_memory",
+                       "finding":"Targeted memory byte examination status="+analysis['status'],
+                       "analysis_origin":analysis['analysis_origin'],"analysis":analysis,"sha256":item['sha256']}]
+            yield item['source_type'], [ExaminedArtifactRecord(r) for r in rows]

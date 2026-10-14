@@ -309,6 +309,8 @@ export default function InvestigationConsole() {
                       <div style={{ color: 'var(--sp-color-status-hitl)', fontWeight: 600, marginBottom: '0.5rem' }}>
                         ⚠️ HITL Escalation Gate
                       </div>
+                      <p role="status">{hitlData.reviewReason}</p>
+                      <button type="button" className="secondary-btn" onClick={() => setView('agents')}>Inspect agent assessments</button>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
                         <div><strong>Attribution confidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span></div>
                         <div><strong>Attribution citations:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
@@ -319,7 +321,7 @@ export default function InvestigationConsole() {
                           onClick={() => handleHitlAction('approve')}
                           disabled={isReviewing}
                           style={{ background: 'var(--sp-color-status-admissible)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
-                          APPROVE
+                          APPROVE DRAFT GENERATION
                         </button>
                         <button 
                           onClick={() => handleHitlAction('reject')}

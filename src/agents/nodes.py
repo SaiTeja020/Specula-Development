@@ -36,24 +36,30 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
     without fragile regex extraction from the formatted prompt.
     """
     from . import case_analysis as analysis
-    if analysis.records(state) and role in {"proponent", "critic", "judge", "guardrail_tier3"}:
-        allowed = {row["uid"] for row in analysis.records(state)}
-        facts = [fact for fact in state.get("findings", []) if fact.get("dfkg_refs") and set(fact["dfkg_refs"]) <= allowed
-                 and fact.get("agent_role") not in {"supervisor", "evidence_collection", "proponent", "critic", "judge"}]
-        trace = analysis.review(role, state, facts)
-        summary = (f"{len(facts)} cited incident observations available. Actor attribution remains separately unestablished. "
-                   "Missing source timestamps and unverified exploit topology remain limitations.")
-        if role == "proponent":
-            summary += " Supported observations: " + "; ".join(fact["summary"] for fact in facts[:8])
-        if role == "critic":
-            summary += " Review legitimate administration, file copying/restoration and source-reported findings as alternative explanations; temporal order does not establish causation."
-        if role == "judge":
-            summary = "VERDICT: ACCEPT\nConfidence: 0.0\nAccept cited observations for analyst review; no calibrated probability asserted. " + summary
+    if (analysis.records(state) or state.get("evidence_review_required")) and role in {"proponent", "critic", "judge", "guardrail_tier3"}:
+        from .evidence_review import debate
+        facts = analysis.debate_facts(state)
+        if role=='proponent':
+            incomplete=[t['agent_role'] for t in analysis.current_traces(state) if t.get('review_coverage') and not t['review_coverage']['complete']]
+            if incomplete:
+                trace={'agent_role':role,'action':'required_review_incomplete','model_used':'not_invoked_missing_upstream_review',
+                    'observation':'Required source reviews incomplete: '+', '.join(incomplete),
+                    'model_output_validated':False,'dfkg_refs':[],
+                    'review_coverage':{'submitted':0,'validated':0,'total':len(facts),'complete':False},
+                    'timestamp':datetime.now(timezone.utc).isoformat()}
+                return {'agent_role':role,'summary':trace['observation'],'assessment':None,'review_valid':False,'dfkg_refs':[]},trace
         if role == "guardrail_tier3":
-            invalid = any(fact.get("source") == "validated_case_rule" and (not fact.get("dfkg_refs") or not set(fact["dfkg_refs"]) <= allowed) for fact in state.get("findings", []))
-            summary = ("RESULT: FAIL\nInvalid case evidence reference. " if invalid else "RESULT: PASS\nCitations validated against this case; model-generated claims excluded from facts. ") + summary
+            from .grounding import audit
+            trace = audit(state,facts,get_llm(role,case_id=state.get('case_id')))
+            passed = trace['grounding_passed']
+            summary = "RESULT: PASS\nCitations and structured review validated." if passed else "RESULT: FAIL\nCitations or structured review incomplete."
+            assessment = None
+        else:
+            assessment, trace = debate(role, state, facts, get_llm(role, case_id=state.get("case_id")))
+            summary = json.dumps(assessment, indent=2) if assessment else trace["observation"]
         finding = {"agent_role": role, "summary": summary, "dfkg_refs": trace["dfkg_refs"],
-                   "timestamp": trace["timestamp"], "kafka_offset": None, "finding_type": "case_review"}
+                   "timestamp": trace["timestamp"], "kafka_offset": None, "finding_type": "model_assessment",
+                   "assessment": assessment, "review_valid": trace["model_output_validated"]}
         return finding, trace
     cfg = AGENT_CONFIG.get(role, AGENT_CONFIG["supervisor"])
     # D4: forward case_id so StubLLM fills report template without prompt regex
@@ -282,6 +288,7 @@ def proponent_node(state: dict) -> dict:
     return {
         "case_status": "debate",
         "proponent_argument": finding["summary"],
+        "proponent_review": finding.get("assessment"),
         "findings": [finding],
         "agent_traces": [trace],
     }
@@ -292,6 +299,7 @@ def critic_node(state: dict) -> dict:
     finding, trace = _run_agent("critic", state)
     return {
         "critic_argument": finding["summary"],
+        "critic_review": finding.get("assessment"),
         "findings": [finding],
         "agent_traces": [trace],
     }
@@ -303,6 +311,33 @@ def judge_node(state: dict) -> Command[Literal[
 ]]:
     finding, trace = _run_agent("judge", state)
     content = finding["summary"]
+    from .case_analysis import records
+    if records(state) or state.get("evidence_review_required"):
+        review = finding.get("assessment") or {}
+        valid = finding.get("review_valid") and bool(state.get("proponent_review")) and bool(state.get("critic_review"))
+        # Incomplete upstream batch reviews are visible and require a human,
+        # even if this judge response is syntactically valid.
+        traces = state.get("agent_traces", [])
+        start = max((i for i,t in enumerate(traces) if t.get("agent_role") == "supervisor"), default=0)
+        coverage_complete = all(t.get("review_coverage", {}).get("complete", True) for t in traces[start:])
+        verdict = review.get("verdict", "incomplete") if valid and coverage_complete else "incomplete"
+        approved = verdict == "accept"
+        update = {"judge_review": review or None, "judge_verdict": verdict,
+            "review_status": "complete" if valid and coverage_complete else "incomplete",
+            "debate_outcome": "converged" if approved else "review_incomplete",
+            "case_status": "guardrail" if approved else "hitl_review", "hitl_required": not approved,
+            "acceptance_status": "incomplete", "confidence_delta": None,
+            "loop_count": state.get("loop_count", 0) + 1,
+            "debate_history": [{"round": state.get("debate_round", 1), "proponent": state.get("proponent_review"),
+                               "critic": state.get("critic_review"), "judge": review, "verdict": verdict, "confidence": None}],
+            "findings": [finding], "agent_traces": [trace]}
+        correction_needed=verdict=='revise' or any(r.get('disposition')=='unsupported' for r in review.get('resolutions',[]))
+        if correction_needed and valid and coverage_complete and state.get('debate_round',1)<2:
+            update.update(debate_round=state.get('debate_round',1)+1,case_status='debate',hitl_required=False,
+                debate_outcome='corrective_review',debate_feedback={'critic':state.get('critic_review'),'judge':review},
+                proponent_review=None,critic_review=None)
+            return Command(update=update,goto='proponent')
+        return Command(update=update, goto="guardrail_tier1" if approved else "hitl")
     round_num = state.get("debate_round", 1)
 
     # Parse verdict from LLM output / test overrides
@@ -468,8 +503,9 @@ def guardrail_tier1_node(state: dict) -> Command[Literal[
 ]]:
     """Tier 1: regex/AST checks (§7). Deterministic, no LLM."""
     # Collect all agent output text AND raw_input for checking
+    from .case_analysis import current_findings
     text_to_check = " ".join(
-        f.get("summary", "") for f in state.get("findings", [])
+        f.get("summary", "") for f in current_findings(state) if f.get('source')!='validated_case_rule'
     )
     raw_input = str(state.get("raw_input", ""))
     text_to_check = f"{raw_input} {text_to_check}"
@@ -494,8 +530,9 @@ def guardrail_tier2_node(state: dict) -> Command[Literal[
     "hitl", "guardrail_tier3"
 ]]:
     """Tier 2: embedding similarity classifier (§7). No LLM."""
+    from .case_analysis import current_findings
     texts_to_check = [str(state.get("raw_input", ""))] + [
-        f.get("summary", "") for f in state.get("findings", [])
+        f.get("summary", "") for f in current_findings(state) if f.get('source')!='validated_case_rule'
     ]
     
     result = "pass"
@@ -542,7 +579,7 @@ def hitl_node(state: dict) -> Command[Literal[
     entry_reason = (
         "guardrail_failure"
         if state.get("guardrail_fail_tier") is not None
-        else "debate_exhaustion"
+        else "review_incomplete" if state.get("debate_outcome") == "review_incomplete" else "debate_exhaustion"
     )
 
     snapshot = {
@@ -553,6 +590,8 @@ def hitl_node(state: dict) -> Command[Literal[
         "entry_reason": entry_reason,
         "judge_verdict": state.get("judge_verdict"),
         "debate_round": state.get("debate_round"),
+        "review_status": state.get("review_status"),
+        "judge_review": state.get("judge_review"),
     }
 
     # Note: case_status="hitl_review" is explicitly set by the routing nodes

@@ -68,18 +68,11 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str, entity_r
         parent_proc_pid = int(raw_payload.get("parent_process_pid") or 0)
         parent_proc_name = raw_payload.get("parent_process_name")
         
-        proc_uid = generate_deterministic_uid("process", {
-            "process_name": proc_name,
-            "pid": proc_pid,
-            "host_id": canonical_host_id
-        })
-        
-        parent_proc_uid = generate_deterministic_uid("process", {
-            "process_name": parent_proc_name or "unknown",
-            "pid": parent_proc_pid,
-            "host_id": canonical_host_id
-        })
-        
+        from src.graph.process_lineage import process_identity
+        guid, parent_guid = raw_payload.get("process_guid"), raw_payload.get("parent_process_guid")
+        proc_uid = process_identity(canonical_host_id, guid=guid, pid=proc_pid, start=utc_time.isoformat(), image=proc_name)
+        parent_proc_uid = process_identity(canonical_host_id, guid=parent_guid)
+
         events.append(
             ProcessActivityEvent(
                 case_id=case_id,
@@ -96,6 +89,9 @@ def normalize(raw_payload: Dict[str, Any], trace_id: str, case_id: str, entity_r
                 parent_process_name=parent_proc_name,
                 parent_process_pid=parent_proc_pid,
                 parent_process_uid=parent_proc_uid,
+                process_uid=proc_uid,
+                process_guid=guid,
+                parent_process_guid=parent_guid,
                 command_line=sanitized_cmd if sanitized_cmd else None,
                 file_path=raw_payload.get("file_path") if raw_payload.get("file_path") else None,
                 user_name=raw_payload.get("user_name") if raw_payload.get("user_name") else None,

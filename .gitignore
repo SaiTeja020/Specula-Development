@@ -33,6 +33,7 @@ __pycache__/
 # Large Data, Extracted Artifacts & State Files
 data/
 quarantine/
+/output/
 dist/
 *.zip
 *.log

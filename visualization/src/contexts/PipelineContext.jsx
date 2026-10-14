@@ -15,7 +15,7 @@ export function usePipeline() {
 const mapNodeToStage = (nodeId) => {
   if (['__start__'].includes(nodeId)) return 0;
   if (['evidence_collection'].includes(nodeId)) return 1;
-  if (['supervisor', 'log_analysis', 'network_forensics', 'primary_tier_join', 'memory_forensics', 'identity_cloud', 'malware_stylometry', 'insider_threat', 'specialist_join'].includes(nodeId)) return 2;
+  if (['supervisor', 'log_analysis', 'network_forensics', 'network_specialist', 'primary_tier_join', 'memory_forensics', 'identity', 'cloud_container', 'malware_stylometry', 'insider_threat', 'specialist_join'].includes(nodeId)) return 2;
   if (['timeline_reconstruction', 'threat_attribution'].includes(nodeId)) return 3;
   if (['proponent', 'critic', 'judge'].includes(nodeId)) return 4;
   if (['guardrail_tier1', 'guardrail_tier2', 'guardrail_tier3', 'hitl', 'report_generation', 'timeline_artifact_generation', 'case_closed_rejected', 'final_output_join', '__end__'].includes(nodeId)) return 5;
@@ -59,6 +59,7 @@ export function PipelineProvider({ children }) {
       setCaseStatus('AWAITING REVIEW');
       setActiveStage(5);
       setHitlData({ confidence: snapshot.attribution?.overall_confidence ?? 0,
+        reviewReason: snapshot.judge_review?.rationale || 'Review is incomplete or requires an analyst decision. Inspect agent assessments and counter-evidence.',
         blastRadius: `${snapshot.attribution?.dfkg_refs?.length ?? 0} cited events`,
         tamperCheck: 'Integrity review required; Fabric deferred' });
     } else if (snapshot.case_status === 'closed') {

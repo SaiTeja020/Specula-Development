@@ -31,6 +31,9 @@ class ProcessActivityEvent(OCSFBaseEvent):
     process_name: Optional[str] = Field(default=None, description="Executable name.")
     process_pid: Optional[int] = Field(default=None, description="Process PID.")
     process_uid: Optional[str] = Field(default=None, description="Process deterministic UID.")
+    parent_process_uid: Optional[str] = Field(default=None, description="Source-resolved parent process identity; never PID alone.")
+    process_guid: Optional[str] = None
+    parent_process_guid: Optional[str] = None
     parent_process_name: Optional[str] = Field(default=None, description="Parent executable name.")
     parent_process_pid: Optional[int] = Field(default=None, description="Parent process PID.")
     command_line: Optional[str] = Field(default=None, description="Command line invocation.")

@@ -9,6 +9,12 @@ from src.ingestion.export_aliases import adapt_export, record_timestamp
 STAMP = "2026-10-13T09:00:00Z"
 
 
+def test_native_windows_computer_is_a_source_host():
+    raw = {"System": {"EventID": 1102, "Computer": "APP-03", "TimeCreated": {"SystemTime": STAMP},
+                      "Provider": {"Name": "Microsoft-Windows-Security-Auditing"}}}
+    assert adapt_export(raw, "evtx", "windows/Security.json")["host_name"] == "APP-03"
+
+
 def test_gcp_flat_aliases_preserve_original_and_native_fields():
     raw = {"timestamp": STAMP, "resource": "projects/test/key", "method": "CreateKey",
            "project_id": "test", "principal_email": "examiner@example.test", "caller_ip": "192.0.2.1"}

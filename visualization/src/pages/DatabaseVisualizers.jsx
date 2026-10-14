@@ -15,7 +15,9 @@ function storeSummary(id, payload) {
   if (payload.detail) return payload.detail;
   if (payload.status !== 'success' && payload.status !== 'ready') return 'Store unavailable';
   if (id === 'quickwit') return `${payload.logs?.length ?? 0} recent preserved records`;
-  if (id === 'chroma') return `${payload.collections?.length ?? 0} collections`;
+  if (id === 'chroma') return payload.total_vectors !== undefined
+    ? `${payload.total_vectors} semantic chunks covering ${payload.total_events ?? payload.total_vectors} events`
+    : `${payload.collections?.length ?? 0} collections`;
   if (id === 'faiss') return `${payload.total_vectors ?? 0} indexed vectors`;
   return `${payload.tables?.length ?? 0} tables`;
 }

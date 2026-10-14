@@ -104,8 +104,12 @@ def _ingest_batches(case_id, batches, exclude_ports, provenance=None):
                         )
                         case_created = True
                     properties = event.event.model_dump(mode="json")
+                    system = raw.get("System") if isinstance(raw.get("System"), dict) else {}
+                    source_event_id = raw.get("event_id") or raw.get("Id") or system.get("EventID")
+                    if isinstance(source_event_id, str) and source_event_id.isdigit():
+                        source_event_id = int(source_event_id)
                     properties.update({"source_type": source_type,
-                        "source_event_id": raw.get("event_id", raw.get("Id")),
+                        "source_event_id": source_event_id,
                         "source_event_type": raw.get("event_type") or raw.get("event"),
                         "source_outcome": raw.get("status"), "source_user_name": raw.get("user") if isinstance(raw.get("user"), str) else None,
                         "source_finding": raw.get("finding") or raw.get("detection"),
@@ -137,9 +141,29 @@ def _ingest_batches(case_id, batches, exclude_ports, provenance=None):
                 if valid_count == 0 and provenance is not None and len(rejected) < 20:
                     rejected.append({"file": filename, "record": record_number,
                                      "reason": "Unsupported event type, security rejection, validation failure or excluded port"})
+        if case_created:
+            from src.graph.process_lineage import persist_lineage
+            lineage_receipt = persist_lineage(graph, case_id)
+            if provenance is not None:
+                provenance["process_lineage"] = lineage_receipt
+            from src.agents.case_analysis import decode_record
+            from src.ingestion.indexing.case_evidence import CaseEvidenceIndex
+            evidence = [decode_record(row["e"]) for row in graph.execute(
+                "MATCH (:Case {uid:$case_id})-[:HAS_EVENT]->(e:Event) RETURN e", {"case_id": case_id})]
+            vector_receipt = CaseEvidenceIndex().index(case_id, evidence)
+            from src.agents.case_analytics import write_case_analytics
+            analytics_receipt = write_case_analytics(case_id, evidence)
+            from src.ingestion.broker.case_stream import publish_normalized_case
+            stream_receipt=publish_normalized_case(case_id,evidence)
+            graph.execute("MATCH (c:Case {uid:$case_id}) SET c.vector_receipt_json=$receipt",
+                          {"case_id": case_id, "receipt": json.dumps(vector_receipt)})
+            if provenance is not None:
+                provenance["vector_index"] = vector_receipt
+                provenance["analytics"] = analytics_receipt
+                provenance['normalized_stream']=stream_receipt
         if provenance is not None and case_created:
             provenance["processing"] = {"selected_records": extracted, "normalized_events": accepted,
-                                        "normalization_contract": "uploaded-export-aliases-v1",
+                                        "normalization_contract": "uploaded-context-v2",
                                         "timestamp_policy": "Source times only; MFT modified-time alias uses standard_information_modified when no native event time exists",
                                         "record_errors_sample": rejected,
                                         "selected_records_without_normalized_events": records_without_events,
@@ -163,7 +187,10 @@ def investigate_case(case_id):
         session.trust_env = False
         response = session.post("http://127.0.0.1:8300/api/investigations",
                                 headers={"Authorization": f"Bearer {token}"},
-                                json={"case_id": case_id}, timeout=900)
+                                # Background job; browser already received HTTP 202.
+                                # Large local-model cases must not acquire a false
+                                # failure merely because inference exceeds 15 minutes.
+                                json={"case_id": case_id}, timeout=(10, None))
     payload = response.json()
     if not response.ok:
         raise RuntimeError(payload.get("detail", "Investigation request failed"))

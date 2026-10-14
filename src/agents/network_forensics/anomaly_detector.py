@@ -136,7 +136,7 @@ def detect_data_exfiltration(events: list[dict[str, Any]], volume_threshold: int
     for (src, dst), total in totals.items():
         if total >= volume_threshold * 5 and len(refs[(src, dst)]) > 1:
             findings.append({
-                "type": "Potential Cumulative Data Exfiltration", "technique": "T1048", "severity_id": 4,
+                "type": "Potential Cumulative Data Exfiltration", "technique": "T1048" if ipaddress.ip_address(dst).is_global else None, "severity_id": 4,
                 "description": f"High cumulative outbound volume from {src} to {dst}: {total} bytes.",
                 "bytes_out": total, "destination_ip": dst, "dfkg_refs": refs[(src, dst)],
             })

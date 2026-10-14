@@ -14,7 +14,10 @@ export default function ZipFormatGuide({ dialogRef }) {
   windows/Sysmon.jsonl
   edr/events.jsonl
   memory/findings.json
+  memory/regions/suspect.bin   optional targeted region
+  memory/processes/process.dmp optional MDMP minidump
   malware/findings.json
+  malware/samples/sample.exe optional static PE examination
   ueba/events.json
   vuln_scan/findings.json
   gcp_audit/events.json
@@ -22,6 +25,10 @@ export default function ZipFormatGuide({ dialogRef }) {
     <p>JSON contains one object or an array of objects. JSONL contains one object per line.
       Export binary .evtx files to JSON first. Maximum: 50 MiB ZIP, 200 MiB expanded, 25 MiB per file, 500 entries.</p>
     <h3>Common fields we accept</h3>
+    <p>For native artifacts, add a <code>manifest.json</code> entry such as
+      <code>{' {"artifacts":{"memory/regions/suspect.bin":{"timestamp":"2026-10-13T09:00:00Z","host":"WS-23"}}} '}</code>.
+      Native files are examined as data and never executed. Use targeted regions or small process minidumps,
+      not full RAM images. The same size limits apply. Imported JSON findings remain labelled as supplied assessments.</p>
     <p>Native exports remain supported. Common aliases below are mapped explicitly; native fields take precedence.
       Use ISO 8601 timestamps with a UTC offset, such as <code>2026-10-13T09:00:00Z</code>.</p>
     <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', textAlign: 'left' }}>

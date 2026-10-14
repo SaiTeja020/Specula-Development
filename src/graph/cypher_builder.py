@@ -101,7 +101,8 @@ class CypherBuilder:
             child.command_line = $command_line,
             child.host_uid = $canonical_host_id,
             child.case_id = $case_id,
-            child.start_time = $time
+            child.start_time = $time,
+            child.source_event_uid = $event_uid
             
         FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
         MERGE (h:Host {uid: $canonical_host_id})
@@ -132,7 +133,10 @@ class CypherBuilder:
         ON CREATE SET
             r.time = $time,
             r.trace_id = $trace_id,
-            r.raw_source_timestamp = $raw_source_timestamp
+            r.raw_source_timestamp = $raw_source_timestamp,
+            r.source_event_uid = $event_uid,
+            r.identity_basis = 'source_parent_identity',
+            r.source_reported = true
         """
         params = {
             "canonical_host_id": event.get("canonical_host_id"),
@@ -144,7 +148,8 @@ class CypherBuilder:
             "parent_process_uid": event.get("parent_process_uid"),
             "parent_process_name": event.get("parent_process_name"),
             "parent_process_pid": event.get("parent_process_pid", 0),
-            "process_uid": event.get("uid"),
+            "process_uid": event.get("process_uid") or event.get("uid"),
+            "event_uid": event.get("uid"),
             "process_name": event.get("process_name"),
             "process_pid": event.get("process_pid", 0),
             "command_line": event.get("command_line"),

@@ -24,6 +24,8 @@ class SpeculaState(TypedDict, total=False):
     evidence_collection: Optional[dict]
     ingestion_provenance: Optional[dict]
     execution_manifest: Optional[dict]
+    investigation_plan: Optional[dict]
+    debate_feedback: Optional[dict]
     report_generated_at: str
     report_metadata: Optional[dict]
     timeline_artifact_metadata: Optional[dict]
@@ -43,12 +45,18 @@ class SpeculaState(TypedDict, total=False):
     # §2.4 Sequential synthesis
     timeline: Optional[dict]                 # Timeline Reconstruction only
     attack_graph: Optional[dict]
+    exploit_topology: Optional[dict]
     attribution: Optional[dict]              # Threat Attribution only (after timeline non-null)
 
     # §2.5 Debate subsystem
     debate_round: int
     proponent_argument: Optional[str]        # overwritten each round
     critic_argument: Optional[str]           # overwritten each round
+    proponent_review: Optional[dict]
+    critic_review: Optional[dict]
+    judge_review: Optional[dict]
+    review_status: Optional[str]
+    evidence_review_required: bool
     judge_verdict: Optional[str]             # accept | reject, overwritten each round
     confidence_delta: Optional[float]        # undefined on round 1
     debate_history: Annotated[list, operator.add]  # one entry per closed round

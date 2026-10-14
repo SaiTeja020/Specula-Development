@@ -13,8 +13,8 @@ def state():
         {"uid": "memory", "class_uid": 2004, "time": "2026-10-13T03:13:00Z", "source_type": "memory", "details": '{"plugin":"windows.malfind","finding":"RWX memory"}'},
         {"uid": "cloud", "class_uid": 6003, "time": "2026-10-13T03:20:00Z", "api_operation": "CreateServiceAccountKey"},
         {"uid": "normal", "class_uid": 2004, "time": "2026-10-13T03:00:00Z", "source_type": "ueba", "source_baseline_status": "normal"},
-        {"uid": "failed", "class_uid": 3002, "time": "2026-10-13T03:05:00Z", "source_event_id": 4625, "user": {"name": "admin"}, "src_endpoint": {"ip_address": "192.0.2.1"}},
-        {"uid": "success", "class_uid": 3002, "time": "2026-10-13T03:07:00Z", "source_event_id": 4624, "user": {"name": "admin"}, "src_endpoint": {"ip_address": "192.0.2.1"}},
+        {"uid": "failed", "class_uid": 3002, "canonical_host_id": "host-A", "time": "2026-10-13T03:05:00Z", "source_event_id": 4625, "user": {"name": "admin"}, "src_endpoint": {"ip_address": "192.0.2.1"}},
+        {"uid": "success", "class_uid": 3002, "canonical_host_id": "host-A", "time": "2026-10-13T03:07:00Z", "source_event_id": 4624, "user": {"name": "admin"}, "src_endpoint": {"ip_address": "192.0.2.1"}},
     ]}}
 
 

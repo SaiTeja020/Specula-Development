@@ -154,8 +154,12 @@ def run_pipeline_on_event(
     case_id: str = "UNASSIGNED_CONTINUOUS",
     exported_log_path: str | None = None,
 ) -> list:
+    from src.ingestion.upload_archive import ExaminedArtifactRecord
+    examination = (dict(raw_event.get('analysis') or {'analysis_origin':raw_event.get('analysis_origin'),'status':'complete'})
+                   if isinstance(raw_event,ExaminedArtifactRecord) else None)
     # Preserve the input serialization before adding any pipeline metadata.
     raw_event = dict(raw_event)
+    original_record = dict(raw_event)
     raw_bytes = json.dumps(raw_event, sort_keys=True).encode("utf-8")
     trace_id = raw_event.get("trace_id", str(uuid.uuid4()))
     raw_event["trace_id"] = trace_id
@@ -248,8 +252,9 @@ def run_pipeline_on_event(
     elif source_type == "mft":
         ocsf_evt = normalize_mft_record(raw_event, time_normalizer, trace_id)
         ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
-        if not ocsf_evt.canonical_host_id:
-            ocsf_evt.canonical_host_id = resolver.resolve_any(hostname="LOCAL_HOST") or "host-LOCAL_HOST"
+        hostname = raw_event.get("host_name") or raw_event.get("host")
+        if hostname:
+            ocsf_evt.canonical_host_id = resolver.resolve_any(hostname=hostname) or f"host-{hostname.strip()}"
         ocsf_evts.append(ocsf_evt)
     elif source_type == "gcp_audit":
         ocsf_evt = normalize_gcp_audit(raw_event, time_normalizer, trace_id)
@@ -260,6 +265,11 @@ def run_pipeline_on_event(
         ocsf_evts.append(ocsf_evt)
     elif source_type == "edr":
         ocsf_evts.extend(normalize_edr(raw_event, trace_id, "UNASSIGNED_CONTINUOUS", resolver))
+    elif source_type=='container':
+        from src.ingestion.normalization.container_normalizer import normalize
+        ocsf_evts.extend(normalize(raw_event,trace_id,case_id))
+    elif source_type=='ad_auth':
+        ocsf_evts.append(normalize_evtx_auth(raw_event,time_normalizer,resolver,trace_id))
     elif source_type == "malware":
         ocsf_evts.extend(normalize_malware(raw_event, trace_id, "UNASSIGNED_CONTINUOUS"))
     elif source_type == "memory":
@@ -277,9 +287,36 @@ def run_pipeline_on_event(
         # Some findings omit canonical IDs while retaining an actual source host.
         hostname = raw_event.get("host_name") or raw_event.get("host") or raw_event.get("MachineName")
         if isinstance(hostname, str) and hostname.strip():
-            if not ocsf_evt.canonical_host_id:
-                ocsf_evt.canonical_host_id = resolver.resolve_any(hostname=hostname) or f"host-{hostname.strip()}"
+            ocsf_evt.canonical_host_id = resolver.resolve_any(hostname=hostname) or f"host-{hostname.strip()}"
             resolver.register_hostname(hostname, ocsf_evt.canonical_host_id)
+        elif exported_log_path is not None and source_type != "gcp_audit":
+            ocsf_evt.canonical_host_id = None
+        if ocsf_evt.class_uid == 1007:
+            from src.graph.process_lineage import process_identity
+            data = raw_event.get("EventData") or {}
+            guid = raw_event.get("process_guid") or data.get("ProcessGuid")
+            parent_guid = raw_event.get("parent_process_guid") or data.get("ParentProcessGuid")
+            ocsf_evt.process_guid, ocsf_evt.parent_process_guid = guid, parent_guid
+            ocsf_evt.process_uid = process_identity(ocsf_evt.canonical_host_id, guid=guid,
+                pid=ocsf_evt.process_pid, start=ocsf_evt.time.isoformat(), image=ocsf_evt.process_name)
+            ocsf_evt.parent_process_uid = process_identity(ocsf_evt.canonical_host_id, guid=parent_guid)
+        if exported_log_path is not None:
+            # OCSF unmapped preserves source outcomes/authorization without
+            # converting uploader assertions into verified facts.
+            ocsf_evt.unmapped = {"source_context": original_record}
+            if examination is not None:
+                ocsf_evt.unmapped['examination'] = examination
+            identity_record = {key: value for key, value in original_record.items()
+                               if key not in {"export_id", "trace_id"}}
+            for key in ("timestamp", "TimeCreated", "event_time", "eventTime", "time", "LastRecordChange"):
+                if isinstance(identity_record.get(key), str):
+                    try:
+                        identity_record[key] = datetime.fromisoformat(identity_record[key].replace("Z", "+00:00")).astimezone(timezone.utc).isoformat()
+                    except ValueError:
+                        pass
+            ocsf_evt.uid = generate_deterministic_uid("uploaded-event-context-v2", {
+                "source": source_type, "class": ocsf_evt.class_uid, "activity": ocsf_evt.activity_id,
+                "host": ocsf_evt.canonical_host_id, "record": identity_record})
         if exclude_ports and source_type not in ("zeek", "suricata"):
             # Check if this event has endpoints with excluded ports
             dst_port = getattr(getattr(ocsf_evt, "dst_endpoint", None), "port", None) or getattr(ocsf_evt, "dst_port", None)

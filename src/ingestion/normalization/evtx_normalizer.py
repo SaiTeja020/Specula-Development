@@ -101,15 +101,12 @@ def normalize_evtx_process_creation(
         "host_id": canonical_host_id
     })
 
-    if not sanitized_parent_proc_name and ppid == 0:
-        parent_uid = None
-    else:
-        parent_uid = generate_deterministic_uid("process", {
-            "process_name": sanitized_parent_proc_name,
-            "pid": ppid,
-            "host_id": canonical_host_id
-        })
-    
+    from src.graph.process_lineage import process_identity
+    guid = event_data.get("ProcessGuid") or raw_parsed_event.get("process_guid")
+    parent_guid = event_data.get("ParentProcessGuid") or raw_parsed_event.get("parent_process_guid")
+    process_uid = process_identity(canonical_host_id, guid=guid, pid=pid, start=utc_time.isoformat(), image=sanitized_proc_name)
+    parent_uid = process_identity(canonical_host_id, guid=parent_guid)
+
     return ProcessActivity(
         trace_id=trace_id,
         activity_id=1, 
@@ -126,6 +123,9 @@ def normalize_evtx_process_creation(
         parent_process_name=sanitized_parent_proc_name,
         parent_process_pid=ppid,
         parent_process_uid=parent_uid,
+        process_uid=process_uid,
+        process_guid=guid,
+        parent_process_guid=parent_guid,
         host_name=computer_name,
         canonical_host_id=canonical_host_id
     )

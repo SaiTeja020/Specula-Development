@@ -58,3 +58,21 @@ def test_retry_requires_case_write_access(monkeypatch, tmp_path):
     assert client.post("/api/investigations/C1/retry", headers=headers).status_code == 403
     headers = configure_test_auth(monkeypatch, tmp_path, {"test-user": {"role": "analyst", "cases": ["C1"]}})
     assert client.post("/api/investigations/C2/retry", headers=headers).status_code == 403
+
+
+def test_orphaned_pending_checkpoint_resumes_under_case_lease(api_auth, monkeypatch, tmp_path):
+    graph, saver = make_graph(tmp_path, False)
+    config = {"configurable": {"thread_id": "C1"}}
+    graph.update_state(config, {"case_id": "C1", "case_status": "open", "counter": 7}, as_node="__start__")
+    checkpoint = graph.get_state(config)
+    assert checkpoint.next == ("work",) and not any(task.error for task in checkpoint.tasks)
+    monkeypatch.setattr(visualizer_api, "_specula_graph", graph)
+    monkeypatch.setattr(visualizer_api, "_neo4j_driver", None)
+    monkeypatch.setattr(visualizer_api, "_get_neo4j_driver", lambda: None)
+    client = TestClient(visualizer_api.app)
+    with saver.case_execution_lock("C1"):
+        assert client.post("/api/investigations/C1/retry", headers=api_auth).status_code == 409
+    result = client.post("/api/investigations/C1/retry", headers=api_auth)
+    assert result.status_code == 200 and graph.get_state(config).values["counter"] == 8
+    assert client.post("/api/investigations/C1/retry", headers=api_auth).status_code == 409
+    saver.close()

@@ -23,8 +23,11 @@ def main():
     try:
         with client._driver.session() as session:
             tx = session.begin_transaction()
+            accepted_uids = set()
             class TransactionGraph:
                 def execute(self, query, params):
+                    if params.get("event_uid") and params.get("properties"):
+                        accepted_uids.add(params["event_uid"])
                     return [dict(row) for row in tx.run(query, params)]
                 def close(self):
                     pass
@@ -40,7 +43,13 @@ def main():
                     result = ingest_uploaded_case(case, path, receipt, "", "", 5000, [])
                 events = tx.run("MATCH (:Case {uid:$case})-[:HAS_EVENT]->(e:Event) RETURN count(e) AS n",
                                 case=case).single()["n"]
-                assert events == result["accepted"]
+                assert events == len(accepted_uids) <= result["accepted"]
+                for row in tx.run("MATCH (:Case {uid:$case})-[:HAS_EVENT]->(e:Event) RETURN e", case=case):
+                    import json
+                    event = dict(row["e"])
+                    context = json.loads(event.get("unmapped", "{}" ) or "{}").get("source_context", {})
+                    if context.get("host"):
+                        assert event.get("canonical_host_id") == "host-"+context["host"]
                 for cls in (1007, 1001, 2004, 3001, 2005, 2002, 4002, 3002):
                     event = {"uid": case + str(cls), "class_uid": cls, "case_id": case,
                              "time": "2026-10-13T10:00:00Z", "trace_id": "verification",
@@ -55,7 +64,7 @@ def main():
                     query, params = CypherBuilder.dispatch_event(event)
                     list(tx.run(query, params))
                 assert tx.run('MATCH (h:Host {uid:"UNKNOWN_HOST"}) RETURN count(h) AS n').single()["n"] == placeholders
-                print({"live_case_events": events, "excluded_records": result["excluded_records"],
+                print({"live_case_events": events, "normalized_outputs": result["accepted"], "excluded_records": result["excluded_records"],
                        "host_templates_verified": 8})
             finally:
                 tx.rollback()

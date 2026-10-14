@@ -14,7 +14,9 @@ def test_case_store_never_uses_global_evidence(monkeypatch):
     result = store_views.case_store_view("quickwit", "CASE-A", saved)
     assert result["case_id"] == "CASE-A" and result["scope"] == "case"
     assert calls == [('trace_id:"case-a-trace" OR uid:"legacy-preserved-id"', 300)]
-    assert store_views.case_store_view("chroma", "CASE-A", saved)["status"] == "unavailable"
+    from src.ingestion.indexing import case_evidence
+    monkeypatch.setattr(case_evidence, "case_chroma_view", lambda case_id: {"status": "success", "case_id": case_id})
+    assert store_views.case_store_view("chroma", "CASE-A", saved)["case_id"] == "CASE-A"
 
 
 def test_saved_case_stores_enforce_case_access(monkeypatch, tmp_path):

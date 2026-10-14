@@ -68,8 +68,13 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                 "paused_at": list(state.next), "findings": values.get("findings", []),
                 "failed_nodes": [task.name for task in state.tasks if task.error],
                 "agent_traces": values.get("agent_traces", []),
+                "investigation_plan": values.get('investigation_plan'),
                 "attribution": values.get("attribution"), "timeline": values.get("timeline"),
+                "exploit_topology":values.get('exploit_topology'),
                 "attack_graph": values.get("attack_graph"),
+                "review_status": values.get("review_status"), "judge_verdict": values.get("judge_verdict"),
+                "proponent_review": values.get("proponent_review"), "critic_review": values.get("critic_review"),
+                "judge_review": values.get("judge_review"), "debate_history": values.get("debate_history", []),
                 "evidence_collection": values.get("evidence_collection"),
                 "ingestion_provenance": values.get("ingestion_provenance"),
                 "report_output": values.get("report_output"),
@@ -142,8 +147,8 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                     trace_index = len(current.values.get("agent_traces", [])) if current.values else 0
                     if isinstance(value, dict) and current.values:
                         raise HTTPException(409, "Investigation already exists; review or select a new case")
-                    if value is None and not any(task.error for task in current.tasks):
-                        raise HTTPException(409, "Investigation has no failed node to retry")
+                    if value is None and (not current.next or "hitl" in current.next):
+                        raise HTTPException(409, "Investigation has no pending work to retry; use analyst review for HITL")
                     if value is not None and not isinstance(value, dict) and "hitl" not in current.next:
                         raise HTTPException(409, "Investigation is not awaiting analyst review")
                     for update in graph.stream(value, config, stream_mode="updates"):
@@ -163,6 +168,16 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                             payload = {"node": node, "case_id": config["configurable"]["thread_id"],
                                        "data": {"status": "completed", "update": data}}
                             emit("node_complete", payload)
+                        # Checkpoint data is authoritative; analytics is a durable query projection.
+                        current = graph.get_state(config)
+                        if any(isinstance(d,dict) and ('timeline' in d or 'attack_graph' in d) for d in update.values()):
+                            from .agent_graph import persist_case_analysis
+                            persist_case_analysis(get_driver(),config['configurable']['thread_id'],current.values)
+                        if (current.values.get("evidence_collection") or {}).get("records"):
+                            from .case_analytics import write_case_analytics
+                            write_case_analytics(config["configurable"]["thread_id"],
+                                current.values["evidence_collection"]["records"],
+                                current.values.get("findings", []), current.values.get("agent_traces", []))
                     return snapshot(graph, config)
             except CheckpointBusyError:
                 raise HTTPException(409, "Investigation is already running in another worker") from None
@@ -209,6 +224,7 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                 "report_generated_at": datetime.now(timezone.utc).isoformat(),
                 "ingestion_provenance": json.loads(records[0].get("provenance") or "{}"),
                 "execution_manifest": runtime_manifest(),
+                "evidence_review_required": True,
                 "input_type": "siem_alert", "raw_input": body.raw_input,
                 "case_status": "open", "findings": [], "agent_traces": [],
                 "debate_round": 1, "debate_history": [], "specialists_completed": [],
@@ -228,6 +244,55 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
         from .store_views import case_store_view
         saved = await asyncio.to_thread(snapshot, graph, config)
         return await asyncio.to_thread(case_store_view, store, case_id, saved)
+
+    @app.post('/api/investigations/{case_id}/reindex')
+    async def reindex_case(case_id:str,request:Request):
+        await asyncio.to_thread(authorize,request.state.principal,case_id,write=True,driver=get_driver())
+        graph,config=graph_for_case(case_id)
+        def rebuild():
+            from .checkpointer import durable_case_lock
+            from .case_analysis import decode_record
+            from .case_analytics import write_case_analytics
+            from .agent_graph import persist_case_analysis
+            from src.ingestion.indexing.case_evidence import CaseEvidenceIndex
+            with durable_case_lock(graph.checkpointer,case_id):
+                saved=graph.get_state(config).values or {}
+                rows,_,_=get_driver().execute_query('MATCH (:Case {uid:$case_id})-[:HAS_EVENT]->(e:Event) RETURN e',case_id=case_id)
+                events=[decode_record(row['e']) for row in rows]
+                if not events:raise HTTPException(409,'No preserved case evidence to index')
+                receipt=CaseEvidenceIndex().index(case_id,events)
+                analytics=write_case_analytics(case_id,events,saved.get('findings',[]),saved.get('agent_traces',[]))
+                from src.graph.process_lineage import persist_lineage
+                lineage=persist_lineage(get_driver(),case_id)
+                persist_case_analysis(get_driver(),case_id,saved)
+                get_driver().execute_query('MATCH (c:Case {uid:$case_id}) SET c.store_receipts_json=$receipt',
+                    case_id=case_id,receipt=json.dumps({'chroma':receipt,'duckdb':analytics}))
+                return {'case_id':case_id,'chroma':receipt,'duckdb':analytics,'lineage':lineage}
+        from .checkpointer import CheckpointBusyError
+        try:return await asyncio.to_thread(rebuild)
+        except CheckpointBusyError:raise HTTPException(409,'Investigation is already running in another worker') from None
+
+    @app.post('/api/investigations/{case_id}/exploit-topology')
+    async def review_exploit_topology(case_id:str,body:dict,request:Request):
+        await asyncio.to_thread(authorize,request.state.principal,case_id,write=True,driver=get_driver())
+        graph,config=graph_for_case(case_id)
+        def reviewed():
+            from .checkpointer import durable_case_lock
+            from .exploit_paths import calculate_reviewed_path
+            from .agent_graph import persist_case_analysis
+            with durable_case_lock(graph.checkpointer,case_id):
+                current=graph.get_state(config)
+                if 'hitl' not in current.next:
+                    raise HTTPException(409,'Exploit topology review requires an investigation paused for analyst review')
+                refs={e['uid'] for e in (current.values.get('evidence_collection') or {}).get('records',[])}
+                try:result=calculate_reviewed_path(body,refs,request.state.principal.subject)
+                except ValueError as error:raise HTTPException(422,str(error)) from None
+                graph.update_state(config,{'exploit_topology':result})
+                persist_case_analysis(get_driver(),case_id,{**current.values,'exploit_topology':result})
+                return result
+        from .checkpointer import CheckpointBusyError
+        try:return await asyncio.to_thread(reviewed)
+        except CheckpointBusyError:raise HTTPException(409,'Investigation is already running in another worker') from None
 
     @app.get("/api/investigations/{case_id}/reports/{kind}")
     async def get_examination_report(case_id: str, kind: Literal["court", "technical"], request: Request):

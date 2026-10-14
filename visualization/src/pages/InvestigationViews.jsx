@@ -9,14 +9,15 @@ const ROLE_PURPOSE = {
   evidence_collection: 'Reads case-linked evidence and records deterministic triage decisions.',
   log_analysis: 'Checks process and file logs for supported detections.',
   network_forensics: 'Checks case-linked network events for supported anomalies.',
+  network_specialist: 'Correlates failed/successful flows and independently reviews primary network observations.',
   memory_forensics: 'Examines available memory findings for injection or persistence indicators.',
   identity: 'Examines identity and credential activity.',
   cloud_container: 'Examines cloud and container activity.',
   malware_stylometry: 'Examines malware and code-style indicators.',
   insider_threat: 'Examines activity that may indicate insider misuse.',
-  timeline_reconstruction: 'Orders cited findings by their recorded event times.',
+  timeline_reconstruction: 'Reconstructs source-linked episodes, preserves original times and records clock uncertainty.',
   threat_attribution: 'Scores observed techniques against the available threat-intelligence corpus.',
-  dag: 'Reviews possible attack paths and residual risk; a verified path requires structured evidence.',
+  dag: 'Builds source-cited activity relationships and candidate chains; verified exploitation requires separate reviewed evidence.',
   proponent: 'Argues a candidate explanation from the available findings.',
   critic: 'Challenges the candidate explanation and identifies evidence gaps.',
   judge: 'Evaluates the debate and decides whether the explanation is supported.',
@@ -39,6 +40,39 @@ const proseStyle = {
   fontSize: '0.85rem',
   lineHeight: 1.6,
 };
+
+function activityPositions(graph) {
+  const levels = new Map(graph.nodes.map(node => [node.id, 0]));
+  const incoming = new Map(graph.nodes.map(node => [node.id, 0]));
+  const outgoing = new Map(graph.nodes.map(node => [node.id, []]));
+  for (const edge of graph.edges) {
+    if (!incoming.has(edge.target) || !outgoing.has(edge.source)) continue;
+    incoming.set(edge.target, incoming.get(edge.target) + 1);
+    outgoing.get(edge.source).push(edge.target);
+  }
+  const ready = [...incoming.keys()].filter(id => incoming.get(id) === 0);
+  for (let index = 0; index < ready.length; index++) {
+    const id = ready[index];
+    for (const target of outgoing.get(id)) {
+      levels.set(target, Math.max(levels.get(target), levels.get(id) + 1));
+      incoming.set(target, incoming.get(target) - 1);
+      if (incoming.get(target) === 0) ready.push(target);
+    }
+  }
+  const groups = new Map();
+  for (const node of graph.nodes) {
+    const level = levels.get(node.id);
+    groups.set(level, [...(groups.get(level) || []), node.id]);
+  }
+  const positions = new Map();
+  let y = 0;
+  for (const level of [...groups.keys()].sort((a, b) => a - b)) {
+    const ids = groups.get(level);
+    ids.forEach((id, index) => positions.set(id, { x: (index % 5) * 300, y: y + Math.floor(index / 5) * 180 }));
+    y += Math.ceil(ids.length / 5) * 180 + 80;
+  }
+  return positions;
+}
 
 function EmptyView({ title, detail }) {
   return <div style={panelStyle} role="status">
@@ -146,9 +180,19 @@ export function AgentsView({ snapshot }) {
           {trace.timestamp && ` · ${new Date(trace.timestamp).toLocaleString()}`}
         </div>
         <pre style={proseStyle}>{finding?.summary || trace.observation || 'No output text recorded.'}</pre>
-        {trace.model_output && <details><summary>Recorded model assessment · {trace.model_output_validated ? 'validated selections' : 'rejected output'}</summary>
+        {trace.review_coverage && <p role="status">
+          {trace.review_unit && <>Review unit: {trace.review_unit.replaceAll('_', ' ')}. </>}
+          {trace.preserved_event_count != null && <>{trace.preserved_event_count} source events preserved. </>}
+          Review coverage: {trace.review_coverage.submitted} / {trace.review_coverage.total} observations submitted;
+          {' '}{trace.review_coverage.validated} received valid responses.
+          {' '}{trace.review_coverage.complete ? 'Complete.' : 'Incomplete — human review required.'}
+        </p>}
+        {trace.model_output && <details><summary>Recorded model assessment · {trace.model_output_validated ? 'validated response' : 'rejected output'}</summary>
           <pre style={proseStyle}>{trace.model_output}</pre>
-          <p>Only validated observation selections are accepted. This audit output is not an independent evidence fact.</p>
+          <p>Validation checks response structure and case references. Model assessments remain analysis, not source evidence.</p>
+          {(trace.review_batches || trace.review_attempts) && <details><summary>Review batches and retry results</summary>
+            <pre style={proseStyle}>{JSON.stringify(trace.review_batches || trace.review_attempts, null, 2)}</pre>
+          </details>}
         </details>}
         {refs.length > 0 && <div style={{ fontSize: '0.8rem', overflowWrap: 'anywhere' }}>
           Evidence ({refs.length}): {refs.slice(0, 8).join(', ')}{refs.length > 8 && ` and ${refs.length - 8} more`}
@@ -171,8 +215,10 @@ export function TimelineView({ snapshot }) {
       [item.host_name, item.class_uid != null && `OCSF class ${item.class_uid}`].filter(Boolean).join(' · ') || 'Evidence event',
     severity: item.severity_id,
     timeBasis: item.time_basis,
+    derivedTime: item.derived_time,
+    clockUncertainty: item.clock_uncertainty || [],
     refs: item.dfkg_refs || (item.uid ? [item.uid] : []),
-  })).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+  })).sort((a, b) => (Date.parse(a.time) || 0) - (Date.parse(b.time) || 0));
   const pageSize = 50;
   const pageCount = Math.max(1, Math.ceil(events.length / pageSize));
   const currentPage = Math.min(page, pageCount - 1);
@@ -184,12 +230,25 @@ export function TimelineView({ snapshot }) {
         : `${events.length} preserved evidence events ordered by their recorded timestamps. No structured reconstruction events were saved for this case.`}</p>
       {snapshot.timeline?.summary && <details><summary>Agent synthesis</summary><pre style={proseStyle}>{snapshot.timeline.summary}</pre></details>}
     </div>
+    {snapshot.timeline?.episodes?.length > 0 && <details style={panelStyle}>
+      <summary>Correlated episodes ({snapshot.timeline.episodes.length})</summary>
+      <p>Source identifiers and bounded time windows group these records. They do not establish causation or one actor.</p>
+      {snapshot.timeline.episodes.map(episode => <article key={episode.id} style={{ marginBlock: '1rem' }}>
+        <strong>{episode.start_time} to {episode.end_time}</strong><p>{episode.summary}</p>
+        {episode.clock_uncertainty_present && <p>Clock uncertainty affects this host; original timestamps are retained.</p>}
+        <details><summary>Evidence and relationship basis ({episode.dfkg_refs.length} records)</summary>
+          <pre style={proseStyle}>{JSON.stringify({ evidence: episode.dfkg_refs, relationships: (snapshot.timeline.relations || []).filter(relation => episode.relation_ids.includes(relation.id)) }, null, 2)}</pre>
+        </details>
+      </article>)}
+    </details>}
     {events.length > 0 ? <>
       <ol start={currentPage * pageSize + 1} style={{ display: 'grid', gap: '0.5rem', paddingLeft: '1.5rem', margin: 0 }}>
         {events.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((event, index) => <li
           key={`${event.id}-${currentPage}-${index}`} style={panelStyle}>
           <time style={{ fontFamily: 'var(--sp-font-mono)', fontSize: '0.8rem' }}>{event.time || 'Time unavailable'}</time>
           {event.timeBasis === 'file_metadata' && <small> · File metadata timestamp; not execution time</small>}
+          {event.derivedTime && <p>Derived time: {event.derivedTime}. Source-declared correction; original time above is preserved.</p>}
+          {event.clockUncertainty.length > 0 && <details><summary>Clock uncertainty and source</summary><pre style={proseStyle}>{JSON.stringify(event.clockUncertainty, null, 2)}</pre></details>}
           <p style={{ margin: '0.4rem 0', overflowWrap: 'anywhere' }}>{event.summary}</p>
           <small>UID: {event.id}{event.severity != null ? ` · Severity ${event.severity}` : ''}</small>
           {event.refs.length > 1 && <small> · {event.refs.length} cited events</small>}
@@ -211,27 +270,43 @@ export function TimelineView({ snapshot }) {
 export function AttackGraphView({ snapshot }) {
   if (!snapshot) return <EmptyView title="No case selected" detail="Open a saved investigation to view its attack graph analysis." />;
   const graph = snapshot.attack_graph;
+  const positions = graph ? activityPositions(graph) : new Map();
   const finding = (snapshot.findings || []).find(item => item.agent_role === 'dag');
   const trace = (snapshot.agent_traces || []).find(item => item.agent_role === 'dag');
   return <section aria-label="Dynamic attack graph" style={{ display: 'grid', gap: '0.75rem' }}>
     <div style={panelStyle}>
       <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Dynamic attack graph</h2>
-      <p style={{ marginBottom: 0 }}>{graph ? 'Observed activity graph: cited findings linked by recorded temporal precedence. These links do not establish causation or a verified exploit path.' : 'No verified exploit-path nodes or edges were saved for this case. Historical model prose is unverified.'}</p>
+      <p style={{ marginBottom: 0 }}>{graph ? 'Cited observations and source records linked by temporal or explicit identifier relationships. Candidate chains do not establish causation, one actor or verified exploitation.' : 'No verified exploit-path nodes or edges were saved for this case. Historical model prose is unverified.'}</p>
     </div>
+    {snapshot.exploit_topology && <article style={panelStyle}>
+      <h3>Analyst-reviewed exploit topology</h3>
+      <p>Reviewed by {snapshot.exploit_topology.reviewed_by}. Path: {snapshot.exploit_topology.path.join(' → ') || 'No path'}.</p>
+      <p>{snapshot.exploit_topology.path_conditional_probability === null
+        ? 'Probability unavailable: calibrated inputs were not supplied.'
+        : `Conditional model probability: ${snapshot.exploit_topology.path_conditional_probability}. This is not observed case certainty.`}</p>
+      <details><summary>Topology, calibration citations and assumptions</summary><pre style={proseStyle}>{JSON.stringify(snapshot.exploit_topology,null,2)}</pre></details>
+    </article>}
     {graph && <>
       <div style={{ height: '60vh', minHeight: 400, border: 'var(--sp-border-thin)' }}>
-        <ReactFlow fitView nodes={graph.nodes.map((node, index) => ({ id: node.id,
-          position: { x: (index % 3) * 280, y: Math.floor(index / 3) * 180 },
-          data: { label: `${node.label.replaceAll('_', ' ')} ? ${node.dfkg_refs.length} cited events` } }))}
-          edges={graph.edges.map(edge => ({ ...edge, label: edge.type }))}>
+        <ReactFlow fitView nodes={graph.nodes.map(node => ({ id: node.id,
+          position: positions.get(node.id),
+          style: { borderStyle: node.node_kind === 'evidence' ? 'dashed' : 'solid', width: 240 },
+          data: { label: `${node.node_kind === 'evidence' ? 'Source record' : 'Observation'}: ${node.label.replaceAll('_', ' ')}\n${node.canonical_host_id || 'Host unknown'}\n${node.classification || 'Unresolved'} / ${node.operation_outcome || 'Outcome unknown'}\n${node.dfkg_refs.length} cited events` } }))}
+          edges={graph.edges.map(edge => ({ ...edge, id: edge.id || `${edge.type}-${edge.source}-${edge.target}`, label: edge.type }))}>
           <Background /><Controls />
         </ReactFlow>
       </div>
-      <p>{graph.nodes.length} observation nodes ? {graph.edges.length} temporal links ? Exploit probabilities unavailable</p>
+      <p>{graph.observation_count ?? graph.nodes.length} observations; {graph.related_evidence_count || 0} source records; {graph.edges.length} links. Solid boxes: observations. Dashed boxes: source records. PRECEDES: temporal association. Other links: source correlations.</p>
+      {graph.activity_paths?.length > 0 && <details style={panelStyle}><summary>Candidate activity chains ({graph.activity_paths.length})</summary>
+        <p>Longest source-relation chains. No exploit probability is calculated.</p>
+        {graph.activity_paths.map((path, index) => <p key={index}>{path.nodes.map(id => graph.nodes.find(node => node.id === id)?.summary || id).join(' ? ')}</p>)}
+      </details>}
+      <details style={panelStyle}><summary>Relationship evidence and basis</summary><pre style={proseStyle}>{JSON.stringify(graph.source_relations || graph.edges, null, 2)}</pre></details>
+      <details><summary>Graph records ({graph.nodes.length})</summary>
       {graph.nodes.map(node => <article key={node.id} style={panelStyle}>
         <strong>{node.label.replaceAll('_', ' ')}</strong><p>{node.summary}</p>
         <small>{node.time} ? Evidence: {node.dfkg_refs.join(', ')}</small>
-      </article>)}
+      </article>)}</details>
     </>}
     {!graph && finding ? <article style={panelStyle}>
       <h3 style={{ marginTop: 0 }}>Agent analysis</h3>

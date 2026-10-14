@@ -289,3 +289,41 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 - **Decision:** Fabric anchoring is deferred beyond the current development milestone. Current VCT scope is local event hashing and Merkle-chain handling; it must not be represented as Fabric-anchored or production legal anchoring. Reconsider Fabric only with an approved trust model, deployment owner, integration criteria, and verification environment.
 - **Consequences:** ADR-004 remains the target architecture for a future phase; implementation status is explicitly deferred. No Fabric deployment will be attempted as part of local documentation reconciliation.
 - **Link to Progress.md:** [PROGRESS.md -> Phase 6 (Operational Readiness)](PROGRESS.md)
+
+### ADR-027: Context-preserving Evidence and Structured Independent Review
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** Source host identity must precede fallback and UID generation. Preserve original operation outcomes, authorization/control context and source identifiers alongside normalized case events; do not merge unrelated hosts through LOCAL_HOST. Evidence-only observations explicitly distinguish failed/confirmed operations, negative results and counter-evidence. Model review uses schema-constrained batches with one corrective retry, accurate submitted/validated coverage and per-observation assessments. Proponent, critic and judge have separate schemas/inputs; judge consumes both arguments, with no predetermined acceptance. Invalid/incomplete reviews route to existing HITL and remain incomplete even if a human authorizes draft generation. Model hypotheses remain separate from evidence facts. Timeline is deterministic full chronology; model selection cannot suppress preserved evidence. Observed graph deduplicates equivalent observations, retains host/context labels and orders actual UTC instants; temporal associations never imply exploit probabilities.
+- **Compatibility:** Existing historical checkpoints and immutable evidence remain preserved; corrections apply to newly normalized data with deterministic host-aware event IDs where prior IDs conflated source context. No dependency additions or model change.
+- **Verification:** Complex fixture positive/negative/dead-end/correlation assertions, schema/foreign-citation/retry tests, review routing and persistence regression suites, frontend build/lint and fresh local qwen3:8b benchmark. No automatic human approval.
+
+### ADR-028: Resume Orphaned Pending Checkpoint Work
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** After write authorization and acquiring the existing durable per-case execution lease, retry may resume a checkpoint with pending non-HITL nodes even when abrupt process termination did not record a task error. Completed checkpoints and HITL interrupts are rejected by retry and retain their dedicated flows. A live lease/HTTP lock continues to prevent concurrent runners. No human decision or successful case is replayed implicitly.
+- **Context:** Services stopped during a model benchmark; SQLite retained pending supervisor work but no failed task, so the old failed-only guard made that preserved checkpoint unreachable through retry.
+- **Verification:** Orphaned pending work resumes from prior state, held lease rejects concurrent retry, existing failed retry/authorization/HITL/completed controls remain passing.
+
+### ADR-029: Evidence membership and observed process identity
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** Case graph reads follow case-linked immutable evidence, its typed identities/endpoints and source-scoped relationships. Single-valued first-write tags never define shared evidence membership. All actual types have bounded views. Process schemas preserve GUID/parent identities; canonical process identities use host plus GUID or start. PID-only references are resolved against observed host lifetimes, with ambiguous/mismatched parents left unresolved. Source-reported lineage is labelled, not treated as inferred causation.
+- **Verification:** Two-case live rollback oracle and PID reuse/host/ambiguity regressions.
+
+### ADR-030: Case semantic and analytic stores
+- **Status:** Accepted
+- **Date:** 2026-10-13
+- **Decision:** Local ingestion writes complete case evidence to Chroma using installed local Qwen embedding inference, model-digest collections and case+event vector keys. Retrieval is case-scoped and receipt-checked. DuckDB uses one hashed case file and atomic snapshot replacement, parameterized SQL and read-only authorized views. Durable source evidence remains authoritative; missing tools/indexes cannot become silently successful forensic capabilities. Native input files are preserved and never executed. All model analysis stays on qwen3:8b.
+- **Verification:** Real semantic query/isolation/write receipts, durable analytic reload/SQL/case isolation and deployed case endpoints. Package/image installation remains human-operated.
+
+### ADR-031: Reviewed exploit topology and analysis projections
+- **Status:** Accepted
+- **Date:** 2026-10-14
+- **Decision:** Temporal observations stay distinct from analyst-reviewed exploit prerequisites/transitions. A deterministic solver accepts only case-cited, analyst-reviewed acyclic topology. Weighted paths use supplied calibrated conditional probabilities with calibration evidence and explicit model assumptions; CVSS and EPSS are not multiplied into a success probability. Missing reviewed topology/calibration remains unavailable. Timeline, observations, citations and reviewed paths are typed, case-linked Neo4j projections of durable checkpoint state. Reindexing acquires the existing case lease and never approves or reruns the investigation.
+- **Verification:** Solver/cycle/calibration/foreign-citation tests, typed projection and authorized maintenance isolation tests, live saved-case indexing and endpoint probes.
+
+### ADR-032: Source-key correlations and bounded investigative reconstruction
+- **Status:** Accepted
+- **Date:** 2026-10-14
+- **Decision:** Build reproducible relationships from preserved case identifiers, outcomes and bounded time windows. Distinguish different-account access, source-host address associations, session/file/sample/capture identity and failed/successful network branches. Job authorization requires matching job, host, destination and nearby control evidence; a source completion claim is labelled rather than independently certified. Timeline retains raw chronology alongside derived relationships/uncertainty. Relational graphs carry explicit evidence and basis; temporal or source-key correlation never becomes a verified exploit or calibrated probability by naming it an attack graph. Model hypotheses remain subordinate to cited source facts and contradictory controls.
+- **Verification:** Separate complex answer-key oracle plus wrong-host/job/user/GUID/NAT/time-window negative controls, native routing/failure tests and fresh local model case. Report appearance unchanged.

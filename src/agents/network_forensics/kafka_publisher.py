@@ -26,7 +26,7 @@ def build_ocsf_2004_finding(
         activity_id=1, severity_id=anomaly["severity_id"],
         time=now, raw_source_timestamp=now.isoformat(),
         canonical_host_id=canonical_host_id,
-        finding_info=anomaly["description"], attacks=[anomaly["technique"]],
+        finding_info=anomaly["description"], attacks=[anomaly['technique']] if anomaly.get('technique') else [],
     )
     payload = event.model_dump(mode="json")
     payload.update({
