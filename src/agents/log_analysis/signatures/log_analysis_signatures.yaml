@@ -26,6 +26,11 @@ windows_security:
   4625: logon_failure
   4688: process_creation
   4697: service_install
+  4698: scheduled_task_created
+  4699: scheduled_task_deleted
+  4700: scheduled_task_enabled
+  4701: scheduled_task_disabled
+  4702: scheduled_task_updated
   4720: account_created
   4732: group_membership_change
   5140: share_access
@@ -127,3 +132,21 @@ non_admin_user_prefixes:
   - "student"
   - "intern"
   - "contractor"
+
+# Event lifecycle semantics: Microsoft event-4697 / event-4698 documentation.
+endpoint_lifecycle:
+  security:
+    4697: {kind: service, action: created, name_field: ServiceName, command_field: ServiceFileName}
+    4698: {kind: scheduled_task, action: created, name_field: TaskName}
+    4699: {kind: scheduled_task, action: deleted, name_field: TaskName}
+    4700: {kind: scheduled_task, action: enabled, name_field: TaskName}
+    4701: {kind: scheduled_task, action: disabled, name_field: TaskName}
+    4702: {kind: scheduled_task, action: updated, name_field: TaskName}
+  service_control_manager:
+    7045: {kind: service, action: created, name_field: ServiceName, command_field: ImagePath}
+
+command_observations:
+  - {pattern: scheduled_task_create_attempt, regex: '(?i)\bschtasks(?:\.exe)?\b.{0,100}\s/create\b', technique: T1053.005}
+  - {pattern: service_create_attempt, regex: '(?i)\bsc(?:\.exe)?\s+(?:\\\\\S+\s+)?create\b', technique: T1543.003}
+  - {pattern: shadow_copy_delete_attempt, regex: '(?i)\bvssadmin(?:\.exe)?\s+delete\s+shadows\b', technique: T1490}
+  - {pattern: boot_recovery_disable_attempt, regex: '(?i)\bbcdedit(?:\.exe)?\b.{0,100}\brecoveryenabled\s+no\b', technique: T1490}

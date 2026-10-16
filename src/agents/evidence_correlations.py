@@ -145,18 +145,37 @@ def correlate(state):
         for row in rows:
             raw=context(row)
             path=raw.get('target_filename') or raw.get('path') or row.get('file_path')
+            native=(row.get('unmapped') or {}).get('examination') or {}
+            volume=None
+            if native.get('analysis_origin')=='independent_ntfs_file_record_examination':
+                volume=native.get('volume_id')
+                reconstruction=native.get('path_reconstruction') or {}
+                path=(reconstruction['paths'][0]['volume_relative_path']
+                      if reconstruction.get('status')=='resolved' else None)
+            elif raw.get('ParentPath') and row.get('file_name'):
+                path=str(PureWindowsPath(raw['ParentPath'])/row['file_name'])
             if not path and row.get('class_uid')==1007:path=process_label(row)
-            if path:files[str(path).lower()].append(row)
+            if path:files[(volume,str(path).lower())].append(row)
             digest=raw.get('sha256') or (row.get('unmapped') or {}).get('examination',{}).get('sha256')
             if digest:samples[str(digest).lower()].append(row)
             if raw.get('capture_id'):captures[raw['capture_id']].append(row)
         for kind,groups,key_name in [('SAME_RECORDED_FILE',files,'path'),('SAME_SAMPLE_HASH',samples,'sha256'),('SAME_MEMORY_CAPTURE',captures,'capture_id')]:
             for key,items in groups.items():
                 for a,b in zip(items,items[1:]):
-                    if close(a,b,3600):link(kind,a,b,{'host':host,key_name:key},['Matching source identity connects records; it does not confirm malicious execution.'])
+                    if close(a,b,3600):
+                        basis={'host':host,key_name:key[1] if kind=='SAME_RECORDED_FILE' else key}
+                        if kind=='SAME_RECORDED_FILE' and key[0]:basis['volume_id']=key[0]
+                        link(kind,a,b,basis,['Matching source identity connects records; it does not confirm malicious execution.'])
     from .specialist_context import reconstruct_specialist_context
     specialist=reconstruct_specialist_context(state)
     relations+=specialist['relations'];findings+=specialist['findings']
+    from .identity_sessions import reconstruct
+    sessions=reconstruct(state,with_relations=True)
+    relations+=sessions['relations'];findings+=sessions['findings']
+    from .ntfs_records import recorded_parent_relations
+    relations+=recorded_parent_relations(events,state.get('case_id',''))
+    from .access_analysis import analyze as analyze_access
+    findings+=analyze_access(state)
     return {'relations':list({r['id']:r for r in relations}.values()),'findings':findings,
             'coverage':{'events':len(events),'relations':len({r['id'] for r in relations}),'source_scope':'preserved_case_only'},
             'limitations':['Source-reported identifiers/authorization are untrusted evidence, not independent attestations.','No connection based solely on common external NAT address; no exploit probability inferred.']}

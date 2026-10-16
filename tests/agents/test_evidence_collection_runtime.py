@@ -110,3 +110,18 @@ def test_failed_auth_is_not_routine_and_decisions_are_stable(published):
     second = collect(driver)["evidence_collection"]
     assert first == second
     assert first["triage"][0]["verdict"] == "ESCALATE"
+
+
+def test_required_model_reviews_receipt_without_changing_triage(monkeypatch,published):
+    from types import SimpleNamespace
+    import json
+    model=SimpleNamespace(model_name='qwen3:8b',invoke_structured=lambda prompt,schema:SimpleNamespace(content=json.dumps({
+        'assessments':[{'observation_id':0,'disposition':'supported_observation',
+            'explanation':'The receipt retains the case records and escalates severity.','limitations':'Receipt review does not examine every raw record.',
+            'next_action':'Review the cited worker analyses.'}]})))
+    monkeypatch.setattr('src.agents.config.get_llm',lambda *a,**k:model)
+    result=collect(Driver([{'e':{'uid':'e','severity_id':5}}]),evidence_review_required=True)
+    trace=result['agent_traces'][0]
+    assert trace['model_used']=='qwen3:8b' and trace['model_output_validated']
+    assert trace['review_unit']=='collection_receipt' and trace['preserved_event_count']==1
+    assert result['evidence_collection']['triage'][0]['verdict']=='ESCALATE'

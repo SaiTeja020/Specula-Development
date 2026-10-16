@@ -1,6 +1,6 @@
 """LangGraph StateGraph assembly — §4 graph topology & conditional routing.
 
-26 nodes, including separate primary and specialist network analysis.
+27 nodes, including separate primary/specialist network analysis and adaptive follow-up.
 Uses Send for primary-tier and specialist fan-out, Command for debate
 loop routing and guardrail/HITL branching.
 """
@@ -74,6 +74,9 @@ def _dead_end_route(state: dict) -> str | list[Send]:
     events = records(state)
     categories = set(state.get("dead_end_categories") or [])
     if events:
+        from .investigative_review import plan
+        role_categories = {role: category for category, role in _SPECIALIST_MAP.items()}
+        categories.update(role_categories[role] for role in plan(state)['required_roles'] if role in role_categories)
         classes = {row.get("class_uid") for row in events}
         if 3002 in classes or any(row.get("source_event_type") == "credential_access" for row in events):
             categories.add("identity")
@@ -90,7 +93,7 @@ def _dead_end_route(state: dict) -> str | list[Send]:
         if any(row.get('source_type')=='malware' or "unsigned" in str(row.get("source_finding", "")).lower() for row in events):
             categories.add("malware")
     if not categories:
-        return "timeline_reconstruction"
+        return "investigation_followup"
 
     s = dict(state)
     sends = [
@@ -98,7 +101,7 @@ def _dead_end_route(state: dict) -> str | list[Send]:
         for cat in sorted(categories)
         if cat in _SPECIALIST_MAP
     ]
-    return sends if sends else "timeline_reconstruction"
+    return sends if sends else "investigation_followup"
 
 
 # ===================================================================
@@ -106,7 +109,7 @@ def _dead_end_route(state: dict) -> str | list[Send]:
 # ===================================================================
 
 def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafka_producer=None, vector_client=None, threat_intel=None, attribution_llm_factory=None):
-    """Assemble and compile the full 23-node orchestration graph.
+    """Assemble and compile the checkpointed 27-node orchestration graph.
 
     Args:
         checkpointer: LangGraph checkpointer instance. Required for HITL
@@ -122,12 +125,14 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
 
     # ---- Add the registered nodes ----
 
-    # 18 ReAct-stub LLM agent nodes
+    # Evidence-bearing agents and explicitly guarded legacy test adapters.
     builder.add_node("supervisor", make_supervisor_node(neo4j_driver))
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", make_log_analysis_node(kafka_producer, vector_client, redis_client, neo4j_driver))
     builder.add_node("network_forensics", make_network_forensics_node(neo4j_driver, kafka_producer))
     builder.add_node("network_specialist", network_specialist_node)
+    from .investigation_followup import make_followup_node
+    builder.add_node("investigation_followup", make_followup_node(neo4j_driver))
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
     builder.add_node("threat_attribution", make_threat_attribution_node(
         neo4j_driver, kafka_producer, threat_intel, attribution_llm_factory,
@@ -180,7 +185,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
         "primary_tier_join",
         _dead_end_route,
         [
-            "timeline_reconstruction",
+            "investigation_followup",
             "memory_forensics",
             "network_specialist",
             "identity",
@@ -199,7 +204,7 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     builder.add_edge("insider_threat", "specialist_join")
 
     # Specialist join -> Timeline Reconstruction (both paths converge here)
-    builder.add_edge("specialist_join", "timeline_reconstruction")
+    builder.add_edge("specialist_join", "investigation_followup")
 
     # Sequential synthesis
     builder.add_edge("timeline_reconstruction", "threat_attribution")

@@ -449,6 +449,10 @@ class CypherBuilder:
             return CypherBuilder.build_vulnerability_finding(event)
         elif class_uid == 4002:
             return CypherBuilder.build_http_activity(event)
+        elif class_uid == 99:
+            return ('MERGE (e:Event {uid:$uid}) ON CREATE SET e += $properties',
+                    {'uid': event['uid'], 'properties': {key: value for key, value in event.items()
+                        if isinstance(value, (str, int, float, bool)) or value is None}})
         else:
             return None, None
 

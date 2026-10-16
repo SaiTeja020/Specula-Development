@@ -41,6 +41,8 @@ def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
         facts = analysis.debate_facts(state)
         if role=='proponent':
             incomplete=[t['agent_role'] for t in analysis.current_traces(state) if t.get('review_coverage') and not t['review_coverage']['complete']]
+            if state.get('followup_status') in {'budget_exhausted', 'requires_analyst', 'source_changed_requires_reanalysis'}:
+                incomplete.append('supervisor_followup')
             if incomplete:
                 trace={'agent_role':role,'action':'required_review_incomplete','model_used':'not_invoked_missing_upstream_review',
                     'observation':'Required source reviews incomplete: '+', '.join(incomplete),

@@ -17,7 +17,7 @@ def _timestamp(value: Any) -> datetime | None:
         return None
 
 
-def extract_observed_ttps(timeline: dict, threat_intel: Any) -> tuple[list[ObservedTTP], list[str]]:
+def extract_observed_ttps(timeline: dict, threat_intel: Any, semantic_candidates=None) -> tuple[list[ObservedTTP], list[str]]:
     flags = []
     if not timeline or not timeline.get("frozen"):
         return [], ["timeline_unavailable"]
@@ -46,8 +46,16 @@ def extract_observed_ttps(timeline: dict, threat_intel: Any) -> tuple[list[Obser
                 continue
             response = threat_intel.query_attack_techniques(item["summary"], top_k=3)
             if response.get("status") == "ok":
-                records = [record.get("metadata", {}) for record in response.get("results", [])
-                           if record.get("score", 0) >= 0.65 and record.get("metadata", {}).get("record_type") == "attack_technique"][:1]
+                suggestions = [record for record in response.get("results", [])
+                               if record.get("score", 0) >= 0.65 and record.get("metadata", {}).get("record_type") == "attack_technique"][:1]
+                if suggestions:
+                    flags.append('semantic_candidate_requires_source_verification')
+                    if semantic_candidates is not None:
+                        for suggestion in suggestions:
+                            metadata=suggestion['metadata']
+                            semantic_candidates.append({'technique_id':metadata.get('record_id'),
+                                'evidence_uids':refs,'similarity_score':suggestion['score'],
+                                'threat_intel_ref':metadata.get('source_hash'),'status':'unverified_candidate'})
         for record in records:
             technique_id = record.get("record_id")
             if technique_id and _TECHNIQUE_ID.fullmatch(technique_id):

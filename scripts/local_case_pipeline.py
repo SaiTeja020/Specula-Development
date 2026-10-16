@@ -1,6 +1,7 @@
 """Ingest a bounded Windows log interval into a new local case and investigate it."""
 
 import json
+from subprocess import TimeoutExpired
 from pathlib import Path
 
 import requests
@@ -16,9 +17,21 @@ CHANNELS = (
 
 def ingest_case(case_id, start_date, end_date, max_events, exclude_ports):
     from src.ingestion.run_pipeline import extract_windows_events
-    batches = (("evtx", extract_windows_events(channel, start_date, end_date, max_events))
-               for channel in CHANNELS)
-    return _ingest_batches(case_id, batches, exclude_ports)
+    provenance = {'source': 'local_windows', 'channel_receipts': [],
+        'selection': {'start_date': start_date, 'end_date': end_date, 'max_events_per_channel': max_events,
+                      'excluded_ports': sorted(exclude_ports)}}
+    def batches():
+        for channel in CHANNELS:
+            try:
+                rows = extract_windows_events(channel, start_date, end_date, max_events)
+                provenance['channel_receipts'].append({'channel': channel, 'status': 'complete', 'records': len(rows)})
+            except (RuntimeError, OSError, TimeoutError, TimeoutExpired) as error:
+                rows = []
+                provenance['channel_receipts'].append({'channel': channel, 'status': 'unavailable',
+                    'records': 0, 'error_type': type(error).__name__,
+                    'limitation': 'Channel acquisition unavailable; not evidence of no activity.'})
+            yield 'evtx', rows
+    return _ingest_batches(case_id, batches(), exclude_ports, provenance)
 
 
 def ingest_uploaded_case(case_id, archive_path, provenance, start_date, end_date, max_events, exclude_ports):
@@ -29,7 +42,7 @@ def ingest_uploaded_case(case_id, archive_path, provenance, start_date, end_date
 
     def selected():
         from src.ingestion.export_aliases import record_timestamp
-        for item, (source, records) in zip(provenance["files"], archive_batches(archive_path, provenance)):
+        for source, records, filename in archive_batches(archive_path, provenance, include_path=True):
             filtered = []
             for record_number, raw in enumerate(records, 1):
                 if lower:
@@ -37,20 +50,20 @@ def ingest_uploaded_case(case_id, archive_path, provenance, start_date, end_date
                         stamp = record_timestamp(raw, source)
                         moment = datetime.fromisoformat(str(stamp).replace("Z", "+00:00"))
                     except ValueError as error:
-                        raise ValueError(f"{item['path']} record {record_number}: {error}") from None
+                        raise ValueError(f"{filename} record {record_number}: {error}") from None
                     if moment.tzinfo is None:
                         raise ValueError("Uploaded timestamps must include a UTC offset when filtering by date")
                     if not lower <= moment <= upper:
                         continue
                 filtered.append(raw)
-            yield source, filtered[:max_events], item["path"]
+            yield source, filtered[:max_events], filename
 
     provenance["selection"] = {"start_date": start_date, "end_date": end_date,
                                "max_events_per_file": max_events, "excluded_ports": exclude_ports}
     return _ingest_batches(case_id, selected(), exclude_ports, provenance)
 
 
-def _ingest_batches(case_id, batches, exclude_ports, provenance=None):
+def _ingest_batches(case_id, batches, exclude_ports, provenance=None, append_only=False):
     from src.ingestion.run_pipeline import run_pipeline_on_event
     from src.ingestion.preservation.quickwit_client import QuickwitClient
     from src.ingestion.preservation.vct_atomic_chain import VCTAtomicChain
@@ -67,6 +80,10 @@ def _ingest_batches(case_id, batches, exclude_ports, provenance=None):
     rejected = []
     records_without_events = 0
     try:
+        if append_only:
+            owners=graph.execute('MATCH (c:Case {uid:$case_id}) RETURN c.owner_user_id AS owner',{'case_id':case_id})
+            if len(owners)!=1 or owners[0]['owner']!='local-validation':
+                raise ValueError('Follow-up acquisition requires an existing authorized local case')
         vct = VCTAtomicChain()
         resolver = CanonicalEntityResolver()
         normalizer = TimeNormalizer(dc_anchor_skew_ms=0)
@@ -97,7 +114,7 @@ def _ingest_batches(case_id, batches, exclude_ports, provenance=None):
                     if write_result is None:
                         raise RuntimeError("Evidence graph write failed after preservation")
                     if not case_created:
-                        graph.execute(
+                        if not append_only:graph.execute(
                             "MERGE (c:Case {uid: $case_id}) "
                             "SET c.owner_user_id = $owner, c.member_user_ids = []",
                             {"case_id": case_id, "owner": "local-validation"},
@@ -163,16 +180,21 @@ def _ingest_batches(case_id, batches, exclude_ports, provenance=None):
                 provenance['normalized_stream']=stream_receipt
         if provenance is not None and case_created:
             provenance["processing"] = {"selected_records": extracted, "normalized_events": accepted,
-                                        "normalization_contract": "uploaded-context-v2",
+                                        "normalization_contract": "local-xml-context-v1" if provenance.get('source')=='local_windows' else "uploaded-context-v2",
                                         "timestamp_policy": "Source times only; MFT modified-time alias uses standard_information_modified when no native event time exists",
                                         "record_errors_sample": rejected,
                                         "selected_records_without_normalized_events": records_without_events,
                                         "coverage": "Only supported valid records are normalized; unsupported and filtered records may be excluded"}
-            graph.execute("MATCH (c:Case {uid: $case_id}) SET c.ingestion_provenance_json = $provenance",
-                          {"case_id": case_id, "provenance": json.dumps(provenance, sort_keys=True)})
+            if not append_only:
+                graph.execute("MATCH (c:Case {uid: $case_id}) SET c.ingestion_provenance_json = $provenance",
+                              {"case_id": case_id, "provenance": json.dumps(provenance, sort_keys=True)})
+            else:
+                graph.execute('MATCH (c:Case {uid:$case_id}) MERGE (r:AcquisitionRun {uid:$uid}) '
+                    'SET r.provenance_json=$provenance MERGE (c)-[:HAS_ACQUISITION]->(r)',
+                    {'case_id':case_id,'uid':provenance['id'],'provenance':json.dumps(provenance,sort_keys=True)})
     finally:
         graph.close()
-    if not accepted:
+    if not accepted and not append_only:
         detail = f" First issue: {rejected[0]['file']} record {rejected[0]['record']}: {rejected[0]['reason']}" if rejected else ""
         raise RuntimeError("No supported log events were found in the selected interval." + detail)
     result = {"case_id": case_id, "extracted": extracted, "accepted": accepted}

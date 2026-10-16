@@ -147,6 +147,48 @@ export function HistoryView() {
   </section>;
 }
 
+function SandboxReceipts({ caseId, receipts }) {
+  const [downloading, setDownloading] = useState('');
+  const [error, setError] = useState('');
+  const download = async receipt => {
+    setDownloading(receipt.uid); setError('');
+    try {
+      const suffix = `/sandbox/${encodeURIComponent(receipt.uid)}/report`;
+      const response = caseId.startsWith('LOCAL-')
+        ? await localFetch(`/api/local/cases/${encodeURIComponent(caseId)}${suffix}`)
+        : await apiFetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}${suffix}`);
+      if (!response.ok) throw new Error(`Sandbox report returned HTTP ${response.status}`);
+      const bytes = await response.arrayBuffer();
+      const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
+        .map(byte => byte.toString(16).padStart(2, '0')).join('');
+      if (digest !== receipt.report_sha256) throw new Error('Sandbox report digest does not match the saved receipt');
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/json' }));
+      const link = document.createElement('a');
+      link.href = url; link.download = `cape-${caseId}-${receipt.cape_task_id}.json`;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (cause) { setError(cause.message); }
+    finally { setDownloading(''); }
+  };
+  return <section aria-label="CAPE sandbox examinations" style={{ marginBlock: '1rem' }}>
+    <h3 style={{ fontSize: '1rem' }}>CAPE dynamic analysis</h3>
+    <p>Results describe an isolated laboratory guest. They do not establish execution on the investigated host.</p>
+    {receipts.map((receipt, index) => <div key={receipt.uid || index} style={{ ...panelStyle, marginBottom: '0.5rem' }}>
+      <p><strong>Status: {receipt.status}</strong>{receipt.cape_task_id && ` · CAPE task ${receipt.cape_task_id}`}</p>
+      <p>{receipt.limitation}</p>
+      {receipt.sample_sha256 && <p style={{ overflowWrap: 'anywhere' }}>Sample SHA-256: {receipt.sample_sha256}</p>}
+      {receipt.report_sha256 && <button type="button" disabled={Boolean(downloading)} onClick={() => download(receipt)}>
+        {downloading === receipt.uid ? 'Downloading CAPE report…' : 'Download CAPE report (JSON)'}
+      </button>}
+      <details><summary>Recorded observations and coverage</summary>
+        <pre style={proseStyle}>{JSON.stringify(receipt, null, 2)}</pre>
+      </details>
+    </div>)}
+    {downloading && <p role="status">Verifying sandbox report download…</p>}
+    {error && <p role="alert">{error}</p>}
+  </section>;
+}
+
 export function AgentsView({ snapshot }) {
   if (!snapshot) return <EmptyView title="No case selected" detail="Open a saved investigation from History or launch a new one." />;
   const findingsByRole = new Map();
@@ -180,6 +222,7 @@ export function AgentsView({ snapshot }) {
           {trace.timestamp && ` · ${new Date(trace.timestamp).toLocaleString()}`}
         </div>
         <pre style={proseStyle}>{finding?.summary || trace.observation || 'No output text recorded.'}</pre>
+        {trace.sandbox_examinations?.length > 0 && <SandboxReceipts caseId={snapshot.case_id} receipts={trace.sandbox_examinations} />}
         {trace.review_coverage && <p role="status">
           {trace.review_unit && <>Review unit: {trace.review_unit.replaceAll('_', ' ')}. </>}
           {trace.preserved_event_count != null && <>{trace.preserved_event_count} source events preserved. </>}
@@ -291,7 +334,7 @@ export function AttackGraphView({ snapshot }) {
         <ReactFlow fitView nodes={graph.nodes.map(node => ({ id: node.id,
           position: positions.get(node.id),
           style: { borderStyle: node.node_kind === 'evidence' ? 'dashed' : 'solid', width: 240 },
-          data: { label: `${node.node_kind === 'evidence' ? 'Source record' : 'Observation'}: ${node.label.replaceAll('_', ' ')}\n${node.canonical_host_id || 'Host unknown'}\n${node.classification || 'Unresolved'} / ${node.operation_outcome || 'Outcome unknown'}\n${node.dfkg_refs.length} cited events` } }))}
+          data: { label: `${node.node_kind === 'evidence' ? 'Source record' : 'Observation'}: ${node.label.replaceAll('_', ' ')}\n${node.effect_scope === 'sandbox_execution' ? 'CAPE laboratory guest' : node.canonical_host_id || 'Host unknown'}\n${node.classification || 'Unresolved'} / ${node.operation_outcome || 'Outcome unknown'}\n${node.dfkg_refs.length} cited events` } }))}
           edges={graph.edges.map(edge => ({ ...edge, id: edge.id || `${edge.type}-${edge.source}-${edge.target}`, label: edge.type }))}>
           <Background /><Controls />
         </ReactFlow>

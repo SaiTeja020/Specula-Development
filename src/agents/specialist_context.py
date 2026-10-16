@@ -38,4 +38,9 @@ def reconstruct_specialist_context(state):
             '. Failed/unknown effects stay distinct; disagreements and authorization require review. No causal actor or family conclusion.',
             'classification':'unresolved','operation_outcome':'unknown','canonical_host_id':host,
             'event_time':items[-1].get('time'),'dfkg_refs':[r['uid'] for r in items],'source':'validated_case_rule','attacks':[]})
-    return {'relations':relations,'findings':facts}
+    from .cloud_lifecycle import analyze
+    cloud=analyze(state)
+    from .kubernetes_audit import analyze as analyze_kubernetes
+    kubernetes=analyze_kubernetes(state)
+    return {'relations':relations+cloud['relations']+kubernetes['relations'],
+            'findings':facts+cloud['findings']+kubernetes['findings']}

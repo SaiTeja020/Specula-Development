@@ -305,6 +305,35 @@ class LocalReviewRequest(BaseModel):
     decision: Literal["approve", "reject", "clarify"]
 
 
+class FollowupAcquisitionRequest(BaseModel):
+    model_config={'extra':'forbid','strict':True}
+    anchor_refs:list[str]=Field(min_length=1,max_length=10)
+    cycle:int=Field(ge=0,le=10000)
+
+
+@app.post('/api/internal/local-cases/{case_id}/acquire')
+async def internal_followup_acquisition(case_id:str,body:FollowupAcquisitionRequest,request:Request):
+    # Container callers need the existing provisioned bearer identity; Origin is not authentication.
+    supplied=request.headers.get('authorization','')
+    expected='Bearer '+_local_token()
+    if not hmac.compare_digest(supplied.encode(),expected.encode()):raise HTTPException(401,'Collector identity required')
+    import re
+    if not re.fullmatch(r'LOCAL-[a-f0-9]{32}',case_id):raise HTTPException(403,'Local case required')
+    def collect():
+        with requests.Session() as session:
+            session.trust_env=False
+            response=session.get('http://127.0.0.1:8300/api/investigations/'+case_id,
+                                 headers={'Authorization':expected},timeout=20,allow_redirects=False)
+            response.raise_for_status();snapshot=response.json()
+        from neo4j import GraphDatabase
+        from scripts.followup_acquisition import acquire
+        with GraphDatabase.driver('bolt://127.0.0.1:7687',auth=None) as driver:
+            return acquire(case_id,body.anchor_refs,body.cycle,snapshot,driver)
+    try:return await asyncio.to_thread(collect)
+    except ValueError as error:raise HTTPException(422,str(error)) from None
+    except (OSError,requests.RequestException):raise HTTPException(503,'Local acquisition unavailable') from None
+
+
 @app.post("/api/local/cases/{case_id}/review")
 async def local_case_review(case_id: str, body: LocalReviewRequest, request: Request):
     _local_dashboard(request)
@@ -352,6 +381,43 @@ async def local_case_snapshot(case_id: str, request: Request):
     if status != 200:
         raise HTTPException(status, payload.get("detail", "Snapshot unavailable"))
     return payload
+
+
+@app.get('/api/local/cases/{case_id}/sandbox/{receipt_id}/report')
+async def local_sandbox_report(case_id: str, receipt_id: str, request: Request):
+    _local_dashboard(request)
+    import re
+    if not re.fullmatch(r'LOCAL-[a-f0-9]{32}', case_id):
+        raise HTTPException(403, 'Local case required')
+    if not re.fullmatch(r'[a-f0-9]{64}', receipt_id):
+        raise HTTPException(422, 'Sandbox receipt identity required')
+    def read():
+        from hashlib import sha256
+        with requests.Session() as session:
+            session.trust_env = False
+            with session.get(f'http://127.0.0.1:8300/api/investigations/{case_id}/sandbox/{receipt_id}/report',
+                             headers={'Authorization': 'Bearer ' + _local_token()}, timeout=(3, 20),
+                             allow_redirects=False, stream=True) as response:
+                if response.status_code != 200:
+                    raise HTTPException(response.status_code if response.status_code in {403,404,409} else 503,
+                                        'Preserved sandbox report unavailable')
+                content = bytearray()
+                for chunk in response.iter_content(65536):
+                    content.extend(chunk)
+                    if len(content) > 16 * 1024 * 1024:
+                        raise ValueError('Sandbox report exceeds retention limit')
+                digest = sha256(content).hexdigest()
+                if digest != response.headers.get('X-Report-SHA256'):
+                    raise ValueError('Sandbox report digest mismatch')
+                return bytes(content), digest
+    try:
+        content, digest = await asyncio.to_thread(read)
+    except (OSError, ValueError, requests.RequestException):
+        raise HTTPException(503, 'Sandbox report service unavailable or integrity check failed') from None
+    return Response(content, media_type='application/json', headers={
+        'Content-Disposition': 'attachment; filename="cape-report.json"',
+        'X-Report-SHA256': digest, 'X-Content-Type-Options': 'nosniff',
+        'Content-Security-Policy': "default-src 'none'"})
 
 
 @app.get("/api/local/cases/{case_id}/reports/{kind}")

@@ -40,7 +40,7 @@ def observation(event):
     endpoint = endpoint if isinstance(endpoint, dict) else {}
     user = event.get("user") or {}
     user = user if isinstance(user, dict) else {}
-    parts = [event.get("process_name"), event.get("command_line"), event.get("file_path"),
+    parts = [event.get("process_name"), event.get("command_line"), event.get("file_path"), event.get("file_name"),
              event.get("finding_title") or event.get("finding_info"), event.get("api_operation")]
     identity = user.get("name") or event.get("user_name") or event.get("source_user_name")
     if identity:
@@ -161,8 +161,13 @@ def detections(state, role):
             examination = (event.get('unmapped') or {}).get('examination')
             if examination:
                 add(event,'independent_memory_examination', 'Offline memory examination: '+json.dumps({
-                    k:examination.get(k) for k in ('analysis_origin','plugin','status','coverage','reason','tool_version','sha256','bytes_examined','entropy','pe_features','regions','modules','thread_count')},sort_keys=True),
+                    k:examination.get(k) for k in ('analysis_origin','plugin','status','coverage','reason','tool_version','sha256','bytes_examined','recorded_bytes','entropy','pe_features','regions','modules','threads','thread_metadata','suspicious_regions','thread_context_coverage','system_architecture','platform_id')},sort_keys=True),
                     classification='context' if examination.get('status')=='complete' else 'unresolved')
+                for region in examination.get('suspicious_regions',[]):
+                    add(event,'captured_private_executable_region','Captured minidump region: '+json.dumps(region,sort_keys=True)+
+                        '. Executable page metadata does not by itself establish injection or credential extraction.',classification='suspicious')
+                for thread in examination.get('thread_execution_observations',[]):
+                    add(event,'captured_thread_private_execution_context','Captured thread context: '+json.dumps(thread,sort_keys=True),classification='unresolved')
                 continue
             finding = str(raw.get("finding") or event.get("source_finding") or event.get("finding_title"))
             classification = "negative" if raw.get("result_status") == "negative" else "benign" if "JIT" in finding else "unresolved"
@@ -239,31 +244,54 @@ def specialist(role, category, state):
     from .evidence_correlations import correlate
     facts += [f for f in correlate(state)['findings'] if f['agent_role']==role]
     if role == 'insider_threat':
-        from .behavior_analysis import behavioral_observations
-        facts += behavioral_observations(state)
+        from .behavior_analysis import baseline_analysis
+        baseline=baseline_analysis(state)
+        facts += baseline['findings']
     if role == 'malware_stylometry':
-        from .forensic_tools import opcode_similarity
+        from .cape_sandbox import examine_case, findings as sandbox_findings
+        sandbox_runs = examine_case(state)
+        facts += sandbox_findings(sandbox_runs)
+        from .forensic_tools import compare_stylometry
+        from itertools import combinations,islice
         samples = [e for e in records(state) if (e.get('unmapped') or {}).get('examination',{}).get('analysis_origin')=='independent_static_examination']
-        for i,a in enumerate(samples):
-            for b in samples[i+1:]:
-                score = opcode_similarity(a['unmapped']['examination'],b['unmapped']['examination'])
-                if score is not None:
-                    facts.append({'agent_role':role,'finding_type':'measured_opcode_similarity','summary':f"Sample opcode-frequency cosine similarity={score:.4f}; shared instruction distributions do not establish malware family or authorship.",
+        for a,b in islice(combinations(samples,2),1000):
+            scores = compare_stylometry(a['unmapped']['examination'],b['unmapped']['examination'])
+            facts.append({'agent_role':role,'finding_type':'measured_opcode_similarity','summary':'Measured static feature comparison: '+json.dumps(scores,sort_keys=True),
                         'dfkg_refs':[a['uid'],b['uid']],'event_time':b.get('time'),'classification':'context','canonical_host_id':None,
                         'source':'validated_case_rule','operation_outcome':'unknown','attacks':[]})
     from .investigative_review import investigate
     trace = investigate(role,state,facts,get_llm(role,case_id=state.get('case_id','unknown')))
+    if role in {'identity','cloud_container'}:
+        access=[f['analysis_details'] for f in facts if f.get('finding_type')=='exported_permission_evaluation']
+        if access:
+            trace['permission_examinations']=access
+            trace['examination_coverage']={'policy_examinations':len(access),
+                'unavailable':sum(result.get('status')!='complete' for result in access),
+                'scope':'Exported policy model; no observed access or successful exploit inferred.'}
+    if role=='insider_threat':
+        trace['behavioral_baselines']={key:value for key,value in baseline.items() if key!='findings'}
     if role in {'memory_forensics','malware_stylometry'}:
         examined = [(e.get('unmapped') or {}).get('examination') for e in records(state)
                     if e.get('source_type') == ('memory' if role=='memory_forensics' else 'malware')]
         trace['examination_coverage']={'native_examinations':sum(bool(e) for e in examined),
                                      'imported_records':sum(not e for e in examined),
                                      'unavailable':sum(bool(e) and e.get('status')!='complete' for e in examined)}
+        if role=='malware_stylometry':
+            trace['sandbox_examinations'] = sandbox_runs
+            trace['examination_coverage']['sandbox_complete'] = sum(r['status']=='complete' for r in sandbox_runs)
+            trace['examination_coverage']['sandbox_incomplete'] = sum(r['status']!='complete' for r in sandbox_runs)
+            trace['examination_coverage']['unavailable'] += sum(r['status']!='complete' for r in sandbox_runs)
+            possible=len(samples)*(len(samples)-1)//2
+            trace['examination_coverage'].update(comparison_pairs= min(possible,1000),comparison_pairs_omitted=max(0,possible-1000))
+            trace['examination_coverage']['unavailable']+=int(possible>1000)
     from .kafka_utils import ROLE_TOPIC_MAP, publish_finding
     for fact in facts:
         if ROLE_TOPIC_MAP.get(role):
             publish_finding(ROLE_TOPIC_MAP[role], fact, state.get("trace_id"))
-    return {"findings": facts, "agent_traces": [trace], "specialists_completed": [category]}
+    result = {"findings": facts, "agent_traces": [trace], "specialists_completed": [category]}
+    if role == 'malware_stylometry':
+        result['sandbox_runs'] = sandbox_runs
+    return result
 
 
 def timeline(state):
@@ -281,7 +309,8 @@ def timeline(state):
     if not facts:
         facts=[{'summary':f'{len(events)} preserved events; no source-key episode or clock model is supported. Raw chronology is retained.',
                 'canonical_host_id':None,'dfkg_refs':[e['uid'] for e in events]}] if events else []
-    trace = review("timeline_reconstruction", state, facts)
+    from .investigative_review import investigate
+    trace = investigate("timeline_reconstruction", state, facts, get_llm('timeline_reconstruction',case_id=state.get('case_id')))
     trace['review_unit']='correlated_episode_or_clock_observation'
     trace['preserved_event_count']=len(events)
     reconstruction['summary']=f"{len(events)} cited events; {len(reconstruction['episodes'])} source-correlated episodes and {len(reconstruction['relations'])} explicit relationships. Raw times preserved; metadata/capture times and clock models are labelled."
@@ -300,16 +329,18 @@ def activity_graph(state):
         uid = f"observation-{index}"
         nodes.append({"id": uid, "label": fact["finding_type"], "summary": fact["summary"], "time": fact.get("event_time"), "dfkg_refs": fact["dfkg_refs"],
                       "canonical_host_id": fact.get("canonical_host_id"), "classification": fact.get("classification", "unresolved"),
-                      "operation_outcome": fact.get("operation_outcome", "unknown")})
+                      "operation_outcome": fact.get("operation_outcome", "unknown"),
+                      "effect_scope": fact.get('effect_scope')})
         host = fact.get("canonical_host_id")
         if host and host in last and instant(nodes[int(last[host].split('-')[-1])]["time"]) and instant(fact.get("event_time")) and instant(nodes[int(last[host].split('-')[-1])]["time"]) < instant(fact.get("event_time")):
             edges.append({"id": f"edge-{index}", "source": last[host], "target": uid, "type": "PRECEDES",
                           "dfkg_refs": sorted(set(nodes[int(last[host].split('-')[-1])]["dfkg_refs"] + fact["dfkg_refs"]))})
         if host:
             last[host] = uid
-    trace = review("dag", state, facts)
     from .relational_graph import enrich
     graph=enrich(state,nodes,edges)
+    from .investigative_review import investigate
+    trace=investigate('dag',state,facts,get_llm('dag',case_id=state.get('case_id')))
     trace['graph_construction']={'observations':len(nodes),'source_relations':graph['relation_count'],
                                  'candidate_paths':len(graph['activity_paths'])}
     return {"attack_graph":graph,'agent_traces':[trace]}
@@ -322,7 +353,7 @@ def deduplicate(state, facts):
     for original in facts:
         fact = dict(original)
         hosts = {byuid[uid].get("canonical_host_id") for uid in fact.get("dfkg_refs", []) if uid in byuid}
-        if not fact.get("canonical_host_id") and len(hosts) == 1:
+        if fact.get('effect_scope') != 'sandbox_execution' and not fact.get("canonical_host_id") and len(hosts) == 1:
             fact["canonical_host_id"] = hosts.pop()
         moment = instant(fact.get("event_time"))
         key = (fact.get("finding_type"), fact.get("canonical_host_id"), moment,

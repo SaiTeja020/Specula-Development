@@ -86,6 +86,9 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
             "records": records, "triage": triage, "dfkg_refs": refs,
             "reference_uids": refs, "fetched_count": fetched_count,
             "triaged_count": len(triage), "loop_count": state.get("loop_count", 0),
+            "source_coverage": {source: sum((r.get('source_type') or 'unspecified') == source for r in records)
+                                for source in sorted({r.get('source_type') or 'unspecified' for r in records})},
+            "acquisition_scope": "Case-linked preserved records only; external missing artifacts require explicit acquisition requests.",
         }
         escalated = sum(item["verdict"] == "ESCALATE" for item in triage)
         summary = (
@@ -110,6 +113,15 @@ def make_evidence_collection_node(redis_client, neo4j_driver):
             "termination_reason": "complete" if complete else "incomplete",
             "latency_ms": round((time.monotonic() - started) * 1000, 1),
         }
+        if state.get('evidence_review_required') and complete:
+            from .investigative_review import investigate
+            from .config import get_llm
+            receipt_fact={'summary':summary+' Source coverage='+str(collection['source_coverage'])+
+                '. Every retained event remains available; receipt review does not examine all raw contents or determine malicious intent.',
+                'dfkg_refs':refs,'classification':'context','operation_outcome':'unknown'}
+            review=investigate('evidence_collection',{**state,'evidence_collection':{'records':[]}},
+                               [receipt_fact],get_llm('evidence_collection',case_id=case_id))
+            trace.update(review,review_unit='collection_receipt',preserved_event_count=len(records))
         return {"evidence_collection": collection, "findings": [finding],
                 "agent_traces": [trace]}
     return evidence_collection_node

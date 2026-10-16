@@ -19,6 +19,7 @@ CREATE CONSTRAINT file_uid_unique IF NOT EXISTS FOR (f:File) REQUIRE f.uid IS UN
 // Prevents duplicate nodes from Kafka consumer retries / message replays.
 CREATE CONSTRAINT entity_uid_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.uid IS UNIQUE;
 CREATE CONSTRAINT agent_run_uid_unique IF NOT EXISTS FOR (a:AgentRun) REQUIRE a.uid IS UNIQUE;
+CREATE CONSTRAINT acquisition_run_uid_unique IF NOT EXISTS FOR (a:AcquisitionRun) REQUIRE a.uid IS UNIQUE;
 CREATE CONSTRAINT report_uid_unique IF NOT EXISTS FOR (r:Report) REQUIRE r.uid IS UNIQUE;
 CREATE CONSTRAINT observation_uid_unique IF NOT EXISTS FOR (n:Observation) REQUIRE n.uid IS UNIQUE;
 CREATE CONSTRAINT timeline_entry_uid_unique IF NOT EXISTS FOR (n:TimelineEntry) REQUIRE n.uid IS UNIQUE;

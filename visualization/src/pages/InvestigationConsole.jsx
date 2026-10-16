@@ -312,7 +312,7 @@ export default function InvestigationConsole() {
                       <p role="status">{hitlData.reviewReason}</p>
                       <button type="button" className="secondary-btn" onClick={() => setView('agents')}>Inspect agent assessments</button>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                        <div><strong>Attribution confidence:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span></div>
+                        <div><strong>Heuristic evidence weight:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.confidence}</span><small> Actor probability is not calibrated.</small></div>
                         <div><strong>Attribution citations:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.blastRadius}</span></div>
                         <div><strong>Integrity:</strong> <span style={{ fontFamily: 'var(--sp-font-mono)' }}>{hitlData.tamperCheck}</span></div>
                       </div>

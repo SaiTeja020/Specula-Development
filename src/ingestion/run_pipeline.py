@@ -107,39 +107,58 @@ _SOURCE_TYPE_MAP: dict[str, str] = {
 
 
 def extract_windows_events(log_name: str, start_time: str = None, end_time: str = None, max_events: int = 50) -> list[dict]:
-    """
-    Extract Windows Event Logs for a given log channel using PowerShell Get-WinEvent.
-    Returns parsed JSON dictionaries.
-    """
-    if start_time and end_time:
-        ps_command = (
-            f"Get-WinEvent -FilterHashtable @{{LogName='{log_name}'; StartTime='{start_time}'; EndTime='{end_time}'}} -MaxEvents {max_events} -ErrorAction SilentlyContinue | "
-            "Select-Object Id, TimeCreated, ProviderName, Message | "
-            "ConvertTo-Json -Compress"
-        )
-    else:
-        ps_command = (
-            f"Get-WinEvent -LogName '{log_name}' -MaxEvents {max_events} -ErrorAction SilentlyContinue | "
-            "Select-Object Id, TimeCreated, ProviderName, Message | "
-            "ConvertTo-Json -Compress"
-        )
-    
+    """Acquire structured local WinEvent records; parameters are data, never shell code."""
+    import base64
+    if not isinstance(log_name, str) or not log_name.strip() or len(log_name) > 256:
+        raise ValueError("Invalid Windows log channel")
+    if isinstance(max_events, bool) or not isinstance(max_events, int) or not 1 <= max_events <= 100000:
+        raise ValueError("Windows collection limit must be 1-100000")
+    if bool(start_time) != bool(end_time):
+        raise ValueError("Supply both dates or neither")
+    if start_time:
+        lower, upper = [datetime.fromisoformat(value.replace("Z", "+00:00")) for value in (start_time, end_time)]
+        if lower >= upper:
+            raise ValueError("Start date must precede end date")
+    parameters = base64.b64encode(json.dumps({"channel":log_name,"start":start_time,"end":end_time,
+                                             "limit":max_events}).encode()).decode()
+    script = "$p = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" + parameters + "')) | ConvertFrom-Json\n" + r"""
+$filter = @{LogName=$p.channel}
+if ($p.start) { $filter.StartTime=[datetime]::Parse($p.start); $filter.EndTime=[datetime]::Parse($p.end) }
+try { $events = @(Get-WinEvent -FilterHashtable $filter -MaxEvents $p.limit -ErrorAction Stop) }
+catch { if ($_.FullyQualifiedErrorId -like 'NoMatchingEventsFound*') { $events = @() } else { throw } }
+$records = @($events | ForEach-Object {
+    $record = $_
+    [xml]$xml = $record.ToXml()
+    $data = @{}
+    $position = 0
+    foreach ($field in $xml.Event.EventData.Data) {
+        $name = [string]$field.Name
+        if (-not $name) { $name = "Data" + $position }
+        if ($data.ContainsKey($name)) { throw "Duplicate EventData field" }
+        $data[$name] = [string]$field.'#text'
+        $position++
+    }
+    [pscustomobject]@{Id=$record.Id; TimeCreated=$record.TimeCreated.ToUniversalTime().ToString('o');
+        ProviderName=$record.ProviderName; MachineName=$record.MachineName;
+        RecordId=$record.RecordId; Channel=$record.LogName; Message=$record.Message;
+        EventData=$data; SourceXml=$record.ToXml()}
+})
+ConvertTo-Json -InputObject $records -Depth 12 -Compress
+"""
+    encoded = base64.b64encode(script.encode('utf-16le')).decode()
+    result = subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded],
+                            capture_output=True, text=True, check=False, timeout=120)
+    if result.returncode:
+        # Absent channels/empty intervals are explicit gaps, not complete acquisition.
+        raise RuntimeError("Windows event collection failed for requested channel; check access/channel availability")
     try:
-        res = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_command],
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        if not res.stdout.strip():
-            return []
-        data = json.loads(res.stdout)
-        if isinstance(data, dict):
-            return [data]
-        return data
-    except Exception as e:
-        logger.debug(f"Log channel {log_name} not available or empty: {e}")
-        return []
+        value = json.loads(result.stdout)
+    except ValueError as error:
+        raise RuntimeError("Windows collector returned invalid JSON") from error
+    value = [value] if isinstance(value, dict) else value
+    if not isinstance(value, list) or any(not isinstance(row, dict) for row in value):
+        raise RuntimeError("Windows collector returned invalid records")
+    return value
 
 
 def run_pipeline_on_event(
@@ -220,7 +239,7 @@ def run_pipeline_on_event(
         is_sysmon = "Sysmon" in provider
         
         ocsf_evt = None
-        if event_id in [4688, 1, 7045] or (event_id in [4100, 4103, 4104] and "PowerShell" in provider):
+        if event_id == 4688 or (event_id == 1 and is_sysmon):
             ocsf_evt = normalize_evtx_process_creation(raw_event, time_normalizer, resolver, trace_id)
         elif (event_id in [1002, 1116, 1150, 1151, 5007] and "Defender" in provider) or (event_id in [8003, 8004] and "AppLocker" in provider):
             ocsf_evt = normalize_evtx_detection_finding(raw_event, time_normalizer, resolver, trace_id)
@@ -236,19 +255,33 @@ def run_pipeline_on_event(
             ocsf_evt = normalize_evtx_file_access(raw_event, time_normalizer, resolver, trace_id)
         elif event_id in (11, 2) and is_sysmon:
             ocsf_evt = normalize_evtx_file_access(raw_event, time_normalizer, resolver, trace_id)
-        elif event_id in [4698, 106, 140]:
-            ocsf_evt = normalize_evtx_process_creation(raw_event, time_normalizer, resolver, trace_id)
         elif event_id in [1000, 1001, 1002] and "Application" in provider:
             ocsf_evt = normalize_evtx_detection_finding(raw_event, time_normalizer, resolver, trace_id)
         else:
             if event_id not in _warned_evtx_ids:
-                logger.warning(f"EVTX event dropped (unsupported EventID {event_id} from {provider})")
+                logger.warning(f"EVTX event retained without a specialized mapping (EventID {event_id} from {provider})")
                 _warned_evtx_ids.add(event_id)
+            ocsf_evt = GenericEvent(trace_id=trace_id, activity_id=99, severity_id=1,
+                time=utc_time, raw_source_timestamp=str(time_str),
+                clock_skew_offset_ms=skew_offset, clock_skew_unverified=skew_unverified,
+                uid=generate_deterministic_uid('unmapped-windows-event', original_record),
+                event_name=f'Unmapped Windows event {event_id} from {provider}',
+                raw_data=json.dumps(original_record, sort_keys=True))
         
         if ocsf_evt:
             ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
             ocsf_evts.append(ocsf_evt)
             
+    elif source_type == "packet_capture":
+        if examination is None or examination.get('analysis_origin') != 'independent_packet_capture_examination':
+            raise ValueError('Packet examination requires preserved native capture bytes')
+        from src.ingestion.normalization.network_normalizer import _network_event
+        flow = examination['flow']
+        ocsf_evts.append(_network_event(source='pcap', source_uid=flow['session_id'],
+            raw_timestamp=flow['start_time'], src_ip=flow['src_ip'], dst_ip=flow['dst_ip'],
+            src_port=flow['src_port'], dst_port=flow['dst_port'], protocol=flow['protocol'],
+            bytes_out=flow['captured_payload_bytes_out'], bytes_in=flow['captured_payload_bytes_in'],
+            time_normalizer=time_normalizer, trace_id=trace_id, resolver=resolver))
     elif source_type == "mft":
         ocsf_evt = normalize_mft_record(raw_event, time_normalizer, trace_id)
         ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
@@ -256,6 +289,9 @@ def run_pipeline_on_event(
         if hostname:
             ocsf_evt.canonical_host_id = resolver.resolve_any(hostname=hostname) or f"host-{hostname.strip()}"
         ocsf_evts.append(ocsf_evt)
+    elif source_type in {'aws_cloudtrail','azure_activity'}:
+        from src.ingestion.normalization.cloud_normalizer import normalize_cloud_export
+        ocsf_evts.append(normalize_cloud_export(raw_event,source_type,time_normalizer,trace_id))
     elif source_type == "gcp_audit":
         ocsf_evt = normalize_gcp_audit(raw_event, time_normalizer, trace_id)
         ocsf_evt.case_id = "UNASSIGNED_CONTINUOUS"
@@ -268,6 +304,18 @@ def run_pipeline_on_event(
     elif source_type=='container':
         from src.ingestion.normalization.container_normalizer import normalize
         ocsf_evts.extend(normalize(raw_event,trace_id,case_id))
+    elif source_type=='kubernetes_audit':
+        from src.ingestion.normalization.kubernetes_normalizer import normalize
+        ocsf_evts.append(normalize(raw_event,time_normalizer,trace_id))
+    elif source_type=='access_snapshot':
+        from src.schemas.access_snapshot import validate_snapshot
+        snapshot=validate_snapshot(original_record)
+        ocsf_evts.append(GenericEvent(trace_id=trace_id,activity_id=99,severity_id=1,time=utc_time,
+            raw_source_timestamp=snapshot.timestamp,clock_skew_offset_ms=skew_offset,clock_skew_unverified=skew_unverified,
+            uid=generate_deterministic_uid('access-snapshot',original_record),
+            canonical_host_id=resolver.resolve_any(hostname=snapshot.host) if snapshot.host else None,
+            event_name='Exported permission snapshot: '+snapshot.provider,
+            raw_data=json.dumps(original_record,sort_keys=True)))
     elif source_type=='ad_auth':
         ocsf_evts.append(normalize_evtx_auth(raw_event,time_normalizer,resolver,trace_id))
     elif source_type == "malware":
@@ -289,7 +337,7 @@ def run_pipeline_on_event(
         if isinstance(hostname, str) and hostname.strip():
             ocsf_evt.canonical_host_id = resolver.resolve_any(hostname=hostname) or f"host-{hostname.strip()}"
             resolver.register_hostname(hostname, ocsf_evt.canonical_host_id)
-        elif exported_log_path is not None and source_type != "gcp_audit":
+        elif exported_log_path is not None and ocsf_evt.class_uid != 6003:
             ocsf_evt.canonical_host_id = None
         if ocsf_evt.class_uid == 1007:
             from src.graph.process_lineage import process_identity
@@ -300,6 +348,8 @@ def run_pipeline_on_event(
             ocsf_evt.process_uid = process_identity(ocsf_evt.canonical_host_id, guid=guid,
                 pid=ocsf_evt.process_pid, start=ocsf_evt.time.isoformat(), image=ocsf_evt.process_name)
             ocsf_evt.parent_process_uid = process_identity(ocsf_evt.canonical_host_id, guid=parent_guid)
+        if exported_log_path is not None or source_type == "evtx":
+            ocsf_evt.unmapped = {"source_context": original_record}
         if exported_log_path is not None:
             # OCSF unmapped preserves source outcomes/authorization without
             # converting uploader assertions into verified facts.

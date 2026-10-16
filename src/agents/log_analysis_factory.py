@@ -2,6 +2,7 @@
 import json
 import logging
 import time
+from collections import Counter
 from typing import Any
 from src.agents.config import get_llm
 from src.agents.log_analysis.agent import LogAnalysisAgent
@@ -122,7 +123,7 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
             if event_dict.get("class_uid") in {1001, 1007}:
                 events.append(CaseLogRecord(**event_dict))
             
-        if not events:
+        if not context_records:
             return {"findings": [], "agent_traces": [{"agent_role": "log_analysis",
                 "action": "case_scoped_log_analysis", "observation": "No process or file events were available for log-analysis rules.",
                 "model_used": "deterministic_rules", "latency_ms": round((time.monotonic() - started) * 1000, 1)}]}
@@ -142,11 +143,23 @@ def make_log_analysis_node(kafka_producer: Any, vector_client: Any, redis_client
             extra = detections({"case_id": case_id, "trace_id": state.get("trace_id"), "evidence_collection": {"records": context_records}}, "log_analysis")
             from .specialist_context import reconstruct_specialist_context
             extra += [f for f in reconstruct_specialist_context({'case_id':case_id,'evidence_collection':{'records':context_records}})['findings'] if f['agent_role']=='log_analysis']
+            from .evidence_correlations import correlate
+            from .log_analysis.endpoint_context import analyze
+            context_state = {**state, 'evidence_collection': {'records': context_records}}
+            extra += [f for f in correlate(context_state)['findings'] if f['agent_role'] == 'log_analysis']
+            extra += analyze(context_state)
             findings.extend(extra)
             investigation=None
             if state.get('evidence_review_required'):
                 from .investigative_review import investigate
                 investigation=investigate('log_analysis',{**state,'evidence_collection':{'records':context_records}},findings,llm)
+                native=[(r.get('unmapped') or {}).get('examination') for r in context_records]
+                native=[r for r in native if r and r.get('analysis_origin')=='independent_ntfs_file_record_examination']
+                investigation['examination_coverage']={'native_examinations':len(native),
+                    'unavailable':sum(r.get('status')!='complete' for r in native),
+                    'path_reconstruction_status_counts':dict(Counter(
+                        (r.get('path_reconstruction') or {}).get('status','legacy_unavailable') for r in native)),
+                    'scope':'Supported resident NTFS FILE fragments; other log evidence remains source-reported.'}
                 invocations+=sum(a.get('attempt',0)>0 for b in investigation['review_batches'] for a in b['attempts'])
             
             # The agent.run_on_batch() returns a list of finding dicts

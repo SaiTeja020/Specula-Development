@@ -18,10 +18,21 @@ export default function ZipFormatGuide({ dialogRef }) {
   memory/processes/process.dmp optional MDMP minidump
   malware/findings.json
   malware/samples/sample.exe optional static PE examination
+  network/captures/traffic.pcap optional Ethernet packet capture
+  network/captures/traffic.pcapng optional Ethernet PCAPNG
   ueba/events.json
   vuln_scan/findings.json
   gcp_audit/events.json
+  aws_cloudtrail/events.json native CloudTrail Records envelope
+  azure_activity/events.json native Activity value envelope
   mft/records.json`}</pre>
+    <p>For native NTFS record fragments, use <code>mft/records/fragment.mft</code> and declare
+      <code>ntfs_version</code> (3.0 or 3.1), <code>record_size</code> (1024 or 4096),
+      <code>volume_id</code>, source host and acquisition timestamp in its manifest artifact entry.
+      Resident FILE records and update-sequence integrity are checked; a full disk image is not required.
+      Include intact parent records to reconstruct volume-relative paths. Missing or reused parents and
+      multiple hard links remain explicit. For contiguous NTFS 3.0 fragments, also declare
+      <code>first_record_number</code>; without it, timestamps can be examined but parent identities remain unavailable.</p>
     <p>JSON contains one object or an array of objects. JSONL contains one object per line.
       Export binary .evtx files to JSON first. Maximum: 50 MiB ZIP, 200 MiB expanded, 25 MiB per file, 500 entries.</p>
     <h3>Common fields we accept</h3>
@@ -29,6 +40,12 @@ export default function ZipFormatGuide({ dialogRef }) {
       <code>{' {"artifacts":{"memory/regions/suspect.bin":{"timestamp":"2026-10-13T09:00:00Z","host":"WS-23"}}} '}</code>.
       Native files are examined as data and never executed. Use targeted regions or small process minidumps,
       not full RAM images. The same size limits apply. Imported JSON findings remain labelled as supplied assessments.</p>
+    <p>For packet captures, use the same manifest entry with the capture path, acquisition timestamp and source host.
+      Captured packet timestamps define the session timeline. The examiner supports Ethernet IPv4/IPv6 TCP/UDP,
+      bounded TCP reconstruction, complete non-overlapping IPv4/IPv6 fragment sets, DNS and plaintext HTTP metadata.
+      TCP payload counters count captured sequence positions once; raw counters retain retransmissions separately.
+      Missing fragments, conflicting overlaps, examination limits and encrypted
+      payloads remain explicit limitations; no decryption or sample execution is performed.</p>
     <p>Native exports remain supported. Common aliases below are mapped explicitly; native fields take precedence.
       Use ISO 8601 timestamps with a UTC offset, such as <code>2026-10-13T09:00:00Z</code>.</p>
     <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', textAlign: 'left' }}>

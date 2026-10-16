@@ -40,8 +40,7 @@ def _narrative(result: ThreatAttributionResult, case_id: str, llm_factory=None) 
         return "Attribution unavailable: no scored ATT&CK group profile is supported by this case's evidence.", "none", False
     default = (f"Top ATT&CK profile is {result.top_candidate.name} "
                f"({result.top_candidate.actor_id}; similarity {result.top_candidate.combined_score:.3f}). "
-               f"Evidence-adjusted confidence is {result.overall_confidence:.3f} "
-               f"(bounds {result.confidence_lower:.3f}-{result.confidence_upper:.3f}). "
+               f"Heuristic evidence weight is {result.overall_confidence:.3f}; it is not calibrated confidence or an actor probability. "
                "This profile comparison does not establish actor identity.")
     explanations = {"profile_similarity": "The ranking compares the cited case TTPs with ATT&CK group profiles."}
     if "actor_sequence_inferred" in result.degraded_flags:
@@ -123,10 +122,10 @@ def run_threat_attribution(state: dict, neo4j_driver=None, threat_intel=None, ll
         for event in timeline.get("events", [])
         if set(event.get("dfkg_refs") or []) & confirmed_uids
     ]
-    observed = []
+    observed = [];semantic_candidates=[]
     if "corpus_unavailable" not in flags:
         try:
-            observed, extraction_flags = extract_observed_ttps(timeline, threat_intel)
+            observed, extraction_flags = extract_observed_ttps(timeline, threat_intel,semantic_candidates)
             flags.update(extraction_flags)
         except Exception as exc:
             logger.warning("TTP extraction failed: %s", exc)
@@ -148,12 +147,14 @@ def run_threat_attribution(state: dict, neo4j_driver=None, threat_intel=None, ll
                     or any(final_health.get(key) != health.get(key)
                            for key in ("corpus_hash", "corpus_generation"))):
                 flags.add("corpus_changed_during_attribution")
-                observed, profiles = [], []
+                observed, profiles, semantic_candidates = [], [], []
                 health = {}  # Mixed results must not carry either generation's provenance.
         except Exception:
             flags.add("corpus_provenance_unavailable")
-            observed, profiles, health = [], [], {}
+            observed, profiles, health, semantic_candidates = [], [], {}, []
     candidates = rank_candidates([item.technique_id for item in observed], profiles)
+    if len(candidates)>1 and abs(candidates[0].combined_score-candidates[1].combined_score)<0.1:
+        flags.add('profile_ranking_ambiguous')
     if candidates and candidates[0].combined_score == 0:
         flags.add("no_profile_match")
     if candidates and not any(item.sequence_available for item in candidates):
@@ -187,6 +188,7 @@ def run_threat_attribution(state: dict, neo4j_driver=None, threat_intel=None, ll
                          or (health.get("source_versions") or {}).get("mitre_attack_stix"))),
         corpus_hash=health.get("corpus_hash") if isinstance(health.get("corpus_hash"), str) else None,
         degraded_flags=sorted(flags), narrative="", summary="",
+        unverified_technique_candidates=semantic_candidates,
     )
     narrative, model_id, explained = _narrative(result, case_id, llm_factory)
     if result.top_candidate is not None and not explained:

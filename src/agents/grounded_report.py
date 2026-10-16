@@ -85,6 +85,14 @@ def _prepared(state: dict) -> tuple[list[dict], dict]:
         flags.add('semantic_retrieval_unavailable')
     if any(t.get('examination_coverage',{}).get('unavailable',0) for t in traces):
         flags.add('native_examination_incomplete')
+    if any(r.get('status') != 'complete' for r in state.get('sandbox_runs', [])):
+        flags.add('sandbox_examination_incomplete')
+    if state.get('evidence_requests'):
+        flags.add('additional_evidence_requested')
+    if any(r.get('status') != 'complete' for r in (state.get('ingestion_provenance') or {}).get('channel_receipts', [])):
+        flags.add('local_channel_acquisition_incomplete')
+    if state.get('followup_status') in {'budget_exhausted', 'requires_analyst', 'source_changed_requires_reanalysis'}:
+        flags.add('followup_examination_incomplete')
     refs = sorted(events)
     claimed = attr.get("dfkg_refs") or []
     if any(ref not in events for ref in claimed):
@@ -150,6 +158,13 @@ def render_report(state: dict) -> tuple[str, dict]:
     for finding in current_findings(state):
         if finding.get("source") == "validated_case_rule" and finding.get("dfkg_refs") and set(finding["dfkg_refs"]) <= set(meta["dfkg_refs"]):
             lines.append("- " + _safe(finding.get("classification", "unresolved")) + ": " + _safe(finding.get("summary")) + " " + " ".join(f"[event:{_safe(uid)}]" for uid in finding["dfkg_refs"]))
+    lines.extend(["", "## Additional evidence requested"])
+    for request in state.get('evidence_requests', []):
+        if request.get('dfkg_refs') and set(request['dfkg_refs']) <= set(meta['dfkg_refs']):
+            lines.append('- ' + _safe(request.get('artifact_type')) + ': ' + _safe(request.get('question')) +
+                         '; status=' + _safe(request.get('status')) + '; ' + _safe(request.get('hosts')))
+    if not state.get('evidence_requests'):
+        lines.append('No additional acquisition requests recorded; this does not establish complete artifact coverage.')
     lines.extend(["", "## Model assessments (analysis, not source evidence)"])
     for role in ("proponent", "critic", "judge"):
         assessment = state.get(role + "_review")

@@ -40,7 +40,7 @@ def persist_case_execution(driver, case_id: str, traces: list[dict],
             "analysis": finding.get("summary") or trace.get("observation") or "",
             "model_output": trace.get('model_output') or '',
             "model_output_validated":bool(trace.get('model_output_validated')),
-            "review_json":json.dumps({key:trace[key] for key in ('assessment','investigation_assessments','review_coverage','examination_coverage','grounding_issues','investigation_plan') if key in trace},sort_keys=True),
+            "review_json":json.dumps({key:trace[key] for key in ('assessment','investigation_assessments','review_coverage','examination_coverage','grounding_issues','investigation_plan','examination_receipts','planning_attempts','behavioral_baselines','permission_examinations','sandbox_examinations') if key in trace},sort_keys=True),
             "observation": trace.get("observation") or "",
             "timestamp": trace.get("timestamp") or finding.get("timestamp") or datetime.now(timezone.utc).isoformat(),
             "latency_ms": float(trace.get("latency_ms") or 0),
@@ -84,7 +84,7 @@ def persist_case_analysis(driver,case_id,state):
             entries.append({'uid':uid,'case_id':case_id,'source_id':key,'label':row.get('label',kind),
                             'summary':row.get('summary') or row.get('label') or '', 'time':row.get('time'),
                             'canonical_host_id':row.get('canonical_host_id'),'classification':row.get('classification'),
-                            'operation_outcome':row.get('operation_outcome'),'dfkg_refs':refs})
+                            'operation_outcome':row.get('operation_outcome'),'effect_scope':row.get('effect_scope'),'dfkg_refs':refs})
         maps[label]=lookup
         # label is a fixed internal allowlist; values remain parameterized.
         query={'TimelineEntry':"MERGE (n:TimelineEntry {uid:row.uid})",

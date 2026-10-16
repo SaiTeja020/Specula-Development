@@ -1,5 +1,6 @@
 """Inspectable source constraints and a distinct final claim audit."""
 import json
+from copy import deepcopy
 import re
 import time
 from datetime import datetime,timezone
@@ -13,17 +14,28 @@ def claim_errors(text,facts):
     errors=[];source=' '.join(f['summary'] for f in facts)
     identifiers=set(re.findall(r'\b(?:CVE-\d{4}-\d{4,}|VULN-\d+)\b',text,re.I))
     if any(i.lower() not in source.lower() for i in identifiers):errors.append('Invented vulnerability identifier')
-    for sentence in re.split(r'[.!?]\s+|\n',text):
+    for sentence in re.split(r'[.!?;]\s+|\n',text):
         lower=sentence.lower()
-        qualified=bool(re.search(r'\b(not|no|cannot|unproven|unconfirmed|unavailable|unknown|possible|potential|may|could|requires|unresolved|unverified)\b',lower))
+        # An unrelated "unknown" later in a sentence cannot license a certainty claim.
+        certainty=re.search(r'\b(authorized activity|legitimate service account|confirmed compromise|confirmed timestomping|proven injection|verified malware family|proven exfiltration|verified exploit|definitely malicious|attributed to|successful credential extraction|successful exfiltration|successful|succeeded|completed extraction|credentials extracted|log cleared)\b|(?:success|exploit|risk).*\d+(?:\.\d+)?\s*%|\d+(?:\.\d+)?\s*%.*(?:success|exploit|risk)',lower)
+        scope=lower[:certainty.start()] if certainty else lower
+        suffix=lower[certainty.end():] if certainty else ''
+        qualified=bool(re.search(r'\b(not|no|cannot|unproven|unconfirmed|unavailable|unknown|possible|potential|may|could|requires|unresolved|unverified)\b',scope[-100:]) or
+            re.match(r'\s+(?:is|was|remains|has been|are|were)?\s*(?:not|unproven|unconfirmed|unavailable|unknown|unresolved|unverified)\b',suffix))
         if not qualified and re.search(r'\b(authorized activity|legitimate service account)\b',lower) and facts and not any(f.get('classification')=='benign' for f in facts):
             errors.append('Authorization asserted without a matching benign control')
-        if not qualified and re.search(r'\b(confirmed compromise|proven exfiltration|verified exploit|definitely malicious|attributed to|successful credential extraction)\b',lower):
+        if not qualified and re.search(r'\b(confirmed compromise|confirmed timestomping|proven injection|verified malware family|proven exfiltration|verified exploit|definitely malicious|attributed to|successful credential extraction|successful exfiltration)\b',lower):
             errors.append('Unsupported certainty or attribution')
         if not qualified and re.search(r'\d+(?:\.\d+)?\s*%.*(?:success|exploit|risk)|(?:success|exploit|risk).*\d+(?:\.\d+)?\s*%',lower):
             errors.append('Uncalibrated probability claim')
         if facts and all(f.get('operation_outcome')=='failed' for f in facts) and not qualified and re.search(r'\b(successful|succeeded|completed extraction|credentials extracted|log cleared)\b',lower):
             errors.append('Completed effect contradicts cited failed operations')
+        if (facts and all(f.get('effect_scope') in {'permission_model','configuration','api_audit','captured_protocol_bytes'} for f in facts)
+                and not qualified and re.search(r'\b((?:payload|malware|command) (?:was |were )?executed|container escaped|credentials (?:were )?(?:stolen|extracted)|data (?:was )?exfiltrated|actually accessed|privilege escalation occurred)\b',lower)):
+            errors.append('Policy, API or captured-protocol context does not establish the asserted runtime effect')
+        if (any(f.get('effect_scope')=='sandbox_execution' for f in facts) and not qualified and
+                re.search(r'\b(on (?:the )?(?:investigated|original|victim|production|affected) host|in (?:the )?production environment|infected the host|compromised the host)\b',lower)):
+            errors.append('Sandbox observations do not establish activity on the investigated host')
     return sorted(set(errors))
 
 
@@ -64,9 +76,17 @@ def audit(state,facts,llm):
             for c in parsed.checks:
                 if not set(c.observation_ids)<=set(hypotheses[c.hypothesis_id]['observation_ids']):raise ValueError('Audit citations must address this hypothesis')
                 if hard[c.hypothesis_id] and c.status=='grounded':raise ValueError('Hard source contradiction cannot be marked grounded')
-        schema=Audit.model_json_schema();schema['$defs']['ClaimCheck']['properties']['hypothesis_id']['enum']=ids
-        schema['$defs']['ClaimCheck']['properties']['observation_ids']['items']['enum']=sorted(allowed)
-        result,attempts=call('guardrail_tier3',llm,prompt,Audit,validate,schema)
+        schema=Audit.model_json_schema();definition=schema['$defs']['ClaimCheck'];variants=[]
+        for h in ids:
+            variant=deepcopy(definition)
+            variant['properties']['hypothesis_id']['enum']=[h]
+            variant['properties']['observation_ids']['items']['enum']=hypotheses[h]['observation_ids']
+            variants.append(variant)
+        schema['properties']['checks']['items']={'oneOf':variants}
+        if len(prompt.encode())>24000:
+            result,attempts=None,[{'attempt':0,'valid':False,'error':'Grounding context exceeds bounded review budget; analyst review required'}]
+        else:
+            result,attempts=call('guardrail_tier3',llm,prompt,Audit,validate,schema)
         if result:checks+=result['checks']
         issues += [e for errors in hard.values() for e in errors]
         batches.append({'hypothesis_ids':ids,'valid':bool(result),'attempts':attempts})

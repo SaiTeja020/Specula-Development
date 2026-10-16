@@ -47,10 +47,15 @@ def test_ingest_case_uses_selected_window_ports_and_case():
         result = local_case_pipeline.ingest_case("LOCAL-1", "2026-10-11T09:00:00",
                                                  "2026-10-11T11:00:00", 25, [80, 443])
 
-    assert result == {"case_id": "LOCAL-1", "extracted": 1, "accepted": 1}
+    assert result == {"case_id": "LOCAL-1", "extracted": 1, "accepted": 1,
+                      "excluded_records": 0, "record_errors_sample": []}
     assert len(calls) == len(local_case_pipeline.CHANNELS)
     assert all(item[1:] == ("2026-10-11T09:00:00", "2026-10-11T11:00:00", 25) for item in calls)
-    assert len(queries) == 4
+    assert len(queries) == 5
+    import json
+    provenance = json.loads(queries[-1][1]['provenance'])
+    assert len(provenance['channel_receipts']) == len(local_case_pipeline.CHANNELS)
+    assert all(r['status'] == 'complete' for r in provenance['channel_receipts'])
     assert "DETACH DELETE" not in str(queries)
     assert "HAS_EVENT" in queries[1][0]
     assert queries[1][1]["event_uid"] == "event-1"

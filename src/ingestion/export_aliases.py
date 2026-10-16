@@ -21,12 +21,13 @@ def record_timestamp(record, source):
     if isinstance(nested, dict):
         nested = nested.get("SystemTime")
     names = ("TimeCreated", "timestamp", "event_time", "eventTime", "time", "capture_time",
-             "detonation_time", "scan_time", "LastRecordChange")
+             "detonation_time", "scan_time", "LastRecordChange", "eventTimestamp", "TimeGenerated")
     stamp = next((record[name] for name in names if record.get(name)), nested)
     if source == "evtx" and nested:
         stamp = nested
     if source == "mft" and record.get("LastRecordChange"):
         stamp = record["LastRecordChange"]
+    if source=='kubernetes_audit':stamp=record.get('stageTimestamp') or record.get('requestReceivedTimestamp') or stamp
     if source == "gcp_audit" and not stamp and isinstance(record.get("protoPayload"), dict):
         stamp = record["protoPayload"].get("timestamp")
     if not stamp and source == "mft":

@@ -97,7 +97,7 @@ def test_ordered_ttp_extraction_requires_evidence_and_trusted_ids():
     assert "unsupported_technique_id" in flags
 
 
-def test_unmapped_confirmed_behavior_uses_only_corpus_result():
+def test_semantic_match_requires_source_verification_before_ranking():
     class SemanticIntel(FakeIntel):
         def query_attack_techniques(self, query_text, top_k):
             return {"status": "ok", "results": [{
@@ -108,10 +108,11 @@ def test_unmapped_confirmed_behavior_uses_only_corpus_result():
         "time": "2026-10-03T00:01:00Z", "dfkg_refs": ["event-one"],
         "summary": "PowerShell execution", "attacks": [],
     }]}
-    observed, flags = extract_observed_ttps(timeline, SemanticIntel())
-    assert [item.technique_id for item in observed] == ["T1059.001"]
-    assert observed[0].threat_intel_refs == ["T1059.001:tech-a"]
-    assert not flags
+    suggestions=[]
+    observed, flags = extract_observed_ttps(timeline, SemanticIntel(),suggestions)
+    assert observed == []
+    assert suggestions[0]['technique_id']=='T1059.001' and suggestions[0]['status']=='unverified_candidate'
+    assert 'semantic_candidate_requires_source_verification' in flags
 
 
 def test_hash_vectors_cannot_infer_technique_from_summary():

@@ -139,12 +139,19 @@ def make_network_forensics_node(neo4j_driver: Any, kafka_producer: Any):
                 payload=build_ocsf_2004_finding(enriched,{'case_id':case_id,'trace_id':trace_id},finding['canonical_host_id'])
                 payload.update(classification=finding['classification'],source='validated_case_rule',operation_outcome=finding['operation_outcome'])
                 kafka_producer.produce(topic=FINDING_TOPIC,key=('host:'+finding['canonical_host_id']).encode(),value=json.dumps(payload).encode())
-        return {"findings": findings, "agent_traces": [{
+        trace={
             "agent_role": "network_forensics",
             "thought": f"Read {len(events_by_uid)} OCSF 4001 events across {len(events_by_host)} hosts.",
             "action": "deterministic_network_analysis",
             "observation": f"Produced {len(findings)} evidence-backed findings; {partial_batches} partial batches.",
             "model_used": "deterministic_rules", "latency_ms": 0,
-        }]}
+        }
+        if state.get('evidence_review_required'):
+            from .config import get_llm
+            from .investigative_review import investigate
+            trace.update(investigate('network_forensics',{**state,'evidence_collection':{'records':case_events}},
+                         findings,get_llm('network_forensics',case_id=case_id)))
+            trace['preserved_network_event_count']=len(events_by_uid)
+        return {"findings": findings, "agent_traces": [trace]}
 
     return network_forensics_node

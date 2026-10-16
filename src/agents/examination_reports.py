@@ -18,6 +18,7 @@ def runtime_manifest():
                      "src/agents/log_analysis/detection_rules.py", "src/agents/case_analysis.py",
                      "src/agents/evidence_review.py", "src/agents/nodes.py", "src/agents/ollama_backend.py",
                      "src/schemas/ocsf_base.py", "src/agents/forensic_tools.py", "src/agents/network_specialist.py",
+                     "src/agents/cape_sandbox.py",
                      "src/agents/behavior_analysis.py", "src/agents/exploit_paths.py", "src/agents/case_analytics.py",
                      "src/ingestion/indexing/case_evidence.py", "src/graph/process_lineage.py"):
         path = Path(__file__).resolve().parents[2] / relative
@@ -141,6 +142,16 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
                 ]) + '<p>Authorities: <a href="https://www.uscourts.gov/sites/default/files/document/federal-rules-of-evidence.pdf">'
                 'Federal Rules of Evidence, Rule 702 (December 1, 2025)</a>; Daubert v. Merrell Dow Pharmaceuticals, '
                 '509 U.S. 579 (1993). Applicable jurisdiction and evidentiary procedure must be confirmed by counsel.</p>')
+    section("Additional evidence and follow-up examinations", '<p>Unanswered acquisition requests remain limitations; '
+            'missing artifacts are not negative findings. Targeted memory regions or process minidumps can be supplied '
+            'without requiring a whole-RAM image.</p>' + _json(state.get('evidence_requests', [])) +
+            '<h3>Examination receipts</h3>' + _json([r for r in state.get('followup_history', [])
+                                                 if r.get('cycle', 0) == state.get('followup_cycle', 0)]))
+    if state.get('sandbox_runs'):
+        section("Isolated laboratory dynamic examination", '<p>CAPE results describe a separate guest experiment. '
+                'Its timestamps and behavior do not establish execution on the investigated host. '
+                'Pending, deferred or failed tasks are not benign results. Full reports are preserved by digest.</p>' +
+                _json(state['sandbox_runs']))
     section("Recorded automated detection results", '<p>Automated screening results require examiner validation. '
             'Citations establish record membership, not independent correctness of an inference.</p>' +
             (''.join('<article><h3>' + _text(f.get("agent_role")) + '</h3><p>' +

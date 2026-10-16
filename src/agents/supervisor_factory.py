@@ -26,7 +26,7 @@ def make_supervisor_node(neo4j_driver=None):
             from .investigative_review import plan
             investigation_plan=plan({**state,'evidence_collection':{'records':[dict(row['e']) for row in rows]}})
             trace['investigation_plan']=investigation_plan
-            finding = {"agent_role": "supervisor", "summary": f"Primary agents dispatched for {len(facts)} case events; specialist routing follows actual evidence after collection.",
+            finding = {"agent_role": "supervisor", "summary": f"Primary agents dispatched for {len(rows)} case events in {len(facts)} source cohorts; specialist routing follows actual evidence after collection.",
                        "dfkg_refs": [], "timestamp": trace["timestamp"], "kafka_offset": None}
         else:
             if state.get('evidence_review_required'):
@@ -71,6 +71,13 @@ def make_supervisor_node(neo4j_driver=None):
                 
         # Merge back into SpeculaState
         update_dict = {
+            "followup_cycle": state.get('followup_cycle', 0) if state.get('followup_reanalysis_pending') else state.get('followup_cycle', 0)+1,
+            "followup_round": state.get('followup_round',0) if state.get('followup_reanalysis_pending') else 0,
+            "followup_reanalysis_pending": False,
+            "acquisition_reanalysis_count": state.get('acquisition_reanalysis_count',0) if state.get('followup_reanalysis_pending') else 0,
+            "followup_pending": [],
+            "followup_status": None,
+            "evidence_requests": [],
             "investigation_plan": investigation_plan,
             "case_status": "primary_tier" if sup_state["active_tier"] == "PRIMARY" else "specialist_tier",
             "findings": [finding],

@@ -14,6 +14,12 @@ from .api_auth import authorize
 log = logging.getLogger(__name__)
 
 
+def _has_attack_analysis(values):
+    return bool(values.get("attack_graph")) or any(
+        finding.get("agent_role") == "dag" for finding in values.get("findings") or []
+    )
+
+
 class InvestigationRequest(BaseModel):
     case_id: str = Field(min_length=1, max_length=200)
     raw_input: str = Field(default="Investigate preserved case evidence", max_length=10000)
@@ -69,6 +75,12 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                 "failed_nodes": [task.name for task in state.tasks if task.error],
                 "agent_traces": values.get("agent_traces", []),
                 "investigation_plan": values.get('investigation_plan'),
+                "followup_status": values.get('followup_status'),
+                "acquisition_reanalysis_count":values.get('acquisition_reanalysis_count',0),
+                "followup_pending": values.get('followup_pending', []),
+                "followup_history": values.get('followup_history', []),
+                "evidence_requests": values.get('evidence_requests', []),
+                "sandbox_runs": values.get('sandbox_runs', []),
                 "attribution": values.get("attribution"), "timeline": values.get("timeline"),
                 "exploit_topology":values.get('exploit_topology'),
                 "attack_graph": values.get("attack_graph"),
@@ -119,8 +131,7 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
                     "event_count": row["event_count"],
                     "has_timeline": bool(values.get("timeline_artifact") or
                                          (values.get("timeline") or {}).get("events")),
-                    "has_attack_analysis": any(f.get("agent_role") == "dag"
-                                               for f in values.get("findings") or []),
+                    "has_attack_analysis": _has_attack_analysis(values),
                     "has_report": bool(values.get("report_output")),
                     "report_status": (values.get("report_metadata") or {}).get("status"),
                 })
@@ -293,6 +304,26 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
         from .checkpointer import CheckpointBusyError
         try:return await asyncio.to_thread(reviewed)
         except CheckpointBusyError:raise HTTPException(409,'Investigation is already running in another worker') from None
+
+    @app.get('/api/investigations/{case_id}/sandbox/{receipt_id}/report')
+    async def get_sandbox_report(case_id: str, receipt_id: str, request: Request):
+        await asyncio.to_thread(authorize, request.state.principal, case_id, driver=get_driver())
+        from .cape_sandbox import CapeStore, store_path
+        def read():
+            path = store_path()
+            if not path.is_file():
+                raise FileNotFoundError
+            return CapeStore(path).report(case_id, receipt_id)
+        try:
+            document = await asyncio.to_thread(read)
+        except FileNotFoundError:
+            raise HTTPException(404, 'Preserved sandbox report unavailable') from None
+        except ValueError:
+            raise HTTPException(409, 'Sandbox report identity or digest check failed') from None
+        return Response(document, media_type='application/json', headers={
+            'Content-Disposition': 'attachment; filename="cape-report.json"',
+            'X-Report-SHA256': sha256(document).hexdigest(),
+            'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'"})
 
     @app.get("/api/investigations/{case_id}/reports/{kind}")
     async def get_examination_report(case_id: str, kind: Literal["court", "technical"], request: Request):

@@ -25,6 +25,15 @@ class SpeculaState(TypedDict, total=False):
     ingestion_provenance: Optional[dict]
     execution_manifest: Optional[dict]
     investigation_plan: Optional[dict]
+    followup_cycle: int
+    followup_reanalysis_pending: bool
+    acquisition_reanalysis_count: int
+    followup_round: int
+    followup_history: Annotated[list, operator.add]
+    followup_pending: list
+    followup_status: Optional[str]
+    evidence_requests: list
+    sandbox_runs: list                       # Malware specialist; isolated-lab receipts, not host events
     debate_feedback: Optional[dict]
     report_generated_at: str
     report_metadata: Optional[dict]

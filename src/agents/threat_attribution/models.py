@@ -40,6 +40,10 @@ class ThreatAttributionResult(BaseModel):
     degraded_flags: list[str] = Field(default_factory=list)
     narrative: str
     summary: str
+    unverified_technique_candidates: list[dict] = Field(default_factory=list)
+    calibration_status: str = 'not_calibrated'
+    actor_identity_status: str = 'not_established'
+    confidence_interpretation: str = 'Legacy confidence fields are heuristic evidence weights and sensitivity bounds, not statistical confidence intervals or actor probabilities.'
     algorithm_version: str = "jaccard-sw-v2"
     scoring_parameters: dict = Field(default_factory=lambda: {
         "jaccard_weight": 0.4, "smith_waterman_weight": 0.6,
