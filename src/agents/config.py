@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import time
-from src.telemetry import emit_event
 
 # ---------------------------------------------------------------------------
 # Portable .env discovery
@@ -42,10 +40,6 @@ def _load_env() -> None:
 
 _load_env()
 
-_startup_backend = os.environ.get("SPECULA_LLM_BACKEND", "stub").lower()
-_startup_model = os.environ.get("SPECULA_LLM_MODEL", "default")
-print(f"[LLM] Backend: {_startup_backend}")
-print(f"[LLM] Default model: {_startup_model}")
 
 # ---------------------------------------------------------------------------
 # Agent config: role -> model + prompt template
@@ -53,22 +47,16 @@ print(f"[LLM] Default model: {_startup_model}")
 
 AGENT_CONFIG: dict[str, dict] = {
     "supervisor": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Supervisor agent for case {case_id}. "
-            "Evaluate the forensic input and the current investigation context to decide the next action.\n"
-            "Input: {raw_input}\n"
-            "Current DFKG Context:\n{findings_summary}\n\n"
-            "You must output a structured routing decision on a new line exactly matching one of:\n"
-            "ROUTE: evidence_collection, log_analysis, network_forensics\n"
-            "ROUTE: timeline_reconstruction\n"
-            "ROUTE: wait\n"
-            "Summarise your dispatch decision before outputting the ROUTE."
+            "Evaluate the forensic input and decide if specialist agents are needed. "
+            "Summarise your dispatch decision.\nInput: {raw_input}"
         ),
     },
     "evidence_collection": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Evidence Collection agent for case {case_id}. "
@@ -81,7 +69,7 @@ AGENT_CONFIG: dict[str, dict] = {
     # Single-source consolidation (from src.agents.log_analysis.config import MODEL_ID)
     # is scheduled when the real model endpoint is deployed.
     "log_analysis": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Log Analysis agent for case {case_id}. "
@@ -90,7 +78,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "network_forensics": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Network Forensics agent for case {case_id}. "
@@ -99,7 +87,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "timeline_reconstruction": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Timeline Reconstruction agent for case {case_id}. "
@@ -108,8 +96,8 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "threat_attribution": {
-        "model_id": "gemini-3.6-flash",
-        "provider": "google",
+        "model_id": "kimi-k2.6",
+        "provider": "openai_compatible",
         "system_prompt_template": (
             "You are the Threat Attribution agent for case {case_id}. "
             "ATT&CK techniques (FAISS): {retrieved_techniques}. "
@@ -121,7 +109,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "memory_forensics": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Memory Forensics specialist for case {case_id}. "
@@ -162,7 +150,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "malware_stylometry": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Malware & Stylometry specialist for case {case_id}. "
@@ -171,7 +159,7 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "insider_threat": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Insider Threat specialist for case {case_id}. "
@@ -180,26 +168,28 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "proponent": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Proponent in the Evidentiary Adversarial Debate for case {case_id}. "
             "Present and defend the strongest hypothesis supported by DFKG evidence.\n"
             "Evidence: {evidence_summary}\n"
+            "Attribution evidence: {attribution_evidence}\n"
             "Previous critic argument: {critic_argument}"
         ),
     },
     "critic": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Critic in the Evidentiary Adversarial Debate for case {case_id}. "
             "Challenge the proponent's hypothesis. Identify gaps and alternative explanations.\n"
             "Proponent argument: {proponent_argument}"
+            "\nAttribution evidence: {attribution_evidence}"
         ),
     },
     "judge": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Judge in the Evidentiary Adversarial Debate for case {case_id}. "
@@ -207,11 +197,12 @@ AGENT_CONFIG: dict[str, dict] = {
             "and a confidence score between 0.0 and 1.0.\n"
             "Proponent: {proponent_argument}\n"
             "Critic: {critic_argument}\n"
+            "Attribution evidence: {attribution_evidence}\n"
             "Round: {debate_round}"
         ),
     },
     "guardrail_tier3": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are Guardrail Tier 3 — semantic validation agent for case {case_id}. "
@@ -222,17 +213,17 @@ AGENT_CONFIG: dict[str, dict] = {
         ),
     },
     "report_generation": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Report Generation agent for case {case_id}. "
             "Produce a structured forensic investigation report.\n"
             "Findings: {findings_summary}\nTimeline: {timeline_summary}\n"
-            "Attribution: {attribution_summary}"
+            "Attribution: {attribution_summary}\nAttribution evidence: {attribution_evidence}"
         ),
     },
     "timeline_artifact_generation": {
-        "model_id": "gemini-3.6-flash",
+        "model_id": "gemini-2.5-flash",
         "provider": "google",
         "system_prompt_template": (
             "You are the Timeline Artifact Generation agent for case {case_id}. "
@@ -260,9 +251,9 @@ _STUB_RESPONSES: dict[str, str] = {
     "dag":                      "Highest-probability attack path: CVE-2021-34527 (PrintNightmare, CVSS 8.8, EPSS 0.94) -> DC01 via SMB. Dijkstra weight: 0.062. Residual risk score: 0.91. Secondary path: CVE-2020-1472 (Zerologon, CVSS 10.0, EPSS 0.97) weight: 0.030.",
     "malware_stylometry":       "PE sample SHA256: a1b2c3... Static analysis: UPX packed, anti-debug via IsDebuggerPresent. Code similarity 87% to APT29 SunBurst loader.",
     "insider_threat":           "User jsmith: 340% increase in after-hours file access. USB device connected 2x in 72h (policy violation). Sentiment score: -0.4 (baseline: 0.1).",
-    "proponent":                "FINAL_ANSWER: VERDICT: ACCEPT — Primary hypothesis: External APT compromise via spear-phishing with lateral movement to domain controller. DFKG evidence refs: [E-001, E-003, N-002].",
-    "critic":                   "FINAL_ANSWER: COUNTER-EVIDENCE: Alternative hypothesis: Insider threat with credential sharing. The lateral movement pattern is consistent with legitimate admin activity. Gap: no C2 confirmation from sandboxed execution.",
-    "judge":                    "FINAL_ANSWER: VERDICT: ACCEPT\nConfidence: 0.85\nBoth positions evaluated. Proponent's C2 beaconing evidence and ATT&CK chain are well-supported.",
+    "proponent":                "Primary hypothesis: External APT compromise via spear-phishing with lateral movement to domain controller. DFKG evidence refs: [E-001, E-003, N-002].",
+    "critic":                   "Alternative hypothesis: Insider threat with credential sharing. The lateral movement pattern is consistent with legitimate admin activity. Gap: no C2 confirmation from sandboxed execution.",
+    "judge":                    "VERDICT: ACCEPT. Both positions evaluated. Proponent's C2 beaconing evidence and ATT&CK chain are well-supported. Confidence: 0.85.",
     "guardrail_tier3":          "RESULT: PASS. Output is factually consistent with DFKG evidence. No hallucinated claims detected. Logical chain from initial access to exfiltration is coherent.",
     "report_generation":        "=== FORENSIC INVESTIGATION REPORT ===\nCase: {case_id}\nClassification: External APT Compromise\nSeverity: Critical\nFindings: 15 evidence artifacts across 4 domains.\nRecommendation: Immediate containment of affected hosts.",
     "timeline_artifact_generation": "=== TIMELINE ARTIFACT ===\n03:12 - Phishing email received\n03:14 - Malicious attachment executed\n03:19 - Lateral movement to DC01\n03:26 - Data staging initiated\n03:30 - Exfiltration via DNS tunnel",
@@ -283,17 +274,10 @@ class StubLLM:
         self._case_id = case_id
 
     def invoke(self, prompt: str | list) -> _StubResponse:
-        val = _STUB_RESPONSES.get(self.role, f"[{self.role}] Analysis complete.")
-        
-        if isinstance(val, list):
-            text = val.pop(0) if val else f"[{self.role}] No more stubs."
-        else:
-            text = val
-            
+        text = _STUB_RESPONSES.get(self.role, f"[{self.role}] Analysis complete.")
         # D4: inject case_id explicitly (no fragile regex extraction from prompt)
         if "{case_id}" in text:
             text = text.replace("{case_id}", self._case_id)
-            
         return _StubResponse(text)
 
 
@@ -324,7 +308,7 @@ def _get_gemini_model() -> str:
     # _load_env() already populated os.environ at module import — read directly.
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        _RESOLVED_GEMINI_MODEL = "gemini-3.6-flash"  # D3: cache the default too
+        _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"  # D3: cache the default too
         return _RESOLVED_GEMINI_MODEL
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
@@ -347,42 +331,57 @@ def _get_gemini_model() -> str:
     except Exception:
         pass
 
-    _RESOLVED_GEMINI_MODEL = "gemini-3.6-flash"
+    _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"
     return _RESOLVED_GEMINI_MODEL
 
 
 def get_llm(agent_role: str, case_id: str = "unknown"):
-    """Return a managed runtime proxy for *agent_role* with per-agent session memory,
-    concurrency management, and model override resolution.
+    """Return an LLM for *agent_role* based on SPECULA_LLM_BACKEND env var.
+
+    Backends:
+      stub   — deterministic, no API key (default)
+      ollama — installed local model, no hosted fallback
+      gemini — langchain_google_genai.ChatGoogleGenerativeAI
+
+    Environment is loaded once at module import via _load_env() — no repeated
+    dotenv calls here. Set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
+    D4: case_id passed through to StubLLM so report stubs can fill {case_id}
+        without regex-extracting it back out of the formatted prompt.
     """
-    from src.agents.llm_runtime import get_runtime_manager
-    manager = get_runtime_manager()
-    return manager.get_agent_runtime(agent_role=agent_role, case_id=case_id)
+    backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
 
+    if agent_role == "threat_attribution":
+        backend = os.environ.get("SPECULA_THREAT_ATTRIBUTION_BACKEND", backend)
+        if backend == "openai_compatible":
+            from langchain_openai import ChatOpenAI
+            endpoint = os.environ.get("SPECULA_THREAT_ATTRIBUTION_BASE_URL")
+            key = os.environ.get("SPECULA_THREAT_ATTRIBUTION_API_KEY")
+            if not endpoint or not key:
+                raise ValueError("Threat Attribution model requires SPECULA_THREAT_ATTRIBUTION_BASE_URL and SPECULA_THREAT_ATTRIBUTION_API_KEY")
+            return ChatOpenAI(
+                model=os.environ.get("SPECULA_THREAT_ATTRIBUTION_MODEL", AGENT_CONFIG["threat_attribution"]["model_id"]),
+                base_url=endpoint, api_key=key, temperature=0,
+            )
 
-class TelemetryLLMWrapper:
-    """Retained for backward compatibility with existing tests and imports."""
-    def __init__(self, llm, role, backend, model_name):
-        self._llm = llm
-        self._role = role
-        self._backend = backend
-        self._model_name = model_name
-        self.role = role
-        self.model = model_name
-        self.model_name = model_name
+    if backend == "ollama":
+        from .ollama_backend import OllamaLLM
+        return OllamaLLM(model=os.environ.get("SPECULA_OLLAMA_MODEL", "qwen3:8b"),
+                         base_url=os.environ.get("SPECULA_OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+                         timeout=float(os.environ.get("SPECULA_OLLAMA_TIMEOUT", "120")),
+                         explanation_codes_only=agent_role == "threat_attribution")
 
-    def invoke(self, *args, **kwargs):
-        emit_event("llm_start", node=self._role, backend=self._backend, model=self._model_name)
-        start_time = time.time()
-        try:
-            res = self._llm.invoke(*args, **kwargs)
-            elapsed = time.time() - start_time
-            emit_event("llm_complete", node=self._role, elapsed=elapsed)
-            return res
-        except Exception as e:
-            elapsed = time.time() - start_time
-            emit_event("llm_error", node=self._role, error=str(e), error_type=type(e).__name__, elapsed=elapsed)
-            print(f"\n[LLM ERROR]\nBackend: {self._backend}\nModel: {self._model_name}\nReason: {str(e)}\n")
-            raise
+    if backend not in {"stub", "gemini"}:
+        raise ValueError(f"Unsupported model backend for {agent_role}: {backend}")
 
+    if backend == "gemini":
+        # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
+        if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
+            os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
+
+        from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
+        model_name = _get_gemini_model()  # D3: cached after first call
+        return ChatGoogleGenerativeAI(model=model_name, temperature=0)
+
+    # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
+    return StubLLM(agent_role, case_id=case_id)
 

@@ -12,7 +12,10 @@ Reference: faiss_threat_intel_implementation_plan.md §5
 
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+import re
+
+_TECHNIQUE_ID = re.compile(r"^T\d{4}(?:\.\d{3})?$")
 
 
 class ThreatIntelRecordMetadata(BaseModel):
@@ -36,7 +39,7 @@ class ThreatIntelRecordMetadata(BaseModel):
         default="",
         description="Full sanitized description text used to produce the embedding.",
     )
-    source: Literal["mitre_attack_stix", "nvd_cve", "mitre_attack_excel"] = Field(
+    source: Literal["mitre_attack_stix", "local_attack_xlsx", "nvd_cve"] = Field(
         ...,
         description="Authoritative data source.",
     )
@@ -44,8 +47,7 @@ class ThreatIntelRecordMetadata(BaseModel):
         ...,
         description=(
             "STIX bundle release tag (e.g. 'ATT&CK-v15.1') "
-            "or NVD feed snapshot date (e.g. '2026-08-18') "
-            "or Excel dataset version."
+            "or NVD feed snapshot date (e.g. '2026-08-18')."
         ),
     )
     embedding_model_version: str = Field(
@@ -60,14 +62,19 @@ class ThreatIntelRecordMetadata(BaseModel):
             "CVE: CWE IDs (e.g. ['CWE-79', 'CWE-89'])."
         ),
     )
-    stix_id: Optional[str] = None
-    platforms: Optional[List[str]] = None
-    is_subtechnique: Optional[bool] = None
-    parent_technique_id: Optional[str] = None
-    created: Optional[str] = None
-    last_modified: Optional[str] = None
-    url: Optional[str] = None
+    technique_ids: List[str] = Field(default_factory=list)
+    technique_sequence: List[str] = Field(default_factory=list)
+    sequence_basis: Optional[str] = None
+    source_hash: Optional[str] = None
+    retrieved_at: Optional[str] = None
+    feed_provider: Optional[str] = None
 
+    @field_validator("technique_ids", "technique_sequence")
+    @classmethod
+    def validate_techniques(cls, values: List[str]) -> List[str]:
+        if any(not _TECHNIQUE_ID.fullmatch(value) for value in values):
+            raise ValueError("Profile contains an invalid ATT&CK technique ID")
+        return values
 
     def to_dict(self) -> dict:
         """Return primitive-only dict (JSON-serializable, safe for metadata stores)."""

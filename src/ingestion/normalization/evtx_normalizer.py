@@ -42,8 +42,10 @@ def normalize_evtx_process_creation(
     event_id = system_block.get("EventID", raw_parsed_event.get("Id", 0))
     
     raw_cmdline = event_data.get("CommandLine") or raw_parsed_event.get("Message") or event_data.get("ScriptBlockText") or ""
-    raw_process_name = event_data.get("NewProcessName") or raw_parsed_event.get("ProviderName") or event_data.get("Path") or ""
-    raw_parent_process_name = event_data.get("ParentProcessName") or ""
+    raw_process_name = (event_data.get("NewProcessName") or event_data.get("Image") or
+                        event_data.get("Path") or raw_parsed_event.get("ProviderName") or "")
+    raw_parent_process_name = (event_data.get("ParentProcessName") or event_data.get("ParentImage") or
+                               event_data.get("CreatorProcessName") or "")
     
     # For PowerShell 4104, force process name to "powershell.exe" if not found
     if event_id in [4104, 4103] and not raw_process_name:
@@ -87,8 +89,9 @@ def normalize_evtx_process_creation(
         except ValueError:
             return 0
 
-    pid = _parse_pid(event_data.get("NewProcessId", 0))
-    ppid = _parse_pid(event_data.get("ProcessId", 0))
+    pid = _parse_pid(event_data.get("NewProcessId") or event_data.get("ProcessId", 0))
+    ppid = _parse_pid(event_data.get("ParentProcessId") or event_data.get("CreatorProcessId") or
+                      (event_data.get("ProcessId", 0) if "NewProcessId" in event_data else 0))
 
     uid = generate_deterministic_uid("process", {
         "event_id": event_id,
@@ -98,15 +101,12 @@ def normalize_evtx_process_creation(
         "host_id": canonical_host_id
     })
 
-    if not sanitized_parent_proc_name and ppid == 0:
-        parent_uid = None
-    else:
-        parent_uid = generate_deterministic_uid("process", {
-            "process_name": sanitized_parent_proc_name,
-            "pid": ppid,
-            "host_id": canonical_host_id
-        })
-    
+    from src.graph.process_lineage import process_identity
+    guid = event_data.get("ProcessGuid") or raw_parsed_event.get("process_guid")
+    parent_guid = event_data.get("ParentProcessGuid") or raw_parsed_event.get("parent_process_guid")
+    process_uid = process_identity(canonical_host_id, guid=guid, pid=pid, start=utc_time.isoformat(), image=sanitized_proc_name)
+    parent_uid = process_identity(canonical_host_id, guid=parent_guid)
+
     return ProcessActivity(
         trace_id=trace_id,
         activity_id=1, 
@@ -123,6 +123,9 @@ def normalize_evtx_process_creation(
         parent_process_name=sanitized_parent_proc_name,
         parent_process_pid=ppid,
         parent_process_uid=parent_uid,
+        process_uid=process_uid,
+        process_guid=guid,
+        parent_process_guid=parent_guid,
         host_name=computer_name,
         canonical_host_id=canonical_host_id
     )
@@ -278,8 +281,10 @@ def normalize_evtx_network(
     canonical_src_host = entity_resolver.resolve_any(ip=src_ip, event_timestamp=utc_time) if src_ip else None
     canonical_dst_ip_host = entity_resolver.resolve_any(ip=dst_ip, event_timestamp=utc_time) if dst_ip else None
     
-    src_endpoint = NetworkEndpoint(ip_address=src_ip, port=src_port, canonical_host_uid=canonical_src_host)
-    dst_endpoint = NetworkEndpoint(ip_address=dst_ip, port=dst_port, canonical_host_uid=canonical_dst_ip_host)
+    src_endpoint = NetworkEndpoint(ip_address=src_ip if src_ip and src_ip.strip() != "-" else None,
+                                   port=src_port, canonical_host_uid=canonical_src_host)
+    dst_endpoint = NetworkEndpoint(ip_address=dst_ip if dst_ip and dst_ip.strip() != "-" else None,
+                                   port=dst_port, canonical_host_uid=canonical_dst_ip_host)
     
     activity_id = 1
     if event_id == 22:

@@ -1,13 +1,29 @@
 import { useState, useEffect, useMemo } from 'react';
+import { apiFetch } from '../lib/api';
+import { localFetch } from '../lib/localApi';
+import { usePipeline } from '../contexts/PipelineContext';
 import ReactFlow, { Background, Controls, Handle } from 'reactflow';
 import 'reactflow/dist/style.css';
 import * as d3 from 'd3-force';
 
 const NODE_COLORS = {
+  Case: '#5E6AD2',
+  Event: '#8AA8CB',
+  DetectionFinding: '#F87171',
+  Entity: '#FBBF24',
+  AgentRun: '#4ADE80',
+  Report: '#A78BFA',
   Process: '#47BFFF',
   User: '#4ADE80',
   File: '#FBBF24',
   NetworkConnection: '#F87171',
+  NetworkEndpoint: '#F87171',
+  CloudAudit: '#22D3EE',
+  VulnerabilityFinding: '#FB923C',
+  AuditActivity: '#E879F9',
+  Observation: '#FBBF24',
+  TimelineEntry: '#38BDF8',
+  AttackStep: '#F87171',
   Host: '#A78BFA',
   Default: '#94A3B8'
 };
@@ -42,7 +58,7 @@ const Neo4jNode = ({ data }) => {
   );
 };
 
-const Legend = () => (
+const Legend = ({ nodes }) => (
   <div style={{
     position: 'absolute', bottom: 20, right: 20, zIndex: 10,
     background: 'rgba(15, 23, 42, 0.8)', padding: '1rem',
@@ -51,23 +67,24 @@ const Legend = () => (
     display: 'flex', flexDirection: 'column', gap: '0.5rem'
   }}>
     <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '0.9rem', color: 'white' }}>Node Types</h3>
-    {Object.entries(NODE_COLORS).filter(([k]) => k !== 'Default').map(([label, color]) => (
+    {[...new Set(nodes.map(node => node.data.neo4jLabel))].sort().map(label => (
       <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: color }} />
+        <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: NODE_COLORS[label] || NODE_COLORS.Default }} />
         <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{label}</span>
       </div>
     ))}
+    {nodes.length > 0 && <span style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Dashed link = evidence membership</span>}
   </div>
 );
 
-const GraphStats = ({ nodes, edges, isPanelOpen }) => {
-  const nodeCounts = nodes.reduce((acc, n) => {
+const GraphStats = ({ nodes, edges, totals, isPanelOpen }) => {
+  const shownCounts = nodes.reduce((acc, n) => {
     acc[n.data.neo4jLabel] = (acc[n.data.neo4jLabel] || 0) + 1;
     return acc;
   }, {});
 
   const edgeCounts = edges.reduce((acc, e) => {
-    acc[e.label] = (acc[e.label] || 0) + 1;
+    acc[e.data?.relationshipType] = (acc[e.data?.relationshipType] || 0) + 1;
     return acc;
   }, {});
 
@@ -82,12 +99,12 @@ const GraphStats = ({ nodes, edges, isPanelOpen }) => {
       transition: 'right 0.3s ease'
     }}>
       <div>
-        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Node Counts</h3>
+        <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Case Node Counts</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {Object.entries(nodeCounts).map(([type, count]) => (
+          {Object.entries(totals).filter(([, count]) => count > 0).map(([type, count]) => (
             <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
               <span style={{ color: NODE_COLORS[type] || NODE_COLORS.Default }}>{type}</span>
-              <span style={{ fontWeight: 'bold' }}>{count}</span>
+              <span style={{ fontWeight: 'bold' }}>{shownCounts[type] || 0} / {count}</span>
             </div>
           ))}
           {nodes.length === 0 && <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>No nodes</div>}
@@ -96,7 +113,7 @@ const GraphStats = ({ nodes, edges, isPanelOpen }) => {
       <div>
         <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: 'white', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Relationships</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {Object.entries(edgeCounts).map(([type, count]) => (
+          {Object.entries(edgeCounts).filter(([type]) => type !== 'CASE_TAG').map(([type, count]) => (
             <div key={type} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
               <span style={{ opacity: 0.8 }}>{type}</span>
               <span style={{ fontWeight: 'bold' }}>{count}</span>
@@ -110,6 +127,7 @@ const GraphStats = ({ nodes, edges, isPanelOpen }) => {
 };
 
 const runForceLayout = (nodes, edges) => {
+  const nodeById = new Map(nodes.map(node => [node.id, node]));
   const simNodes = nodes.map(n => ({ ...n, x: Math.random() * 800, y: Math.random() * 600 }));
   const simEdges = edges.map(e => ({ ...e, source: e.source, target: e.target }));
 
@@ -121,10 +139,11 @@ const runForceLayout = (nodes, edges) => {
     .stop();
 
   // Run synchronously to calculate positions
-  for (let i = 0; i < 200; ++i) simulation.tick();
+  const iterations = nodes.length > 600 ? 40 : nodes.length > 200 ? 80 : 200;
+  for (let i = 0; i < iterations; ++i) simulation.tick();
 
   return simNodes.map(n => {
-    const orig = nodes.find(on => on.id === n.id);
+    const orig = nodeById.get(n.id);
     return {
       ...orig,
       position: { x: n.x - 40, y: n.y - 40 } // Offset for the node dimensions
@@ -132,22 +151,43 @@ const runForceLayout = (nodes, edges) => {
   });
 };
 
-export default function Neo4jVisualizer() {
+export default function Neo4jVisualizer({ caseId = '' }) {
+  const { caseId: activeCaseId } = usePipeline();
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [totals, setTotals] = useState({});
+  const [cases, setCases] = useState([]);
+  const [selectedCase, setSelectedCase] = useState(caseId);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, data: null });
   const [selectedNode, setSelectedNode] = useState(null);
 
   const nodeTypes = useMemo(() => ({ neo4j: Neo4jNode }), []);
 
   useEffect(() => {
-    fetch('http://localhost:8300/api/data/neo4j')
-      .then(res => res.json())
-      .then(data => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        let response;
+        try {
+          if (caseId && !caseId.startsWith('LOCAL-')) throw new Error('Use authenticated case API');
+          response = await localFetch(`/api/local/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`);
+        } catch {
+          response = await apiFetch(`http://localhost:8300/api/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`);
+        }
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `Graph returned HTTP ${response.status}`);
+        if (data.status !== 'success') throw new Error(data.message || 'Graph store unavailable');
+        if (cancelled) return;
         if (data.status === 'success') {
+          setCases(data.cases || []);
+          setTotals(data.totals || {});
+          if (!selectedCase && data.case_id) setSelectedCase(data.cases?.includes(activeCaseId) ? activeCaseId : data.case_id);
           const rfNodes = data.nodes.map((n) => {
-            const displayProp = n.properties.name || n.properties.ip || n.properties.cmd || 'Node';
+            const displayProp = n.label === 'AgentRun' ? `${n.properties.sequence + 1}. ${n.properties.agent_role}`
+              : n.label === 'Report' ? `Report: ${n.properties.status}`
+                : n.properties.process_name || n.properties.finding_info || n.properties.host_name || n.properties.uid || n.properties.name || n.label;
             return {
               id: n.id,
               type: 'neo4j',
@@ -160,9 +200,12 @@ export default function Neo4jVisualizer() {
             id: e.id,
             source: e.source,
             target: e.target,
-            label: e.type,
-            style: { stroke: 'var(--sp-color-accent-indigo)', strokeWidth: 1.5, opacity: 0.6 },
-            animated: true
+            data: { relationshipType: e.type },
+            label: e.type === 'HAS_EVENT' || e.type === 'HAS_AGENT_RUN' || e.derived ? undefined : e.type,
+            style: { stroke: e.derived ? '#94A3B8' : 'var(--sp-color-accent-indigo)',
+              strokeWidth: 1.5, opacity: e.derived ? 0.35 : 0.65,
+              strokeDasharray: e.derived ? '4 5' : undefined },
+            animated: false
           }));
 
           const layoutedNodes = runForceLayout(rfNodes, rfEdges);
@@ -170,13 +213,15 @@ export default function Neo4jVisualizer() {
           setNodes(layoutedNodes);
           setEdges(rfEdges);
         }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, []);
+      } catch (error) {
+        if (!cancelled) setLoadError(error.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [selectedCase, activeCaseId, caseId]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
@@ -184,9 +229,18 @@ export default function Neo4jVisualizer() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
           <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Knowledge Graph (Neo4j)</h1>
+          <label style={{ marginLeft: 'auto', fontSize: '0.85rem' }}>Case{' '}
+            <select disabled={!!caseId} value={selectedCase} onChange={e => { setLoading(true); setSelectedCase(e.target.value); }}>
+              {!selectedCase && <option value="">Latest available case</option>}
+              {caseId && !cases.includes(caseId) && <option value={caseId}>{caseId}</option>}
+              {cases.map(id => <option key={id} value={id}>{id}</option>)}
+            </select>
+          </label>
         </div>
+        <p style={{ marginBottom: 0, fontSize: '0.8rem' }}>Showing up to 300 nodes per type. Counts show displayed / total case nodes; dashed links are derived from case tags.</p>
       </div>
       <div className="graph-container glass-panel" style={{ flex: 1, padding: 0, position: 'relative' }}>
+        {loadError && <p role="alert" style={{ padding: '1rem', color: 'var(--sp-color-status-breach)' }}>{loadError}</p>}
         {loading ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--sp-color-text-secondary)' }}>Loading graph data...</div>
         ) : (
@@ -206,8 +260,8 @@ export default function Neo4jVisualizer() {
               <Background color="var(--sp-color-border-grid)" />
               <Controls />
             </ReactFlow>
-            <Legend />
-            <GraphStats nodes={nodes} edges={edges} isPanelOpen={!!selectedNode} />
+            <Legend nodes={nodes} />
+            <GraphStats nodes={nodes} edges={edges} totals={totals} isPanelOpen={!!selectedNode} />
             {tooltip.show && tooltip.data && tooltip.data.properties && (
               <div style={{
                 position: 'fixed',

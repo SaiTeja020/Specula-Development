@@ -433,7 +433,7 @@ Specula is deployed as a containerized, locally hosted microservices stack desig
 |System Logs|Windows EVTX, Linux auditd<br>syslogs, Sysmon logs|Log Analysis & Evidence<br>Correlation Agents|
 |NTFS Artifacts|$MFT, $USNjrnl,<br>$FILE_NAME &<br>$STANDARD_INFORMATIO<br>N|Memory Forensics &<br>Timestomping Module|
 |Network Logs & PCAPs|Suricata IDS, Zeek<br>connection/DNS/HTTP logs,<br>raw PCAP|Network Forensics Agent|
-|AD & Cloud Audit|Active Directory<br>LDAP/Kerberos, AWS<br>CloudTrail, Azure Logs|Identity & Cloud/Container<br>Agents|
+|AD & Cloud Audit|Active Directory<br>LDAP/Kerberos, GCP Audit Logs<br>, Azure Logs|Identity & Cloud/Container<br>Agents|
 |EDR & UEBA Telemetry|CrowdStrike Falcon,<br>SentinelOne, Wazuh, Splunk<br>UBA|Memory Forensics &<br>Insider Threat Agents|
 
 
@@ -446,7 +446,7 @@ Specula is deployed as a containerized, locally hosted microservices stack desig
 |Threat Intel Feeds|MITRE ATT&CK STIX, MISP<br>IOC feeds, VirusTotal, NVD<br>CVE|Threat Attribution &<br>Malware Behavior Agents|
 |Container / K8s Logs|Kubernetes audit logs, Falco<br>runtime security, Docker logs|Cloud & Container Agent|
 |Vulnerability Scans|OpenVAS / Nessus / Qualys<br>API outputs, software<br>manifests|Dynamic Attack Graph<br>Agent|
-|Cloud Topology|AWS/Azure/GCP Cloud<br>Logging SDK, Cartography<br>asset graphs|Cloud & Container Agent|
+|Cloud Topology|GCP/Azure Cloud<br>Logging SDK, Cartography<br>asset graphs|Cloud & Container Agent|
 |Investigator Query|Natural language query<br>submitted via React<br>dashboard|Supervisor Agent (routes<br>to specialists)|
 
 

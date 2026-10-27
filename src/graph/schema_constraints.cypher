@@ -10,14 +10,26 @@
 CREATE CONSTRAINT host_uid_unique IF NOT EXISTS FOR (h:Host) REQUIRE h.uid IS UNIQUE;
 CREATE CONSTRAINT process_uid_unique IF NOT EXISTS FOR (p:Process) REQUIRE p.uid IS UNIQUE;
 CREATE CONSTRAINT endpoint_uid_unique IF NOT EXISTS FOR (e:NetworkEndpoint) REQUIRE e.uid IS UNIQUE;
+CREATE CONSTRAINT network_event_uid_unique IF NOT EXISTS FOR (e:Event) REQUIRE e.uid IS UNIQUE;
+CREATE CONSTRAINT case_uid_unique IF NOT EXISTS FOR (c:Case) REQUIRE c.uid IS UNIQUE;
 CREATE CONSTRAINT user_uid_unique IF NOT EXISTS FOR (u:User) REQUIRE u.uid IS UNIQUE;
 CREATE CONSTRAINT file_uid_unique IF NOT EXISTS FOR (f:File) REQUIRE f.uid IS UNIQUE;
 
 // §5.2: Entity-level uniqueness for DFKG consumer writes (skeleton phase)
 // Prevents duplicate nodes from Kafka consumer retries / message replays.
 CREATE CONSTRAINT entity_uid_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.uid IS UNIQUE;
-CREATE CONSTRAINT agent_finding_uid_unique IF NOT EXISTS FOR (a:AgentFinding) REQUIRE a.uid IS UNIQUE;
-CREATE CONSTRAINT case_id_unique IF NOT EXISTS FOR (c:Case) REQUIRE c.case_id IS UNIQUE;
+CREATE CONSTRAINT agent_run_uid_unique IF NOT EXISTS FOR (a:AgentRun) REQUIRE a.uid IS UNIQUE;
+CREATE CONSTRAINT acquisition_run_uid_unique IF NOT EXISTS FOR (a:AcquisitionRun) REQUIRE a.uid IS UNIQUE;
+CREATE CONSTRAINT report_uid_unique IF NOT EXISTS FOR (r:Report) REQUIRE r.uid IS UNIQUE;
+CREATE CONSTRAINT observation_uid_unique IF NOT EXISTS FOR (n:Observation) REQUIRE n.uid IS UNIQUE;
+CREATE CONSTRAINT timeline_entry_uid_unique IF NOT EXISTS FOR (n:TimelineEntry) REQUIRE n.uid IS UNIQUE;
+CREATE CONSTRAINT attack_step_uid_unique IF NOT EXISTS FOR (n:AttackStep) REQUIRE n.uid IS UNIQUE;
+CREATE CONSTRAINT detection_uid_unique IF NOT EXISTS FOR (n:DetectionFinding) REQUIRE n.uid IS UNIQUE;
+CREATE CONSTRAINT cloud_audit_uid_unique IF NOT EXISTS FOR (n:CloudAudit) REQUIRE n.uid IS UNIQUE;
+CREATE CONSTRAINT vulnerability_uid_unique IF NOT EXISTS FOR (n:VulnerabilityFinding) REQUIRE n.uid IS UNIQUE;
+CREATE CONSTRAINT audit_activity_uid_unique IF NOT EXISTS FOR (n:AuditActivity) REQUIRE n.uid IS UNIQUE;
+
+
 
 // 2. Composite Indexes for Backfill Performance & Case Isolation
 

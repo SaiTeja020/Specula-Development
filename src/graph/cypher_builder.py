@@ -7,7 +7,10 @@ ensuring explicit locks and supernode protection.
 Reference: specula_ingestion_final_plan.md §8.1 & §8.4
 """
 
+import json
 from typing import Any, Dict, List, Optional, Tuple
+
+from src.schemas.uid_generator import generate_deterministic_uid
 
 
 _MERGE_TEMPLATES = {
@@ -91,14 +94,6 @@ class CypherBuilder:
     @staticmethod
     def build_process_creation(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = """
-        MERGE (h:Host {uid: $canonical_host_id})
-        ON CREATE SET 
-            h.hostname = $host_name,
-            h.case_id = $case_id,
-            h.first_seen = $time
-        ON MATCH SET
-            h.last_seen = $time
-            
         MERGE (child:Process {uid: $process_uid})
         ON CREATE SET
             child.process_name = $process_name,
@@ -106,8 +101,17 @@ class CypherBuilder:
             child.command_line = $command_line,
             child.host_uid = $canonical_host_id,
             child.case_id = $case_id,
-            child.start_time = $time
+            child.start_time = $time,
+            child.source_event_uid = $event_uid
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
+        ON CREATE SET
+            h.hostname = $host_name,
+            h.case_id = $case_id,
+            h.first_seen = $time
+        ON MATCH SET
+            h.last_seen = $time
         MERGE (child)-[r1:RUNS_ON]->(h)
         ON CREATE SET
             r1.time = $time,
@@ -115,8 +119,8 @@ class CypherBuilder:
             r1.case_id = $case_id
         ON MATCH SET
             r1.last_seen = $time
-        
-        WITH child, h
+        )
+        WITH child
         WHERE $parent_process_uid IS NOT NULL
         MERGE (parent:Process {uid: $parent_process_uid})
         ON CREATE SET
@@ -126,13 +130,16 @@ class CypherBuilder:
             parent.case_id = $case_id
             
         MERGE (parent)-[r:SPAWNED]->(child)
-        ON CREATE SET 
+        ON CREATE SET
             r.time = $time,
             r.trace_id = $trace_id,
-            r.raw_source_timestamp = $raw_source_timestamp
+            r.raw_source_timestamp = $raw_source_timestamp,
+            r.source_event_uid = $event_uid,
+            r.identity_basis = 'source_parent_identity',
+            r.source_reported = true
         """
         params = {
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "host_name": event.get("host_name"),
             "case_id": event.get("case_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -141,7 +148,8 @@ class CypherBuilder:
             "parent_process_uid": event.get("parent_process_uid"),
             "parent_process_name": event.get("parent_process_name"),
             "parent_process_pid": event.get("parent_process_pid", 0),
-            "process_uid": event.get("uid"),
+            "process_uid": event.get("process_uid") or event.get("uid"),
+            "event_uid": event.get("uid"),
             "process_name": event.get("process_name"),
             "process_pid": event.get("process_pid", 0),
             "command_line": event.get("command_line"),
@@ -151,14 +159,6 @@ class CypherBuilder:
     @staticmethod
     def build_file_activity(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = """
-        MERGE (h:Host {uid: $canonical_host_id})
-        ON CREATE SET 
-            h.hostname = $host_name,
-            h.case_id = $case_id,
-            h.first_seen = $time
-        ON MATCH SET
-            h.last_seen = $time
-            
         MERGE (f:File {uid: $file_uid})
         ON CREATE SET
             f.file_name = $file_name,
@@ -173,6 +173,14 @@ class CypherBuilder:
             f.si_created = coalesce($si_created, f.si_created),
             f.fn_created = coalesce($fn_created, f.fn_created)
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
+        ON CREATE SET
+            h.hostname = $host_name,
+            h.case_id = $case_id,
+            h.first_seen = $time
+        ON MATCH SET
+            h.last_seen = $time
         MERGE (f)-[r:RUNS_ON]->(h)
         ON CREATE SET
             r.time = $time,
@@ -180,11 +188,12 @@ class CypherBuilder:
             r.case_id = $case_id
         ON MATCH SET
             r.last_seen = $time
+        )
         """
         si_created = event.get("si_created")
         fn_created = event.get("fn_created")
         params = {
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "host_name": event.get("host_name"),
             "case_id": event.get("case_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -247,7 +256,6 @@ class CypherBuilder:
     @staticmethod
     def build_detection_finding(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = """
-        MERGE (h:Host {uid: $canonical_host_id})
         
         MERGE (d:DetectionFinding {uid: $uid})
         ON CREATE SET
@@ -258,6 +266,8 @@ class CypherBuilder:
         ON MATCH SET
             d.last_seen = $time
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (d)-[r:TRIGGERED_ON]->(h)
         ON CREATE SET
             r.time = $time,
@@ -265,12 +275,13 @@ class CypherBuilder:
             r.case_id = $case_id
         ON MATCH SET
             r.last_seen = $time
+        )
         """
         params = {
             "uid": event.get("uid"),
-            "finding_info": event.get("finding_info"),
+            "finding_info": event.get("finding_info") or event.get("finding_title"),
             "severity_id": event.get("severity_id"),
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "case_id": event.get("case_id"),
             "trace_id": event.get("trace_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -280,7 +291,6 @@ class CypherBuilder:
     @staticmethod
     def build_defense_evasion(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = """
-        MERGE (h:Host {uid: $canonical_host_id})
         
         MERGE (a:AuditActivity {uid: $uid})
         ON CREATE SET
@@ -291,6 +301,8 @@ class CypherBuilder:
         ON MATCH SET
             a.last_seen = $time
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (a)-[r:CLEARED_LOGS_ON]->(h)
         ON CREATE SET
             r.time = $time,
@@ -298,12 +310,13 @@ class CypherBuilder:
             r.case_id = $case_id
         ON MATCH SET
             r.last_seen = $time
+        )
         """
         params = {
             "uid": event.get("uid"),
             "message": event.get("message"),
             "severity_id": event.get("severity_id"),
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "case_id": event.get("case_id"),
             "trace_id": event.get("trace_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -314,7 +327,6 @@ class CypherBuilder:
     @staticmethod
     def build_incident_finding(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = '''
-        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (i:IncidentFinding {uid: $uid})
         ON CREATE SET
             i.title = $title,
@@ -324,6 +336,8 @@ class CypherBuilder:
         ON MATCH SET
             i.last_seen = $time
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (i)-[r:DETECTED_ON]->(h)
         ON CREATE SET
             r.time = $time,
@@ -331,12 +345,13 @@ class CypherBuilder:
             r.case_id = $case_id
         ON MATCH SET
             r.last_seen = $time
+        )
         '''
         params = {
             "uid": event.get("uid"),
-            "title": event.get("title", ""),
+            "title": event.get("title") or event.get("incident_title"),
             "severity_id": event.get("severity_id"),
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "case_id": event.get("case_id"),
             "trace_id": event.get("trace_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -346,7 +361,6 @@ class CypherBuilder:
     @staticmethod
     def build_vulnerability_finding(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = '''
-        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (v:VulnerabilityFinding {uid: $uid})
         ON CREATE SET
             v.cve = $cve,
@@ -356,6 +370,8 @@ class CypherBuilder:
         ON MATCH SET
             v.last_seen = $time
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (v)-[r:AFFECTS]->(h)
         ON CREATE SET
             r.time = $time,
@@ -363,12 +379,13 @@ class CypherBuilder:
             r.case_id = $case_id
         ON MATCH SET
             r.last_seen = $time
+        )
         '''
         params = {
             "uid": event.get("uid"),
-            "cve": event.get("cve", "UNKNOWN_CVE"),
+            "cve": event.get("cve") or event.get("vulnerability_id"),
             "severity_id": event.get("severity_id"),
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "case_id": event.get("case_id"),
             "trace_id": event.get("trace_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -378,7 +395,6 @@ class CypherBuilder:
     @staticmethod
     def build_http_activity(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = '''
-        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (a:HTTPActivity {uid: $uid})
         ON CREATE SET
             a.http_method = $http_method,
@@ -388,6 +404,8 @@ class CypherBuilder:
         ON MATCH SET
             a.last_seen = $time
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
+        MERGE (h:Host {uid: $canonical_host_id})
         MERGE (a)-[r:ORIGINATED_FROM]->(h)
         ON CREATE SET
             r.time = $time,
@@ -395,12 +413,13 @@ class CypherBuilder:
             r.case_id = $case_id
         ON MATCH SET
             r.last_seen = $time
+        )
         '''
         params = {
             "uid": event.get("uid"),
             "http_method": event.get("http_method"),
             "url": event.get("url"),
-            "canonical_host_id": event.get("canonical_host_id", "UNKNOWN_HOST"),
+            "canonical_host_id": event.get("canonical_host_id"),
             "case_id": event.get("case_id"),
             "trace_id": event.get("trace_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
@@ -430,6 +449,10 @@ class CypherBuilder:
             return CypherBuilder.build_vulnerability_finding(event)
         elif class_uid == 4002:
             return CypherBuilder.build_http_activity(event)
+        elif class_uid == 99:
+            return ('MERGE (e:Event {uid:$uid}) ON CREATE SET e += $properties',
+                    {'uid': event['uid'], 'properties': {key: value for key, value in event.items()
+                        if isinstance(value, (str, int, float, bool)) or value is None}})
         else:
             return None, None
 
@@ -469,6 +492,7 @@ class CypherBuilder:
         ON MATCH SET
             u.last_seen = $time
             
+        FOREACH (_ IN CASE WHEN $canonical_host_id IS NULL THEN [] ELSE [1] END |
         MERGE (h:Host {uid: $canonical_host_id})
         ON CREATE SET
             h.case_id = $case_id,
@@ -486,23 +510,23 @@ class CypherBuilder:
             r.ticket_options = $ticket_options
         ON MATCH SET
             r.last_seen = $time
+        )
         """
         
         user_info = event.get("user", {})
         if isinstance(user_info, dict):
-            user_name = user_info.get("name")
+            user_name = user_info.get("name") or event.get("user_name")
             user_domain = user_info.get("domain")
             user_sid = user_info.get("sid")
         else:
-            user_name = None
+            user_name = event.get("user_name")
             user_domain = None
             user_sid = None
             
         dst_endpoint = event.get("dst_endpoint", {})
-        if isinstance(dst_endpoint, dict):
-            canonical_host_id = dst_endpoint.get("canonical_host_uid", "UNKNOWN_HOST")
-        else:
-            canonical_host_id = "UNKNOWN_HOST"
+        canonical_host_id = event.get("canonical_host_id")
+        if canonical_host_id is None and isinstance(dst_endpoint, dict):
+            canonical_host_id = dst_endpoint.get("canonical_host_uid")
             
         params = {
             "user_name": user_name,
@@ -521,34 +545,57 @@ class CypherBuilder:
     @staticmethod
     def build_network_activity(event: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         query = """
-        MERGE (src:NetworkEndpoint {uid: $src_ip})
+        MERGE (c:Case {uid: $case_id})
+        MERGE (e:Event {uid: $uid})
+        ON CREATE SET
+            e.class_uid = 4001,
+            e.case_id = $case_id,
+            e.canonical_host_id = $canonical_host_id,
+            e.time = $time,
+            e.raw_source_timestamp = $raw_source_timestamp,
+            e.trace_id = $trace_id,
+            e.src_endpoint = $src_endpoint_json,
+            e.dst_endpoint = $dst_endpoint_json,
+            e.protocol = $protocol,
+            e.dns_query = $dns_query,
+            e.dns_query_type = $dns_query_type,
+            e.bytes_in = $bytes_in,
+            e.bytes_out = $bytes_out
+        MERGE (c)-[:HAS_EVENT]->(e)
+
+        MERGE (src:NetworkEndpoint {uid: $src_endpoint_uid})
         ON CREATE SET
             src.ip_address = $src_ip,
             src.canonical_host_uid = $src_canonical_host_uid,
+            src.canonical_host_id = $src_canonical_host_uid,
             src.case_id = $case_id,
-            src.first_seen = $time
+            src.first_seen = $time,
+            src.timestamp = $time
         ON MATCH SET
             src.last_seen = $time
             
-        MERGE (dst:NetworkEndpoint {uid: $dst_ip})
+        MERGE (dst:NetworkEndpoint {uid: $dst_endpoint_uid})
         ON CREATE SET
             dst.ip_address = $dst_ip,
             dst.canonical_host_uid = $dst_canonical_host_uid,
+            dst.canonical_host_id = $dst_canonical_host_uid,
             dst.case_id = $case_id,
-            dst.first_seen = $time
+            dst.first_seen = $time,
+            dst.timestamp = $time
         ON MATCH SET
             dst.last_seen = $time
             
-        MERGE (src)-[r:CONNECTED_TO]->(dst)
+        MERGE (src)-[r:CONNECTED_TO {event_uid: $uid}]->(dst)
         ON CREATE SET
             r.time = $time,
             r.trace_id = $trace_id,
             r.case_id = $case_id,
             r.dst_port = $dst_port,
             r.protocol = $protocol,
-            r.dns_query = $dns_query
-        ON MATCH SET
-            r.last_seen = $time
+            r.dns_query = $dns_query,
+            r.bytes_out = $bytes_out
+        MERGE (e)-[:SOURCE_ENDPOINT]->(src)
+        MERGE (e)-[:DEST_ENDPOINT]->(dst)
         """
         
         src_endpoint = event.get("src_endpoint", {})
@@ -570,16 +617,36 @@ class CypherBuilder:
             dst_port = None
             dst_canonical_host_uid = None
             
+        uid = event["uid"]
+        case_id = event.get("case_id", "UNASSIGNED_CONTINUOUS")
+        src_endpoint_uid = generate_deterministic_uid("network_endpoint", {
+            "case_id": case_id, "ip": src_ip,
+            "host": src_canonical_host_uid or uid,
+        })
+        dst_endpoint_uid = generate_deterministic_uid("network_endpoint", {
+            "case_id": case_id, "ip": dst_ip,
+            "host": dst_canonical_host_uid or uid,
+        })
         params = {
+            "uid": uid,
+            "src_endpoint_uid": src_endpoint_uid,
+            "dst_endpoint_uid": dst_endpoint_uid,
             "src_ip": src_ip,
             "src_canonical_host_uid": src_canonical_host_uid,
             "dst_ip": dst_ip,
             "dst_canonical_host_uid": dst_canonical_host_uid,
             "dst_port": dst_port,
-            "case_id": event.get("case_id"),
+            "case_id": case_id,
+            "canonical_host_id": event.get("canonical_host_id"),
             "time": event.get("time").isoformat() if hasattr(event.get("time"), "isoformat") else event.get("time"),
+            "raw_source_timestamp": event.get("raw_source_timestamp"),
             "trace_id": event.get("trace_id"),
             "protocol": event.get("protocol"),
-            "dns_query": event.get("dns_query")
+            "dns_query": event.get("dns_query"),
+            "dns_query_type": event.get("dns_query_type"),
+            "bytes_in": event.get("bytes_in", 0),
+            "bytes_out": event.get("bytes_out", 0),
+            "src_endpoint_json": json.dumps(src_endpoint, sort_keys=True),
+            "dst_endpoint_json": json.dumps(dst_endpoint, sort_keys=True),
         }
         return query, params

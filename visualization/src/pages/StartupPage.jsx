@@ -15,10 +15,10 @@ import {
 const BOOT_SEQUENCE = [
   { id: 'redis', label: 'Redis Cache', port: '6379', icon: <Activity size={18} /> },
   { id: 'kafka', label: 'Kafka Broker', port: '9092', icon: <Server size={18} /> },
-  { id: 'quickwit', label: 'Quickwit WORM Datastore', port: '7280', icon: <Database size={18} /> },
+  { id: 'quickwit', label: 'Quickwit Evidence Index', port: '7280', icon: <Database size={18} /> },
   { id: 'neo4j', label: 'Neo4j Graph Database', port: '7687', icon: <Database size={18} /> },
   { id: 'chroma', label: 'ChromaDB Vector Store', port: '8000', icon: <Database size={18} /> },
-  { id: 'llm', label: 'LLM Multi-Agent Orchestrator', port: 'LangGraph', icon: <Cpu size={18} /> },
+  { id: 'llm', label: 'Model Backend Configuration', port: 'LangGraph', icon: <Cpu size={18} /> },
 ];
 
 export default function StartupPage() {
@@ -42,13 +42,42 @@ export default function StartupPage() {
       setLogs(prev => [...prev, { 
         time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
         tag: 'INIT', 
-        msg: 'Initiating full teardown and rebuild of Docker containers...' 
+        msg: 'Preparing Docker Compose teardown and recreate...'
       }]);
 
-      // Start the actual backend boot process and WAIT for it
-      const bootResult = await fetch('http://localhost:8300/api/system/boot', { method: 'POST' })
-        .then(res => res.json())
-        .catch(err => ({ status: 'error', message: err.message }));
+      let bootResult;
+      try {
+        const bootFetch = (url, options = {}) => fetch(url, {
+          ...options, headers: { ...options.headers, 'X-Specula-Local-Boot': '1' }
+        });
+        const start = await bootFetch('http://127.0.0.1:8400/api/system/boot', { method: 'POST' });
+        const job = await start.json();
+        if (!start.ok) throw new Error(job.detail || `Boot controller returned HTTP ${start.status}`);
+        for (let attempt = 0; attempt < 420; attempt++) {
+          if (isCancelled) return;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          const response = await bootFetch(`http://127.0.0.1:8400/api/system/boot/${job.id}`);
+          bootResult = await response.json();
+          if (!response.ok) throw new Error(bootResult.detail || `Boot status returned HTTP ${response.status}`);
+          if (bootResult.phase === 'error') throw new Error(bootResult.message);
+          if (bootResult.phase === 'complete') break;
+        }
+        if (bootResult?.phase !== 'complete') throw new Error('Docker recreate timed out');
+        setLogs(prev => [...prev, {
+          time: new Date().toLocaleTimeString('en-US', { hour12: false }),
+          tag: 'OK', msg: 'Specula containers recreated. Checking service connections...'
+        }]);
+        for (let attempt = 0; attempt < 30; attempt++) {
+          if (isCancelled) return;
+          const response = await bootFetch('http://127.0.0.1:8400/api/system/readiness');
+          bootResult = await response.json();
+          if (response.ok && bootResult.status === 'success') break;
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      } catch (error) {
+        bootResult = { status: 'error', message: error.message === 'Failed to fetch'
+          ? 'Local boot controller unavailable. Start it on port 8400 and retry.' : error.message };
+      }
 
       if (isCancelled) return;
 
@@ -56,7 +85,7 @@ export default function StartupPage() {
         setLogs(prev => [...prev, { 
           time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
           tag: 'ERROR', 
-          msg: `Failed to boot: ${bootResult.message}` 
+          msg: `Failed to boot: ${bootResult.message || 'Service connections remain unavailable. Check the Docker logs.'}`
         }]);
         setHasError(true);
         return;
@@ -65,29 +94,28 @@ export default function StartupPage() {
       setLogs(prev => [...prev, { 
         time: new Date().toLocaleTimeString('en-US', { hour12: false }), 
         tag: 'OK', 
-        msg: 'Docker containers recreated successfully. Verifying services...' 
+        msg: 'Received service checks. Reviewing each result...'
       }]);
 
-      // Visually iterate through services now that we know they are running
       for (let i = 0; i < BOOT_SEQUENCE.length; i++) {
         if (isCancelled) return;
         setActiveStep(i);
-        const timeStr = new Date().toLocaleTimeString('en-US', { hour12: false });
-        setLogs(prev => [...prev, { time: timeStr, tag: 'INIT', msg: `Initializing ${BOOT_SEQUENCE[i].label} on port ${BOOT_SEQUENCE[i].port}...` }]);
-        
-        await new Promise(r => setTimeout(r, 400));
-        
-        const okTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-        setLogs(prev => [...prev, { time: okTime, tag: 'OK', msg: `Service ${BOOT_SEQUENCE[i].id} (${BOOT_SEQUENCE[i].port}) verified online and healthy.` }]);
-        
-        await new Promise(r => setTimeout(r, 100));
+        const service = BOOT_SEQUENCE[i];
+        const result = bootResult.services?.[service.id];
+        if (!result || result.status === 'unavailable') {
+          setHasError(true);
+          setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), tag: 'ERROR', msg: `${service.label} is unavailable.` }]);
+          return;
+        }
+        setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), tag: 'OK',
+          msg: service.id === 'llm' ? `Backend: ${result.backend}; live inference is not verified.` : `${service.label}: connection verified.` }]);
       }
-      
+
       if (isCancelled) return;
 
       setActiveStep(BOOT_SEQUENCE.length);
       const doneTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-      setLogs(prev => [...prev, { time: doneTime, tag: 'SYSTEM', msg: 'All core microservices and datastores online. Specula readiness: 100%.' }]);
+      setLogs(prev => [...prev, { time: doneTime, tag: 'SYSTEM', msg: 'Local store connections verified. Model inference and production readiness need separate validation.' }]);
     };
     
     runBoot();
@@ -107,7 +135,7 @@ export default function StartupPage() {
           System Initialization
         </h1>
         <p style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.9rem', margin: 0 }}>
-          Booting underlying DFIR infrastructure and establishing cryptographic integrity checks.
+          Recreating local Docker containers and checking service connections.
         </p>
       </div>
 
@@ -133,7 +161,7 @@ export default function StartupPage() {
             background: isComplete ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 64, 175, 0.1)',
             color: isComplete ? 'var(--sp-color-status-admissible)' : 'var(--sp-color-accent-indigo)'
           }}>
-            {isComplete ? 'ALL 6 SERVICES ONLINE' : `BOOTING (${Math.max(0, activeStep)}/${BOOT_SEQUENCE.length})`}
+            {isComplete ? 'LOCAL CHECKS COMPLETE' : `CHECKING (${Math.max(0, activeStep)}/${BOOT_SEQUENCE.length})`}
           </span>
         </div>
 
@@ -268,7 +296,7 @@ export default function StartupPage() {
             }}
             style={{ padding: '0.85rem 2.25rem', fontSize: '1rem', border: '1px solid var(--sp-color-border-hover)' }}
           >
-            Retry Boot Process
+            Retry Container Recreate
           </button>
         )}
         {isComplete && (

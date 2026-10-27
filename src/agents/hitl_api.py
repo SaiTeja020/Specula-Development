@@ -1,48 +1,36 @@
-"""Specula Investigation & HITL Gateway — §8.
+"""Minimal HITL HTTP endpoint — §8.
 
-Endpoints:
-  POST /investigate              — submit a user text query, run full investigation
-  GET  /hitl/{thread_id}         — fetch snapshot of paused case
-  POST /hitl/{thread_id}         — submit decision (approve/reject/clarify), resume graph
-  GET  /investigation/{thread_id}/result — retrieve synthesis result for completed run
+Two endpoints:
+  GET  /hitl/{thread_id}  — fetch snapshot of paused case
+  POST /hitl/{thread_id}  — submit decision (approve/reject/clarify), resume graph
 
-Runs on uvicorn per AGENTS.md rule.
+Runs on uvicorn per AGENTS.md rule. No React frontend, no tiered timeouts,
+no agreement-rate tracking — purely a mechanism to prove interrupt/resume
+works across a real process boundary.
 """
 from __future__ import annotations
 
 import logging
-import os
-from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
-from langgraph.checkpoint.memory import InMemorySaver
+from .api_auth import install_http_auth, authorize
 
 log = logging.getLogger(__name__)
 
-app = FastAPI(title="Specula Investigation Gateway", version="0.2.0")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Specula HITL Gateway", version="0.1.0")
+install_http_auth(app)
 
 # Graph instance set by the caller before starting uvicorn
 _graph = None
 
-# Shared checkpointer — allows HITL resume of runs started via /investigate
-_checkpointer = InMemorySaver()
 
-# In-memory result cache: thread_id -> InvestigationResult
-_result_cache: dict = {}
-
-
-class InvestigateRequest(BaseModel):
-    query: str
-    case_id: Optional[str] = None
-    neo4j_enabled: bool = False   # set True only when Neo4j is reachable
+def get_graph():
+    global _graph
+    if _graph is None:
+        from .visualizer_api import _get_specula_graph
+        _graph = _get_specula_graph()
+    return _graph
 
 
 class HITLDecision(BaseModel):
@@ -55,74 +43,24 @@ def set_graph(graph) -> None:
     _graph = graph
 
 
-@app.post("/investigate")
-async def investigate(body: InvestigateRequest):
-    """Run a full Specula investigation from a user text query.
-
-    Returns either the completed InvestigationResult (JSON) or a HITL pause
-    payload that requires human review via POST /hitl/{thread_id}.
-    """
-    from src.agents.investigation_runner import run_investigation, HITLPausedResult
-
-    neo4j_driver = None
-    if body.neo4j_enabled:
-        try:
-            from neo4j import GraphDatabase
-            uri  = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
-            user = os.environ.get("NEO4J_USER", "neo4j")
-            pw   = os.environ.get("NEO4J_PASSWORD", "")
-            neo4j_driver = GraphDatabase.driver(uri, auth=(user, pw))
-        except Exception as exc:
-            log.warning("Neo4j unavailable for /investigate: %s", exc)
-
-    try:
-        result = run_investigation(
-            query=body.query,
-            case_id=body.case_id,
-            neo4j_driver=neo4j_driver,
-            checkpointer=_checkpointer,
-        )
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-    finally:
-        if neo4j_driver:
-            neo4j_driver.close()
-
-    if isinstance(result, HITLPausedResult):
-        return result.as_dict()
-
-    result_dict = dict(result)
-    thread_key = f"thread-{result['case_id']}"
-    _result_cache[thread_key] = result_dict
-    return result_dict
-
-
-@app.get("/investigation/{thread_id}/result")
-async def get_investigation_result(thread_id: str):
-    """Retrieve the plain-English synthesis result for a completed investigation."""
-    result = _result_cache.get(thread_id)
-    if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No result found for thread '{thread_id}'. "
-                   "The investigation may be paused at HITL or not yet started.",
-        )
-    return result
-
-
 @app.get("/hitl/{thread_id}")
-async def get_snapshot(thread_id: str):
+async def get_snapshot(thread_id: str, request: Request):
     """Fetch the HITL case snapshot for a paused graph run."""
-    if _graph is None:
+    from .visualizer_api import _get_neo4j_driver
+    authorize(request.state.principal, thread_id, driver=_get_neo4j_driver())
+    graph = get_graph()
+    if graph is None:
         raise HTTPException(status_code=503, detail="Graph not initialised")
 
     config = {"configurable": {"thread_id": thread_id}}
     try:
-        state = _graph.get_state(config)
+        state = graph.get_state(config)
     except Exception as exc:
         raise HTTPException(status_code=404, detail=str(exc))
 
     values = state.values if hasattr(state, "values") else {}
+    if not values:
+        raise HTTPException(404, "Investigation not found")
     return {
         "thread_id": thread_id,
         "case_id": values.get("case_id"),
@@ -135,9 +73,12 @@ async def get_snapshot(thread_id: str):
 
 
 @app.post("/hitl/{thread_id}")
-async def submit_decision(thread_id: str, body: HITLDecision):
+async def submit_decision(thread_id: str, body: HITLDecision, request: Request):
     """Submit analyst decision and resume the paused graph."""
-    if _graph is None:
+    from .visualizer_api import _get_neo4j_driver
+    authorize(request.state.principal, thread_id, write=True, driver=_get_neo4j_driver())
+    graph = get_graph()
+    if graph is None:
         raise HTTPException(status_code=503, detail="Graph not initialised")
 
     if body.decision not in ("approve", "reject", "clarify"):
@@ -147,7 +88,18 @@ async def submit_decision(thread_id: str, body: HITLDecision):
 
     from langgraph.types import Command
     try:
-        result = _graph.invoke(Command(resume=body.decision), config)
+        import asyncio
+        from .checkpointer import durable_case_lock, CheckpointBusyError
+        def resume():
+            with durable_case_lock(graph.checkpointer, thread_id):
+                if "hitl" not in graph.get_state(config).next:
+                    raise HTTPException(409, "Investigation is not awaiting analyst review")
+                return graph.invoke(Command(resume=body.decision), config)
+        result = await asyncio.to_thread(resume)
+    except CheckpointBusyError:
+        raise HTTPException(409, "Investigation is already running in another worker") from None
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -164,12 +116,9 @@ async def submit_decision(thread_id: str, body: HITLDecision):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    from langgraph.checkpoint.memory import InMemorySaver
-
-    from .graph import build_graph
-
-    graph = build_graph(checkpointer=InMemorySaver())
+    graph = get_graph()
     set_graph(graph)
 
     log.info("Starting HITL API on port 8200")

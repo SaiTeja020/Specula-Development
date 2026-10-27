@@ -48,6 +48,9 @@ class ProcessActivity(OCSFBaseEvent):
     process_uid: Optional[str] = Field(
         default=None, description="Deterministic UID for this process entity."
     )
+    parent_process_uid: Optional[str] = Field(default=None, description="Source-resolved parent process identity; never PID alone.")
+    process_guid: Optional[str] = None
+    parent_process_guid: Optional[str] = None
     parent_process_name: Optional[str] = Field(
         default=None, description="Parent process executable name."
     )
@@ -113,6 +116,10 @@ class NetworkActivity(OCSFBaseEvent):
     dst_endpoint: NetworkEndpoint
     protocol: Optional[str] = None
     dns_query: Optional[str] = Field(None, description="Populated for Sysmon Event ID 22")
+    dns_query_type: Optional[str] = None
+    bytes_in: int = Field(default=0, ge=0, description="Bytes received by the source host.")
+    bytes_out: int = Field(default=0, ge=0, description="Bytes sent by the source host.")
+    connection_uid: Optional[str] = None
 
 
 # ─── Authentication (OCSF class 3002) ────────────────────────────────
@@ -217,8 +224,7 @@ class FileActivity(OCSFBaseEvent):
 
 class CloudAudit(OCSFBaseEvent):
     """
-    OCSF Cloud Audit event. Maps AWS CloudTrail, Azure Activity Logs,
-    and GCP Audit Logs.
+    OCSF Cloud Audit event. Maps GCP Audit Logs.
     """
 
     class_uid: int = Field(default=6003, frozen=True)
@@ -226,7 +232,7 @@ class CloudAudit(OCSFBaseEvent):
 
     # Cloud audit-specific fields
     cloud_provider: Optional[str] = Field(
-        default=None, description="Cloud provider (AWS, Azure, GCP)."
+        default=None, description="Cloud provider (GCP)."
     )
     cloud_region: Optional[str] = Field(
         default=None, description="Cloud region where the event occurred."

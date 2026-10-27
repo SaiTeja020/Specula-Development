@@ -134,6 +134,29 @@ class ThreatIntelMCPServer:
             tool_name="query_cves",
         )
 
+    def get_attack_group_profile(self, group_id: str) -> Dict[str, Any]:
+        """Load the complete ATT&CK group profile by its stable group ID."""
+        self._index.reload_if_stale()
+        metadata = self._index.get_record_metadata(group_id)
+        if not metadata or metadata.get("record_type") != "attack_group":
+            return {"status": "not_found", "profile": None}
+        return {"status": "ok", "profile": metadata}
+
+    def list_attack_group_profiles(self) -> Dict[str, Any]:
+        """Return all group profiles for deterministic case attribution."""
+        self._index.reload_if_stale()
+        if not self._index.is_ready():
+            return {"status": "error", "profiles": []}
+        return {"status": "ok", "profiles": self._index.list_record_metadata("attack_group")}
+
+    def get_attack_technique(self, technique_id: str) -> Dict[str, Any]:
+        """Validate an observed ATT&CK ID against this corpus version."""
+        self._index.reload_if_stale()
+        metadata = self._index.get_record_metadata(technique_id)
+        if not metadata or metadata.get("record_type") != "attack_technique":
+            return {"status": "not_found", "record": None}
+        return {"status": "ok", "record": metadata}
+
     def health_check(self) -> Dict[str, Any]:
         """
         Tool: health_check
@@ -156,6 +179,9 @@ class ThreatIntelMCPServer:
         # Compute staleness
         corpus_age_secs: Optional[float] = None
         is_stale = False
+        pinned_local = (set(self._index.source_versions) == {"local_attack_xlsx"}
+                        and self._index.provenance["artifacts_verified"])
+        freshness_basis = "versioned_local_source" if pinned_local else "build_age"
         if build_timestamp:
             try:
                 import datetime
@@ -164,7 +190,7 @@ class ThreatIntelMCPServer:
                 )
                 now = datetime.datetime.now(datetime.timezone.utc)
                 corpus_age_secs = (now - ts).total_seconds()
-                is_stale = corpus_age_secs > self._staleness_threshold
+                is_stale = not pinned_local and corpus_age_secs > self._staleness_threshold
             except Exception:
                 pass
 
@@ -182,8 +208,12 @@ class ThreatIntelMCPServer:
             "build_timestamp": build_timestamp,
             "corpus_age_secs": corpus_age_secs,
             "is_stale": is_stale,
+            "freshness_basis": freshness_basis,
             "staleness_threshold_secs": self._staleness_threshold,
             "reloaded_on_this_call": reloaded,
+            **self._index.provenance,
+            "source_versions": self._index.source_versions,
+            "embedding_model_version": self._index.embedding_model_version,
         }
 
     # ------------------------------------------------------------------

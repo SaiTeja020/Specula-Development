@@ -32,6 +32,7 @@ Reference: faiss_threat_intel_implementation_plan.md §4
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -47,7 +48,6 @@ from src.ingestion.indexing.threat_intel_sources import (
     NvdCveFetcher,
     ThreatIntelRecord,
 )
-from src.ingestion.indexing.known_attacks_fetcher import KnownAttacksExcelFetcher
 from src.ingestion.indexing.vector_store import EmbeddingGenerator
 from src.ingestion.security_gate.sanitizer import sanitize_text
 from src.schemas.threat_intel_metadata import ThreatIntelRecordMetadata
@@ -113,14 +113,14 @@ def _embed_records(
             description=sanitized,
             source=record.source,
             source_version=record.source_version,
+            embedding_model_version=gen.model_version,
             tags=record.tags if record.tags else None,
-            stix_id=getattr(record, "stix_id", None),
-            platforms=getattr(record, "platforms", None),
-            is_subtechnique=getattr(record, "is_subtechnique", None),
-            parent_technique_id=getattr(record, "parent_technique_id", None),
-            created=getattr(record, "created", None),
-            last_modified=getattr(record, "last_modified", None),
-            url=getattr(record, "url", None),
+            technique_ids=record.technique_ids,
+            technique_sequence=record.technique_sequence,
+            sequence_basis=record.sequence_basis,
+            source_hash=record.source_hash,
+            retrieved_at=record.retrieved_at,
+            feed_provider=record.feed_provider,
         )
         metadata_dicts.append(meta.to_dict())
 
@@ -194,6 +194,17 @@ def _build_faiss_index(
     return index, n
 
 
+def _build_flat_index(vectors: list) -> tuple:
+    """Use exact search when a local corpus is too small to train IVF/PQ well."""
+    import faiss
+    import numpy as np
+
+    matrix = np.asarray(vectors, dtype="float32")
+    index = faiss.IndexFlatIP(matrix.shape[1])
+    index.add(matrix)
+    return index, index.ntotal
+
+
 def _write_artifacts_atomic(
     output_dir: str,
     faiss_index,
@@ -262,7 +273,11 @@ def _write_artifacts_atomic(
     _atomic_write_json(metadata_store, _METADATA_FILE)
     logger.info("  [OK] %s", _METADATA_FILE)
 
-    _atomic_write_json(build_meta, _MANIFEST_FILE)
+    artifact_hashes = {}
+    for name in (_FAISS_INDEX_FILE, _ID_MAP_FILE, _METADATA_FILE):
+        with open(os.path.join(output_dir, name), "rb") as artifact:
+            artifact_hashes[name] = hashlib.sha256(artifact.read()).hexdigest()
+    _atomic_write_json({**build_meta, "artifact_hashes": artifact_hashes}, _MANIFEST_FILE)
     logger.info("  [OK] %s", _MANIFEST_FILE)
 
 
@@ -279,6 +294,10 @@ def main() -> None:
         "--attack-version",
         default="15.1",
         help="ATT&CK STIX bundle version (default: 15.1)",
+    )
+    parser.add_argument(
+        "--attack-xlsx",
+        help="Versioned local Enterprise ATT&CK workbook; requires --no-nvd and makes no feed requests",
     )
     parser.add_argument(
         "--nvd-api-key",
@@ -338,6 +357,8 @@ def main() -> None:
         help="Skip ATT&CK STIX fetch (NVD only)",
     )
     args = parser.parse_args()
+    if args.attack_xlsx and (args.no_attack or not args.no_nvd):
+        parser.error("--attack-xlsx requires --no-nvd and cannot be combined with --no-attack")
 
     build_start = time.time()
     build_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -345,7 +366,7 @@ def main() -> None:
     print(f"\n  Specula FAISS Threat-Intel Index Builder")
     print(f"  Build timestamp : {build_timestamp}")
     print(f"  Output dir      : {args.output_dir}")
-    print(f"  ATT&CK version  : {args.attack_version}")
+    print(f"  ATT&CK source   : {args.attack_xlsx or ('STIX v' + args.attack_version)}")
     if not args.no_nvd:
         nvd_key_status = (
             "provided (50 req/30 s)"
@@ -360,13 +381,22 @@ def main() -> None:
     # ----------------------------------------------------------------
     all_records: list[ThreatIntelRecord] = []
     source_versions: dict = {}
+    source_artifact_hashes: dict = {}
 
-    if not args.no_attack:
-        logger.info("Step 1/4: Fetching ATT&CK records from known_attacks Excel ...")
-        fetcher = KnownAttacksExcelFetcher()
+    if args.attack_xlsx:
+        from src.ingestion.indexing.attack_xlsx_source import load_attack_workbook
+        logger.info("Step 1/4: Reading local ATT&CK workbook ...")
+        records, workbook_hash = load_attack_workbook(args.attack_xlsx)
+        all_records.extend(records)
+        source_versions["local_attack_xlsx"] = records[0].source_version
+        source_artifact_hashes[os.path.basename(args.attack_xlsx)] = workbook_hash
+        logger.info("Local ATT&CK: collected %d records.", len(records))
+    elif not args.no_attack:
+        logger.info("Step 1/4: Fetching ATT&CK STIX bundle v%s ...", args.attack_version)
+        fetcher = AttackStixFetcher(version=args.attack_version)
         for rec in fetcher.fetch_and_parse():
             all_records.append(rec)
-        source_versions["mitre_attack_excel"] = "enterprise-attack-v19.2.xlsx"
+        source_versions["mitre_attack_stix"] = f"ATT&CK-v{args.attack_version}"
         logger.info("ATT&CK: collected %d records.", len(all_records))
     else:
         logger.info("Skipping ATT&CK STIX (--no-attack).")
@@ -399,19 +429,19 @@ def main() -> None:
     # Embed
     # ----------------------------------------------------------------
     logger.info("Step 3/4: Embedding %d records ...", len(all_records))
-    gen = EmbeddingGenerator()
+    gen = EmbeddingGenerator(model_version="sha384-byte-repeat-v1")
     vectors, metadata_list = _embed_records(all_records, gen)
 
     # ----------------------------------------------------------------
     # Build FAISS index
     # ----------------------------------------------------------------
-    logger.info("Step 4/4: Building FAISS IndexIVFPQ ...")
-    faiss_index, n_indexed = _build_faiss_index(
-        vectors=vectors,
-        nlist=args.nlist,
-        m=args.m,
-        bits=args.bits,
-    )
+    use_flat = bool(args.attack_xlsx and len(vectors) < 5000)
+    logger.info("Step 4/4: Building FAISS %s ...", "IndexFlatIP" if use_flat else "IndexIVFPQ")
+    if use_flat:
+        faiss_index, n_indexed = _build_flat_index(vectors)
+    else:
+        faiss_index, n_indexed = _build_faiss_index(
+            vectors=vectors, nlist=args.nlist, m=args.m, bits=args.bits)
 
     # ----------------------------------------------------------------
     # Write artifacts atomically
@@ -428,13 +458,12 @@ def main() -> None:
         "total_records": n_indexed,
         "record_type_counts": record_type_counts,
         "source_versions": source_versions,
+        "source_artifact_hashes": source_artifact_hashes,
         "faiss_config": {
-            "index_type": "IndexIVFPQ",
+            "index_type": "IndexFlatIP" if use_flat else "IndexIVFPQ",
             "dimension": len(vectors[0]),
-            "nlist": args.nlist,
-            "m": args.m,
-            "bits": args.bits,
             "metric": "METRIC_INNER_PRODUCT",
+            **({} if use_flat else {"nlist": args.nlist, "m": args.m, "bits": args.bits}),
         },
         "embedding_model_version": gen.model_version,
     }

@@ -1,10 +1,16 @@
 # Specula — Multi-Agent DFIR System (Ingestion Pipeline)
 
-Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **ChromaDB**, **LangGraph**, and **FastAPI / MCP**.
+Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **ChromaDB**, and **FastAPI / MCP**.
 
-> **New here?** Jump straight to [§ 3 — Getting Started](#3-getting-started). Every feature has a safe off-by-default mode so you can run a full local dry-run without Docker, a Gemini key, or forensic hardware.
+**Start here:** [Project status](docs/PROJECT_STATUS.md) lists verified local work, remaining work and readiness limits. [Documentation map](docs/README.md) distinguishes current operational guides from historical plans. The four split ZIPs and two Word summaries in the repository root are older deliverables; use the source tree for current changes.
 
 ---
+
+## Current local testing configuration (verified 2026-10-07)
+
+The local Docker override selects **Ollama `qwen3:8b`** for model calls, including Threat Attribution. Gemini and hosted attribution endpoints are not selected. No billable GCP services are authorized for this validation; gcloud checks are limited to local authentication/configuration. Follow [local model testing](docs/local_model_testing.md) for current commands; its restrictions supersede older external-service probe instructions below.
+
+The evidence, report, access-control and restart fixes passed focused tests and a deployed synthetic case. An offline ATT&CK v19.2 corpus was built and verified in local Docker on 2026-10-10. A later case-bounded probe used Ollama, received a Kafka broker acknowledgement and verified the same finding UID/offset in Neo4j through the local DFKG consumer. The earlier stored case remains incomplete; ranking quality and a new unattended complete case remain unverified. Follow [local remediation](docs/local_remediation.md) for the current authenticated Docker setup; the general installation steps below are architectural context.
 
 ## 1. Architecture Overview
 
@@ -35,7 +41,7 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
  7. Analytical Abstraction & Compression (Drain3 Log Parsing + SimHash Dedup + Shannon Entropy)
          │
          ▼
- 8. Dual Knowledge Store Ingestion (Neo4j DFKG :7687 + Qdrant Vector Index :6333)
+ 8. Dual Knowledge Store Ingestion (Neo4j DFKG :7687 + ChromaDB Evidence Vectors :8000)
 ```
 
 ---
@@ -52,7 +58,7 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
 | `src/ingestion/broker/` | Active case Redis KV cache (`active_cases_cache.py`), wire-serialized Kafka producer (`kafka_producer.py`), manual commit consumer with degraded checkpointing (`kafka_consumer.py`), and window reconciler (`reconcile_degraded_windows.py`). |
 | `src/ingestion/abstraction/` | Drain3 parametric log parser (`drain3_parser.py`), SimHash deduplicator (`simhash_dedup.py`), Shannon entropy clusterer (`entropy_clusterer.py`). |
 | `src/graph/` | Neo4j schema constraints (`schema_constraints.cypher`), APOC triggers (`apoc_triggers.cypher`), parameterized Cypher query builder (`cypher_builder.py`). |
-| `src/ingestion/indexing/` | Qdrant unstructured evidence vector indexer (`vector_indexer.py`). |
+| `src/ingestion/indexing/` | ChromaDB persistent vector store and in-memory fallback (`vector_store.py`); `vector_indexer.py` is a legacy in-memory compatibility helper and does not connect to Qdrant. |
 | `src/mcp/` | FastMCP gateways for normalization (:8100-8105) and DFKG write interface (`dfkg_cypher.py`). |
 | `src/ingestion/run_pipeline.py` | Multi-channel local extraction runner. |
 
@@ -60,211 +66,173 @@ Ingestion pipeline processes raw evidence across 14 heterogeneous source categor
 
 ## 3. Getting Started
 
-### System Requirements
+### Prerequisites
+- Python 3.10+
+- Docker & Docker Compose (for backing microservices)
 
-| Requirement | Minimum | Notes |
-| :--- | :--- | :--- |
-| OS | Windows 10/11 (64-bit) | MFT/USN and memory extractors are Windows-only |
-| Python | 3.10 — 3.12 | Python 3.13+ has a known numpy crash on Windows; use 3.10 |
-| RAM | 8 GB | 16 GB recommended when running memory forensics |
-| Disk | 5 GB free | Memory images can be 4–16 GB depending on installed RAM |
-| Privileges | Standard user for most features | **Administrator required** for MFT extraction and WinPmem memory acquisition |
-| Docker | Desktop 4.x+ | Only needed when enabling live backing services |
-
----
-
-### Step 1 — Clone & Create Virtual Environment
-
-```powershell
-# From repo root
-python -m venv venv
-venv\Scripts\activate
-```
-
-### Step 2 — Install Python Dependencies
-
-```powershell
-pip install -r requirements.txt
-```
-
-> If you see a `numpy` ABI crash on import, you are on Python 3.13+. Downgrade to Python 3.10 or pin numpy: `pip install "numpy<2"` as a workaround.
-
-### Step 3 — Configure Environment Variables
-
-Copy the template and fill in your values:
-```powershell
-copy .env.example .env
-```
-
-Open `.env` and set at minimum:
-```
-NEO4J_PASSWORD=your_password_here
-```
-All other variables have safe defaults and can be left as-is for a first run.
-See `.env.example` for full documentation of every flag.
-
-### Step 4 — Build the Threat-Intel Index (one-time, ~2 min)
-
-```powershell
-# MITRE ATT&CK only (no API key needed — recommended for first run):
-python scripts/build_threat_intel_index.py --no-nvd
-
-# ATT&CK + NVD CVEs (set NVD_API_KEY in .env first, ~10 min):
-python scripts/build_threat_intel_index.py
-```
-This populates `data/threat_intel/` (git-excluded). The Threat Attribution Agent degrades gracefully if skipped.
-
-### Step 5 — Start Backing Services (Docker)
-
-```powershell
-docker-compose up -d
-```
-
-| Service | Port | Purpose |
-| :--- | :--- | :--- |
-| Kafka / Redpanda | `:9092` | Event streaming bus |
-| Schema Registry | `:8081` | Wire serialization |
-| Redis | `:6379` | LangGraph checkpointing + active case cache |
-| Quickwit | `:7280` | Append-only WORM evidence store |
-| Neo4j | `:7474` / `:7687` | Digital Forensics Knowledge Graph (DFKG) |
-| ChromaDB | `:8000` | Semantic vector embeddings |
-| Redpanda Console | `:8082` | Kafka GUI (monitoring) |
-| HITL API | `:8200` | Human-in-the-loop interrupt/resume endpoint |
-
-Once running, set these flags in `.env` to activate live writes:
-```
-SPECULA_NEO4J_ENABLED=true
-SPECULA_QUICKWIT_ENABLED=true
-```
-
-> **No Docker?** Leave both flags `false`. The pipeline normalizes and validates events locally but skips Neo4j/Quickwit writes. Output is still saved to `data/extracted_logs/`.
-
----
-
-## 4. Memory Forensics Setup (Optional)
-
-Memory forensics (live RAM acquisition → process/network/injection analysis) requires two external tools. **This feature is off by default** — the pipeline runs fine without it.
-
-### 4a — WinPmem (Memory Acquisition)
-
-1. Download `winpmem_mini_x64.exe` from:
+### Installation
+1. Activate virtual environment:
+   ```powershell
+   venv\Scripts\activate
    ```
-   https://github.com/Velocidex/WinPmem/releases/latest
+2. Install dependencies:
+   ```powershell
+   pip install -r requirements.txt
    ```
-2. Place it at `tools/winpmem_mini_x64.exe` (create the `tools/` directory if needed).
-3. **Must be run as Administrator** — WinPmem requires direct physical memory access.
+3. Build the threat-intel FAISS index from the included workbook without network feeds:
+   ```powershell
+   .\venv\Scripts\python.exe scripts/build_threat_intel_index.py --attack-xlsx known_attacks/enterprise-attack-v19.2.xlsx --no-nvd
+   ```
+   This populates ignored `data/threat_intel/` with 873 ATT&CK technique/group records and a hash-verified manifest. This local build uses the current deterministic placeholder embedding; retrieval quality requires separate validation. The Threat Attribution Agent degrades gracefully if the index is not built.
 
-### 4b — Volatility3 (Memory Analysis)
+### Start Backing Services (Docker)
 
-Volatility3 is already in `requirements.txt` and installed in Step 2.
-Windows symbol files ship with the pip package — **no separate download needed** in most cases. If your exact Windows build is missing, Volatility3 auto-downloads from Microsoft's public symbol server on first run.
-
-### 4c — Enable Memory Ingestion
-
-Add to `.env`:
+This starts the infrastructure only. For the current authenticated API deployment, follow [local remediation](docs/local_remediation.md); its validation credential setup expects a retained synthetic fixture case.
+```powershell
+docker compose up -d kafka schema-registry redis quickwit neo4j chromadb redpanda-console
 ```
-SPECULA_MEMORY_ENABLED=true
-SPECULA_WINPMEM_PATH=tools/winpmem_mini_x64.exe
-SPECULA_VOL3_PATH=venv/Scripts/vol.py
-```
+Starts:
+- Kafka (`:9092`)
+- Schema Registry (`:8081`)
+- Redis (`:6379`)
+- Quickwit (`:7280`)
+- Neo4j (`:7474`, `:7687`)
+- ChromaDB (`:8000`)
+- Redpanda Console (`:8082`)
 
-**Development / CI (no hardware required):**
-```
-SPECULA_MEMORY_ENABLED=true
-SPECULA_MEMORY_MOCK=true
-```
-Mock mode returns synthetic `pslist`/`netscan`/`malfind` fixture records without WinPmem or Volatility3.
+The HITL API (`:8200`) and visualizer (`:8300`) are started separately with the local Compose override and its ignored authentication configuration.
+
+### Evidence Vector Store
+ChromaDB is the persistent case-evidence vector store used by the ingestion consumer and vector-retrieval adapter. The Compose service exposes it on port 8000; the adapter uses `CHROMA_HOST` and `CHROMA_PORT` for HTTP access, or a local persistent directory when one is explicitly supplied. If ChromaDB cannot be imported or reached, `ChromaVectorStore` falls back to `InMemoryVectorStore`. That fallback is process-local and non-durable; it is suitable for tests or degraded development only. Qdrant is not part of the current Compose deployment or evidence-vector runtime. The older `vector_indexer.py` compatibility helper stores payloads in process memory.
 
 ---
 
-## 5. Running the Full System
+### Model Backends
+The development dispatcher defaults to `SPECULA_LLM_BACKEND=stub`. Network forensics is deterministic; Threat Attribution defaults to deterministic scoring with a template narrative. Optional global Gemini and a dedicated attribution OpenAI-compatible endpoint are supported, but configured role model labels do not establish a production deployment. See [the complete role matrix and failure behavior](docs/model_runtime_matrix.md) and ADR-010. Production role assignments remain unconfirmed; ADR-003 records the intended future topology.
 
-Run everything with a **single command**:
-
-```powershell
-.\start_specula.ps1
-```
-
-This script handles the full startup sequence in one terminal:
-1. Resolves port conflicts (e.g., Redis 6379) automatically
-2. Starts all Docker backing services and waits for Neo4j to be ready
-3. Opens the **Visualizer API** (port 8300) in its own window
-4. Opens the **React Dashboard** (port 5173) in its own window and launches the browser
-5. Runs the **Ingestion Pipeline** in the current terminal
-
-### Common variants
-
-```powershell
-# Docker containers already running — skip docker-compose:
-.\start_specula.ps1 -SkipDocker
-
-# Start the UI + API only, without running the ingestion pipeline:
-.\start_specula.ps1 -SkipPipeline
-
-# Ingest a specific time window:
-.\start_specula.ps1 -PipelineArgs '--start-time "2026-09-01T00:00:00" --end-time "2026-09-29T23:59:59"'
-
-# Exclude noisy ports during ingestion:
-.\start_specula.ps1 -PipelineArgs '--exclude-ports 80,443,53'
-```
-
-### Service URLs (once running)
-
-| URL | Description |
-| :--- | :--- |
-| `http://localhost:5173` | React dashboard (main UI) |
-| `http://localhost:8300/health` | Visualizer API health check |
-| `http://localhost:7474` | Neo4j Browser (DFKG explorer) |
-| `http://localhost:8082` | Redpanda Console (Kafka GUI) |
-| `ws://localhost:8300/api/graph/stream` | WebSocket — live agent events |
-
-### Mode Decision Matrix
-
-| Goal | Docker | Admin | Memory tools |
-| :--- | :---: | :---: | :---: |
-| Run tests / CI | No | No | No |
-| Normalize Windows event logs only | No | No | No |
-| Write events to Neo4j DFKG | **Yes** | No | No |
-| Extract MFT / USN Journal | No | **Yes** | No |
-| Live memory forensics | No | **Yes** | WinPmem |
-| Full system (all features) | **Yes** | **Yes** | WinPmem |
-
-### Output Files
-
-| File | Description |
-| :--- | :--- |
-| `data/extracted_logs/raw_system_events.json` | Raw extracted events per channel |
-| `data/extracted_logs/ocsf_system_events.json` | Validated OCSF-normalised events |
-| `quarantine/ingestion_errors/` | Events that failed schema validation |
-| `quarantine/degraded_windows.json` | Kafka degraded window replay queue |
+### Fabric Anchoring Status
+Hyperledger Fabric anchoring is **deferred** for the current development milestone (ADR-011). The repository has event hashing and local Merkle/VCT handling, but no Fabric service, client, chaincode, or case-root anchoring integration. RSA/x509 case signing and Fabric anchoring described in ADR-004 are target capabilities, not demonstrated deployment features. This milestone does not claim Fabric-anchored evidence. A future anchoring task must define the trust model, owner, infrastructure, and executable integrity oracle.
 
 ---
 
-## 6. Running Tests
+## 4. Execution & Verification
+
+### Run End-to-End Extraction Runner
+Extracts local OS event channels (System, Application, PowerShell, Defender, MFT samples, CloudTrail samples) and passes them through the pipeline:
+```powershell
+python src/ingestion/run_pipeline.py
+```
+
+### Ingest Network Sensor Logs
+The runner also accepts Zeek JSON Lines (`conn.log`, `dns.log` with JSON output), Suricata EVE JSON Lines, and classic PCAP files. Network ingestion is isolated from the local Windows extraction run, preserves each raw record through Quickwit/VCT before parsing, and does not clear existing Neo4j data.
+
+Start the Docker services first, then enable preservation. Neo4j graph writes are optional; when enabled, this mode applies schema constraints without deleting existing graph data.
 
 ```powershell
-# Full suite:
-.\venv\Scripts\pytest.exe
+$env:SPECULA_QUICKWIT_ENABLED = "true"
+$env:SPECULA_NEO4J_ENABLED = "true"
+.\venv\Scripts\python.exe src/ingestion/run_pipeline.py `
+  --network-only `
+  --zeek-jsonl .\data\network\conn.jsonl `
+  --zeek-jsonl .\data\network\dns.jsonl `
+  --suricata-eve .\data\network\eve.json `
+  --pcap .\data\network\capture.pcap `
+  --dhcp-leases-json .\data\network\dhcp_leases.json
+```
 
-# Ingestion pipeline only:
-.\venv\Scripts\pytest.exe tests/ingestion/ -v
+`--zeek-jsonl`, `--suricata-eve`, and `--pcap` may each be repeated. The DHCP file supplies the time-bounded source-IP to host mapping required for host-keyed Kafka partitioning:
 
-# Memory forensics (mock mode, no tools needed):
-.\venv\Scripts\pytest.exe tests/ingestion/test_memory_ingestion.py -v
+```json
+[
+  {
+    "ip": "10.0.0.5",
+    "canonical_host_uid": "host-005",
+    "valid_from": "2026-06-01T00:00:00Z",
+    "valid_to": "2026-06-02T00:00:00Z"
+  }
+]
+```
 
-# LangGraph orchestration (25 nodes):
-.\venv\Scripts\pytest.exe tests/test_skeleton_graph.py -v
+Records without a matching lease are reported and skipped. Accepted normalized events are written to `data/extracted_logs/ocsf_network_events.json`; raw files remain in place. Quickwit must be available because ingestion stops if original evidence cannot be preserved. Kafka uses the configured local broker; set `SPECULA_NEO4J_ENABLED=false` to skip direct graph writes while still publishing normalized events.
 
-# Visualizer API:
-.\venv\Scripts\pytest.exe tests/test_visualizer_api.py tests/test_visualizer_ws.py -v
+For continuously appended Zeek or Suricata files, add `--follow`. The runner polls for complete newline-terminated records and persists byte offsets in `data/ingestion_state/network_offsets.json` (override with `--network-offsets`). PCAP inputs, if supplied alongside `--follow`, are imported once at startup. Followed normalized events are appended to `data/extracted_logs/ocsf_network_events.jsonl`; press Ctrl+C to stop cleanly.
+
+```powershell
+.\venv\Scripts\python.exe src/ingestion/run_pipeline.py `
+  --network-only --follow --poll-interval 1 `
+  --zeek-jsonl .\data\network\conn.jsonl `
+  --suricata-eve .\data\network\eve.json `
+  --dhcp-leases-json .\data\network\dhcp_leases.json
+```
+
+### Receive Logs Directly from Network Devices
+For firewalls, routers, switches, Linux servers, and appliances that support syslog forwarding, start the live receiver. Configure each device's remote syslog destination as the machine running Specula, on UDP port 5514 by default. The listener preserves the exact received bytes through Quickwit/VCT and publishes an OCSF generic event to Kafka with the sender IP and original message retained. TCP is available for newline-framed syslog senders.
+
+```powershell
+$env:SPECULA_QUICKWIT_ENABLED = "true"
+.\venv\Scripts\python.exe src/ingestion/run_pipeline.py `
+  --network-only --syslog-listener `
+  --syslog-host 0.0.0.0 --syslog-port 5514 --syslog-protocol udp
+```
+
+This is a receiving listener: endpoint devices must be configured to forward logs to it, and the host/network firewall must permit the selected port. Device-specific parsing into detailed connection fields still depends on the vendor's syslog format; unparsed message text remains preserved in the event.
+
+### Threat Attribution Agent
+The Threat Attribution node consumes frozen, chronological, evidence-cited TTPs from Timeline Reconstruction. It validates ATT&CK IDs against the local corpus, enumerates every verified group profile and ranks the top three using `0.4 × Jaccard + 0.6 × Smith–Waterman` only when a profile has recorded chronology. ATT&CK group `uses` relationships have no recorded campaign order: tactic order is labeled as inferred and contributes no alignment score. Hash-vector search cannot infer a technique from free-text summaries in the local build. Repeated sightings of one technique do not satisfy the two-distinct-TTP evidence minimum. Scores are heuristic profile similarities, not actor-identity probabilities. The model selects bounded explanation codes; calculated IDs, ranks, scores and citations remain deterministic.
+
+Build or refresh the ATT&CK corpus after this upgrade so group records contain their `uses` relationships:
+
+```powershell
+.\venv\Scripts\python.exe scripts/build_threat_intel_index.py --attack-xlsx known_attacks/enterprise-attack-v19.2.xlsx --no-nvd
+```
+
+The default model backend is the local stub. To use the designated Kimi model through an OpenAI-compatible endpoint, set `SPECULA_THREAT_ATTRIBUTION_BACKEND=openai_compatible`, `SPECULA_THREAT_ATTRIBUTION_BASE_URL`, `SPECULA_THREAT_ATTRIBUTION_API_KEY`, and optionally `SPECULA_THREAT_ATTRIBUTION_MODEL` (default `kimi-k2.6`). The attribution trace records the model actually invoked. No corpus or no confirmed DFKG evidence produces an unavailable attribution with zero confidence.
+
+### Output File Locations
+
+- **Raw Extracted Logs**: `data/extracted_logs/raw_system_events.json`
+- **Validated OCSF Events**: `data/extracted_logs/ocsf_system_events.json`
+- **Quarantine / DLT Errors**: `quarantine/ingestion_errors/`, `quarantine/degraded_windows.json`
+
+### Run Evaluation Tests
+```powershell
+See [local validation](docs/local_validation.md) for current executable checks.
 ```
 
 ---
 
-## 7. Development & State Rules
+## 5. Development & State Rules
+
+### Case stores and forensic review
+
+The local dashboard uses `qwen3:8b` for model-backed agent reviews. Semantic indexing uses the separate installed `qwen3-embedding:0.6b` model. Upload ingestion verifies Chroma coverage, writes durable DuckDB case snapshots under `data/analytics/`, and publishes acknowledged normalized events. The `normalized-consumer` service continuously writes graph evidence and case-scoped vectors before committing Kafka offsets.
+
+History opens each case's saved agent executions, timeline, observed activity graph, reports and database views. Neo4j follows evidence membership across shared nodes; the display limit is 300 nodes per type, with full totals shown.
+
+For independent examination, ZIPs may include inert or suspect PE files under `malware/samples/`, small memory regions under `memory/regions/`, and standard process minidumps under `memory/processes/`. Files are preserved and examined without execution. Supply each artifact's capture timestamp in `manifest.json` under `artifacts[relative_path].timestamp`; `host` is optional. The ZIP format guide in the upload form documents supported formats and size limits. Exported memory findings remain supported; a whole-RAM dump is not required.
+
+Authorized maintenance: `POST /api/investigations/{case_id}/reindex` repairs stores/projections under the case execution lease without rerunning agents or approving the case. `POST /api/investigations/{case_id}/exploit-topology` accepts analyst-reviewed, case-cited topology only at HITL. Temporal links do not establish an exploit path, and uncalibrated topology does not produce a risk probability.
+
+Formal and technical reports retain citations, tool coverage and limitations. Pending or rejected reviews remain labelled; generated documents do not certify legal admissibility.
+
 - Adheres strictly to **OCSF (Open Cybersecurity Schema Framework)** standard.
 - Deterministic UIDs generated prior to database writes.
-- Parameterized Cypher queries — no string interpolation (Cypher injection prevention).
-- All task state tracked in `PROGRESS.md` under a strict WIP=2 protocol.
-- See `AGENTS.md` for full AI agent coding guidelines and task lifecycle rules.
+- Parameterized Cypher queries with relationship-specific degree limits (`apoc.node.degree(n, 'OUTGOING_rel') < max`).
+- State tracking logged in `PROGRESS.md`.
 
+
+### Priority investigation repairs (October 14)
+
+New investigations preserve every supported source record and add source-key account/session/job/process/artifact relationships. Timeline includes correlated episodes, file/capture time labels and explicit clock uncertainty; source clock declarations do not silently replace original times. The activity graph exposes relationship basis and candidate chains, separate from reviewed exploit topology/calibrated probabilities.
+
+Specialists save cited explanations, limitations and next examinations. Supervisor records required role/tool coverage. Unsupported debate conclusions receive one bounded correction round; incomplete evidence stays at HITL. Final grounding audits check hypotheses against cited outcomes and contrary controls. These bounded tools do not certify actor identity, malicious intent, full-memory coverage or admissibility.
+
+Verification uses the separately generated answer key; it is never added to model prompts:
+
+```powershell
+venv\Scripts\python.exe -m scripts.verify_priority_detection data/private/priority_snapshot.json --saved
+venv\Scripts\python.exe -m scripts.verify_remediation_case CASE_ID --completed --valid-debate
+venv\Scripts\python.exe -m pytest -q
+```
+
+Historical checkpoints are retained. New source-derived relations and assessments are generated by new runs, rather than retroactively treating old model prose as verified evidence. Model inference uses the installed local qwen3:8b; actual semantic indexing uses the separate installed embedding model.

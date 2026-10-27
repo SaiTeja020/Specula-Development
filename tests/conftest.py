@@ -21,6 +21,12 @@ from typing import Any
 import pytest
 
 
+@pytest.fixture
+def api_auth(monkeypatch, tmp_path):
+    from tests.api_auth_helpers import configure_test_auth
+    return configure_test_auth(monkeypatch, tmp_path)
+
+
 # ---------------------------------------------------------------------------
 # Deterministic UID helper mirrored here so tests don't import prod code
 # just to generate fixtures (avoids circular test/prod coupling).

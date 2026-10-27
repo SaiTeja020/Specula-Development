@@ -21,6 +21,25 @@ class SpeculaState(TypedDict, total=False):
     trace_id: str
     input_type: str                          # siem_alert | investigator_query
     raw_input: str
+    evidence_collection: Optional[dict]
+    ingestion_provenance: Optional[dict]
+    execution_manifest: Optional[dict]
+    investigation_plan: Optional[dict]
+    followup_cycle: int
+    followup_reanalysis_pending: bool
+    acquisition_reanalysis_count: int
+    followup_round: int
+    followup_history: Annotated[list, operator.add]
+    followup_pending: list
+    followup_status: Optional[str]
+    evidence_requests: list
+    sandbox_runs: list                       # Malware specialist; isolated-lab receipts, not host events
+    debate_feedback: Optional[dict]
+    report_generated_at: str
+    report_metadata: Optional[dict]
+    timeline_artifact_metadata: Optional[dict]
+    acceptance_status: str
+    loop_count: int
     case_status: str                         # open | primary_tier | specialist_tier | synthesis | debate | guardrail | hitl_review | report | closed
 
     # §2.2 Findings (multi-writer, append-only reducer)
@@ -35,12 +54,19 @@ class SpeculaState(TypedDict, total=False):
 
     # §2.4 Sequential synthesis
     timeline: Optional[dict]                 # Timeline Reconstruction only
+    attack_graph: Optional[dict]
+    exploit_topology: Optional[dict]
     attribution: Optional[dict]              # Threat Attribution only (after timeline non-null)
 
     # §2.5 Debate subsystem
     debate_round: int
     proponent_argument: Optional[str]        # overwritten each round
     critic_argument: Optional[str]           # overwritten each round
+    proponent_review: Optional[dict]
+    critic_review: Optional[dict]
+    judge_review: Optional[dict]
+    review_status: Optional[str]
+    evidence_review_required: bool
     judge_verdict: Optional[str]             # accept | reject, overwritten each round
     confidence_delta: Optional[float]        # undefined on round 1
     debate_history: Annotated[list, operator.add]  # one entry per closed round
@@ -59,6 +85,9 @@ class SpeculaState(TypedDict, total=False):
 
     # §2.8 Output
     report_output: Optional[str]             # Report Generation only
+    court_report_output: Optional[str]
+    technical_report_output: Optional[str]
+    report_documents: Optional[dict]
     timeline_artifact: Optional[str]         # Timeline Artifact Generation only
     final_output_ref: Optional[str]          # set once both converge
 

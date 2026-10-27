@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { Activity, LayoutDashboard, Database, Network, Play, LogOut, ShieldCheck, User } from 'lucide-react';
+import { Activity, History, LayoutDashboard, Database, Network, Play, LogOut, ShieldCheck, User } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './pages/LandingPage';
 import StartupPage from './pages/StartupPage';
 import InvestigationConsole from './pages/InvestigationConsole';
+import InvestigationHistory from './pages/InvestigationHistory';
 import Neo4jVisualizer from './pages/Neo4jVisualizer';
 import DatabaseVisualizers from './pages/DatabaseVisualizers';
 import { PipelineProvider } from './contexts/PipelineContext';
@@ -25,6 +26,7 @@ function Sidebar() {
     { to: '/', label: 'Overview', icon: <LayoutDashboard size={18} /> },
     { to: '/startup', label: 'System Boot', icon: <Play size={18} /> },
     { to: '/investigate', label: 'Live Investigation', icon: <Activity size={18} /> },
+    { to: '/history', label: 'History', icon: <History size={18} /> },
     { to: '/neo4j', label: 'Knowledge Graph', icon: <Network size={18} /> },
     { to: '/databases', label: 'Data Stores', icon: <Database size={18} /> }
   ];
@@ -40,7 +42,7 @@ function Sidebar() {
           <Link
             key={link.to}
             to={link.to}
-            className={`nav-item ${location.pathname === link.to ? 'active' : ''}`}
+            className={`nav-item ${location.pathname === link.to || location.pathname.startsWith(`${link.to}/`) ? 'active' : ''}`}
           >
             {link.icon}
             <span>{link.label}</span>
@@ -120,6 +122,8 @@ export default function App() {
               <Route path="/" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
               <Route path="/startup" element={<ProtectedRoute><StartupPage /></ProtectedRoute>} />
               <Route path="/investigate" element={<ProtectedRoute><InvestigationConsole /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><InvestigationHistory /></ProtectedRoute>} />
+              <Route path="/history/:caseId" element={<ProtectedRoute><InvestigationHistory /></ProtectedRoute>} />
               <Route path="/neo4j" element={<ProtectedRoute><Neo4jVisualizer /></ProtectedRoute>} />
               <Route path="/databases" element={<ProtectedRoute><DatabaseVisualizers /></ProtectedRoute>} />
 

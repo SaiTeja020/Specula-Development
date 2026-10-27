@@ -193,7 +193,7 @@ class LogAnalysisAgent:
             time_bucket = self._time_bucket(event)
             affected_entity_uids = self._extract_entity_uids(event, result)
 
-            fp = fingerprint(result.pattern, affected_entity_uids, time_bucket)
+            fp = fingerprint(result.pattern, affected_entity_uids + [f"case:{event.case_id}"], time_bucket)
 
             # ── Dedup check ───────────────────────────────────────────────────
             if is_duplicate(fp, self._redis_client):
@@ -263,10 +263,13 @@ class LogAnalysisAgent:
                     "Kafka publish failed for finding (pattern=%s, uid=%s): %s",
                     result.pattern, event.uid, exc,
                 )
-                continue
+                finding["kafka_publication"] = {"status": "failed"}
+            else:
+                finding["kafka_publication"] = {"status": "pending"}
 
             # ── Write dedup fingerprint ONLY after successful publish ─────────
-            write_fingerprint(fp, self._redis_client, ttl_seconds=case_dedup_ttl_seconds)
+            if finding["kafka_publication"]["status"] != "failed":
+                write_fingerprint(fp, self._redis_client, ttl_seconds=case_dedup_ttl_seconds)
 
             # ── Append agent trace (item #28) ─────────────────────────────────
             trace = {
