@@ -1,12 +1,17 @@
 from datetime import datetime, timezone
 import logging
 from typing import List, Generator
-from google.cloud import logging_v2
+try:
+    from google.cloud import logging_v2
+except ImportError:
+    logging_v2 = None
 
 logger = logging.getLogger("GCPAuditFetcher")
 
 class GCPAuditFetcher:
     def __init__(self, project_id: str, credentials_path: str = None):
+        if logging_v2 is None:
+            raise RuntimeError("google-cloud-logging is not installed")
         self.project_id = project_id
         if credentials_path:
             self.client = logging_v2.Client.from_service_account_json(credentials_path, project=project_id)

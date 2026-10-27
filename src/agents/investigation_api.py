@@ -29,6 +29,13 @@ class ReviewRequest(BaseModel):
     decision: Literal["approve", "reject", "clarify"]
 
 
+class QARequest(BaseModel):
+    query: str = Field(min_length=1, max_length=5000)
+    top_k: int = Field(default=5, ge=1, le=50)
+    min_score: float = Field(default=0.0, ge=-1.0, le=1.0)
+    dry_run: bool = Field(default=False)
+
+
 def register_investigation_routes(app, get_graph, get_driver, broadcast):
     locks = {}
 
@@ -366,3 +373,16 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
             if "hitl" not in current["paused_at"]:
                 raise HTTPException(409, "Investigation is not awaiting analyst review")
             return await execute(graph, config, Command(resume=body.decision))
+
+    @app.post("/api/investigations/{case_id}/qa")
+    async def case_qa(case_id: str, body: QARequest, request: Request):
+        await asyncio.to_thread(authorize, request.state.principal, case_id, driver=get_driver())
+        from src.agents.rag.qa_service import ForensicQAService
+        qa = ForensicQAService(neo4j_client=get_driver())
+        return await asyncio.to_thread(qa.ask, query=body.query, case_id=case_id, top_k=body.top_k, min_score=body.min_score, dry_run=body.dry_run)
+
+    @app.post("/api/qa")
+    async def global_qa(body: QARequest, request: Request):
+        from src.agents.rag.qa_service import ForensicQAService
+        qa = ForensicQAService(neo4j_client=get_driver())
+        return await asyncio.to_thread(qa.ask, query=body.query, top_k=body.top_k, min_score=body.min_score, dry_run=body.dry_run)

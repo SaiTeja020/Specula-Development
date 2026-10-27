@@ -9,7 +9,10 @@ import logging
 import socket
 from typing import Any, Iterator
 
-import dpkt
+try:
+    import dpkt
+except ImportError:
+    dpkt = None
 
 from src.ingestion.normalization.time_normalizer import TimeNormalizer
 from src.ingestion.security_gate.injection_detector import scan_for_injection
@@ -124,6 +127,8 @@ def normalize_pcap_stream(
     resolver: Any = None,
 ) -> Iterator[NetworkActivity]:
     """Dissect preserved PCAP bytes; scan extracted text before normalization."""
+    if dpkt is None:
+        raise RuntimeError("dpkt is required for PCAP parsing")
     pcap = dpkt.pcap.Reader(binary_stream)
     for packet_idx, (ts, buf) in enumerate(pcap, start=1):
         try:

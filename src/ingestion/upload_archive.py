@@ -1,6 +1,14 @@
 """Preflight exported log archives without extracting untrusted paths."""
 from datetime import datetime, timezone
-from hashlib import sha256, file_digest
+from hashlib import sha256
+try:
+    from hashlib import file_digest
+except ImportError:
+    def file_digest(fileobj, digest_name='sha256'):
+        h = sha256()
+        while chunk := fileobj.read(65536):
+            h.update(chunk)
+        return h
 from io import BytesIO
 import json
 from pathlib import PurePosixPath

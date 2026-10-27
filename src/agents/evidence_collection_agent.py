@@ -1,4 +1,4 @@
-﻿"""Retrieve actual case events and triage deterministically, without model tool claims."""
+"""Retrieve actual case events and triage deterministically, without model tool claims."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -6,6 +6,7 @@ import time
 
 from src.agents.kafka_utils import publish_finding
 from src.agents.react_engine import Tool, ToolResult
+from src.agents.react_tools import TrackingDFKGQueryTool
 
 CASE_EVENTS_QUERY = "MATCH (:Case {uid:$case_id})-[:HAS_EVENT]->(e:Event) RETURN e ORDER BY e.uid"
 LOW_SIGNAL_CLASS_UIDS = {3002}

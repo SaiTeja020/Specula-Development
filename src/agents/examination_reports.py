@@ -152,20 +152,45 @@ def render_examination_report(state: dict, kind: str) -> tuple[str, dict]:
                 'Its timestamps and behavior do not establish execution on the investigated host. '
                 'Pending, deferred or failed tasks are not benign results. Full reports are preserved by digest.</p>' +
                 _json(state['sandbox_runs']))
+    def _finding_explainability(f: dict) -> str:
+        refs = f.get("dfkg_refs") or []
+        ref_links = ', '.join(f'<a href="#exhibit-{_text(ref)}">{_text(ref)}</a>' for ref in refs) if refs else 'None'
+        reasoning = _text(f.get("reasoning", ""))
+        block = (
+            f'<div class="explainability-block" style="margin-top: 6px; padding: 6px 10px; background: #f8fafc; border-left: 3px solid #2563eb;">'
+            f'<small><strong>DFKG Explainability & Evidence Provenance:</strong><br/>'
+            f'Linked Evidence UIDs: {ref_links}'
+        )
+        if reasoning:
+            block += f'<br/>Agent Grounding Trace: {reasoning}'
+        block += '</small></div>'
+        return block
+
     section("Recorded automated detection results", '<p>Automated screening results require examiner validation. '
             'Citations establish record membership, not independent correctness of an inference.</p>' +
             (''.join('<article><h3>' + _text(f.get("agent_role")) + '</h3><p>' +
             _text(f.get("summary")) + '</p><p>Classification: ' + _text(f.get("classification", "unresolved")) +
             '; operation outcome: ' + _text(f.get("operation_outcome", "unknown")) + '</p>' +
-            '<p>Evidence references: ' + _text(', '.join(f["dfkg_refs"])) + '</p></article>'
+            '<p>Evidence references: ' + _text(', '.join(f["dfkg_refs"])) + '</p>' +
+            _finding_explainability(f) + '</article>'
             for f in supported) or '<p>No supported detection finding is available. This is a coverage-limited result.</p>')
             )
-    section("Event chronology and exhibit index", '<p>Exhibit hashes below identify normalized JSON, not original source-file bytes.</p>' +
-        _table(["Exhibit / UID", "Time (UTC)", "OCSF class", "Recorded observation", "Normalized JSON SHA-256"], [
-        (f"E-{i + 1:05d} / {e.get('uid')}", _utc(e.get("time")), e.get("class_uid"),
-         e.get("process_name") or e.get("host_name") or e.get("finding_info") or "Normalized event",
-         sha256(json.dumps(e, sort_keys=True, default=str).encode()).hexdigest())
-        for i, e in enumerate(events)]))
+    chronology_rows = ''.join(
+        f'<tr id="exhibit-{_text(e.get("uid"))}">'
+        f'<td>E-{i + 1:05d} / {_text(e.get("uid"))}</td>'
+        f'<td>{_text(_utc(e.get("time")))}</td>'
+        f'<td>{_text(e.get("class_uid"))}</td>'
+        f'<td>{_text(e.get("process_name") or e.get("host_name") or e.get("finding_info") or "Normalized event")}</td>'
+        f'<td>{_text(sha256(json.dumps(e, sort_keys=True, default=str).encode()).hexdigest())}</td>'
+        f'</tr>'
+        for i, e in enumerate(events)
+    )
+    chronology_table = (
+        '<table><thead><tr><th>Exhibit / UID</th><th>Time (UTC)</th><th>OCSF class</th>'
+        '<th>Recorded observation</th><th>Normalized JSON SHA-256</th></tr></thead>'
+        f'<tbody>{chronology_rows}</tbody></table>'
+    )
+    section("Event chronology and exhibit index", '<p>Exhibit hashes below identify normalized JSON, not original source-file bytes.</p>' + chronology_table)
     if kind == "technical":
         section("Telemetry coverage and ingestion diagnostics", _json({"class_counts": dict(Counter(str(e.get("class_uid")) for e in events)),
                 "selection": provenance.get("selection"), "processing": provenance.get("processing"),

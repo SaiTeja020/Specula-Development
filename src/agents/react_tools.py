@@ -76,6 +76,25 @@ class DFKGQueryTool(Tool):
             return ToolResult(ok=False, observation=f"Cypher query failed: {exc}")
 
 
+class TrackingDFKGQueryTool(DFKGQueryTool):
+    """Wraps DFKGQueryTool to collect 'uid' values from query results so that
+    dfkg_refs in the final finding can be populated without changing the engine.
+    """
+
+    def __init__(self, driver: Driver, case_id: str):
+        super().__init__(driver, case_id)
+        self.collected_uids: list[str] = []
+
+    def run(self, cypher: str, params: dict | None = None) -> ToolResult:
+        result = super().run(cypher, params)
+        if result.ok and result.data:
+            for record in result.data:
+                uid = record.get("uid") or record.get("e.uid") or record.get("n.uid")
+                if uid:
+                    self.collected_uids.append(str(uid))
+        return result
+
+
 class KafkaPublishFindingTool(Tool):
     """Publishes a finding to the agent's own findings.* topic. This is the
     ONLY write path an agent has — no direct DFKG writes, per the Kafka-

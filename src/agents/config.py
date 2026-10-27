@@ -257,6 +257,7 @@ _STUB_RESPONSES: dict[str, str] = {
     "guardrail_tier3":          "RESULT: PASS. Output is factually consistent with DFKG evidence. No hallucinated claims detected. Logical chain from initial access to exfiltration is coherent.",
     "report_generation":        "=== FORENSIC INVESTIGATION REPORT ===\nCase: {case_id}\nClassification: External APT Compromise\nSeverity: Critical\nFindings: 15 evidence artifacts across 4 domains.\nRecommendation: Immediate containment of affected hosts.",
     "timeline_artifact_generation": "=== TIMELINE ARTIFACT ===\n03:12 - Phishing email received\n03:14 - Malicious attachment executed\n03:19 - Lateral movement to DC01\n03:26 - Data staging initiated\n03:30 - Exfiltration via DNS tunnel",
+    "rag":                      "Finding:\nEvidence indicates suspicious execution and network beaconing correlated with the queried entity.\n\nEvidence:\n- uid=proc_ps_001 [powershell.exe, PID 1100]\n\nReasoning:\nQuery matched forensic evidence artifacts in the DFKG subgraph.\n\nConfidence:\nHIGH — verified against case records.",
 }
 
 

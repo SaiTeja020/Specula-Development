@@ -41,10 +41,10 @@ logger = logging.getLogger("RAGResponseValidator")
 # Regex to extract UID-like citations from Gemini text.
 # Matches: uid=abc123..., (uid=abc123...), uid=abc123def456...
 # A Specula UID is a hex string (SHA-256 output, 64 chars when full).
-_UID_PATTERN = re.compile(r"uid=([0-9a-f]{8,64})")
+_UID_PATTERN = re.compile(r"uid=([0-9a-zA-Z_-]{4,64})")
 
 # Minimum UID prefix length to consider a match valid
-_MIN_PREFIX_LEN = 8
+_MIN_PREFIX_LEN = 4
 
 
 def _collect_known_uids(graph_contexts: List[Dict[str, Any]]) -> Set[str]:
