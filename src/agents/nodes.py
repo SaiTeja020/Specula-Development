@@ -19,6 +19,7 @@ from .config import AGENT_CONFIG, get_llm
 from .guardrails import run_tier1_checks, run_tier2_checks
 from .kafka_utils import ROLE_TOPIC_MAP, publish_finding
 from .identity.agent import run_identity_analysis, IdentityAgentDeps
+from .frozen import MAX_DEBATE_RESTARTS, compute_case_state
 
 
 # ===================================================================
@@ -145,6 +146,11 @@ def supervisor_node(state: dict) -> dict:
         "report_output": None,
         "timeline_artifact": None,
         "final_output_ref": None,
+        # Re-entry resets the readiness gate too (a clarify loop re-runs everything upstream)
+        "case_state": "OPEN",
+        "debate_restarts": 0,
+        "hitl_entry_reason": None,
+        "gate_block_reasons": [],
     }
 
 
@@ -313,6 +319,39 @@ def insider_threat_node(state: dict) -> dict:
     }
 
 
+# --- 10b. Debate readiness gate (code-managed, no agent identity) ---
+MAX_LAG_RETRIES = 3
+LAG_RETRY_DELAY = 0.05
+
+
+def debate_gate_node(state: dict) -> Command[Literal["proponent", "hitl"]]:
+    """§1 gate: the debate may only start on a FROZEN case (zero consumer lag, every
+    dispatched agent returned, and synthesis agents completed).
+    A few seconds of transient lag does not page an analyst: bounded wait with retry.
+    """
+    case_state, reasons = compute_case_state(state)
+    # If case is open purely due to consumer lag, retry with bounded wait before paging HITL
+    if case_state == "OPEN" and reasons and all("consumer lag" in r for r in reasons):
+        for _ in range(MAX_LAG_RETRIES):
+            time.sleep(LAG_RETRY_DELAY)
+            case_state, reasons = compute_case_state(state)
+            if case_state == "FROZEN":
+                break
+
+    if case_state == "FROZEN":
+        return Command(update={"case_state": "FROZEN", "gate_block_reasons": []}, goto="proponent")
+    return Command(
+        update={
+            "case_state": "OPEN",
+            "gate_block_reasons": reasons,
+            "hitl_required": True,
+            "hitl_entry_reason": "gate_blocked",
+            "case_status": "hitl_review",
+        },
+        goto="hitl",
+    )
+
+
 # --- 11. Proponent ---
 def proponent_node(state: dict) -> dict:
     finding, trace = _run_agent("proponent", state)
@@ -336,7 +375,7 @@ def critic_node(state: dict) -> dict:
 
 # --- 13. Judge (returns Command — §4 debate loop routing) ---
 def judge_node(state: dict) -> Command[Literal[
-    "guardrail_tier1", "proponent", "hitl"
+    "guardrail_tier1", "proponent", "hitl", "debate_gate"
 ]]:
     finding, trace = _run_agent("judge", state)
     content = finding["summary"]
@@ -384,6 +423,31 @@ def judge_node(state: dict) -> Command[Literal[
         "verdict": verdict,
         "confidence": current_confidence,
     }
+
+    # Late-write check: the FROZEN invariant must hold for the WHOLE debate, not just at
+    # entry. If the case reopened (new consumer lag), this round's verdict is void: abort,
+    # reset the debate, and re-enter through the gate. Bounded by MAX_DEBATE_RESTARTS.
+    case_state, reasons = compute_case_state(state)
+    if case_state != "FROZEN":
+        restarts = state.get("debate_restarts", 0)
+        abort_update: dict = {
+            "case_state": "OPEN",
+            "gate_block_reasons": reasons,
+            "debate_restarts": restarts + 1,
+            "debate_round": 1,
+            "judge_verdict": None,
+            "confidence_delta": None,
+            "debate_outcome": None,
+            "findings": [finding],
+            "agent_traces": [trace],
+        }
+        if restarts >= MAX_DEBATE_RESTARTS:
+            abort_update.update({
+                "hitl_required": True, "hitl_entry_reason": "gate_blocked",
+                "case_status": "hitl_review",
+            })
+            return Command(update=abort_update, goto="hitl")
+        return Command(update=abort_update, goto="debate_gate")
 
     base_update = {
         "judge_verdict": verdict,
@@ -543,7 +607,7 @@ def guardrail_tier2_node(state: dict) -> Command[Literal[
 
 def hitl_node(state: dict) -> Command[Literal[
     "report_generation", "timeline_artifact_generation",
-    "guardrail_tier1", "case_closed_rejected", "supervisor"
+    "guardrail_tier1", "case_closed_rejected", "supervisor", "debate_gate"
 ]]:
     """HITL approval gate — §8.
 
@@ -555,7 +619,9 @@ def hitl_node(state: dict) -> Command[Literal[
     """
     # Determine entry reason from state (§4/§8 distinction)
     entry_reason = (
-        "guardrail_failure"
+        "gate_blocked"
+        if state.get("hitl_entry_reason") == "gate_blocked"
+        else "guardrail_failure"
         if state.get("guardrail_fail_tier") is not None
         else "debate_exhaustion"
     )
@@ -589,6 +655,14 @@ def hitl_node(state: dict) -> Command[Literal[
         return Command(update=update, goto="supervisor")
 
     # approve
+    if entry_reason == "gate_blocked":
+        # Analyst acknowledges; the gate is re-evaluated. Approval never bypasses FROZEN.
+        # Increment debate_restarts so new dispatch gets fresh attempt index
+        restarts = state.get("debate_restarts", 0) + 1
+        update["hitl_entry_reason"] = None
+        update["hitl_required"] = False
+        update["debate_restarts"] = restarts
+        return Command(update=update, goto="debate_gate")
     if entry_reason == "guardrail_failure":
         # Guardrail ran and failed — analyst overrides, skip to report
         return Command(

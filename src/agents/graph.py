@@ -14,6 +14,7 @@ from .nodes import (
     cloud_container_node,
     critic_node,
     dag_node,
+    debate_gate_node,
     evidence_collection_node,
     final_output_join_node,
     guardrail_tier1_node,
@@ -36,6 +37,7 @@ from .nodes import (
     timeline_artifact_generation_node,
     timeline_reconstruction_node,
 )
+from .frozen import SPECIALIST_ROLE_MAP
 from .state import SpeculaState
 
 
@@ -53,13 +55,8 @@ def _supervisor_primary_dispatch(state: dict) -> list[Send]:
     ]
 
 
-_SPECIALIST_MAP = {
-    "memory":          "memory_forensics",
-    "identity":        "identity",          # F13a — split from identity_cloud
-    "cloud_container": "cloud_container",   # F13b — split from identity_cloud
-    "malware":         "malware_stylometry",
-    "insider":         "insider_threat",
-}
+# Single source shared with the FROZEN gate (src/agents/frozen.py)
+_SPECIALIST_MAP = SPECIALIST_ROLE_MAP
 
 
 def _dead_end_route(state: dict) -> str | list[Send]:
@@ -109,6 +106,7 @@ def build_graph(*, checkpointer=None):
     builder.add_node("cloud_container", cloud_container_node)   # F13b — Cloud & Container specialist
     builder.add_node("malware_stylometry", malware_stylometry_node)
     builder.add_node("insider_threat", insider_threat_node)
+    builder.add_node("debate_gate", debate_gate_node)           # FROZEN readiness gate (Command -> proponent | hitl)
     builder.add_node("proponent", proponent_node)
     builder.add_node("critic", critic_node)
     builder.add_node("judge", judge_node)          # returns Command
@@ -173,9 +171,10 @@ def build_graph(*, checkpointer=None):
     # Sequential synthesis
     builder.add_edge("timeline_reconstruction", "threat_attribution")
 
-    # Threat attribution -> DAG (Dynamic Attack Graph) -> debate entry
+    # Threat attribution -> DAG (Dynamic Attack Graph) -> FROZEN gate -> debate entry
     builder.add_edge("threat_attribution", "dag")
-    builder.add_edge("dag", "proponent")
+    builder.add_edge("dag", "debate_gate")
+    # debate_gate routes via Command: -> proponent (FROZEN) | hitl (gate blocked)
 
     # Debate loop (linear within a round)
     builder.add_edge("proponent", "critic")

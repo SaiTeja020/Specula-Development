@@ -183,6 +183,20 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   - **Acceptance Criteria:** ✅ 17/17 passing; zero dfkg_citations=[] on non-clean verdicts;
     Kafka trace_id as message header confirmed; supernode guard (degree>=200) tested;
     no class_uid 6001 anywhere; skeleton regression 28/28 green.
+
+- **Task ID:** `TASK-4.10`
+  - **Description:** Implement Evidentiary Adversarial Debate (ACH) subsystem per `docs/specula_ach_debate_implementation_plan_v3.md`:
+    resolved all review defects without shortcuts:
+    - M4: Judge independently labels claim entailments (`SUPPORTED`/`UNSUPPORTED`) from raw node content (capped to 500 chars). Removed self-reported agent `support` label; restored stored (not scored) `justification`. `UNSUPPORTED` triggers `PARAMETRIC_KNOWLEDGE_REJECTED` and retry.
+    - K1 / M1 / M3: Strict Heuer contradiction elimination on diagnostic items (`relation_to_A != relation_to_B`). Capped citations per side (`max_citations_per_side = 10`) to eliminate volume bias. Net contradiction margin $\ge 2$ required; leader contradictions capped at $\le 1$. (0,2) converges dominant; (5,7) yields `INSUFFICIENT_EVIDENCE`. All thresholds encapsulated in `AchConfig` (`calibrated = False`, rules version `"ach-rules-v3-uncalibrated"`).
+    - M5: Fallback detection catches both local-quantized and cloud-to-cloud model switches; mid-run fallbacks are caught; forced HITL review across all paths.
+    - FROZEN Gate: Added synthesis agents (`timeline_reconstruction`, `threat_attribution`, `dag`) to required roles; consumer lag queries Kafka group `specula-dfkg-writer`; bounded retry loop (`MAX_LAG_RETRIES = 3`) prevents transient lag from paging HITL.
+    - M6: Enforced 60s total debate budget derived from 300s pipeline SLO; dynamic per-turn timeouts and hard cutoff to HITL.
+    - M7: Incremented `attempt` in `debate_run_id` on restarts and HITL re-dispatch to prevent key collisions; suspended TTL during HITL.
+  - **Status:** `passing`
+  - **Verification Command:** `.\venv\Scripts\pytest.exe tests/test_debate_gate.py tests/test_skeleton_graph.py tests/debate -q`
+  - **Acceptance Criteria:** ✅ 98/98 passing (53/53 debate + 28/28 skeleton + 17/17 gate); all golden fixtures verified; zero regressions.
+
 ### Phase 5: Real-Time Visualization Layer (`ADR-003`, `ADR-007`)
 - **Task ID:** `TASK-5.1`
   - **Description:** Create `src/agents/visualizer_api.py` standalone FastAPI service on port 8300 with CORS and health endpoints.
@@ -227,6 +241,10 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
   ```powershell
   .\venv\Scripts\pip.exe install python-dateutil
   ```
+- **Optional (numpy softmax in ACH matrix; math fallback is used until installed):**
+  ```powershell
+  .\venv\Scripts\pip.exe install numpy
+  ```
 
 ---
 
@@ -252,4 +270,8 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](file:///c
 | 2026-09-17 | Phase 5 UI/UX | Refined button tokens to darker royal indigo (`#1E40AF`) with 8px radius & white text. Positioned terminal directly below the Service Health Checks box with compact 2-column grid ensuring all 6 services are completely visible without window scroll push | Passed (`npm run lint` 0 warnings, `pytest` 8/8 passed) |
 | 2026-09-19 | `TASK-4.8` | Split `identity_cloud` → `identity` (F13a) + `cloud_container` (F13b); added `dag` Dynamic Attack Graph Agent to Sequential Synthesis (F23). Updated 7 files: `config.py`, `nodes.py`, `graph.py`, `kafka_utils.py`, `state.py`, `supervisor_agent.py`, `test_skeleton_graph.py`. Node count: 23 → 25. | 28/28 Passed (`tests/test_skeleton_graph.py`) |
 | 2026-09-22 | `TASK-4.9` + ADR-008 | Built Identity Agent (F13a): state, kerberos_analyzer, privilege_escalation_detector, cloud_iam_analyzer, lateral_movement_correlator, kafka_publisher, agent.py, 3 skill manifests+callables, identity_rules.md, 10 golden fixtures, IDENTITY_QUERIES in dfkg_cypher.py, identity_node promoted in nodes.py. Corrected plan defects: OCSF class_uids, single-pass label, supernode guard, trace_id header, ADR-008 roster. | **17/17** (`test_identity_agent.py`) + **28/28** (`test_skeleton_graph.py`) |
+| 2026-10-12 | `TASK-4.10` | Built ACH debate subsystem (Plan v3): resolved review defects across M4 (Judge raw-content per-claim entailment), K1/M1/M3 (Heuer contradiction elimination, volume cap of 10, margin >= 2), M5 (cloud-to-cloud and mid-run fallback detection), FROZEN gate (synthesis prerequisites, Kafka lag reading, bounded transient retry), M6 (60s SLO budget enforcement), M7 (run_id attempt increment on restart/HITL, TTL suspension) | **98/98** Passed (53 debate + 28 skeleton + 17 gate) |
+| 2026-10-13 | `TASK-4.10` Refinement | Addressed review critique across 12 items: Defect 1 (fail-closed Kafka lag returning None on unreachable broker, uncommitted group offset calculation), Defect 3 (affirmative CONFIRMS requirement for winning hypothesis), Defect 4 (dominance_threshold 0.95 with reachable CONVERGED_STABLE round-2 cross-round validation), Defect 5 (consistent round cap INSUFFICIENT_EVIDENCE on heavily contradicted hypotheses), Defect 6 (router_after_judge PENDING routes to proponent), Defect 8 (HITL payload records payload_load_error), Defect 9 (conditional DAG requirement when vuln_data_present=False), Defect 10 (finding status error filtering), Defect 11 (deterministic citation volume cap truncation), Judge prompt untrusted evidence delimiters | **105/105** Passed (57 debate + 28 skeleton + 20 gate) |
+| 2026-10-13 | `TASK-4.10` Audit Review #2 | Resolved 10 audit findings: #1 (dedicated `entailment_attempts` counter not reset by agent nodes, exhausts to `VALIDATION_EXHAUSTED` on 3 failures), #2 (removed evaluations-only bypass, strict claim entailment required with missing treated as `UNSUPPORTED`), #3 (mandatory `TurnScope` in `read_query` and mandatory `trace_id` in `verify_uids`/`fetch_node_content`), #4 (reconstructible audit chain retaining raw payloads in `VCTLedger._entries`, stored raw prompt/response and SHA-256 in judge records), #5 (`DebateResult` contract: uncalibrated flag, contradiction margin/counts, winner-only `cited_uids`, loser `contested_uids`), #6 (delimiter nonce, delimiter text stripping, justification removed from prompt, sanitized/capped feedback reason), #7 (dual-pass swapped label agreement for dominant convergence, mid-Judge call late-write check), #8 (MCP query bounds with variable length hop limits and relationship cap of 300), #9 (entity and multi-case scoping queries), #10 (`record_round` committed only on valid verdict, `escalate_to_hitl` latest record search, cumulative citation cap, load_payload SHA-256 tamper detection, cumulative retrieval across attempts for retries). Installed `python-dateutil` per directive. | **112/112** Passed (64 debate + 28 skeleton + 20 gate); Ingestion: **155/175** passed (18 skipped, 2 offline/missing extras). |
+| 2026-10-13 | `TASK-4.10` Audit Review #3 | Resolved audit review #3 across 9 findings: #1 (round cap bypass fixed: downgrade at round cap becomes `DEADLOCK_TIE` with `POSITION_BIAS_DISAGREEMENT`, stored swapped prompt/raw response, added router guard `round_index > 3`), #2 (Judge malformed/omitted coverage retried 2x then escalated to `JUDGE_OUTPUT_INVALID` without burning agent attempts; exactly 1 evaluation required per fetched UID), #3 (citation volume cap rejects with feedback without mutating agent payload), #4 (cumulative evidence cap preserves 100% of current-round cited UIDs, capping only pinned UIDs), #5 (`frozen.py` fail-closed: empty partition/topic list returns `None`), #6 (sanitized hypothesis/claims in untrusted block, server-side secret nonce, evidence truncation logging), #7 (dual-pass covers both dominant and stable convergence, checks `swap_ent`), #8 (`DebateResult` removed `confidence`, added `margin_score`, removed unused `losing_claims`), #9 (worst-case budget check before swapped pass). Fixed `test_neo4j_live.py` fixture ordering. Reverted `kafka_producer.py` to HEAD. | **116/116** Passed (67 debate + 28 skeleton + 21 gate); Ingestion: **157/182** passed (25 skipped, 0 failures, 0 errors). |
 

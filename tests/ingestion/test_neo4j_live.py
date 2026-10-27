@@ -59,7 +59,7 @@ class TestNeo4jLiveIntegration:
             )
 
     @pytest.fixture
-    def client(self) -> Neo4jClient:
+    def client(self, require_neo4j) -> Neo4jClient:
         c = Neo4jClient()
         yield c
         c.close()

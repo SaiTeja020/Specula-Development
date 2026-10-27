@@ -44,6 +44,11 @@ class SpeculaState(TypedDict, total=False):
     confidence_delta: Optional[float]        # undefined on round 1
     debate_history: Annotated[list, operator.add]  # one entry per closed round
     debate_outcome: Optional[str]            # converged | round_cap_exhausted
+    case_state: str                          # OPEN | FROZEN — written only by the debate gate / judge re-check
+    consumer_lag: int                        # pending consumer writes for this case (0 = caught up)
+    debate_restarts: int                     # aborted-and-restarted debates (late write reopened the case)
+    hitl_entry_reason: Optional[str]         # gate_blocked | None (guardrail/debate reasons are derived)
+    gate_block_reasons: list                 # why the readiness gate was closed (diagnostic)
 
     # §2.6 Guardrail subsystem
     guardrail_tier1_result: Optional[str]    # pass | fail

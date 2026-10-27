@@ -64,6 +64,7 @@ def _base_input(raw_input: str = "Suspicious activity on host WS-042", **overrid
         "specialists_completed": [],
         "dead_end_detected": False,
         "dead_end_categories": [],
+        "consumer_lag": 0,
         **overrides,
     }
 

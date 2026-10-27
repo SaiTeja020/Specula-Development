@@ -18,6 +18,7 @@ CHECKPOINT_PREFIX = "checkpoint:"
 WRITES_PREFIX = "writes:"
 ACTIVE_CASE_PREFIX = "active_case:"
 SCRATCHPAD_PREFIX = "scratchpad:"
+DEBATE_PREFIX = "debate:"
 
 
 # --- Helper functions for structured key construction ---
@@ -45,3 +46,33 @@ def active_case_key(case_id: str) -> str:
 def scratchpad_key(case_id: str, agent_role: str) -> str:
     """Build a scratchpad key for in-flight ReAct reasoning."""
     return f"{SCRATCHPAD_PREFIX}{case_id}:{agent_role}"
+
+
+def debate_payload_key(case_id: str, payload_uid: str) -> str:
+    """Build a durable debate payload key (SHA-256 uid pointer target)."""
+    return f"{DEBATE_PREFIX}{case_id}:payload:{payload_uid}"
+
+
+def debate_index_key(case_id: str) -> str:
+    """Set of every debate key for a case (used to suspend/resume TTLs)."""
+    return f"{DEBATE_PREFIX}{case_id}:keys"
+
+
+def debate_rounds_key(case_id: str, run_id: str) -> str:
+    """List of closed/active round records for one debate run."""
+    return f"{DEBATE_PREFIX}{case_id}:{run_id}:rounds"
+
+
+def debate_feedback_key(case_id: str, run_id: str, role: str) -> str:
+    """Retry feedback (missing/invalid UIDs) for an agent's next attempt."""
+    return f"{DEBATE_PREFIX}{case_id}:{run_id}:feedback:{role}"
+
+
+def debate_judge_key(case_id: str, run_id: str, round_index: int) -> str:
+    """Persisted Judge record (evaluations, blind map + seed, verdict) per round."""
+    return f"{DEBATE_PREFIX}{case_id}:{run_id}:judge:{round_index}"
+
+
+def debate_retrieved_key(case_id: str, run_id: str, round_index: int, role: str, attempt: int) -> str:
+    """UIDs actually returned by MCP reads for one agent turn (written by the MCP layer)."""
+    return f"{DEBATE_PREFIX}{case_id}:{run_id}:retrieved:{round_index}:{role}:{attempt}"
