@@ -2,7 +2,7 @@
 
 Autonomous, event-driven digital forensics ingestion pipeline built with **Pydantic v2**, **Kafka**, **Schema Registry**, **Redis**, **Quickwit**, **Neo4j (DFKG)**, **ChromaDB**, and **FastAPI / MCP**.
 
-**Start here:** [Project status](docs/PROJECT_STATUS.md) lists verified local work, remaining work and readiness limits. [Documentation map](docs/README.md) distinguishes current operational guides from historical plans. The four split ZIPs and two Word summaries in the repository root are older deliverables; use the source tree for current changes.
+**Start here:** [Documentation map](docs/README.md) lists project context, architecture, operating guides and input formats. [PROGRESS.md](PROGRESS.md) tracks task states and verification; [DECISIONS.md](DECISIONS.md) records architectural decisions.
 
 ---
 

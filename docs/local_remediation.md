@@ -1,4 +1,4 @@
-# Local remediation — 2026-10-07
+# Local runtime and recovery
 
 ## Access policy
 
@@ -17,16 +17,6 @@ Evidence collection reads all case-related Event nodes with parameterized Cypher
 Both Docker APIs use SQLite WAL in the shared persistent `specula-checkpoints` named volume. A Windows bind mount failed WAL initialization during deployment and was replaced with this volume. This configuration supports one Docker host. Do not delete the volume when restarting. Execution leases and transaction-level owner fencing prevent concurrent or stale workers from saving a case.
 
 After a dependency failure, the snapshot lists `failed_nodes`. An authorized analyst can call `POST /api/investigations/{case_id}/retry` to continue pending work; it rejects completed workflows and normal analyst-review pauses. Restore Ollama and backing services first. Analyst decisions remain on the `/review` endpoint.
-
-## Executed results
-
-The actual Docker investigation collected and triaged all four original Event UIDs, paused on HITL, survived a Docker engine shutdown and a deliberate restart of both APIs, and resumed to a closed workflow. The paused snapshot hash remained identical across the deliberate API restart. Both gateways rejected anonymous requests with 401 and another case with 403. After Ollama was found stopped, a saved failed node was retried successfully once the local server was restored. Final report and timeline have complete endings and the report cites all four original events. The recovered continuation took 18.05 seconds; the initial pause took 277.49 seconds.
-
-The October 7 workflow acceptance remains `incomplete`: its stored case ran before the threat-intelligence corpus was built, and Kafka attribution delivery was unconfirmed. On October 10, the existing ATT&CK v19.2 workbook produced a verified 873-record FAISS corpus. Docker readiness and direct container retrieval succeeded. The corrected attribution path enumerates all 176 group profiles, disregards inferred tactic order for alignment, requires distinct TTPs and excludes hash-vector free-text mapping. A new probe of the retained synthetic case resolved four case-linked Neo4j Event UIDs and two distinct cited TTPs with Ollama `qwen3:8b`; Kafka acknowledged the resulting finding and the local DFKG consumer wrote its UID, partition/offset and refs to Neo4j. Machine evidence is in `data/verification/local_attribution_delivery_latest.json`. This does not retroactively alter the closed checkpoint or establish ranking quality or a new unattended investigation. Local access checks use a restricted synthetic identity; a real Supabase browser session has not been exercised.
-
-All 93 focused remediation tests pass. The default suite reports 452 passed, two existing alternate-supervisor sync/async failures and 33 opt-in tests excluded. Actual Ollama inference passed; both local service/API/WebSocket/frontend asset checks passed after restoring the stopped schema registry. Frontend build and scoped lint passed with existing bundle-size/Fast Refresh warnings. Environment validation confirms 25 direct requirements, 282 constraints and a clean `pip check`.
-
-For the October 10 attribution/delivery changes, **74 focused tests passed**. A broader selected run passed 399 tests and retained exactly the two previously recorded supervisor sync/async failures (16 excluded). The deployed attribution probe received a broker receipt and confirmed the matching Neo4j write; this is separate from a complete new case run.
 
 ## Verification commands
 

@@ -1,6 +1,6 @@
 # Specula operational runbook — local Docker milestone
 
-Current local behavior and open work are summarized in [project status](PROJECT_STATUS.md). The checkpoint and backend access controls below were verified on 2026-10-07; production ownership and whole-system recovery remain open.
+Current local behavior and open work are summarized in [task tracker](../PROGRESS.md). The checkpoint and backend access controls below were verified on 2026-10-07; production ownership and whole-system recovery remain open.
 
 ## Ownership and acceptance policy
 
@@ -18,7 +18,7 @@ Run from the repository root after creating fresh, authorized verification evide
 
 The integration artifact at `data/verification/local_case_latest.json` must be less than 24 hours old. Do not touch its timestamp to bypass this requirement. Its case must be an intentionally run and reviewed acceptance workload. The suite checks anonymous graph access, measured throughput against the approved target, a separate-index raw evidence restore, cross-process checkpoint pause/resume, and owner/RPO/RTO configuration. The raw restore covers four records only, and the suite does not prove coordinated whole-store restore, sustained load, signed-in browser workflows or hardware stability.
 
-Record each run's date, environment, source revision, workload/case ID, raw result and unresolved failures in `PROGRESS.md`. Never fill approval environment variables with the proposed review values unless the accountable operator has approved them. On 2026-10-16, the suite returned **1 passed, 5 failed**: anonymous graph access passed; integration evidence was stale, throughput target and operational approvals were unset, and raw restore/restart checks could not use fresh evidence. Production remains blocked.
+Record each run's date, environment, source revision, workload/case ID, raw result and unresolved failures in `PROGRESS.md`. Never fill approval environment variables with the proposed review values unless the accountable operator has approved them.
 
 ### Report and forensic review acceptance
 
@@ -38,7 +38,7 @@ The dashboard startup checks services; it never tears down containers or deletes
 
 - Stop the frontend process with Ctrl+C.
 - Stop individual services with `docker compose -f docker-compose.yml -f docker-compose.local.yml stop visualizer-api hitl-api dfkg-consumer` when planned. Preserve existing containers and evidence.
-- The two API containers share the `specula-checkpoints` Docker named volume. Restart the APIs without removing that volume, then fetch the same case ID. Paused HITL state survived both an engine shutdown and a deliberate API restart in the local oracle. If a dependency stopped during execution, restore it and use the authorized case retry endpoint; a normal HITL pause still uses the review endpoint. See [local remediation](local_remediation.md) for commands. Full multi-store recovery remains a production gate.
+- The two API containers share the `specula-checkpoints` Docker named volume. Restart the APIs without removing that volume, then fetch the same case ID. Paused HITL state survived both an engine shutdown and a deliberate API restart in the local oracle. If a dependency stopped during execution, restore it and use the authorized case retry endpoint; a normal HITL pause still uses the review endpoint. See [local runtime and recovery](local_remediation.md) for commands. Full multi-store recovery remains a production gate.
 - If preservation fails, ingestion must stop; investigate Quickwit, then retry the preserved source. Never invent a successful preservation result.
 - Attribution publication waits at most two seconds for a Kafka delivery callback. `acknowledged` records topic/partition/offset; `pending` after the bound is unconfirmed. The local `dfkg-consumer` writes matching UID/offset to Neo4j, then commits its Kafka offset. Confirm both broker and Neo4j receipts before claiming local delivery; callback failures after return do not rewrite checkpointed state. Replay/restore of the complete pipeline remains unverified.
 - If a corpus refresh is incomplete, the loader retains its last verified snapshot. Rebuild legacy corpora with artifact hashes before using them for case attribution. The pinned local workbook uses version-based freshness rather than the 26-hour daily-feed timer; it is not evidence that the pinned ATT&CK release is the latest available.

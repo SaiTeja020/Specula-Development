@@ -718,7 +718,7 @@ Alongside the static PDF report, Specula generates an interactive, graph-type at
 
 ### **14.1 Cross-document conflict — flag before anything else** 
 
-- The documents _specula_architecture_v3_feature_map.html_ and _specula_runtime_harness.md_ disagree with this Master doc on two load-bearing mechanics; this Master doc (Section 10, "five rounds of architectural review") is authoritative: 
+- The documents _the earlier architecture diagram_ and _specula_runtime_harness.md_ disagree with this Master doc on two load-bearing mechanics; this Master doc (Section 10, "five rounds of architectural review") is authoritative: 
 
    1. **Specialist DFKG writes.** Older docs suggest specialists write directly to DFKG via harness, bypassing Kafka. Per Section 9.1 of this document, _all_ agents publish findings to Kafka topics with no direct-write path. 
 

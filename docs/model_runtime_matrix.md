@@ -1,6 +1,6 @@
 # Model runtime matrix
 
-Originally reviewed 2026-10-06 against `src/agents/config.py`, graph factories, and ADRs; updated for the 2026-10-07 local remediation. Model IDs below describe configuration labels, not proof that a provider was invoked. Development defaults to `SPECULA_LLM_BACKEND=stub`. The local Docker override selects Ollama. No production target or production model deployment has been verified. See [project status](PROJECT_STATUS.md).
+Originally reviewed 2026-10-06 against `src/agents/config.py`, graph factories, and ADRs; updated for the 2026-10-07 local remediation. Model IDs below describe configuration labels, not proof that a provider was invoked. Development defaults to `SPECULA_LLM_BACKEND=stub`. The local Docker override selects Ollama. No production target or production model deployment has been verified. See [task tracker](../PROGRESS.md).
 
 ## Current local Docker selection (2026-10-07)
 
