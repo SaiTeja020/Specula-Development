@@ -67,7 +67,7 @@ app.add_middleware(
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_methods=["GET", "POST"],
     allow_headers=["X-Specula-Local-Boot", "Content-Type"],
-    expose_headers=["X-Report-SHA256"],
+    expose_headers=["X-Report-SHA256", "X-Report-Generated-At", "X-Report-Status"],
 )
 _lock = asyncio.Lock()
 _job = None
@@ -440,15 +440,22 @@ async def local_examination_report(case_id: str, kind: Literal["court", "technic
     except (OSError, requests.RequestException):
         raise HTTPException(503, "Report service unavailable") from None
     if response.status_code != 200:
-        raise HTTPException(response.status_code, "Report not available; finish the investigation and analyst review")
+        message = "Final report generation has not completed for this case" if response.status_code == 409 else "Report service unavailable for this case"
+        raise HTTPException(response.status_code, message)
+    document = response.content
+    if not document.startswith(b'%PDF-'):
+        raise HTTPException(502, "Report service returned an invalid PDF")
     from hashlib import sha256
-    document_digest = sha256(response.content).hexdigest()
+    document_digest = sha256(document).hexdigest()
     report_directory = ROOT / "data" / "reports" / sha256(case_id.encode()).hexdigest()
     report_directory.mkdir(parents=True, exist_ok=True)
-    (report_directory / f"{kind}-{document_digest}.html").write_bytes(response.content)
-    return Response(response.content, media_type="text/html", headers={
-        "Content-Disposition": f'attachment; filename="specula-{kind}-report.html"',
+    (report_directory / f"{kind}-{document_digest}.pdf").write_bytes(document)
+    return Response(document, media_type="application/pdf", headers={
+        "Content-Disposition": f'attachment; filename="specula-{kind}-report.pdf"',
         "X-Report-SHA256": document_digest,
+        "X-Report-Generated-At": response.headers.get('X-Report-Generated-At', ''),
+        "X-Report-Status": response.headers.get('X-Report-Status', ''),
+        "X-Content-Type-Options": "nosniff",
     })
 
 

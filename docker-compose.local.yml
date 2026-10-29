@@ -1,5 +1,6 @@
 # Local development source deployment using the existing HITL image.
-# Start with --no-build; dependency installation remains a human operation.
+# Build hitl-api after dependency changes, then start with --no-build.
+# The shared image contains ReportLab; do not install packages into live containers.
 services:
   kafka:
     volumes:

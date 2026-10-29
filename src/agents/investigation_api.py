@@ -71,6 +71,7 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
         values = state.values
         return {"case_id": values.get("case_id"), "case_status": values.get("case_status"),
                 "started_at": values.get("report_generated_at"),
+                "execution_manifest": values.get("execution_manifest"),
                 "paused_at": list(state.next), "findings": values.get("findings", []),
                 "failed_nodes": [task.name for task in state.tasks if task.error],
                 "agent_traces": values.get("agent_traces", []),
@@ -332,14 +333,20 @@ def register_investigation_routes(app, get_graph, get_driver, broadcast):
         state = await asyncio.to_thread(graph.get_state, config)
         if not state.values or not state.values.get("report_output"):
             raise HTTPException(409, "Final report generation has not completed for this case")
-        document = state.values.get(f"{kind}_report_output")
-        if not document:
-            from .examination_reports import render_examination_report
-            document, _ = await asyncio.to_thread(render_examination_report, dict(state.values), kind)
-        return Response(document, media_type="text/html", headers={
-            "Content-Disposition": f'attachment; filename="specula-{kind}-report.html"',
-            "X-Report-SHA256": sha256(document.encode()).hexdigest(),
-            "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+        # Regenerate from saved evidence so historical HTML never masks template fixes.
+        from .examination_reports import render_examination_pdf
+        try:
+            document, metadata = await asyncio.to_thread(render_examination_pdf, dict(state.values), kind)
+        except ModuleNotFoundError as error:
+            if error.name != 'reportlab':
+                raise
+            raise HTTPException(503, 'PDF generation is unavailable on the report server') from None
+        return Response(document, media_type="application/pdf", headers={
+            "Content-Disposition": f'attachment; filename="specula-{kind}-report.pdf"',
+            "X-Report-SHA256": sha256(document).hexdigest(),
+            "X-Report-Generated-At": metadata['document_generated_at'],
+            "X-Report-Status": metadata['status'],
+            "X-Content-Type-Options": "nosniff",
         })
 
     @app.post("/api/investigations/{case_id}/retry")

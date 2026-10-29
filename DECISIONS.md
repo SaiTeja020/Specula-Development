@@ -6,6 +6,19 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 
 ## 1. Document Purpose & Operational Rules
 
+### ADR-036: Audience-specific PDF examination reports (2026-10-27)
+- Accepted for TASK-6.8 report rendering corrections: use ReportLab for paginated PDF downloads rather than browser-printed HTML. Court drafts summarize scope, receipt/custody, supported observations, cited exhibits, limitations and unsigned examiner review. Technical reports document telemetry coverage, cited detections, event details, execution provenance and analyst follow-up. Exclude raw state/model dumps and unrelated platform boilerplate. Preserve original checkpoints; regenerate downloadable PDFs from saved evidence, retaining final-report/authorization gates and explicit draft status. Do not infer legal conclusions, expert approval or remediation success. Existing HTML artifacts remain historical.
+
+### ADR-037: Durable local report delivery and readable source chronology (2026-10-27)
+- Local controller renders PDFs using the shared renderer in the persistent host environment, after fetching the authorized saved case and enforcing final-report completion. Docker recreation can discard manually installed image packages; local report availability must not depend on that transient installation. Preserve source checkpoints and hash-addressed PDF copies. Hosted PDF endpoints still require ReportLab in their deployment image. Timeline presentation joins cited reconstruction entries with original fields, groups recorded times in UTC, and labels metadata/capture times and uncertainty separately; descriptive order and related-record groups do not imply causation or verified attack completion.
+
+### ADR-038: Image-owned PDF rendering dependency (2026-10-27)
+- Supersedes ADR-037's host-side rendering workaround at the user's request. Pin ReportLab in the shared API image requirements and execute the real PDF renderer during image construction. Declare a single explicit image tag across Compose services, rebuild it, and recreate the API services against it. The local controller returns to authorized binary PDF proxying and preservation. Normal boot remains offline/no-build and uses the rebuilt image, so dependencies survive container recreation. Restrict the build context to Dockerfile inputs, excluding local evidence, credentials and virtual environments.
+
+### ADR-039: Refreshable datastore monitoring (2026-10-27)
+- Store and graph views refresh from existing authorized APIs every 10 seconds while visible, on focus, and on manual refresh. Prevent overlapping requests and discard responses from prior cases/unmounted views. Show check times and failures explicitly. Remove invented empty query/hit history fields; return actual live collection counts and Quickwit match totals. Distinguish DuckDB's saved analytics snapshots and FAISS's shared, versioned corpus from continuously ingested evidence. Do not write synthetic data or rebuild reference corpora merely to animate a monitor.
+- Live inspection found the installed Chroma image saves to `/data` while Compose mounts `/chroma/chroma`. Correct persistence to `/data` and preserve the current database before container replacement; retain historical host directories unchanged. Validate collection counts before/after recreation. A historical indexing receipt alone does not prove vectors still exist now.
+
 - **Central ADR Repository:** Records all core architectural, cryptographic, model distribution, and algorithmic decisions made for Specula.
 - **Bidirectional Links:** Every ADR links directly to corresponding implementation phases and tasks in [PROGRESS.md](PROGRESS.md).
 - **Mandatory Agent Rule:** Any future architectural deviation, library swap, or parameter modification by the AI agent MUST first be logged as a new ADR entry in `DECISIONS.md` before updating codebase files or `PROGRESS.md`.

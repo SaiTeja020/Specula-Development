@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { localFetch } from '../lib/localApi';
+import CodeBlock from '../components/CodeBlock';
 
 const ROLE_PURPOSE = {
   supervisor: 'Routes the case to the relevant workers and decides whether specialist review is needed.',
@@ -31,14 +32,6 @@ const panelStyle = {
   borderRadius: 'var(--sp-radius-md)',
   background: 'var(--sp-color-bg-surface)',
   padding: '1rem 1.25rem',
-};
-
-const proseStyle = {
-  whiteSpace: 'pre-wrap',
-  overflowWrap: 'anywhere',
-  fontFamily: 'var(--sp-font-mono)',
-  fontSize: '0.85rem',
-  lineHeight: 1.6,
 };
 
 function activityPositions(graph) {
@@ -128,6 +121,7 @@ export function HistoryView() {
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.75rem' }}>
         <div>
           <Link to={`/history/${encodeURIComponent(item.case_id)}?view=agents`}
+            className="secondary-btn"
             style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{item.case_id}</Link>
           <div style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.85rem' }}>
             Started {item.started_at ? new Date(item.started_at).toLocaleString() : 'time unavailable'}
@@ -177,11 +171,11 @@ function SandboxReceipts({ caseId, receipts }) {
       <p><strong>Status: {receipt.status}</strong>{receipt.cape_task_id && ` · CAPE task ${receipt.cape_task_id}`}</p>
       <p>{receipt.limitation}</p>
       {receipt.sample_sha256 && <p style={{ overflowWrap: 'anywhere' }}>Sample SHA-256: {receipt.sample_sha256}</p>}
-      {receipt.report_sha256 && <button type="button" disabled={Boolean(downloading)} onClick={() => download(receipt)}>
+      {receipt.report_sha256 && <button type="button" className="secondary-btn" disabled={Boolean(downloading)} onClick={() => download(receipt)}>
         {downloading === receipt.uid ? 'Downloading CAPE report…' : 'Download CAPE report (JSON)'}
       </button>}
       <details><summary>Recorded observations and coverage</summary>
-        <pre style={proseStyle}>{JSON.stringify(receipt, null, 2)}</pre>
+        <CodeBlock language="json" caption="Sandbox examination receipt" value={receipt} />
       </details>
     </div>)}
     {downloading && <p role="status">Verifying sandbox report download…</p>}
@@ -204,111 +198,47 @@ export function AgentsView({ snapshot }) {
     return { trace, index, finding: findingsByRole.get(role)?.[occurrence] };
   });
   if (!executions.length) return <EmptyView title="No agent steps saved yet" detail="Execution details will appear as checkpoints are written." />;
-  return <section aria-label="Executed agents" style={{ display: 'grid', gap: '0.75rem' }}>
+  return <section className="review-content" aria-label="Executed agents" style={{ display: 'grid', gap: '1.25rem' }}>
     <p style={{ color: 'var(--sp-color-text-secondary)', margin: 0 }}>
       Each card describes an executed step. Output and citations come from the saved checkpoint; model labels reflect actual invocation.
     </p>
     {executions.map(({ trace, index, finding }) => {
       const refs = trace.dfkg_refs || finding?.dfkg_refs || [];
-      return <article key={`${trace.agent_role}-${index}`} style={panelStyle}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '0.5rem' }}>
+      return <article className="review-card" key={`${trace.agent_role}-${index}`} style={panelStyle}>
+        <div className="agent-heading">
           <h2 style={{ margin: 0, fontSize: '1rem' }}>{index + 1}. {trace.agent_role?.replaceAll('_', ' ') || 'Agent'}</h2>
-          <span style={{ fontFamily: 'var(--sp-font-mono)', fontSize: '0.8rem' }}>{trace.model_used || 'No model invoked'}</span>
+          <span className="model-badge">{trace.model_used || 'No model invoked'}</span>
         </div>
-        <p style={{ marginBottom: '0.5rem' }}><strong>Purpose:</strong> {ROLE_PURPOSE[trace.agent_role] || 'Process the available case state.'}</p>
-        <div style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.8rem' }}>
-          Action: {trace.action || 'not recorded'}
-          {trace.latency_ms != null && ` · ${trace.latency_ms} ms`}
-          {trace.timestamp && ` · ${new Date(trace.timestamp).toLocaleString()}`}
-        </div>
-        <pre style={proseStyle}>{finding?.summary || trace.observation || 'No output text recorded.'}</pre>
+        <p><strong>Purpose:</strong> {ROLE_PURPOSE[trace.agent_role] || 'Process the available case state.'}</p>
+        <dl className="agent-metadata">
+          <div><dt>Action</dt><dd>{trace.action?.replaceAll('_', ' ') || 'Not recorded'}</dd></div>
+          {trace.latency_ms != null && <div><dt>Duration</dt><dd>{(trace.latency_ms / 1000).toFixed(2)} seconds</dd></div>}
+          {trace.timestamp && <div><dt>Executed</dt><dd>{new Date(trace.timestamp).toLocaleString()}</dd></div>}
+        </dl>
+        <p className="agent-observation">{finding?.summary || trace.observation || 'No output text recorded.'}</p>
         {trace.sandbox_examinations?.length > 0 && <SandboxReceipts caseId={snapshot.case_id} receipts={trace.sandbox_examinations} />}
-        {trace.review_coverage && <p role="status">
-          {trace.review_unit && <>Review unit: {trace.review_unit.replaceAll('_', ' ')}. </>}
-          {trace.preserved_event_count != null && <>{trace.preserved_event_count} source events preserved. </>}
-          Review coverage: {trace.review_coverage.submitted} / {trace.review_coverage.total} observations submitted;
-          {' '}{trace.review_coverage.validated} received valid responses.
-          {' '}{trace.review_coverage.complete ? 'Complete.' : 'Incomplete — human review required.'}
-        </p>}
+        {trace.review_coverage && <dl className="review-coverage">
+          {trace.review_unit && <div><dt>Review unit</dt><dd>{trace.review_unit.replaceAll('_', ' ')}</dd></div>}
+          {trace.preserved_event_count != null && <div><dt>Preserved source events</dt><dd>{trace.preserved_event_count}</dd></div>}
+          <div><dt>Review coverage</dt><dd>{trace.review_coverage.submitted} / {trace.review_coverage.total} submitted; {trace.review_coverage.validated} valid responses</dd></div>
+          <div><dt>Review status</dt><dd>{trace.review_coverage.complete ? 'Complete' : 'Incomplete — human review required'}</dd></div>
+        </dl>}
         {trace.model_output && <details><summary>Recorded model assessment · {trace.model_output_validated ? 'validated response' : 'rejected output'}</summary>
-          <pre style={proseStyle}>{trace.model_output}</pre>
-          <p>Validation checks response structure and case references. Model assessments remain analysis, not source evidence.</p>
+          <CodeBlock language="json" caption="Recorded model assessment" value={trace.model_output} />
+          <p className="review-note">Validation checks response structure and case references. Model assessments remain analysis, not source evidence.</p>
           {(trace.review_batches || trace.review_attempts) && <details><summary>Review batches and retry results</summary>
-            <pre style={proseStyle}>{JSON.stringify(trace.review_batches || trace.review_attempts, null, 2)}</pre>
+            <CodeBlock language="json" caption="Review batches and retry results" value={trace.review_batches || trace.review_attempts} />
           </details>}
         </details>}
-        {refs.length > 0 && <div style={{ fontSize: '0.8rem', overflowWrap: 'anywhere' }}>
-          Evidence ({refs.length}): {refs.slice(0, 8).join(', ')}{refs.length > 8 && ` and ${refs.length - 8} more`}
-        </div>}
+        {refs.length > 0 && <details><summary>Evidence references ({refs.length})</summary>
+          <CodeBlock caption="Evidence identifiers" value={refs.join('\n')} />
+        </details>}
       </article>;
     })}
   </section>;
 }
 
-export function TimelineView({ snapshot }) {
-  const [page, setPage] = useState(0);
-  if (!snapshot) return <EmptyView title="No case selected" detail="Open a saved investigation to view its timeline." />;
-  const reconstructed = snapshot.timeline?.events || [];
-  const evidence = snapshot.evidence_collection?.records || [];
-  const source = reconstructed.length ? reconstructed : evidence;
-  const events = source.map((item, index) => ({
-    id: item.uid || item.dfkg_refs?.[0] || `event-${index}`,
-    time: item.time || item.timestamp || '',
-    summary: item.summary || item.process_name || item.command_line ||
-      [item.host_name, item.class_uid != null && `OCSF class ${item.class_uid}`].filter(Boolean).join(' · ') || 'Evidence event',
-    severity: item.severity_id,
-    timeBasis: item.time_basis,
-    derivedTime: item.derived_time,
-    clockUncertainty: item.clock_uncertainty || [],
-    refs: item.dfkg_refs || (item.uid ? [item.uid] : []),
-  })).sort((a, b) => (Date.parse(a.time) || 0) - (Date.parse(b.time) || 0));
-  const pageSize = 50;
-  const pageCount = Math.max(1, Math.ceil(events.length / pageSize));
-  const currentPage = Math.min(page, pageCount - 1);
-  return <section aria-label="Reconstructed timeline" style={{ display: 'grid', gap: '0.75rem' }}>
-    <div style={panelStyle}>
-      <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Reconstructed timeline</h2>
-      <p>{reconstructed.length
-        ? `${reconstructed.length} cited timeline events saved by reconstruction.`
-        : `${events.length} preserved evidence events ordered by their recorded timestamps. No structured reconstruction events were saved for this case.`}</p>
-      {snapshot.timeline?.summary && <details><summary>Agent synthesis</summary><pre style={proseStyle}>{snapshot.timeline.summary}</pre></details>}
-    </div>
-    {snapshot.timeline?.episodes?.length > 0 && <details style={panelStyle}>
-      <summary>Correlated episodes ({snapshot.timeline.episodes.length})</summary>
-      <p>Source identifiers and bounded time windows group these records. They do not establish causation or one actor.</p>
-      {snapshot.timeline.episodes.map(episode => <article key={episode.id} style={{ marginBlock: '1rem' }}>
-        <strong>{episode.start_time} to {episode.end_time}</strong><p>{episode.summary}</p>
-        {episode.clock_uncertainty_present && <p>Clock uncertainty affects this host; original timestamps are retained.</p>}
-        <details><summary>Evidence and relationship basis ({episode.dfkg_refs.length} records)</summary>
-          <pre style={proseStyle}>{JSON.stringify({ evidence: episode.dfkg_refs, relationships: (snapshot.timeline.relations || []).filter(relation => episode.relation_ids.includes(relation.id)) }, null, 2)}</pre>
-        </details>
-      </article>)}
-    </details>}
-    {events.length > 0 ? <>
-      <ol start={currentPage * pageSize + 1} style={{ display: 'grid', gap: '0.5rem', paddingLeft: '1.5rem', margin: 0 }}>
-        {events.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((event, index) => <li
-          key={`${event.id}-${currentPage}-${index}`} style={panelStyle}>
-          <time style={{ fontFamily: 'var(--sp-font-mono)', fontSize: '0.8rem' }}>{event.time || 'Time unavailable'}</time>
-          {event.timeBasis === 'file_metadata' && <small> · File metadata timestamp; not execution time</small>}
-          {event.derivedTime && <p>Derived time: {event.derivedTime}. Source-declared correction; original time above is preserved.</p>}
-          {event.clockUncertainty.length > 0 && <details><summary>Clock uncertainty and source</summary><pre style={proseStyle}>{JSON.stringify(event.clockUncertainty, null, 2)}</pre></details>}
-          <p style={{ margin: '0.4rem 0', overflowWrap: 'anywhere' }}>{event.summary}</p>
-          <small>UID: {event.id}{event.severity != null ? ` · Severity ${event.severity}` : ''}</small>
-          {event.refs.length > 1 && <small> · {event.refs.length} cited events</small>}
-        </li>)}
-      </ol>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button type="button" className="secondary-btn" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button>
-        <span>Page {currentPage + 1} of {pageCount}</span>
-        <button type="button" className="secondary-btn" disabled={currentPage + 1 >= pageCount} onClick={() => setPage(currentPage + 1)}>Next</button>
-      </div>
-    </> : <EmptyView title="No timeline events saved" detail="The investigation has not recorded a supported event chronology yet." />}
-    {snapshot.timeline_artifact && <details style={panelStyle}>
-      <summary>Saved evidence timeline artifact</summary>
-      <pre style={proseStyle}>{snapshot.timeline_artifact}</pre>
-    </details>}
-  </section>;
-}
+export { default as TimelineView } from './EvidenceTimeline';
 
 export function AttackGraphView({ snapshot }) {
   if (!snapshot) return <EmptyView title="No case selected" detail="Open a saved investigation to view its attack graph analysis." />;
@@ -327,7 +257,7 @@ export function AttackGraphView({ snapshot }) {
       <p>{snapshot.exploit_topology.path_conditional_probability === null
         ? 'Probability unavailable: calibrated inputs were not supplied.'
         : `Conditional model probability: ${snapshot.exploit_topology.path_conditional_probability}. This is not observed case certainty.`}</p>
-      <details><summary>Topology, calibration citations and assumptions</summary><pre style={proseStyle}>{JSON.stringify(snapshot.exploit_topology,null,2)}</pre></details>
+      <details><summary>Topology, calibration citations and assumptions</summary><CodeBlock language="json" caption="Exploit topology" value={snapshot.exploit_topology} /></details>
     </article>}
     {graph && <>
       <div style={{ height: '60vh', minHeight: 400, border: 'var(--sp-border-thin)' }}>
@@ -344,7 +274,7 @@ export function AttackGraphView({ snapshot }) {
         <p>Longest source-relation chains. No exploit probability is calculated.</p>
         {graph.activity_paths.map((path, index) => <p key={index}>{path.nodes.map(id => graph.nodes.find(node => node.id === id)?.summary || id).join(' ? ')}</p>)}
       </details>}
-      <details style={panelStyle}><summary>Relationship evidence and basis</summary><pre style={proseStyle}>{JSON.stringify(graph.source_relations || graph.edges, null, 2)}</pre></details>
+      <details style={panelStyle}><summary>Relationship evidence and basis</summary><CodeBlock language="json" caption="Relationship evidence" value={graph.source_relations || graph.edges} /></details>
       <details><summary>Graph records ({graph.nodes.length})</summary>
       {graph.nodes.map(node => <article key={node.id} style={panelStyle}>
         <strong>{node.label.replaceAll('_', ' ')}</strong><p>{node.summary}</p>
@@ -356,24 +286,27 @@ export function AttackGraphView({ snapshot }) {
       <p style={{ color: 'var(--sp-color-text-secondary)', fontSize: '0.85rem' }}>
         Model: {trace?.model_used || 'not recorded'} · Evidence references: {finding.dfkg_refs?.length || 0}
       </p>
-      <pre style={proseStyle}>{finding.summary}</pre>
+      <CodeBlock caption="Saved attack analysis" value={finding.summary} />
     </article> : <EmptyView title={graph ? "Exploit-path calculation unavailable" : "Attack graph step pending"} detail={graph ? graph.limitations.join(" ") : "The Dynamic Attack Graph agent has not saved analysis for this case."} />}
-    <Link to={`/history/${encodeURIComponent(snapshot.case_id)}?view=neo4j`}>View this case’s stored Neo4j relationships</Link>
+    <Link className="secondary-btn" to={`/history/${encodeURIComponent(snapshot.case_id)}?view=neo4j`}>View this case’s stored Neo4j relationships</Link>
   </section>;
 }
 
 export function ReportView({ snapshot }) {
   const [kind, setKind] = useState('court');
+  const [documentMetadata, setDocumentMetadata] = useState({});
   const [document, setDocument] = useState('');
   const [digest, setDigest] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState('');
+  const [retry, setRetry] = useState(0);
   const caseId = snapshot?.case_id;
   const hasReport = Boolean(snapshot?.report_output);
   useEffect(() => {
     let cancelled = false;
     setDocument(''); setError(''); setDigest('');
+    setDocumentMetadata({});
     if (!caseId || !hasReport) return () => { cancelled = true; };
     setLoading(true);
     const load = async () => {
@@ -381,18 +314,28 @@ export function ReportView({ snapshot }) {
         const response = caseId.startsWith('LOCAL-')
           ? await localFetch(`/api/local/cases/${encodeURIComponent(caseId)}/reports/${kind}`)
           : await apiFetch(`http://localhost:8300/api/investigations/${encodeURIComponent(caseId)}/reports/${kind}`);
-        if (!response.ok) throw new Error(`Report returned HTTP ${response.status}`);
-        const text = await response.text();
-        if (!cancelled) { setDocument(text); setDigest(response.headers.get('X-Report-SHA256') || ''); }
+        if (!response.ok) {
+          const problem = await response.json().catch(() => ({}));
+          throw new Error(problem.detail || `Report returned HTTP ${response.status}`);
+        }
+        const pdf = await response.blob();
+        if (!cancelled) {
+          setDocument(pdf);
+          setDigest(response.headers.get('X-Report-SHA256') || '');
+          setDocumentMetadata({
+            status: response.headers.get('X-Report-Status'),
+            generated_at: response.headers.get('X-Report-Generated-At'),
+          });
+        }
       } catch (cause) { if (!cancelled) setError(cause.message); }
       finally { if (!cancelled) setLoading(false); }
     };
     load();
     return () => { cancelled = true; };
-  }, [caseId, hasReport, kind]);
+  }, [caseId, hasReport, kind, retry]);
   useEffect(() => {
     if (!document) { setDownloadUrl(''); return; }
-    const url = URL.createObjectURL(new Blob([document], { type: 'text/html;charset=utf-8' }));
+    const url = URL.createObjectURL(document);
     setDownloadUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [document]);
@@ -401,27 +344,32 @@ export function ReportView({ snapshot }) {
     detail={snapshot.paused_at?.includes('hitl')
       ? 'This case is awaiting analyst review before final report generation.'
       : 'The investigation has not reached final report generation.'} />;
-  const metadata = snapshot.report_metadata || {};
-  return <section aria-label="Final generated reports" style={panelStyle}>
-    <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Examination reports</h2>
-    <label>Report format{' '}<select value={kind} onChange={event => setKind(event.target.value)}>
+  const metadata = { ...snapshot.report_metadata, ...documentMetadata };
+  return <section className="report-view review-content" aria-label="Final generated reports" style={panelStyle}>
+    <h2 style={{ margin: 0, fontSize: '1.35rem' }}>Examination reports</h2>
+    <label className="report-selector">Report type{' '}<select value={kind} onChange={event => setKind(event.target.value)}>
       <option value="court">Court submission report</option>
       <option value="technical">Technical cyber-team report</option>
     </select></label>
     {kind === 'court' && <p>Formal submission draft. Examiner review, qualifications, custody verification and admissibility review are required before filing.</p>}
-    <p>Status: <strong>{metadata.status || snapshot.acceptance_status || 'unknown'}</strong>
-      {metadata.generated_at && ` · Generated ${new Date(metadata.generated_at).toLocaleString()}`}</p>
-    {metadata.degraded_flags?.length > 0 && <p>Limitations: {metadata.degraded_flags.join(', ')}</p>}
-    <p>Reference: {snapshot.final_output_ref || 'No final output reference saved'}</p>
+    {kind === 'technical' && <p>Telemetry coverage, detection analysis, event details and analyst follow-up.</p>}
+    <dl className="report-metadata">
+      <div><dt>Status</dt><dd><span className="report-status">{metadata.status || snapshot.acceptance_status || 'Unknown'}</span></dd></div>
+      <div><dt>Generated</dt><dd>{metadata.generated_at ? new Date(metadata.generated_at).toLocaleString() : 'Not recorded'}</dd></div>
+    </dl>
+    {metadata.degraded_flags?.length > 0 && <section className="report-limitations"><h3>Limitations requiring review</h3>
+      <ul>{metadata.degraded_flags.map(flag => <li key={flag}>{flag.replaceAll('_', ' ').replace(/^./, char => char.toUpperCase())}</li>)}</ul>
+    </section>}
+    {snapshot.final_output_ref && <CodeBlock caption="Saved report reference" value={snapshot.final_output_ref} />}
     {loading && <p role="status">Preparing report…</p>}
-    {error && <p role="alert">{error}</p>}
-    {downloadUrl && <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
-      <a href={downloadUrl} download={`specula-${caseId}-${kind}.html`}>Download report (HTML)</a>
-      <a href={downloadUrl} target="_blank" rel="noopener noreferrer">Open printable report / save as PDF</a>
+    {error && <div role="alert"><p>{error}</p><button type="button" className="secondary-btn" onClick={() => setRetry(value => value + 1)}>Retry PDF download</button></div>}
+    {downloadUrl && <div className="report-actions">
+      <a className="secondary-btn" href={downloadUrl} download={`specula-${caseId}-${kind}.pdf`}>Download report (PDF)</a>
+      <a className="secondary-btn" href={downloadUrl} target="_blank" rel="noopener noreferrer">Open PDF</a>
     </div>}
-    {digest && <p style={{ fontSize: '0.8rem', overflowWrap: 'anywhere' }}>Document SHA-256: {digest}</p>}
-    {document && <iframe title={kind === 'court' ? 'Court submission report preview' : 'Technical report preview'}
-      srcDoc={document} sandbox="" style={{ width: '100%', height: '80vh', border: 'var(--sp-border-thin)', background: '#fff' }} />}
-    <details><summary>Original saved evidence report</summary><pre style={proseStyle}>{snapshot.report_output}</pre></details>
+    {digest && <CodeBlock caption="Document SHA-256" value={digest} />}
+    {downloadUrl && <iframe title={kind === 'court' ? 'Court submission report preview' : 'Technical report preview'}
+      src={downloadUrl} style={{ width: '100%', height: '80vh', border: 'var(--sp-border-thin)', background: '#fff' }} />}
+    <details><summary>Original saved evidence report</summary><CodeBlock language="markdown" caption="Original evidence report" value={snapshot.report_output} /></details>
   </section>;
 }

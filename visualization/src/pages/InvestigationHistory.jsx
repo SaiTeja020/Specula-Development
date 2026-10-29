@@ -47,10 +47,10 @@ export default function InvestigationHistory() {
   return <div style={{ padding: '1.5rem', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
     <h1>Investigation History</h1>
     {!caseId ? <HistoryView /> : <>
-      <Link to="/history">Back to all cases</Link>
+      <Link to="/history" className="secondary-btn">Back to all cases</Link>
       <h2 style={{ overflowWrap: 'anywhere' }}>Case: {caseId}</h2>
       <p>Saved case review{snapshot?.case_status ? ` · ${snapshot.case_status.replaceAll('_', ' ')}` : ''}</p>
-      <button type="button" onClick={() => { setError(''); setResult(null); setRevision(value => value + 1); }}>Refresh saved case</button>
+      <button type="button" className="secondary-btn" onClick={() => { setError(''); setResult(null); setRevision(value => value + 1); }}>Refresh saved case</button>
       <nav aria-label="Saved case views" style={{ display: 'flex', flexWrap: 'wrap', gap: '.75rem', margin: '1rem 0' }}>
         {VIEWS.map(([id, label]) => <button key={id} type="button" aria-pressed={view === id}
           className={view === id ? 'primary-btn' : 'secondary-btn'}

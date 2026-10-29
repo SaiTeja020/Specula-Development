@@ -1,0 +1,11 @@
+# Only the files consumed by Dockerfile.hitl belong in the build context.
+**
+!Dockerfile.hitl
+!.dockerignore
+!requirements.txt
+!agent_model_config.yaml
+!.env.example
+!src/
+!src/**
+src/**/__pycache__/
+src/**/*.pyc

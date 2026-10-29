@@ -3,6 +3,8 @@ import argparse
 from hashlib import sha256
 from pathlib import Path
 import re
+from io import BytesIO
+from pypdf import PdfReader
 
 import requests
 
@@ -23,10 +25,16 @@ def main():
                                   headers=headers, timeout=45)
             response.raise_for_status()
             assert response.headers["X-Report-SHA256"] == sha256(response.content).hexdigest()
-            assert '<!doctype html>' in response.text and 'End of report' in response.text
+            assert response.headers['Content-Type'].startswith('application/pdf')
+            assert response.content.startswith(b'%PDF-')
+            text = '\n'.join(page.extract_text() for page in PdfReader(BytesIO(response.content)).pages)
+            assert 'End of report' in text
             if kind == "court":
-                assert "NOT CERTIFIED" in response.text and "UNSIGNED" in response.text
-            path = directory / f"{kind}.html"
+                assert "NOT CERTIFIED" in text and "UNSIGNED" in text
+                assert 'Examiner declaration' in text and 'Execution and reproducibility' not in text
+            else:
+                assert 'Detection analysis' in text and 'Evidence timeline and event details' in text
+            path = directory / f"{kind}.pdf"
             path.write_bytes(response.content)
             print(f"{kind}: HTTP {response.status_code}, SHA-256 verified, {len(response.content)} bytes; {path}")
         response = client.post("http://127.0.0.1:8400/api/local/investigations/upload",

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   CheckCircle2, 
   CircleDashed, 
@@ -130,7 +130,7 @@ export default function StartupPage() {
       
       {/* Header */}
       <div style={{ width: '100%', maxWidth: '850px', textAlign: 'center', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
-        <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '48px', objectFit: 'contain' }} />
+        <Link to="/" className="home-brand" aria-label="Specula home"><img src="/Specula_logo.png" alt="" style={{ height: '48px', objectFit: 'contain' }} /></Link>
         <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--sp-color-text-primary)', margin: 0 }}>
           System Initialization
         </h1>
@@ -294,7 +294,6 @@ export default function StartupPage() {
               setLogs([]);
               setRetryCount(prev => prev + 1);
             }}
-            style={{ padding: '0.85rem 2.25rem', fontSize: '1rem', border: '1px solid var(--sp-color-border-hover)' }}
           >
             Retry Container Recreate
           </button>
@@ -303,7 +302,6 @@ export default function StartupPage() {
           <button 
             className="primary-btn" 
             onClick={() => navigate('/investigate')}
-            style={{ padding: '0.85rem 2.25rem', fontSize: '1rem' }}
           >
             Proceed to Investigation Console <ArrowRight size={18} />
           </button>

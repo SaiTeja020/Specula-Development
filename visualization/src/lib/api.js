@@ -1,6 +1,10 @@
 import { supabase } from './supabase';
+import { isGuestSession } from './guest';
 
 export async function getAccessToken() {
+  if (isGuestSession() || !supabase) {
+    throw new Error('Sign in with an account to access server investigations. Guest mode supports local investigations.');
+  }
   const { data, error } = await supabase.auth.getSession();
   if (error || !data?.session?.access_token) {
     throw new Error('Sign in to access investigations');

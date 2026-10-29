@@ -84,7 +84,9 @@ def test_dual_reports_escape_inputs_and_do_not_certify_admissibility():
     technical, technical_meta = render_examination_report(state, "technical")
     assert '<script>' not in court and '&lt;script&gt;' in court
     assert "UNVERIFIED-MODEL-CLAIM" not in court
-    assert "UNVERIFIED-MODEL-CLAIM" in technical
+    assert "UNVERIFIED-MODEL-CLAIM" not in technical
+    assert 'Detection analysis' in technical and 'Examiner declaration' not in technical
+    assert 'Examiner declaration' in court and 'Execution and reproducibility' not in court
     assert "NOT CERTIFIED" in court and "UNSIGNED" in court
     assert metadata["submission_readiness"] == "review_required"
     assert metadata["document_sha256"] == sha256(court.encode()).hexdigest()

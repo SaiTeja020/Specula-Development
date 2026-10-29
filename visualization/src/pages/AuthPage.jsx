@@ -4,7 +4,7 @@ import { ShieldCheck, Eye, EyeOff, LogIn, UserPlus, AlertCircle, Loader2 } from 
 import { useAuth } from '../contexts/AuthContext';
 
 export default function AuthPage() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInAsGuest } = useAuth();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState('login'); // 'login' | 'signup'
@@ -194,11 +194,22 @@ export default function AuthPage() {
           </button>
         </form>
 
+        <div className="auth-switch">
+          <button
+            type="button"
+            className="secondary-btn auth-guest-btn"
+            disabled={loading}
+            onClick={() => { signInAsGuest(); navigate('/', { replace: true }); }}
+          >
+            Continue as guest
+          </button>
+        </div>
+
         {/* Footer switch */}
         <p className="auth-switch">
           {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
           {' '}
-          <button type="button" className="auth-switch-btn" onClick={switchMode}>
+          <button type="button" className="secondary-btn" onClick={switchMode}>
             {mode === 'login' ? 'Sign up' : 'Sign in'}
           </button>
         </p>

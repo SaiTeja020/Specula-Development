@@ -23,6 +23,9 @@ COPY agent_model_config.yaml .
 # Copy .env if present (falls back gracefully if missing at build time)
 COPY .env.example .env
 
+# Fail the image build if the installed PDF dependency or bundled fonts are unusable.
+RUN python -c "from src.agents.examination_reports import render_examination_pdf; document, _ = render_examination_pdf({'case_id': 'image-build-check'}, 'court'); assert document.startswith(b'%PDF-')"
+
 # Expose HITL API port
 EXPOSE 8200
 

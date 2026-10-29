@@ -12,4 +12,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Sanitize URL in case /rest/v1 or trailing slashes were included
 const cleanUrl = supabaseUrl ? supabaseUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '') : '';
 
-export const supabase = createClient(cleanUrl, supabaseAnonKey);
+export const supabase = cleanUrl && supabaseAnonKey ? createClient(cleanUrl, supabaseAnonKey) : null;

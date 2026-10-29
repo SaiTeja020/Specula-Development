@@ -1,6 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { apiFetch } from '../lib/api';
 import { localFetch } from '../lib/localApi';
+import { startPolling } from '../lib/polling';
 import { usePipeline } from '../contexts/PipelineContext';
 import ReactFlow, { Background, Controls, Handle } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -162,19 +164,26 @@ export default function Neo4jVisualizer({ caseId = '' }) {
   const [loadError, setLoadError] = useState('');
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, data: null });
   const [selectedNode, setSelectedNode] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const refreshRef = useRef(null);
+  const layoutRef = useRef(null);
 
   const nodeTypes = useMemo(() => ({ neo4j: Neo4jNode }), []);
 
   useEffect(() => {
     let cancelled = false;
+    setNodes([]); setEdges([]); setTotals({}); setSelectedNode(null);
+    setLoading(true); setUpdatedAt(null); setLoadError('');
     const load = async () => {
+      setRefreshing(true);
       try {
         let response;
         try {
           if (caseId && !caseId.startsWith('LOCAL-')) throw new Error('Use authenticated case API');
-          response = await localFetch(`/api/local/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`);
+          response = await localFetch(`/api/local/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`, { cache: 'no-store' });
         } catch {
-          response = await apiFetch(`http://localhost:8300/api/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`);
+          response = await apiFetch(`http://localhost:8300/api/data/neo4j${selectedCase ? `?case_id=${encodeURIComponent(selectedCase)}` : ''}`, { cache: 'no-store' });
         }
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || `Graph returned HTTP ${response.status}`);
@@ -208,26 +217,36 @@ export default function Neo4jVisualizer({ caseId = '' }) {
             animated: false
           }));
 
-          const layoutedNodes = runForceLayout(rfNodes, rfEdges);
+          const key = JSON.stringify([data.case_id, rfNodes.map(n => n.id).sort(), rfEdges.map(e => `${e.id}:${e.source}:${e.target}`).sort()]);
+          let layoutedNodes;
+          if (layoutRef.current?.key === key) {
+            layoutedNodes = rfNodes.map(node => ({ ...node, position: layoutRef.current.positions.get(node.id) }));
+          } else {
+            layoutedNodes = runForceLayout(rfNodes, rfEdges);
+            layoutRef.current = { key, positions: new Map(layoutedNodes.map(node => [node.id, node.position])) };
+          }
 
           setNodes(layoutedNodes);
           setEdges(rfEdges);
+          setSelectedNode(previous => previous ? layoutedNodes.find(node => node.id === previous.id) || null : null);
+          setLoadError(''); setUpdatedAt(new Date());
         }
       } catch (error) {
         if (!cancelled) setLoadError(error.message);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) { setLoading(false); setRefreshing(false); }
       }
     };
-    load();
-    return () => { cancelled = true; };
+    const poller = startPolling(load);
+    refreshRef.current = poller.refresh;
+    return () => { cancelled = true; poller.stop(); refreshRef.current = null; };
   }, [selectedCase, activeCaseId, caseId]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem' }}>
       <div className="header glass-panel" style={{ padding: '1rem 1.5rem', margin: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
+          <Link to="/" className="home-brand" aria-label="Specula home"><img src="/Specula_logo.png" alt="" style={{ height: '24px' }} /></Link>
           <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Knowledge Graph (Neo4j)</h1>
           <label style={{ marginLeft: 'auto', fontSize: '0.85rem' }}>Case{' '}
             <select disabled={!!caseId} value={selectedCase} onChange={e => { setLoading(true); setSelectedCase(e.target.value); }}>
@@ -238,9 +257,14 @@ export default function Neo4jVisualizer({ caseId = '' }) {
           </label>
         </div>
         <p style={{ marginBottom: 0, fontSize: '0.8rem' }}>Showing up to 300 nodes per type. Counts show displayed / total case nodes; dashed links are derived from case tags.</p>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '.75rem' }}>
+          <button type="button" className="secondary-btn" disabled={refreshing} onClick={() => refreshRef.current?.()}>Refresh now</button>
+          <span role="status">{refreshing ? 'Refreshing graph…' : updatedAt ? `Last updated ${updatedAt.toLocaleTimeString()}` : 'Not yet updated'}</span>
+          <span>Auto-refresh every 10 seconds while visible.</span>
+        </div>
       </div>
       <div className="graph-container glass-panel" style={{ flex: 1, padding: 0, position: 'relative' }}>
-        {loadError && <p role="alert" style={{ padding: '1rem', color: 'var(--sp-color-status-breach)' }}>{loadError}</p>}
+        {loadError && <p role="alert" style={{ padding: '1rem', color: 'var(--sp-color-status-breach)' }}>{loadError}{updatedAt ? ' — showing the last successful snapshot.' : ''}</p>}
         {loading ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--sp-color-text-secondary)' }}>Loading graph data...</div>
         ) : (
@@ -329,10 +353,8 @@ export default function Neo4jVisualizer({ caseId = '' }) {
                     <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'white' }}>{selectedNode.data.neo4jLabel} Details</h2>
                   </div>
                   <button 
+                    type="button" className="secondary-btn" aria-label="Close node details"
                     onClick={() => setSelectedNode(null)}
-                    style={{ 
-                      background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '1.2rem', padding: '0.25rem' 
-                    }}
                   >
                     ✕
                   </button>

@@ -33,10 +33,10 @@ function Sidebar() {
 
   return (
     <aside className="sidebar glass-panel">
-      <div className="sidebar-brand">
+      <Link to="/" className="sidebar-brand home-brand" aria-label="Specula home">
         <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '32px' }} />
         <span>SPECULA</span>
-      </div>
+      </Link>
       <nav className="sidebar-nav">
         {links.map(link => (
           <Link

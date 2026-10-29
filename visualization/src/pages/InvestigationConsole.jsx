@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ZipFormatGuide from './ZipFormatGuide';
 import { usePipeline } from '../contexts/PipelineContext';
 import { AgentsView, AttackGraphView, ReportView, TimelineView } from './InvestigationViews';
@@ -113,21 +113,27 @@ export default function InvestigationConsole() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem', overflowY: 'auto', paddingBottom: '2rem' }}>
       <ZipFormatGuide dialogRef={zipGuideRef} />
-      <div className="header" style={{ padding: '1.5rem', margin: 0, borderBottom: 'var(--sp-border-thin)', background: 'var(--sp-color-bg-surface)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '24px' }} />
-          <h1 style={{ fontSize: '1.25rem', margin: 0 }}>Live Investigation</h1>
+      <div className="header investigation-header">
+        <div className="investigation-heading">
+          <Link to="/" className="home-brand" aria-label="Specula home"><img src="/Specula_logo.png" alt="" style={{ height: '36px' }} /></Link>
+          <div><p className="investigation-eyebrow">INVESTIGATION WORKSPACE</p><h1>Live Investigation</h1></div>
           <span style={{ 
             padding: '4px 8px',
             fontSize: '0.8rem',
             fontWeight: 600,
-            borderRadius: 'var(--sp-radius-sharp)',
+            marginLeft: 'auto',
+            borderRadius: 'var(--sp-radius-md)',
             border: 'var(--sp-border-thin)',
             background: caseStatus === 'RUNNING' ? 'rgba(71, 191, 255, 0.15)' : 'rgba(181, 186, 197, 0.1)',
             color: caseStatus === 'RUNNING' ? 'var(--sp-color-accent-indigo)' : 'var(--sp-color-text-secondary)'
           }}>{caseStatus}</span>
         </div>
-        <p>Case: {caseId || 'A new local case will be created from the selected logs.'}</p>
+        <div className="investigation-case-row">
+          <div className="investigation-case"><span>CASE</span><p>{caseId || 'A new case will be created from your selected evidence.'}</p></div>
+          {['COMPLETED', 'CLOSED WITH LIMITATIONS', 'AWAITING REVIEW', 'PAUSED AFTER ERROR'].includes(caseStatus) && (
+            <button type="button" className="secondary-btn" onClick={onNewInvestigation}>New Investigation</button>
+          )}
+        </div>
         {caseId && !caseResult && !launchError && <p role="status">Loading case data or waiting for the first saved checkpoint…</p>}
         {(formError || launchError) && <p role="alert" style={{ color: 'var(--sp-color-status-breach)' }}>
           {formError || launchError}
@@ -140,31 +146,29 @@ export default function InvestigationConsole() {
           </li>)}</ul>
           <p>Original uploaded records remain in the preserved ZIP. This list shows up to 20 exclusions.</p>
         </details>}
-        {['COMPLETED', 'CLOSED WITH LIMITATIONS', 'AWAITING REVIEW', 'PAUSED AFTER ERROR'].includes(caseStatus) && (
-          <button className="secondary-btn" onClick={onNewInvestigation}>New Investigation</button>
-        )}
-        {caseResult && <section aria-live="polite" style={{ marginTop: '1rem' }}>
+        {caseResult && <section aria-live="polite" className="investigation-result-summary">
           <p>{caseResult.findings?.length ?? 0} findings · {caseResult.agent_traces?.length ?? 0} execution traces</p>
           <p>{caseResult.attribution?.summary || 'No supported attribution is available.'}</p>
           <p>Report reference: {caseResult.final_output_ref || 'Not generated'}</p>
         </section>}
         {view === 'pipeline' && !isStarted && (
-          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="evidence-setup">
+            <h2>Evidence collection</h2>
             <label>Evidence source{' '}
               <select value={source} onChange={e => setSource(e.target.value)}>
                 <option value="local">Collect local Windows logs</option>
                 <option value="upload">Upload exported logs (ZIP)</option>
               </select>
             </label>
-            {source === 'upload' && <div>
+            {source === 'upload' && <div className="evidence-upload">
               <label>Log archive <input type="file" accept=".zip,application/zip"
                 onChange={e => setArchiveFile(e.target.files?.[0] || null)} /></label>
-              <button type="button" className="secondary-btn" style={{ marginTop: '0.75rem' }}
+              <button type="button" className="secondary-btn"
                 aria-haspopup="dialog" onClick={() => zipGuideRef.current?.showModal()}>
                 ZIP format guide
               </button>
             </div>}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <div className="evidence-fields">
               <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 Start Date
                 <input type="datetime-local" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -184,7 +188,7 @@ export default function InvestigationConsole() {
                   placeholder="80,443,53" />
               </label>
             </div>
-            <p>{source === 'upload'
+            <p className="evidence-help">{source === 'upload'
               ? 'Preserve the uploaded archive, normalize supported logs and investigate a new case. Leave dates blank to use all selected records.'
               : 'Collect local Windows logs in the selected interval, preserve and normalize them, then investigate a new case. Leave both dates blank for the most recent logs.'}</p>
             <button className="primary-btn" onClick={onLaunch} style={{ alignSelf: 'flex-start' }}>Launch Multi-Agent Pipeline</button>
@@ -318,15 +322,17 @@ export default function InvestigationConsole() {
                       </div>
                       <div style={{ display: 'flex', gap: '1rem' }}>
                         <button 
+                          className="primary-btn"
                           onClick={() => handleHitlAction('approve')}
                           disabled={isReviewing}
-                          style={{ background: 'var(--sp-color-status-admissible)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
+                          >
                           APPROVE DRAFT GENERATION
                         </button>
                         <button 
+                          className="secondary-btn danger-btn"
                           onClick={() => handleHitlAction('reject')}
                           disabled={isReviewing}
-                          style={{ background: 'var(--sp-color-status-breach)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: 'var(--sp-radius-sharp)', cursor: 'pointer', fontWeight: 600 }}>
+                          >
                           REJECT / HALT
                         </button>
                         {isReviewing && <span role="status">Processing review and guardrails...</span>}

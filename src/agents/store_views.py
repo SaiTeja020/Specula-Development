@@ -9,7 +9,10 @@ def quickwit_view(query="*", max_hits=10):
         response = requests.post(os.getenv("QUICKWIT_ENDPOINT", "http://localhost:7280") +
             "/api/v1/specula_raw_evidence/search", json={"query": query, "max_hits": max_hits}, timeout=5)
         response.raise_for_status()
-        return {"status": "success", "source": "quickwit", "logs": response.json().get("hits", [])}
+        result = response.json()
+        return {"status": "success", "source": "quickwit", "logs": result.get("hits", []),
+                "total_records": result.get("num_hits", len(result.get("hits", []))),
+                "display_limit": max_hits}
     except Exception:
         return {"status": "unavailable", "source": "quickwit", "logs": []}
 
@@ -19,25 +22,33 @@ def chroma_view():
     try:
         client = chromadb.HttpClient(host=os.getenv("CHROMA_HOST", "localhost"), port=int(os.getenv("CHROMA_PORT", "8000")))
         collections = client.list_collections()
+        counts = []
+        for item in collections:
+            name = item.name if hasattr(item, 'name') else str(item)
+            counts.append({"name": name, "count": client.get_collection(name).count()})
         return {"status": "success", "source": "chromadb",
-                "collections": [item.name if hasattr(item, "name") else str(item) for item in collections],
-                "recent_queries": []}
+                "collections": [item['name'] for item in counts], "collection_counts": counts,
+                "total_vectors": sum(item['count'] for item in counts)}
     except Exception:
-        return {"status": "unavailable", "source": "chromadb", "collections": [], "recent_queries": []}
+        return {"status": "unavailable", "source": "chromadb", "collections": []}
 
 
 def faiss_view():
     from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
     health = ThreatIntelMCPServer(index_dir=os.getenv("SPECULA_THREAT_INTEL_DIR", "data/threat_intel")).health_check()
     return {"status": health["status"], "source": "faiss", "total_vectors": health["corpus_size"],
-            "corpus_hash": health["corpus_hash"], "recent_hits": []}
+            "corpus_hash": health["corpus_hash"], "scope": "shared_threat_intelligence"}
 
 
 def case_store_view(store, case_id, snapshot):
     """Never substitute global evidence for an empty case checkpoint."""
     if store == "chroma":
         from src.ingestion.indexing.case_evidence import case_chroma_view
-        return case_chroma_view(case_id)
+        payload = case_chroma_view(case_id)
+        receipt = (snapshot.get('ingestion_provenance') or {}).get('vector_index') or {}
+        if payload.get('status') == 'success' and receipt.get('status') == 'verified' and payload.get('total_events', 0) < receipt.get('stored', 0):
+            payload['warning'] = 'The current case index contains fewer events than its historical indexing receipt. The saved receipt does not confirm present availability.'
+        return payload
     if store == "duckdb":
         from .case_analytics import case_analytics_view
         return case_analytics_view(case_id)

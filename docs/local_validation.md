@@ -12,10 +12,15 @@ The harness composes existing ingestion, deserialization and graph-write functio
 
 ## Repeatable commands
 
+The datastore monitors and knowledge graph refresh every 10 seconds while visible and support manual refresh. Quickwit/Chroma metrics come from current stores; DuckDB holds saved analytics snapshots and FAISS holds the shared versioned reference corpus. Chroma persists in the `specula-chroma-data` named volume at `/data`; its image is pinned to the verified digest. Do not reset this volume during boot. The legacy `data/chromadb` directory is not the current database. Historical indexing receipts are not evidence that those vectors still exist; mismatches are shown in the case monitor.
+
 Run from the repository root in PowerShell:
 
 ```powershell
 docker compose up -d kafka schema-registry redis quickwit neo4j chromadb redpanda-console
+# Build once after dependency changes; this installs ReportLab into the shared image
+# and verifies actual PDF generation before the image is accepted.
+docker compose -f docker-compose.yml -f docker-compose.local.yml build hitl-api
 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --no-build hitl-api visualizer-api dfkg-consumer
 .\venv\Scripts\python.exe scripts/check_environment.py
 .\venv\Scripts\python.exe scripts/validate_progress.py
