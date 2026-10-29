@@ -1,799 +1,531 @@
-# **Specula (Specula-Agent)** 
+# Specula master specification and implementation status
 
-Autonomous Multi-Agent Digital Forensic & Incident Response (DFIR) Framework 
+Autonomous multi-agent digital forensics and incident response framework
 
-**Project Focus:** Autonomous Multi-Agent **Domain:** AI & Cybersecurity (Digital DFIR Scene Reconstruction Forensics) 
+**Updated:** 29 October 2026
 
-|**Academic Context:**SDC-II Research|**Department:**Computer Science &|
-|---|---|
-|Project (2025–2026)|Engineering|
+**Context:** SDC-II research project, Computer Science and Engineering, 2025–2026
 
+**Scope:** Project purpose, architecture, supported examinations, verification limits and remaining work.
 
+Specula preserves heterogeneous evidence, normalizes supported records, coordinates bounded forensic examinations and produces cited timelines, graph views and examination reports. The current delivery is a local development system with source-specific analysis and durable case workflows. Production readiness, independently measured forensic accuracy and expert acceptance remain open.
 
-## **1. Project Explanation** 
+This document reconciles [Master doc.docx](Master%20doc.docx), [Master_doc_planned_changes.md](Master_doc_planned_changes.md), current source, [architectural decisions](../DECISIONS.md) and [the task tracker](../PROGRESS.md). The Word source already includes a Section 14 gap review. Its recommendations are assessed here rather than treated as automatically implemented or newly approved architecture. Both input documents remain unchanged.
 
-### **1.1 Project Idea** 
+## 1. Project explanation
 
-Specula (Specula-Agent) is an autonomous multi-agent artificial intelligence framework engineered to reconstruct digital crime scenes from fragmented, heterogeneous evidence without requiring continuous manual analyst intervention. The system coordinates a team of thirteen specialized AI agents—each responsible for a distinct domain of forensic investigation —through a centralized Digital Forensic Knowledge Graph (DFKG) that serves as shared investigative memory. 
+### 1.1 Purpose and problem
 
-Rather than feeding raw logs directly into a single language model—which fails due to context window limits, token budget exhaustion, and hallucination—Specula distributes evidence analysis across parallel specialist agents, compresses evidence intelligently using entropybased semantic distillation, grounds all reasoning in verifiable graph citations, and produces court-ready forensic reports satisfying Daubert legal admissibility standards. 
+Investigators must relate endpoint, network, identity, cloud and file-system evidence while preserving original context. Large log volumes exceed practical manual review and model context budgets. Unconstrained summaries can omit counter-evidence, confuse attempts with successful actions and invent unsupported explanations.
 
-### **1.2 Problem Statement** 
+Specula separates preserved sources, deterministic observations, model assessments and analyst decisions. Neo4j supplies case-related entities and relationships; Kafka transports supported event/finding streams; LangGraph coordinates investigation stages. A model response is an assessment of supplied evidence, not a new evidence source.
 
-Modern digital forensic investigations face four compounding crises that make manual investigation increasingly untenable: 
+The intended users are forensic examiners, SOC analysts, incident responders, legal/compliance reviewers and researchers. The system assists their work; qualified review, acquisition authority and custody verification remain human responsibilities.
 
-|**Crisis Domain**|**Scale / Operational**<br>**Impact**|**Forensic Consequence**|
-|---|---|---|
-|Log Volume Explosion|A clean Windows Server<br>installation generates over<br>4,000,000 events in a short<br>timeframe.|Critical evidence is buried<br>in noise; manual triage is<br>impossible at speed.|
-|Context Window Limits|Single LLMs cannot<br>process millions of raw log<br>records without exhausting<br>token budgets.|AI-assisted investigation<br>truncates evidence and<br>loses investigative<br>continuity.|
+### 1.2 Objectives and current scope
 
+| Objective | Current interpretation |
+| --- | --- |
+| Reconstruct incidents across sources | Supported exports and bounded native artifacts work; coverage differs by source. |
+| Preserve provenance and repeatability | Raw/member hashes, receipts, deterministic identifiers, execution manifests and durable checkpoints exist. Signed/anchored case provenance remains incomplete. |
+| Reduce review volume and latency | Distillation and parallel workers exist. Enterprise compression and five-minute investigation claims remain research targets. |
+| Improve correlation and chronology | Source-bound relationships, explicit outcomes and UTC chronology exist. Independent accuracy targets remain unverified. |
+| Make analysis reviewable | Expose cited observations, structured hypotheses/challenges, validation and limitations. Private model reasoning is not a required deliverable. |
+| Produce examination reports | Distinct court-oriented and technical PDFs exist; they remain unsigned drafts requiring examiner review. |
 
+### 1.3 Status vocabulary
 
-|Manual Correlation|Analysts must manually<br>stitch fragmented alerts<br>across dozens of log types<br>and systems.|Process is slow, expensive,<br>error-prone, and leads to<br>severe investigator burnout.|
-|---|---|---|
-|Legal Inadmissibility|Unconstrained LLM outputs<br>hallucinate IP addresses,<br>file paths, and timelines.|AI-generated findings are<br>rejected under Daubert<br>legal standards in court<br>proceedings.|
+**Implemented** means source provides a bounded capability. **Verified locally** means a recorded executable oracle passed in its stated environment. **Partial** identifies working scope with gaps. **Deferred** identifies deliberately postponed work or live acceptance. **Planned** identifies requirements without sufficient delivery evidence.
 
+These terms do not replace tracker states. Passing component tests do not establish whole-system forensic accuracy or production readiness. Recorded test totals, case results and service counts describe their recorded runs, not the present live environment.
 
+## 2. Research basis and feature scope
 
-### **1.3 Project Objectives** 
+### 2.1 Literature context
 
-- **Reduce Average Investigation Duration:** Lower investigation duration from 45 minutes to 5 minutes (an 89% time reduction) via autonomous multi-agent parallelization. 
+The supplied proposal identifies *GenDFIR: Advancing Cyber Incident Timeline Analysis Through Retrieval-Augmented Generation and Large Language Models* by Loumachi, Ghanem and Ferrag (2024) as the primary research basis. It describes log-to-document retrieval and LLM timeline synthesis. Specula's research direction adds source-specific examinations, graph relationships, constrained review and preservation metadata.
 
-- **Achieve High Investigative Accuracy:** Reach 95% evidence correlation accuracy and 96% attack timeline reconstruction accuracy. 
+The proposal also names MADIK, CFA-Bench, CyberSleuth, DFIR-Metric, ForensicsData, ACH and OCSF. These motivate design and evaluation; their presence does not prove reproduction of their results. Bibliographic details, licensing and comparative claims require validation before publication. No new literature review was performed for this reconciliation.
 
-- **Mitigate AI Hallucinations:** Reduce the AI hallucination rate to below 5% through adversarial debate and DFKG-grounded reasoning. 
+### 2.2 Feature reconciliation
 
-- **Ensure Legal Admissibility:** Produce forensic reports that satisfy Daubert legal admissibility standards via cryptographic Merkle provenance. 
+| Proposal feature | Implemented scope | Remaining work or changed assumption |
+| --- | --- | --- |
+| Semantic compression | Drain3, SimHash and entropy/clustering components; preservation separated from abstraction. | Measure payload-byte reduction and retained entities on representative workloads; no achieved 90% compression claim. |
+| DFKG and GraphRAG | Deterministic entities, parameterized writes, case membership, bounded retrieval and case semantic indexing. | Validate retrieval quality, graph completeness and high-degree behavior at scale. |
+| Temporal normalization and anti-forensics | Raw/normalized times, DHCP-bounded identity, MFT checks and bounded native FILE-record examination. | Independent clock-correction/timestomping validation; trained XGBoost/SMOTE detection is not an established delivered capability. |
+| Evidentiary adversarial review | Separate proponent/critic/judge schemas, citation checks, coverage accounting and bounded correction. | Evaluate disagreement and false acceptance using independent cases. |
+| VCT provenance | SHA-256, local hash-chain/Merkle components and source/execution receipts. | Uniform prompt/tool ledger, case signatures, investigator certificates, gossip fork detection and Fabric anchoring remain incomplete. |
+| Malware and stylometry | Native PE/Capstone features, hashes/imports and bounded comparisons; imported findings labelled. | Independently labelled family/actor/AI-authorship data and trained classifiers remain unavailable. |
+| Guardrails | Unicode sanitization, injection checks, parameterized queries, pattern/similarity checks and model review stages. | No validated fine-tuned Tier 2 safety classifier; adversarial coverage and universal parser isolation remain open. |
+| Insider threat | Source-bound behavior context and strictly preceding transfer-counter baselines. | LSTM, FinBERT, communications NER and independently labelled intent detection remain planned. |
+| Human review | Protected FastAPI review endpoints, LangGraph interrupt/resume and persisted decisions/state. | Production analyst workflow, escalation ownership and deployed cycle-bound acceptance remain open. |
+| Dynamic attack graphs | Observed relationships separated from reviewed exploit topology; deterministic path solver. | Probability needs reviewed prerequisites and calibration. Original CVSS × EPSS probability claims are superseded. |
+| Dynamic malware analysis | CAPE v2 connector, sample checks, durable claims and report retention. | Actual guest isolation/execution/snapshot acceptance deferred. YARA → Speakeasy → DRAKVUF is not an integrated delivered pipeline. |
+| Impact and attribution | Cited impact context and deterministic ATT&CK profile ranking. | Actor identity, calibrated confidence and independently validated impact estimates remain unproven. |
 
-- **Multi-Source Ingestion:** Handle 14 heterogeneous input categories spanning OS logs, network PCAPs, memory dumps, and cloud audit trails. 
+### 2.3 Agent and model counts
 
-- **Explainable Reasoning:** Provide auditable chain-of-thought reasoning traceable directly to raw evidence for every finding. 
+The proposal's thirteen-agent narrative is historical. Its role matrix includes additional safety/report roles and combines identity with cloud. The current graph has **27 registered nodes**, including joins, deterministic stages and terminal controls. Node count is not a measure of independent forensic competence.
 
-## **2. Base Paper & Literature Grounding** 
+Read execution from `src/agents/graph.py`, its factories and saved traces. Deterministic parsers/rules/renderers are not LLM calls. Identity and cloud/container are separate roles; primary and specialist network examination are distinct.
 
-### **2.1 Primary Base Paper Selected** 
+## 3. Datasets and evaluation
 
-**Selected Primary Base Paper:** "GenDFIR: Advancing Cyber Incident Timeline Analysis Through Retrieval-Augmented Generation and Large Language Models" — Authored by Fatma Yasmine Loumachi, Mohamed Chahine Ghanem, and Mohamed Amine Ferrag (2024). 
+### 3.1 Existing evaluation assets
 
-### **2.2 Methodology & Key Contributions of the Base Paper** 
+| Asset | Purpose and limit |
+| --- | --- |
+| Unit/component fixtures | Positive/negative controls for normalization, correlation, native artifacts, citations, authorization and recovery. They verify specified contracts. |
+| Synthetic investigation archives and answer keys | Multi-source cases with missed-observation/false-alarm checks. Expected stories and synthetic metadata are not evidence for conclusions. |
+| Log-analysis ground truth and baseline seed | Versioned labels under `tests/fixtures/`; narrower than enterprise source coverage. |
+| ATT&CK v19.2 workbook | Offline build recorded as 873 technique/group records, including 176 group profiles. A pinned reference, not a current live-feed guarantee. |
+| Recorded local Ollama cases/probes | Scoped inference, review, delivery and recovery evidence; not independent actor/family ground truth. |
+| Native binary/protocol fixtures | Packet fragments/retransmissions, resident NTFS records, minidumps and PE features with malformed/ambiguous controls. |
 
-The GenDFIR framework introduced an innovative approach to automating cyber incident timeline analysis by combining Llama 3.1 8B in a zero-shot setting with a Retrieval-Augmented Generation (RAG) agent. Its core methodology comprises: 
+### 3.2 Proposed external benchmarks
 
-- **Stage 1 — Data Preprocessing & Structuring:** Transforms raw event logs (CSV format) into structured textual document knowledge bases representing the incident. 
+The original plan names CERT Insider Threat, CICIDS2017/2018, Digital Corpora, DARPA Transparent Computing, ForensicsData, CFA-Bench, CyberSleuth, DFIR-Metric and AutoBnB-RAG. They remain candidate evaluation sources unless an imported version, licence, preprocessing procedure and executed result are recorded. MITRE ATT&CK and NVD are knowledge sources, not automatically forensic truth. EPSS is a separate FIRST source; it must not be conflated with NVD.
 
-- **Stage 2 — Context Retrieval & Semantic Enrichment:** Uses embedding models (mxbai-embed-large) and cosine similarity to retrieve relevant incident events (top-k evidence) based on user prompts. 
+### 3.3 Stylometry benchmark
 
-- **Stage 3 — LLM Decoder Timeline Synthesis:** Processes weighted event contexts through Llama 3.1 8B to generate plain-text timeline reports, root cause analyses, and mitigation suggestions. 
+The proposed 2,000–5,000 sample, four-class GPT/Claude/Gemini/human dataset is not established as validated. Pre-2023 repository dates or submission timestamps alone do not prove human authorship. Completion needs controlled generation provenance, verified human labels, deduplication, family/prompt-separated train/test sets, independent annotation and uncertainty reporting.
 
-### **2.3 Supporting Literature Matrix** 
+### 3.4 Required measurements
 
-|**Paper / Source**|**Domain Focus**|**Key Contribution to**<br>**Specula**|
-|---|---|---|
-|GenDFIR (Loumachi et al.,<br>2024)|Timeline Analysis & RAG|Establishes zero-shot RAG<br>log retrieval, DFIR prompt<br>engineering, and context<br>enrichment baselines.|
-|MADIK Framework (London<br>Met Uni)|Multi-Agent Coordination|Establishes agent-to-agent<br>coordination patterns<br>across artifact-specific<br>forensic specialists.|
-|CFA-Bench & CyberSleuth|Network Forensics|Provides ground-truth<br>evaluation datasets for<br>network forensics with real<br>PCAPs and CVE detection<br>tasks.|
-|DFIR-Metric Benchmark|Evaluation Methodology|Introduces Task<br>Understanding Score (TUS)<br>rewarding partial<br>correctness in multi-step<br>reasoning.|
-|ForensicsData (ANY.RUN<br>Triplets)|Malware Behavior|5,000+ Q-C-A triplets used<br>to benchmark the Malware<br>Behavior Agent narrative<br>accuracy.|
-|Analysis of Competing<br>Hypotheses (ACH)|Adversarial Reasoning|Structured analytic<br>technique adapted as the<br>Evidentiary Adversarial<br>Debate protocol for<br>hallucination mitigation.|
-|OCSF Standard|Log Normalization|Universal ingestion schema<br>standardizing evidence<br>across cloud, endpoint, and<br>network telemetry.|
+Measure observation precision/recall, negative-control false alarms, ordering errors, citation correctness, omitted evidence, review coverage and source-specific failures. Actor/family accuracy needs labels independent of retrieval profiles. Report model-response validity separately from forensic correctness. Freeze dataset versions, rules, actual model identities and settings before comparing runs.
 
+## 4. Deployment and persistence
 
+### 4.1 Current deployment
 
-Verifiable Conversation Transcripts (VCT) 
+The development system uses single-host Docker Compose, a Windows loopback controller and React/Vite. The local override selects installed Ollama `qwen3:8b` for analysis and `qwen3-embedding:0.6b` in the normalized-consumer embedding path. Local inference is the authorized testing mode; billable GCP and hosted-model probes are excluded.
 
-Chain-of-Custody 
+Ubuntu/air-gapped enterprise deployments, Kubernetes orchestration and the proposal's hardware/RAM budgets are targets rather than verified capacity claims. Ollama failures must remain visible; the local contract does not automatically download models or fall back to hosted inference.
 
-Three-tier Merkle structure making AI reasoning chains tamper-evident under Daubert admissibility standards. 
+### 4.2 Components
 
-### **2.4 How Specula Extends and Improves Upon Existing Work** 
+| Component | Current responsibility | Development interface |
+| --- | --- | --- |
+| Loopback controller | Boot/readiness, local acquisition, ZIP intake and authorized proxy | `127.0.0.1:8400` |
+| HITL API | Protected case execution/review | Port 8200 |
+| Visualizer API | Protected case/history/results/store APIs and WebSocket | Loopback port 8300 |
+| React/Vite | Investigation, history, review, reports and stores | Development port 5173 |
+| Kafka | Normalized events, supported findings streams and offsets | Host 9092; internal 29092 |
+| Schema Registry | Wire schema validation | Port 8081 |
+| Neo4j/APOC | Case membership, typed evidence and analysis/audit projections | Bolt 7687; HTTP 7474 |
+| Quickwit | Preserved raw-record index and retrieval | Port 7280 |
+| Redis | Active-case cache and supporting coordination components | Port 6379 |
+| Chroma | Case-evidence vectors and scoped retrieval | Port 8000 |
+| FAISS | Shared versioned threat-intelligence reference corpus | In process |
+| DuckDB | Durable case analytics snapshots | Case-specific files |
+| SQLite WAL | Local LangGraph checkpoints and execution leases | Shared API checkpoint volume |
+| Ollama | Installed local analysis/embedding inference | Host port 11434 |
 
-The primary base paper, **GenDFIR** ( _Loumachi et al., 2024_ ), introduced a zero-shot framework combining a single Large Language Model ( **Llama 3.1 8B** ) with a standard RetrievalAugmented Generation ( **RAG** ) pipeline. In GenDFIR, raw event logs are converted into flat textual document chunks, indexed via vector embeddings (mxbai-embed-large), and queried using cosine similarity to assemble an incident timeline summary. 
+Actual exposure follows base/local Compose together. These ports are not an approved production exposure policy. Fabric is absent from the deployed stack; Qdrant is not the evidence-vector runtime.
 
-While GenDFIR demonstrated the feasibility of using LLMs for DFIR timeline generation, it exhibits critical operational bottlenecks: 
+### 4.3 Durability and container dependencies
 
-1. **Single-Agent Bottleneck:** Relies on a single RAG agent without domain-specialized workers. 
+The APIs share `specula-checkpoints` with SQLite WAL state, transactional writes and execution leases that fence concurrent/stale case workers. This accepted local design is single-host, not a distributed checkpoint database.
 
-2. **Flat Vector Retrieval Failure:** Cosine similarity over isolated log chunks misses multihop, non-linear lateral movement and entity relationships. 
+The local override adds persistent volumes for Kafka, Redis, Quickwit and Neo4j. Chroma uses `specula-chroma-data` at **`/data`** with a pinned image digest. The old `/chroma/chroma` mount did not cover the active database. Preservation/migration receipts recorded matching counts for 9,344 vectors; that is a historical baseline, not a current count. Historical indexing receipts can disagree with present vectors; the monitor exposes mismatches.
 
-3. **Context Window Flooding:** Has no algorithmic log compression or entropy triage layer, leaving it vulnerable to context window exhaustion when processing millions of enterprise events. 
+ReportLab is pinned in requirements and baked into the shared `specula-skeleton-hitl-api` image. The build exercises the real PDF renderer and fonts. Rebuild and recreate APIs for dependency changes; installation into one live container is not durable. The loopback controller proxies authorized PDF bytes rather than using the superseded host-rendering workaround.
 
-4. **Unconstrained Hallucination Risk:** Generates summaries without cryptographic proof or mandatory citation checks, failing judicial evidence standards ( **Daubert standard** ). 
+Uploads, analytics, reference manifests and private settings retain separate storage responsibilities. Volumes alone do not establish off-host backup, retention locks or WORM enforcement. Preserve evidence during routine recovery; do not delete volumes to fix startup.
 
-5. **Narrow Analytical Scope:** Lacks active capabilities for anti-forensic timestomping detection, AI-code stylometry, zero-trust command execution, automated attack graph traversal, or dynamic malware detonation. 
+## 5. User workflow and access
 
-#### **Complete Specula Feature Set & Improvements Over GenDFIR** 
+An analyst selects local collection or a supported ZIP, sets applicable filters and starts a case. Preserved evidence feeds investigation. The UI shows execution status, observations, review coverage, timeline, graph, reports and datastore views. History reopens saved snapshots and their PDF preview/download path without rerunning agents.
 
-#### **1. Semantic Compression and Entropy-Based Log Distillation** 
+Supabase supplies authenticated identities. Backend case ownership/membership controls access; client role labels cannot grant privileges. Unowned legacy cases require trusted assignment. Global raw-store views require administrator authorization. Restricted local credentials support declared local/synthetic operations and remain private.
 
-- **Specula Specification:** Operates as a two-layer system. The _Forensic Preservation Layer_ first commits all raw logs immutably to **Quickwit** and hashes them into the Verifiable Conversation Transcripts ( **VCT** ) chain using Go/Rust SIMD hashing at the edge. The _Analytical Abstraction Layer_ then applies **Drain3** template extraction followed by **SimHash** similarity checking to prevent template poisoning attacks. It uses **MiniBatchKMeans** clustering with cosine distance to collapse low-entropy events into summaries while retaining high-entropy anomalous events intact. Reduces LLM input volume by 90%+ without legally compromising the original evidence corpus. 
+Guest login supplies a tab-scoped frontend identity, bypassing Supabase login to enter the interface. Sign-out is local. It does **not** grant a bearer identity or bypass backend case authorization. Guest entry does not constitute a verified signed-in analyst workflow.
 
-- **Specula Improvement over GenDFIR:** GenDFIR feeds raw text chunks directly into its vector database and prompt context, causing rapid token budget exhaustion when handling enterprise-scale logs (e.g., 4M+ Windows events). Specula introduces 
+The live-ingestion header groups source/case settings with readable spacing. Buttons/action links share rounded styles; the Specula brand links home. JSON/code panels are escaped, formatted, scrollable and copyable. ZIP guidance uses a file tree and tables; the popup is centered slightly left on desktop and bounded/centered on mobile. Browser visual and authenticated workflow acceptance remain separate from component rendering tests.
 
-**information-entropy log distillation** , filtering out syntactic noise before LLM ingestion while preserving critical forensic indicators. 
+## 6. Evidence inputs and coverage
 
-#### **2. Digital Forensic Knowledge Graph (DFKG) and Topological GraphRAG** 
+### 6.1 Fourteen conceptual categories
 
-- **Specula Specification:** Replaces linear supertimelines with a **Neo4j** relational ontology where nodes represent forensic entities (users, devices, IPs, processes, files, malware, ATT&CK techniques) and edges represent observed actions between them. Deterministic UIDs generated by hashing source device ID, file path, database name, and row number prevent duplicate nodes across concurrent agents. GraphRAG queries combine **FAISS IndexIVFPQ** cosine similarity search with **APOC-bounded BreadthFirst Search (BFS)** subgraph expansion (max 3 hops, max 100 nodes, max 300 relationships) to retrieve structured context for LLM reasoning. Supernode detection prechecks node degree before BFS to prevent traversal explosions. 
+The fourteen categories are research scope, not fourteen complete connectors. Stage markers retain original priority: five foundational categories first, broader sources later. Present support is listed separately.
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR relies exclusively on flat vector similarity over text chunks, which loses relational context across systems. Specula transitions from flat text RAG to **Topological GraphRAG** , mapping multi-hop lateral movement and complex causal subgraphs across heterogeneous endpoints. 
+| Category | Original stage | Current supported scope | Consumers and remaining coverage |
+| --- | --- | --- | --- |
+| System logs | Stage 1 | Structured Windows collection/exports, Sysmon/EDR context; separate syslog/network routes. | Evidence/log analysis. Full auditd/vendor/endpoint-agent coverage unverified. |
+| NTFS artifacts | Stage 1 | Exported records and bounded resident NTFS 3.0/3.1 FILE fragments. | NTFS/time examination. Full disk, nonresident reconstruction and complete USN work remain separate. |
+| Network logs/captures | Stage 1 | Zeek/Suricata, TCP/UDP syslog, Ethernet PCAP/PCAPNG and bounded reconstruction. | Primary/specialist network. Captures do not establish full network visibility. |
+| AD/cloud audit | Stage 1 | Auth exports/session context, CloudTrail and Azure Activity envelopes, imported GCP audit. | Identity/cloud. Broad AD/IAM effective access and live cloud acquisition remain open. |
+| EDR/UEBA | Later stages | Source-export normalization, context and counter analysis. | Log/memory/insider. Vendor production connectors are not established by exports. |
+| Malware samples | Later stages | Preserved PE samples, static features, imported findings and optional CAPE. | Malware/stylometry. Live guest and validated family/authorship inference remain open. |
+| Email/messaging | Later stages | Related supplied context can inform supported records. | Dedicated EML/MBOX and Slack/Teams/SharePoint connectors remain unverified. |
+| Memory dumps | Later stages | Targeted regions, small MDMP process dumps and supplied findings. | Memory specialist. Full-RAM/kernel/complete Volatility work is not delivered by this workflow. |
+| Browser artifacts | Later stages | No verified general browser SQLite examination workflow. | Dedicated extraction/correlation remain planned. |
+| Threat intelligence | Later stages | Offline ATT&CK corpus, STIX/NVD builder/retrieval and hashed manifests. | Attribution. Provider fallback/feed operations and calibrated labels remain open. |
+| Container/Kubernetes | Later stages | Exported logs, audit outcomes/configuration and bounded captured RBAC matching. | Cloud/container. Workload execution and complete effective permissions unverified. |
+| Vulnerability scans | Later stages | Exported findings, cited context and reviewed topology input. | DAG/impact. Live scanner integration/calibrated risk remain open. |
+| Cloud topology | Later stages | Static identity mapping and source-bound lifecycle/context relationships. | Cloud/graph. Dynamic inventory and ephemeral NAT/pod resolution remain partial. |
+| Investigator query | Later stages | Case input and bounded routing/follow-up contracts. | Supervisor. Queries cannot create evidence, tool permissions or arbitrary executable actions. |
 
-#### **3. Algorithmic Temporal Normalization and Timestomping Detection** 
+### 6.2 Intake contract
 
-- **Specula Specification:** Detects anti-forensic timestamp manipulation by requiring three conditions simultaneously: the $STANDARD_INFORMATION Created timestamp predates the volume creation date, the USN Journal shows a BasicInfoChange event 
+The ZIP adapter maps source folders at the archive root: `windows`, `edr`, `memory`, `malware`, `ueba`, `vuln_scan`, `gcp_audit`, `mft`, `container`, `ad_auth`, `network`, `aws_cloudtrail`, `azure_activity`, `access` and `kubernetes`. Folder count is independent of conceptual category count.
 
+JSON holds objects/arrays; JSONL holds one object per line. Native artifacts need designated paths and manifest metadata and are examined as data, never run on the investigator host. Binary EVTX must first be exported for this adapter. Examination code creates native receipts; user JSON cannot forge them.
 
+Limits: 50 MiB compressed, 200 MiB expanded, 25 MiB per file, 500 entries and 100,000 exported records. Preflight rejects unsafe/unsupported members and malformed input. Date/port/file-event filters constrain intake; excluded coverage remains visible. Archive, original-file and normalized-record hashes identify different representations and are not interchangeable.
 
-with no corroborating application log entry within seconds, and the timestamp precision shows suspicious microsecond rounding. Replaces static rules with an **XGBoost classifier** trained on a SMOTE-balanced feature vector of timestamp deltas, precision bitmask fields, and USN reason codes. Time anchor correlation matrices using linear regression on simultaneous multi-device events resolve clock drift and normalize all timestamps to UTC baseline prior to DFKG ingestion. 
+Use [ZIP upload reference](ZIP_LOG_UPLOADS.md), the current in-app guide and `src/ingestion/upload_archive.py` for exact routes. [Permission export format](access_snapshot_format.md) defines access snapshots. Manifest identity, qualifications, authority and custody are uploader declarations, not authenticated facts.
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR assumes raw log timestamps are truthful and chronologically accurate. Specula actively identifies, isolates, and mathematically corrects **anti-forensic timestomping** and multidevice clock skew before timeline synthesis occurs. 
+### 6.3 Native examination limits
 
-#### **4. Evidentiary Adversarial Debate and Analysis of Competing Hypotheses (ACH)** 
+Packet analysis supports captured Ethernet IPv4/IPv6 TCP/UDP, complete non-overlapping fragments, bounded TCP reconstruction and DNS/plaintext HTTP/TLS-prefix observations. Gaps, overlap, lower-bound counters and unsupported encryption remain explicit. Captured bytes do not independently prove application receipt or exfiltration.
 
-- **Specula Specification:** A three-agent **LangGraph** debate framework where the _Proponent Agent_ constructs a hypothesis with mandatory DFKG node UID citations, the _Critic Agent_ independently queries the DFKG for counter-evidence and argues alternative explanations (also with mandatory citations), and the _Judge Agent_ evaluates arguments using an ACH evidence matrix. The Judge automatically rejects any argument not backed by explicit DFKG citations. Runs up to a configurable maximum of 3 debate rounds, terminating early when the confidence score delta between agents falls below 0.05. Softmax credibility weighting with Laplace smoothing handles the cold-start problem. LangGraph state stores only UID references, with full argument content held in **Redis** to prevent state bloat. 
+Memory exposes captured region/module/thread/permission features with omitted-range limits. PE examination exposes independently extracted structure/opcode/import features. NTFS paths require matching host/volume/artifact/record-sequence context; unresolved or reused parents and hard-link alternatives remain visible. Native timestamps do not prove current filesystem state or drive-letter mapping.
 
-- **Specula Improvement over GenDFIR:** GenDFIR relies on single-pass, unvalidated LLM generation, which remains susceptible to parametric hallucinations and bias. Specula enforces a structured **Adversarial ACH Debate** , ensuring that any ungrounded assertion is flagged as PARAMETRIC_KNOWLEDGE_REJECTED and discarded. 
+## 7. Preservation and evidence contracts
 
-#### **5. Verifiable Conversation Transcripts (VCT) and Cryptographic Provenance** 
+Preserve source bytes/records before analytical transformation. Sanitize the analytical representation while retaining original material. Pydantic validates supported OCSF classes; OSSEM-style source metadata and context/unmapped fields preserve meaning normalization cannot infer. Invalid input cannot silently become successful ingestion.
 
-- **Specula Specification:** Secures the investigative chain of custody through a three-tier cryptographic structure: 
+Generate deterministic UIDs before writes. Resolve hosts using source identity/event time; DHCP validity constrains IP reuse. Static hostname/cloud-ID mapping exists. Complete pod/NAT/cloud identity resolution remains future work. Unknown hosts must not collapse into one invented local identity.
 
-   1. _Atomic Level:_ Every prompt-response pair is SHA-256 hashed and linked into a hash chain. 
+Use parameterized Cypher and idempotent `MERGE` keys. Case membership follows preserved evidence relationships, not a shared entity's first case tag. Process parentage uses host/GUID/start/lifetime context; ambiguous PID-only parents stay unresolved.
 
-   2. _Session Level:_ Completed sub-task chain tails are aggregated into a Merkle tree using pymerkle with incremental leaf support. 
+Source declarations, deterministic observations, model hypotheses and analyst-reviewed exploit transitions have different evidential status. Failed actions, benign controls, contradictions, inaccessible channels and incomplete acquisition must remain visible in review/reporting.
 
-   3. _Case Level:_ All session roots aggregate into a final Merkle root signed by both the server RSA key and the human investigator's digital certificate, anchored to **Hyperledger Fabric** via fabric-sdk-py. 
+### 7.1 Cryptographic and source identity boundaries
 
-A **gRPC gossip protocol** with a 30-second timeout window and 2-peer confirmation requirement detects view forks from compromised agents without false alerts from legitimate network partitions. Satisfies Daubert admissibility standards. 
+SHA-256 binds the exact representation hashed. Merkle roots aggregate recorded leaves; they do not establish that an acquisition was authorized, a source was truthful or every relevant event was collected. Quickwit append-only client behavior is not equivalent to independently enforced WORM retention. Full per-prompt/per-tool transcripts, authenticated case signing, investigator certificates, Fabric anchoring and the proposed peer-gossip fork detector remain future integration work under the relevant accepted decisions.
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR provides no tamper-evident guarantees for its internal AI reasoning chain. Specula provides **cryptographic chain-of-custody tracking** for every LLM reasoning step, rendering the generated output legally defensible in court under **Daubert legal standards** . 
+Source-event identity and case membership must survive retry and shared-entity reuse. A successful acknowledgement from one storage stage cannot stand in for missing graph/vector/analytics receipts. Report/render hashes must stay distinct from original evidence hashes.
 
-#### **6. LLM-Generated Code Stylometry and Authorship Attribution** 
+## 8. Investigation graph and agents
 
-- **Specula Specification:** Analyzes recovered malicious scripts to determine whether they were human-authored or generated by a specific LLM. A language detection step using linguist routes scripts to the appropriate parser—Python's built-in ast module, javalang for Java, pycparser for C, bashlex for shell scripts, and a subprocess-wrapped PowerShell AST parser for PowerShell. Extracts AST node type n-gram frequencies, Program Dependency Graph (PDG) structural features, identifier naming patterns, and control flow complexity metrics. An **XGBoost classifier** trained on a novel synthetic benchmark dataset (scripts generated by GPT-4, Claude, Gemini, and human authors) outputs a class label with an explicit confidence score, acknowledging inter-model boundaries as probabilistic rather than deterministic. 
+### 8.1 Executed flow
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR cannot analyze or attribute malicious code scripts. Specula introduces **AI Code Stylometry** , allowing investigators to determine if recovered malware scripts were generated by specific LLMs or human actors. 
+```text
+Authorized case evidence
+  -> Supervisor
+  -> Evidence collection + Log analysis + Primary network
+  -> Primary join
+  -> Required/source-triggered specialists when applicable
+  -> Specialist join
+  -> Bounded investigative follow-up
+  -> Timeline reconstruction -> Threat attribution -> DAG/impact
+  -> Proponent -> Critic -> Judge
+       -> bounded correction, or incomplete review -> HITL
+  -> Guardrails 1 -> 2 -> 3
+       -> failure -> HITL
+  -> Report generation + Timeline artifact generation
+  -> Final output join
 
-#### **7. Zero-Trust Guardrail Execution** 
+HITL: approve follows its entry-specific route;
+      reject closes rejected; clarify returns to Supervisor.
+```
 
-- **Specula Specification:** A mandatory three-tier validation layer that intercepts all agent outputs before execution: 
+Joins precede synthesis. Supported evidence needs as well as dead ends can trigger specialists; the original dead-end-only description is outdated. Authorized local follow-up may append bounded acquisition and reanalyze evidence. Late external findings do not automatically establish a consistent new report revision.
 
-   - _Tier 1 (<5ms):_ Runs deterministic regex and AST signature matching after Unicode NFKC normalization and zero-width character stripping to catch homoglyph and encoding-based injection bypass attempts. 
+### 8.2 Role capability map
 
-   - _Tier 2 (<50ms):_ Runs a local fine-tuned **MiniLM vector classifier** for SAFE/UNSAFE semantic intent classification on write operations only. 
+| Role/stage | Current responsibility | Limit |
+| --- | --- | --- |
+| Supervisor | Source-cohort review, source-derived plan and controlled dispatch. | Primary fan-out is graph-defined; model selection cannot invent tools. |
+| Evidence collection | Case-linked retrieval, preserved context, triage and acquisition receipts. | Retrieval is not proof of complete acquisition. |
+| Log analysis | Signatures/context, persistence lifecycle, script reconstruction and correlations. | Reconstructed code is not run; source outcomes constrain interpretation. |
+| Primary network | Flow/session rules and suspicious/benign context. | Volume/periodicity alone is not confirmed C2 or exfiltration. |
+| Network specialist | Packet/protocol examination and scoped correlations. | Missing/encrypted bytes limit conclusions. |
+| Memory | Targeted native artifacts and labelled imported findings. | No blanket kernel/rootkit/credential-dump confirmation. |
+| Identity | Host/session/SID/logon lifetimes, recorded privileges, supported permission snapshots. | Complete effective AD/IAM access unverified. |
+| Cloud/container | Lifecycle/audit context and captured Kubernetes RBAC rules. | API configuration/rule match is not execution/effective access. |
+| Malware/stylometry | Static features, comparisons and optional laboratory observations. | Similarity is not author/family/original-host execution. |
+| Insider threat | Source counters and preceding within-case baselines. | No inferred intent; lower-bound counters are not comparable measurements. |
+| Follow-up | Select server-built case-cited tasks, preserve receipts/dead ends. | Two rounds, up to six selected actions per round; no model-supplied command execution. |
+| Timeline | Full chronology plus labelled relationships and uncertainty. | Association/order is not causation. |
+| Attribution | Trusted/cited ATT&CK mapping, profile comparison and constrained explanation. | Ranking is not actor identity or calibrated probability. |
+| DAG/impact | Observed topology, cited impact, separately reviewed exploit paths. | Weighted probability requires preserved calibration evidence. |
+| Proponent/critic/judge | Distinct hypotheses/challenges/resolution contracts. | Valid structured output is not factual correctness. |
+| Guardrails | Escalate detected unsafe/invalid output and review failures. | Current tiers are not a complete production safety boundary. |
+| Report/artifact renderers | Deterministically render saved evidence and limitations. | Presentation cannot cure incomplete acceptance. |
 
-   - _Tier 3 (1–3s):_ Reserves full secondary LLM semantic validation exclusively for containment actions and high-risk DFKG writes. 
+### 8.3 Review and loop limits
 
-Implements parameterized Cypher queries throughout to prevent graph injection attacks. 
+Model assessments allow one corrective retry. Submitted/validated coverage is separate from preserved-event count. Foreign citations and invalid schemas are rejected. Independent argument/challenge/resolution contracts prevent automatic acceptance of the critic's position.
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR lacks security filters to protect itself against adversarial log inputs. Specula implements a **Zero-Trust Guardrail Architecture** to prevent indirect prompt injection (e.g., OWASP LLM05) embedded inside malicious log telemetry from hijacking agent execution. 
+Evidence-backed review permits one corrective debate cycle before unresolved/incomplete review reaches HITL. The legacy skeleton branch retains a three-round cap/confidence-delta convergence check; it is not the real-evidence acceptance rule. Partial review remains incomplete even if a human authorizes draft output.
 
-#### **8. Dedicated Fraud and Insider Threat Agent** 
+ReAct helpers have iteration/tool/timeout budgets and state includes `loop_count`. The standalone supervisor has a three-attempt HITL helper, but the deployed factory initializes that helper count on entry. A durable end-to-end clarification/re-dispatch cap still requires verification. Graph recursion limits alone do not establish that business policy.
 
-- **Specula Specification:** Ingests raw message body text, DLP alerts, UEBA scores, and file access patterns from mandatory fields in email, messaging, and UEBA input sources. Runs **spaCy NER** on communications to identify mentions of sensitive systems, competitors, and behavioral indicators. Uses an **LSTM Autoencoder** trained on 90-day user activity baselines from the CERT dataset to score behavioral anomalies by reconstruction error. Applies **One-Class SVM** for users with fewer than 100 message samples, switching to **HDBSCAN** only when sufficient history exists. Uses ProsusAI/finbert or a fine-tuned CERT-corpus model for sentiment analysis to prevent domain mismatch. 
+### 8.4 Local audit follow-up
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR focuses strictly on explicit system log events and cannot detect non-signature behavioral anomalies or corporate insider threats. Specula adds a **specialized Insider Threat Agent** capable of modeling semantic sentiment and behavioral baseline deviations across enterprise messaging and UEBA data streams. 
+`local_endpoint_audit` is limited to a case originally collected from the current Windows host. Uploaded archives cannot trigger acquisition from the machine they describe. The collector validates bearer identity, case authorization, source host, stage and preserved anchors. It derives a five-minute context window clipped to the original selected dates, refuses windows over one hour and reads fixed Security, Sysmon Operational and PowerShell Operational channels, at most 100 records per channel.
 
-#### **9. Formalized Human-in-the-Loop (HITL) Approval Gate** 
+One durable acquisition claim is allowed per case/cycle; interrupted claims do not silently repeat collection. New evidence follows preservation, normalization, graph/vector/analytics and normalized-stream contracts without replacing ownership or initial provenance. At most one automatic evidence reanalysis follows acquisition; unresolved/partial results require review. End-to-end live acquisition acceptance remains open. See [follow-up acquisition](followup_acquisition.md).
 
-- **Specula Specification:** A **FastAPI + React** dashboard that the Supervisor Agent escalates to when confidence scores fall below 0.7, adversarial debate produces unresolved conflict, blast radius exceeds the predefined threshold, or any active containment action is proposed. Presents the human analyst with the full ACH evidence matrix, blast-radius-ranked asset list, Explainability Agent chain-of-thought trace, and VCT session Merkle root for verification. Analyst actions: APPROVE, REJECT, or REQUEST_CLARIFICATION. Implements a tiered timeout policy: low-severity findings auto-approve after 4 hours, medium-severity escalate to a secondary analyst after 2 hours (with auto-approval after 8 hours), and high-severity actions never auto-approve (notifying SOC leadership via webhook after 1 hour). Analyst agreement rate is tracked as the primary evaluation metric. 
+### 8.5 CAPE laboratory experiments
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR operates as an unmonitored "black box" text generator without formal escalation points. Specula embeds a **legally mandated Human-in-the-Loop gate** , ensuring human oversight over critical findings and automated containment commands. 
+Only preserved, hash-verified native PE bytes can be submitted to the configured authenticated CAPE v2 API. Imported JSON, URLs, arbitrary paths and model options cannot select executable content. Durable claims precede submission; returned task IDs precede polling. Uncertain submissions are not automatically repeated. Raw accepted reports are bound to sample, task, custom case identity and guest and are retained with protected downloads.
 
-#### **10. Dynamic Attack Graph Construction** 
+Fixed Windows/drop-route settings request isolation; actual guest/firewall isolation still needs acceptance. Laboratory timestamps and behavior are not original-host chronology. Local HTTP-emulator/concurrency/reload/report tests verify the connector contract, not a functioning malware sandbox. Real benign-control execution, capture attribution and clean-snapshot restoration remain deferred at the user's request. See [CAPE integration](cape_integration.md) and [sandbox setup](malware_sandbox_setup.md).
 
-- **Specula Specification:** Ingests vulnerability and asset inventory data (14th input source) from OpenVAS, Nessus, or Qualys APIs and cross-references with DFKG host nodes. Queries a locally cached **DuckDB** table of daily EPSS score dumps from FIRST.org rather than making live API calls to prevent rate limiting. Models the network as a directed networkx graph where edge weights use a negative log transformation: 
+## 9. Runtime harness and models
 
+### 9.1 Blackboard and transport
 
+Kafka/Neo4j provide transport/shared evidence rather than workers forwarding uncontrolled prompt histories. Normalized consumers and supported publishers expose delivery states and references. Queueing, broker acknowledgement and completed graph writes are different results; consumer write/offset receipts establish the latter path.
 
-so Dijkstra's algorithm correctly identifies the most dangerous exploitation path rather than the safest one. The precondition confirmation factor when forensic evidence in the DFKG confirms the precondition, and when unconfirmed. Unchained vulnerabilities with EPSS above 0.3 are flagged as residual risk and ranked for remediation output. 
+The proposal's universal all-agent Kafka/VCT write claim does not describe every current path. APIs also project checkpointed AgentRuns, reports, timelines and analysis relationships directly into Neo4j using deterministic keys. These are analysis/audit projections, not new source evidence. Uniform publication and cryptographic tool/write coverage remain partial.
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR cannot assess vulnerability chains or post-incident residual risk. Specula dynamically constructs **forensically weighted attack graphs** , combining live forensic evidence with EPSS/CVSS scores to map viable attack paths and prioritize post-incident patching. 
+The supervisor/coordination layer owns dead-end reasoning. APOC milestone patterns do not determine investigative inactivity. The proposed GraphRAG limits of three hops, 100 nodes and 300 relationships are bounds to verify per tool; frontend caps do not prove retrieval completeness or universal enforcement.
 
-#### **11. Malware Behavior Agent with Tiered Dynamic Analysis** 
+### 9.2 Tools, rules and replay
 
-- **Specula Specification:** Operates as a three-tier pipeline selecting analysis depth based on sample complexity and available infrastructure: 
+Normalization, graph, retrieval, threat-intelligence and examination modules exist under `src/mcp/`, `src/ingestion/` and `src/agents/`. Their presence does not establish the entire conceptual five-server MCP roster, runtime dataset-query service or centralized provider fallback/sandbox bridge.
 
-   - _Tier 1 (<1s):_ Runs YARA rule matching via yara-python against the MalwareBazaar ruleset plus custom rules derived from previous DFKG malware nodes. 
+Tool arguments derive from supported server contracts, case membership and validated references. Native parsers have input/budget controls; universal process/container isolation remains a security/deployment task.
 
-   - _Tier 2 (~5s):_ Runs Speakeasy user-mode Windows emulation requiring no hypervisor—handles shellcode, DLLs, and standard executables. 
+Role-specific signatures/configuration and execution source fingerprints exist. Hot-reloadable rules, immutable case-pinned rule lookup and deterministic replay across model/feed changes remain incomplete. Package/source manifests are provenance, not a replay engine.
 
-   - _Tier 3:_ Escalates to either CAPE Sandbox on bare-metal KVM hardware or an external API (ANY.RUN, Hybrid Analysis) when Speakeasy reports evasion or insufficient coverage. 
+### 9.3 Actual model selection
 
-All tiers output structured behavioral telemetry that the agent writes into the DFKG as typed edges (CALLED_API, DROPPED, CONNECTED_TO), enabling automated ATT&CK mapping. **DRAKVUF VMI** on Xen is supported as a gold-standard upper tier when hypervisor infrastructure is available, validated against versioned Pydantic schema models to catch parserversion mismatches. 
+Local Compose selects Ollama; isolated regressions may use `SPECULA_LLM_BACKEND=stub`. Optional Gemini/OpenAI-compatible settings and model labels are separate from actual invocation. Traces identify deterministic steps, backend/model, validity and limitations.
 
-- **Specula Improvement over GenDFIR:** _(Feature not present in GenDFIR)_ GenDFIR has no capability to analyze or detonate malicious binaries. Specula integrates **tiered** 
+The original Nemotron/Qwen/Llama/DeepSeek/Kimi/MiniMax role matrix is a research deployment option, not the installed production topology; its malware model labels are internally inconsistent. Provider availability, cost, model diversity and safety calibration need independent decisions. See [model runtime matrix](model_runtime_matrix.md) and [local model testing](local_model_testing.md).
 
-**dynamic malware detonation and VMI telemetry ingestion** , mapping behavioral execution outputs directly into the shared DFKG memory. 
+The local adapter verifies installed models and rejects prohibited cloud/remote paths. Using one model family across roles does not supply independent model diversity. Deterministic citation/outcome checks do not eliminate correlated reasoning errors.
 
-#### **12. Investigative Synthesis and Blast Radius Quantification** 
+### 9.4 Observability and guardrails
 
-- **Specula Specification:** The final synthesis feature that runs after all specialist agents complete. Computes blast radius as a composite score of affected node count weighted by asset sensitivity classification, plus log-scaled estimated exfiltration volume derived from file size properties on confirmed exfiltration edges in the DFKG: 
+Case/trace identifiers, model metadata, latency, retries, receipts and saved reviews support inspection. Complete trace continuity through every tool, transport and analyst decision remains to be accepted. Analyst disagreement must not silently retrain rules/models or rewrite evidence.
 
+Tier 1 uses deterministic patterns. Tier 2 uses unsafe-phrase similarity with bag-of-words or an available sentence-transformer path; it is not a delivered fine-tuned SAFE/UNSAFE classifier. Tier 3 invokes model review. Failure escalates. The proposal's latency/robustness claims remain targets, not established benchmarks.
 
+### 9.5 Deterministic scoring and interpretation
 
-Performs threat actor attribution by computing both Jaccard set similarity and **SmithWaterman sequence alignment scores** between the observed TTP sequence and MITRE ATT&CK group profiles, combining them as a weighted score ( 
+ATT&CK candidate scoring in `src/agents/threat_attribution/scoring.py` combines `0.4 * Jaccard + 0.6 * Smith–Waterman`. Jaccard compares observed/profile technique sets. Local alignment uses match 2, mismatch/gap -1, normalized by twice the shorter sequence length. Missing profile sequence, including a sequence inferred only from ATT&CK tactic order, contributes zero alignment rather than fabricated order. Stable sorting returns at most three candidates. Confidence bounds are heuristic evidence measures, not statistical actor-authorship probabilities.
 
+Within-case insider baselines use strictly preceding observations from a seven-day window, at most 100 prior samples, with at least 20 needed. Median/MAD and magnitude controls identify source-counter deviation; partial-capture lower bounds are excluded as incomparable. This replaces any claim that an LSTM or sentiment model has already detected insider intent.
 
+The original blast-radius expression based on sensitive-asset counts and logged exfiltration bytes remains a proposal unless its inputs and computation are verified for a case. Current impact observations must not turn source counters into confirmed stolen bytes. Likewise, the original CVSS/EPSS/gamma attack-path expression is not a calibrated exploitation model; reviewed topology follows ADR-031.
 
-) to reward matching TTP order rather than just TTP presence. Returns top-3 candidate threat actors with similarity scores and confidence bounds. Produces a ranked asset impact list fed directly to the HITL Approval Gate dashboard and outputs court-ready PDF reports via **ReportLab** . 
+## 10. Ingestion and datastore behavior
 
-- **Specula Improvement over GenDFIR:** GenDFIR outputs unstructured, plain-text narrative summaries without quantitative impact scoring or sequence-aligned attribution. Specula provides **mathematical blast radius quantification** , sequence-aligned TTP threat actor attribution, and automated court-ready PDF report synthesis. 
+### 10.1 Common contracts
 
-|Capability /|GenDFIR Baseline||
-|---|---|---|
-|Dimension|(Loumachi et al., 2024)|Specula Framework|
-|System|Single LLM RAG Agent||
-|Architecture|(Llama 3.1 8B)|13 Specialized Agents across 5 Cognitive Tiers|
-|Context Retrieval|Flat Vector Search (Cosine<br>Similarity over text chunks)|Topological GraphRAG (Neo4j DFKG + APOC BFS +<br>FAISS IndexIVFPQ)|
-|Log Scale Handling|Uncompressed Text<br>Prompts (Token<br>Bottleneck)|Entropy-Based Distillation (Drain3 + SimHash +<br>MiniBatchKMeans, 90%+ Compression)|
-|Hallucination<br>Mitigation|Unconstrained Single-Pass<br>Generation|Evidentiary ACH Debate (Proponent/Critic/Judge with<br>mandatory DFKG citations)|
-|Legal Admissibility|None (Unverified text<br>output)|Cryptographic Provenance (3-Tier Merkle Trees +<br>Hyperledger Fabric, Daubert Standard)|
-|Timestomping<br>Analysis|None (Assumes raw<br>timestamps are accurate)|MFT SIvsFN Checks + XGBoost Classifier + Time<br>Anchor Regression|
-|Code Stylometry|None|AST / PDG Parsing across 6 Languages + XGBoost AI-<br>Authorship Classifier|
+```text
+Capture / upload
+  -> original representation and SHA-256 preservation receipt
+  -> sanitized analytical text and source identity
+  -> supported OCSF normalization and validation/quarantine
+  -> deterministic UID and case tagging
+  -> supported Kafka publication / abstraction / indexing
+  -> typed graph persistence and case-scoped investigation
+```
 
+Entry points differ: archive intake and the continuous normalized consumer do not execute one identical function. Verify preservation and indexing receipts for each path. Preservation failure must stop affected intake rather than fabricate success.
 
+Network inputs include finite files, Zeek/Suricata JSONL follow mode with offsets/rotation handling, and configured TCP/UDP syslog. Kafka orders within partitions; cross-host chronology uses recorded UTC instants and uncertainty, never arrival order.
 
-|Security /<br>Guardrails|None (Vulnerable to<br>Indirect Prompt Injection)|3-Tier Zero-Trust Validation (Regex + MiniLM Classifier<br>+ Parameterized Cypher)|
-|---|---|---|
-|Insider Threat<br>Analysis|None|LSTM Autoencoder + FinBERT Sentiment Analysis on<br>corporate comms & UEBA|
-|Human-in-the-Loop|None|Formalized HITL Gate (React Dashboard with Tiered<br>Timeouts & Agreement Tracking)|
-|Vulnerability<br>Analysis|None|Dynamic Attack Graph (Dijkstra Traversal on negative<br>log CVSS × EPSS × γ)|
-|Malware<br>Detonation|None|Tiered Sandbox Execution (YARA<br>Speakeasy<br>→<br>→<br>CAPE / DRAKVUF VMI)|
-|Threat Attribution|Unstructured text mention|Sequence-Aligned Attribution (0.4×Jaccard+0.6×Smith-<br>Waterman)|
-|Impact Scoring|Qualitative summary|Quantitative Blast Radius Formulation<br>(BR=N Wˉ+ln(Bytes+1))<br>⋅|
+The original Go/Rust SIMD/Filebeat fleet and universal raw-Kafka sketch are not current descriptions of every path. Python components implement hashing/preservation. Threat-intelligence loading has a separate hashed manifest/reference path and must not masquerade as case evidence.
 
+### 10.2 Analytical stores and monitoring
 
+Chroma case/event keys and model-digest-aware indexing support local embeddings and scoped retrieval. Missing/stale collections or receipt mismatches remain visible. In-memory fallback is non-durable and cannot establish successful persistent indexing.
 
-## **2.5 Agent-Model Rationale Matrix** 
+FAISS holds a shared versioned reference corpus with hashes and verified atomic reload. Hash/deterministic embeddings in test/compatibility paths do not establish semantic quality. DuckDB holds atomically replaced per-case analytics with parameterized authorized reads. Neither needs invented activity to look dynamic.
 
-|**Agent**|**Model**|**Inference**|**Rationale/Justification**|
-|---|---|---|---|
-|Supervisor|Nemotron-3 Ultra|Together AI via HF|Top-tier reasoning for orchestration,<br>dead-end detection, and routing<br>decisions|
-|Evidence collection|Qwen2.5-7B-<br>Instruct|Novita/Together via HF|Mostly tool-calling/fetching, low<br>reasoning load — cheapest model that's<br>reliable at function calling|
-|Log analysis|Qwen2.5-72B-<br>Instruct|Novita/Together via HF|Needs strong pattern recognition over<br>high-volume normalized logs|
-||Llama3.3-70B-||Comparable capability tier to log<br>analysis, keeps the two parallel primary|
-|Network forensics|Instruct|Groq via HF|agents balanced in latency|
-|Timeline<br>reconstruction|DeepSeek-V3.2|Novita / together via HF|Strong multi-hop/temporal reasoning<br>across disparate evidence sources|
-||||Best long-context handling for retrieving|
-|Threat attribution||Together/Fireworks via|and reasoning over ATT&CK/CVE|
-|(RAG)|Kimi K2.6|HF|corpora|
-||||Mid-size, good general performance,<br>moderate volume of memory dump|
-|Memory forensics|Qwen3 32B|Nscale/Deepinfra via HF|summaries|
+Store/graph monitors poll every ten seconds while visible, refresh on focus/manually, prevent overlap and show timestamps/failures. Quickwit totals and Chroma counts come from live APIs. Graph refresh preserves unchanged layouts. DuckDB snapshots and the FAISS corpus change when their writers/builders update them, not every time the UI polls.
 
+## 11. Examination reports
 
+### 11.1 Different audiences and content
 
-|Identity and cloud|Prism-ML-<br>Ternary-<br>Bonsai-27B|Together AI via HF|Smaller specialized model sufficient for<br>structured AD/cloud audit log analysis|
-|---|---|---|---|
-|Malware behavior &<br>code stylometry|DeepSeek-R1-<br>Distil-Qwen-14B|Nscale via HF|Strongest reasoning model for code-<br>structure analysis (AST/PDG) and<br>authorship inference|
-|Insider threat|MiniMax-M2.5|Novita/Featherless AI via<br>HF|<br>Good at sentiment/behavioral narrative<br>synthesis from communications data|
-||||Strong hypothesis construction, one tier<br>below Ultra to keep debate asymmetric-|
-|Proponent (debate)|Nemotron-3 Super|Featherless AI via HF|but-capable|
-|Critic (debate)|Llama3.3-70B-<br>Instruct|Groq/Novita via HF|Independent model family from<br>proponent, reduces correlated blind spots<br>in the debate|
-|Judge (debate)|Nemotron-3 Ultra|Together AI via HF|Same top-tier model as supervisor —<br>final arbitration needs the strongest<br>available reasoning|
-||||Fast, cheap, only invoked for<br>containment/high-risk writes — small|
-|Guardrail Tier 3<br>semantic check|Qwen2.5-7B-<br>Instruct|Novita/Together via HF|model is enough given Tier 1/2 already<br>filtered|
-||Llama-3.3-8B-||Formatting/synthesis into a fixed<br>template, deterministic task, doesn't need|
-|Report generation|Instruct|Featherless AI via HF|a large model|
+| Report | Emphasis | Required review |
+| --- | --- | --- |
+| Court submission draft | Scope/authority declarations, acquisition/receipt, inventory, custody, supported observations, exhibits, limitations and unsigned examiner/reviewer fields. | Qualified examiner, actual authority/custody and jurisdiction-specific submission review. |
+| Technical report | Telemetry coverage, filters, cited detections, event details, methods, execution provenance, gaps and analyst follow-up. | Technical validation and missing-evidence assessment. |
 
+Both use the same evidence with distinct structure/content. ReportLab renders paginated PDFs; compact HTML companions and original historical output remain where saved. Download hashes identify the delivered representation; manifest digests/source citations are not authenticated custody or case signatures.
 
+The original seventeen-section proposal is a content checklist, not a requirement to duplicate report bodies. Raw model/state dumps, platform boilerplate and unsupported legal conclusions do not belong in the narrative. Detailed execution records remain available in saved case/technical views.
 
-|**Model Agent**<br>**Role(s)**|**Input**|**Output**|**What It Does**|
-|---|---|---|---|
-||Supervisor: SIEM<br>alert/investigator<br>query, live|||
-||blackboard state,<br>agent observations.<br>Judge: Proponent's<br>hypothesis + Critic's|Supervisor: dispatch<br>decisions,<br>dead-end/timeout<br>calls. Judge:|Runs the two highest-stakes reasoning<br>points in the system — orchestrating|
-|**Nemotron-3 Ultra**|counter-argument,|accept/reject verdict,|which agents fire and when (Supervisor),|
-|**(Supervisor +**|both with DFKG|confidence delta|and arbitrating the adversarial debate to|
-|**Judge)**|citations|score|reach a final, defensible verdict (Judge)|
+### 11.2 Incomplete and historical cases
 
+Closed workflow status and complete forensic acceptance differ. Missing actor sequence, incomplete model coverage, absent labels, unsupported mapping and evidence requests remain explicit. Historical downloads can render a current template from saved evidence; generation time differs from investigation time, and missing historical version metadata must be disclosed.
 
+PDF/history delivery retains authorization and final-report gates. Human permission to proceed does not certify findings or remove limitations. Hashes and formatting cannot confer admissibility; no court approval, laboratory accreditation or complete-system error rate is asserted.
 
-|**Qwen2.5-7B-**<br>**Instruct (Evidence**<br>**Collection +**|Tier 3 Collection: raw<br>evidence source<br>pointers, tool<br>schemas. Guardrail:<br>a proposed agent<br>output/write action|<br>Collection:<br>fetched/normalized<br>evidence artifacts.<br>Guardrail:<br>SAFE/UNSAFE<br>semantic|Handles the two highest-volume, lowest-<br>complexity jobs — fetching evidence via<br>tool calls, and a fast final semantic check<br>before any write/report action is allowed|
-|---|---|---|---|
-|**Guardrail)**|pending approval|classification|through|
-|||Flagged suspicious-||
-|**Qwen2.5-72B-**<br>**Instruct (Log**<br>**Analysis)**|Normalized OCSF<br>log batches (post-<br>ingestion)|activity findings,<br>published to the<br>DFKG|Detects anomalies and suspicious<br>patterns across high-volume<br>system/application logs|
-||Network: normalized<br>Zeek/Suricata/PCAP<br>events. Critic:|Network: identified<br>C2/exfiltration/anoma<br>ly findings. Critic:|Analyzes network traffic for compromise<br>indicators, and separately serves as the|
-|**Llama3.3-70B-**<br>**Instruct (Network**<br>**Forensics + Critic)**|Proponent's<br>hypothesis + DFKG<br>read access|counter-argument<br>with independent<br>citations|debate's dissenting voice — deliberately<br>a different model family from the<br>Proponent to avoid shared blind spots|
-|||Chronologically|Synthesizes fragmented evidence into a<br>single ordered attack narrative — the|
-|**DeepSeek-V3.2**<br>**(Timeline**<br>**Reconstruction)**<br>**Kimi K2.6 (Threat**<br>**Attribution)**|Correlated evidence<br>from the DFKG (all<br>primary-tier findings)<br>DFKG timeline +<br>retrieved MITRE<br>ATT&CK/CVE/NIST<br>context (RAG)|ordered attack<br>timeline, written back<br>as timeline edges<br>Attack-pattern tags,<br>threat-actor<br>attribution candidates|data source for both the report's Timeline<br>section and the interactive dynamic<br>timeline<br>Matches observed behavior to known<br>techniques and threat actors, chosen<br>specifically for long-context handling over<br>the retrieved corpus|
-||Volatility/memory-|||
-|**Qwen3 32B**<br>**(Memory**<br>**Forensics)**|dump outputs,<br>dispatched only on a<br>primary-tier dead-end|Process<br>injection/credential-<br>dumping findings|Investigates memory artifacts when<br>primary evidence alone doesn't resolve<br>the case|
-||AD/Kerberos/cloud|||
-|**Prism-ML-**<br>**Bonsai-27B**<br>**(Identity & Cloud)**|audit logs,<br>dispatched on dead-<br>end|Compromised-<br>identity and cloud-<br>control-plane findings|Smaller specialist model for structured<br>identity/cloud log analysis|
-||Malware samples,||Detonates and analyzes malicious code,|
-|**DeepSeek-R2**<br>**(Malware &**<br>**Stylometry)**|sandbox telemetry,<br>extracted<br>code/scripts|Behavioral analysis +<br>AI-authorship/stylom<br>etry classification|<br>and determines whether recovered<br>scripts were AI-generated or human-<br>authored|
-||Email/messaging<br>bodies, DLP alerts,|Sentiment/|Scores non-signature insider-threat|
-|**MiniMax-M2.5**<br>**(Insider Threat)**|UEBA behavioral<br>scores|behavioral-anomaly<br>narrative|<br>behavior across communications and<br>activity baselines|
-|||Attack hypothesis|Constructs the case's leading theory as|
-|**Nemotron-3 Super**|Full DFKG subgraph|with mandatory|the debate's advocate — every claim|
-|**(Proponent)**|context|DFKG citations|must trace to a graph citation|
+## 12. Timeline, graphs and explanation
 
+The timeline groups recorded UTC instants into readable days/events, preserving original-field context, host/account identity, unknown times, filters and expandable evidence. Capture/acquisition metadata and adjusted timestamps are distinct from event time. Model selection cannot suppress preserved chronology.
 
+Relational graphs show source-supported entities/relationships with their basis. They are distinct from reviewed exploit topology. Chronological association, shared identity or ATT&CK labels do not establish causation/exploitation.
 
-||Judge's verdict,||Formats the investigation's conclusions|
-|---|---|---|---|
-|**Llama-3.3-8B-**|DFKG citations,||into the fixed report structure —|
-|**Instruct (Report**|blast-radius/attributio|Populated 17-section|<br>deterministic, low-reasoning task, so the|
-|**Generation)**|n outputs|court-ready report|smallest model in the roster|
+The exploit solver verifies reviewer identity, case citations, acyclic topology and transition inputs. Calibrated transitions can use `-ln(p)` costs; otherwise probability is unavailable. CVSS severity and EPSS are not multiplied into case-specific success probability. Vulnerability/impact observations remain useful without invented certainty.
 
+Timesketch integration, ATT&CK heatmaps, timeline image export, signed appendices and universal causal-chain display remain separate deliverables unless working implementations and executed oracles are recorded.
 
+## 13. Outcomes and acceptance targets
 
-## **3. Dataset** 
+### 13.1 Deliverables
 
-### **3.1 Benchmark & Ground-Truth Datasets** 
+| Deliverable | Current state | Remaining acceptance |
+| --- | --- | --- |
+| Unified chronology | Implemented citations/context/uncertainty. | Independent accuracy and optional Timesketch/export integration. |
+| Explanatory findings | Evidence-bound rules and structured model assessments. | Independent correctness, omissions and false alarms. |
+| ATT&CK/actor comparison | Versioned ranking and limitations. | Trusted labels and confidence calibration. |
+| Case graph/execution audit | Typed case-linked evidence and analysis views. | Completeness, scale and trace continuity. |
+| Exploit/risk analysis | Reviewed-topology solver and source context. | Real prerequisites, calibration and priority validation. |
+| Court/technical PDFs | Distinct tested renderer, saved-case delivery and durable image dependency. | Expert and signed-in browser acceptance. |
+| Cryptographic provenance | Local hashes/Merkle components, receipts/manifests. | Uniform ledger, signatures/certificates, Fabric and fork detection. |
 
-Specula utilizes established public datasets for RAG grounding, knowledge lookup, and empirical evaluation. Crucially, no heavy LLM fine-tuning is performed—this avoids catastrophic forgetting and excessive compute overhead. 
+### 13.2 Quantitative research targets
 
-|**Dataset / Source**|**Purpose in Specula**<br>**System**|**Evaluated Agent / Feature**|
-|---|---|---|
-|CERT Insider Threat v6.2<br>(CMU SEI)|Grounding and evaluation<br>for behavioral anomaly<br>detection in enterprise logs.|Insider Threat Agent|
-|CICIDS2017 / CICIDS2018|Network traffic evaluation<br>containing labelled benign<br>and multi-attack traffic<br>(PCAPs & Zeek logs).|Network Forensics Agent|
-|Digital Corpora Forensic<br>Images|Disk images, memory<br>dumps, MFT files, and user<br>artifacts for timeline ground<br>truth.|Memory Forensics Agent &<br>Timestomping Feature|
-|DARPA Transparent<br>Computing|System provenance data<br>with known manipulation<br>events for temporal<br>anomaly evaluation.|Timestomping Detection<br>(Feature 3)|
-|ForensicsData (ANY.RUN<br>Triplets)|5,000+ Q-C-A triplets<br>testing LLM-generated<br>malware behavioral<br>narrative accuracy.|Malware Behavior Agent|
-|CFA-Bench + CyberSleuth|Network forensic reasoning<br>benchmark measuring CVE<br>detection and attack<br>confirmation.|Network Forensics & Threat<br>Attribution Agents|
+| Metric | Original target | Evidence needed |
+| --- | --- | --- |
+| Correlation accuracy | 95% | Independent labels and defined precision/recall denominators. |
+| Timeline accuracy | 96% | Ground-truth order, unknown times/skew and completeness scoring. |
+| Attribution accuracy | 94% | Verified actor labels and held-out cases. |
+| Investigation time | Five minutes | Declared hardware, volume/source mix/model; analyst wait separate from compute. |
+| Time reduction | 89% against 45 minutes | Matched baseline/task scope; original numbers are proposal assumptions. |
+| Hallucination rate | Below 5% | Claim-level unsupported/error metric and blinded review. |
+| Compression | At least 90% reduction and at least 95% entity retention | Matched normalized payload bytes excluding wire envelopes, summary overhead and retained-entity/citation evaluation. |
 
+These are targets, not achieved results. Original baseline percentages and ransomware/insider/supply-chain stories are illustrative, not measured deployments. Formal measurement protocols require approval before being claimed as acceptance criteria.
 
+## 14. Planned-change reconciliation
 
-|DFIR-Metric Benchmark|Multi-step reasoning<br>evaluation measuring Task<br>Understanding Score<br>(TUS).|All Primary & Specialist<br>Agents|
-|---|---|---|
-|AutoBnB-RAG Simulation<br>Dataset|Agent strategy validation<br>environment based on<br>Backdoors & Breaches<br>tabletop framework.|Supervisor & Dynamic<br>Attack Graph Agents|
-|NVD / NIST CVE Database|Daily EPSS CSV dump and<br>CVE vulnerability metadata<br>for attack path weighting.|Dynamic Attack Graph<br>Agent|
-|MITRE ATT&CK STIX<br>Dataset|Threat actor TTP profiles in<br>machine-readable STIX<br>format for attribution<br>matching.|Threat Attribution Agent|
+All items map to the supplied planned-changes source. Design resolution is distinct from runtime verification; accepted ADRs govern where they supersede the proposal.
 
+### 14.1 Two cross-document conflicts
 
+| Conflict | Reconciled position |
+| --- | --- |
+| Specialist direct writes versus all-agent Kafka | Kafka-mediated evidence/findings remain the design direction. Checkpoint-to-Neo4j analysis/audit projections also exist. Universal publication/VCT coverage is partial. |
+| APOC versus supervisor dead ends | Supervisor/coordination owns progress reasoning; APOC milestone patterns do not determine dead ends. End-to-end degraded dispatch acceptance remains necessary. |
 
-### **3.2 Novel Synthetic Dataset: Code Stylometry Benchmark** 
+### 14.2 Eight prior design resolutions
 
-To fill an identified research gap—the total absence of public datasets containing malware scripts labeled by whether they were generated by specific LLMs (GPT-4, Claude, Gemini) versus human authors—this project creates a novel benchmark dataset. 
+| ID | Question | Current assessment |
+| --- | --- | --- |
+| R1 | Source-to-worker mappings | Explicit in Sections 6/8; supported scope is narrower than complete-source claims. |
+| R2 | Retry duplicates/concurrency | Deterministic UIDs, MERGE and leases address defined paths; full replay acceptance remains separate. |
+| R3 | Evidence prompt injection | Sanitization/checks/constrained review exist; complete robustness remains partial. |
+| R4 | Critic automatically wins | Separate judge consumes both arguments with citation/coverage checks; correctness still needs evaluation. |
+| R5 | Debounced ambiguous dead ends | Supervisor ownership resolves the design conflict; runtime notifications still need testing. |
+| R6 | Parser attack surface | Input/budget/malformed controls exist; universal restricted-container isolation remains open. |
+| R7 | Unbounded debate context | Review batches and bounded retrieval mitigate growth; worst-case context accounting remains open. |
+| R8 | Primary/specialist audit asymmetry | Shared traces/checkpoints/AgentRun projections exist; uniform cryptographic tool/write coverage is incomplete. |
 
-- **Data Collection:** Human samples are collected from MalwareBazaar and pre-2023 VirusTotal submissions (ensuring clean human ground truth). AI samples are generated by submitting identical attack specifications to GPT-4, Claude Sonnet, and Gemini Pro across Python, PowerShell, Bash, and JavaScript. 
+### 14.3 Twelve recommendations
 
-- **Dataset Scale:** 500 samples per class across four class labels: {GPT4, Claude, Gemini, Human} (2,000 samples minimum; 5,000 target for statistical reliability). 
+| ID | Recommendation | Current treatment | Remaining acceptance |
+| --- | --- | --- | --- |
+| O1 | Debate cap without convergence | Structured correction then HITL; legacy exhaustion also escalates. | Independent review-quality/fresh-case acceptance. |
+| O2 | Durable checkpoint authority | Accepted local SQLite WAL; Redis is not authoritative. | Multi-host and production restore acceptance. Proposed Postgres/write-through split was not adopted. |
+| O3 | Case rule-version pinning | Execution source/package fingerprints exist. | Immutable bundles and pinned lookup across reload/retry. |
+| O4 | Deterministic replay | Corpus hashes/model traces/receipts exist. | Freeze external responses and corpus/rule/router/model state; replay without altering originals. |
+| O5 | Broader fallback flags | Local selector rejects prohibited fallback; review errors/coverage visible. | Uniform end-to-end substitution policy across primary/attribution/safety roles. |
+| O6 | Golden fixtures for all skills | Extensive time/abstraction/graph/attribution/protocol/solver controls. | Independent labels, representative coverage and measured skill correctness. |
+| O7 | Flag intel provider substitution | Provider/version/hash metadata exist. | Live substitution, stale cache and circuit-breaker flags/receipts. |
+| O8 | Frozen report read boundary | Snapshots, joins, leases and final-report gates exist. | Distributed zero-lag boundary and late-write reopen/version policy. |
+| O9 | Synthesis waits for specialists | Joins/follow-up precede timeline/attribution/DAG. | Every late update/retry/reanalysis path must avoid stale synthesis. |
+| O10 | Bound HITL redispatch | Loop budgets and standalone helper exist. | Durable deployed clarification count and terminal manual-override state across restarts. |
+| O11 | Trace HITL handoff | Case/trace state and standalone trace payload exist. | Complete analyst-decision/transport/audit correlation. |
+| O12 | Learn from analyst disagreement | Decisions/review data can be retained. | Owned thresholds, scoreboard/recalibration and evaluated changes; no automatic training claimed. |
 
-- **Labeling Methodology:** Human samples are verified via git blame timestamps and preLLM repository creation dates. AI samples are labelled by generating model. Interannotator agreement is validated via Cohen's Kappa score. 
+### 14.4 Seven additional issues
 
-- **Preprocessing & Feature Extraction:** All samples undergo Unicode NFKC normalization to prevent homoglyph contamination, comment stripping to eliminate author metadata, Abstract Syntax Tree (AST) extraction (via ast, javalang, pycparser, powershell-ast, bashlex), and lexical/syntactic feature vectorization. 
+| ID | Issue | Current treatment and remaining work |
+| --- | --- | --- |
+| N1 | Cross-partition ordering | UTC chronology replaces arrival order; clock uncertainty needs independent evaluation. |
+| N2 | Redis case-tagging failure | Cache tries Redis lookups then returns `UNASSIGNED_CONTINUOUS`, not a durable metadata fallback. Define/test reconciliation without silent misassignment. |
+| N3 | Cloud/container identity churn | Static cloud-ID maps and lifecycle context exist; complete pod/instance/NAT resolution remains partial. |
+| N4 | Hidden fourteen-source scope | Section 6 separates original stages and present support; complete new sources with individual acceptance. |
+| N5 | Guardrail model adequacy | Actual selector differs from proposed hosted 7B label; validate high-risk decisions/containment policy. |
+| N6 | Shared supervisor/judge blind spots | Distinct roles/counter-evidence checks exist, local family is shared; evaluate bias and production diversity. |
+| N7 | Compression byte boundary | Section 13 gives proposed matched payload boundary; verify instrumentation, summary overhead and retention before claiming success. |
 
-## **4. Deployment** 
+## 15. Remaining delivery work
 
-### **4.1 Deployment Architecture & Platform** 
+### 15.1 Canonical task states
 
-Specula is deployed as a containerized, locally hosted microservices stack designed for airgapped Security Operations Center (SOC) environments where evidence cannot be transmitted to external cloud providers. An optional cloud-API mode is supported for non-air-gapped deployments. 
+The tracker records 47 tasks: 41 `passing`, one `active`, one `blocked` and four `not_started`. This is not an overall completion percentage. Earlier topology/stub tasks remain passing within their historical scopes.
 
-- **Platform:** Local bare-metal server or on-premise virtual machine (Ubuntu 24.04 LTS primary, Windows Server 2022 secondary). 
+| Task | State | Remaining scope |
+| --- | --- | --- |
+| TASK-6.7 | active | Bounded Kubernetes RBAC/source examinations; broader AD/IAM semantics, trusted labels, full live follow-up and fresh accepted cases remain open. |
+| TASK-6.8 | blocked | Production reliability/performance/security/recovery ownership and expert acceptance. PDF/UI subsets do not close it. |
+| TASK-7.1 | not_started | Production identity/exposure policy and audit ownership; local backend authorization already exists. |
+| TASK-7.2 | not_started | Production checkpoint/recovery acceptance; local SQLite pause/resume already exists. |
+| TASK-7.3 | not_started | Coordinated off-host restore of stores, offsets, schemas, references/reports against approved RPO/RTO. |
+| TASK-7.4 | not_started | Authenticated browser and approved model/feed deployment acceptance; hosted/GCP remains subject to local-only policy. |
 
-- **Minimum Hardware Spec:** 16GB RAM, 8-core CPU, 512GB SSD. Uses quantised local Qwen 7B Q4 via Ollama (No GPU required). 
+This edit does not promote tasks. Some proposed Phase 7 test filenames are placeholders; they require real executable oracles before completion.
 
-- **Recommended Hardware Spec:** 32GB RAM, 16-core CPU, 1TB NVMe, NVIDIA RTX 3060 12GB GPU for accelerated inference. 
+### 15.2 Recommended completion order
 
-- **Orchestration:** Docker + Docker Compose for single-node SOC deployment; Kubernetes optional for multi-node enterprise SOCs. 
+1. Finish/evaluate bounded Kubernetes/AD/IAM interpretation, protocol/identity edge cases and trusted-label positive/negative controls.
+2. Exercise authorized acquisition through appended evidence, single-cycle reanalysis, synthesis and saved reports. Preserve prior cases and decisions.
+3. Obtain qualified review of both report formats, methods, custody declarations, citations and limitations in authorized examination scenarios.
+4. Verify signed-in browser creation/history, HITL refresh/approve/reject/clarify, retry, downloads/previews, guest boundaries and responsive behavior.
+5. Resume deferred CAPE provisioning only when requested; prove isolation, benign-control execution, capture attribution and clean-snapshot restoration.
+6. Assign service/security/backup owners, approve exposure/workload objectives, implement restore oracles and demonstrate coordinated recovery/sustained load.
+7. Establish independent research datasets and measured baselines; revisit classifiers, production model diversity, connectors and anchoring through explicit decisions.
 
-### **4.2 Microservices Architecture & Stack** 
+This order is a recommendation, not authorization to deploy, purchase/install services, detonate samples or change accepted architecture.
 
-|**Microservice Component**|**Technology Stack**|**Port / Interface & RAM**<br>**Budget**|
-|---|---|---|
-|Log Ingestion Agent|Filebeat + Go custom<br>processor|Ships SHA-256 hashed<br>logs to Kafka (~100MB<br>RAM)|
-|Message Broker|Apache Kafka (single<br>broker)|Internal Queue :9092<br>(~300MB RAM)|
-|Raw Evidence Store|Quickwit (append-only<br>index)|REST API :7280 (200–<br>400MB RAM)|
-|Knowledge Graph|Neo4j Community + APOC<br>plugin|Bolt :7687 / HTTP :7474<br>(512MB–1GB RAM)|
-|Vector Index|FAISS IndexIVFPQ|Python in-process library<br>(~200MB RAM)|
-|Embedding Store|ChromaDB|HTTP :8000 (200–400MB<br>RAM)|
-|State & Debate Cache|Redis|Internal :6379 (100–200MB<br>RAM)|
-|Asset / CVE Store|DuckDB local store|In-process library (50–<br>200MB RAM)|
-|LLM Inference Engine|Too many to list(Quantised)|HTTP :11434 (4–6GB<br>RAM)|
-|Agent Orchestration|LangGraph (Python)|Internal state graphs|
+### 15.3 Deferred research and platform extensions
 
+Beyond the active acceptance gates, remaining proposal scope includes full browser/email/messaging extraction, broader endpoint/cloud/scanner connectors, trained timestomping and AI-authorship classifiers, independently validated insider models, production model diversity, comprehensive isolated parsing, hot-reloadable case-pinned rules, provider-fallback observability, replay snapshots, distributed report consistency, analyst-disagreement calibration and complete signed/anchored provenance. Timesketch, heatmaps and image export also need dedicated implementation and oracles.
 
+The proposed four/eight-hour low/medium-severity auto-approval and webhook timeout policies are not established delivered behavior. The current workflow requires explicit review where it pauses; this document does not enable automatic approval or active containment. Remote EDR collection, arbitrary file acquisition, whole-RAM dumping and automated host remediation are outside the bounded local follow-up contract.
 
-|||(~200MB RAM)|
-|---|---|---|
-|MCP Data Gateways|FastAPI microservices|Internal :8100–8105<br>(~100MB RAM)|
-|Blockchain Ledger|Hyperledger Fabric|Internal :7050 (~300MB<br>RAM)|
-|HITL Analyst Dashboard|FastAPI backend + React<br>frontend|HTTPS :443 (~100MB<br>RAM)|
+## 16. Verification and reproducibility
 
+### 16.1 Recorded evidence
 
+The latest recorded whole-source cleanup regression passed **805 tests, with 33 opt-in probes deselected**. Earlier counts describe earlier revisions. Six frontend guest/timeline/polling/content tests, lint and build passed for the latest presentation work, with existing Fast Refresh/bundle warnings. Opt-in production/live/browser gates are not implied to pass.
 
-### **4.3 Deployment Workflow** 
+PDF verification includes distinct-content/layout/authorization tests, fresh-image rendering and saved-case delivery. Store verification includes API probes, polling regression and Chroma preservation counts. Evidence lives in the tracker and ignored `data/verification/`. This documentation update does not rerun infrastructure or certify current live health.
 
-- **Step 1 — Infrastructure Provisioning:** docker-compose up -d initializes all microservices. Neo4j, Quickwit, and Kafka start with append-only forensic configurations and write locks. 
+### 16.2 Representative executable checks
 
-- **Step 2 — Evidence Ingestion:** Filebeat agents ship system logs. Network taps forward PCAPs. API connectors pull cloud audit trails. 
+Run from the repository root with installed dependencies. These are source-specific checks, not substitutes for full tracker acceptance.
 
-- **Step 3 — OCSF Normalization:** FastMCP servers normalize incoming evidence to Open Cybersecurity Schema Framework prior to DFKG ingestion. 
+```powershell
+# Tracker
+.\venv\Scripts\python.exe scripts/validate_progress.py
 
-- **Step 4 — Autonomous Investigation:** SIEM alert triggers the Supervisor Agent. Tier 2 primary and Tier 3 specialist agents run in parallel via Blackboard pattern. 
+# Review, PDF/history and authorization contracts
+.\venv\Scripts\python.exe -m pytest tests/test_structured_evidence_review.py tests/test_examination_pdf.py tests/test_api_authorization.py tests/agents/test_investigation_api_history.py -q -p no:cacheprovider
 
-- **Step 5 — Adversarial QC & HITL Gate:** Adversarial ACH debate validates findings. Supervisor escalates blast radius and confidence scores to the React analyst dashboard. 
+# Native sources and source-bound relationships
+.\venv\Scripts\python.exe -m pytest tests/test_packet_forensics.py tests/test_memory_examination.py tests/test_ntfs_records.py tests/test_identity_sessions.py tests/test_kubernetes_audit.py tests/test_evidence_correlations.py -q -p no:cacheprovider
 
-- **Step 6 — Report Delivery:** Court-ready PDF is generated by ReportLab with appended case-level Merkle root and VCT audit proof. 
+# Store and checkpoint contracts
+.\venv\Scripts\python.exe -m pytest tests/test_case_store_views.py tests/test_case_semantic_index.py tests/test_case_analytics.py tests/agents/test_durable_checkpointer.py tests/test_investigation_recovery.py -q -p no:cacheprovider
 
-## **5. Target Users** 
+# Frontend
+node --test visualization/tests/guest.test.mjs visualization/tests/timeline.test.mjs visualization/tests/polling.test.mjs visualization/tests/review-content.test.mjs
+npm run lint --prefix visualization
+npm run build --prefix visualization
+```
 
-|**Target User Group**|**Operational Context**|**How Specula Benefits**<br>**Them**|
-|---|---|---|
-|Digital Forensic<br>Investigators|Law enforcement, private<br>forensic firms, and IR<br>consulting practices.|Reduces evidence<br>correlation from hours to 5<br>minutes; outputs court-<br>ready reports with<br>cryptographic provenance.|
-|SOC Analysts (Tiers 1–3)|Enterprise SOC teams<br>triaging alerts in real time.|Provides pre-correlated,<br>ranked attack narratives<br>rather than raw alert<br>queues, dramatically<br>reducing fatigue.|
+The existing production suite under `tests/production_readiness/` requires fresh approved evidence, named owners and approved thresholds. Failures/absent infrastructure remain failures, not completion. Coordinated restore/browser backlog tests require implementation/approval; do not cite nonexistent files as successful oracles.
 
+## 17. Source map and maintenance
 
+| Source | Responsibility |
+| --- | --- |
+| [Original Word proposal](Master%20doc.docx) | Original Sections 1–14, research rationale and historical targets. |
+| [Planned changes](Master_doc_planned_changes.md) | Two conflicts, eight prior resolutions, twelve recommendations and seven additional issues, assessed in Section 14. |
+| [DECISIONS.md](../DECISIONS.md) | Accepted architecture; notably ADR-011 and ADR-027 through ADR-039. ADR-038 supersedes host PDF rendering; ADR-031 corrects probability assumptions. |
+| [PROGRESS.md](../PROGRESS.md) | Canonical task states, execution evidence and open gates. |
+| [Documentation map](README.md) | Context and operating references. |
+| `src/agents/graph.py`, `nodes.py`, factories/examination modules | Actual routing, safety limits and analysis. |
+| `src/ingestion/`, `src/schemas/`, `src/graph/`, `src/mcp/` | Intake/preservation, normalization, identity, transport, graph/index/tool contracts. |
+| Compose files and `Dockerfile.hitl` | Services, volumes, local model selection and image dependencies. |
+| `visualization/src/`, `visualization/tests/` | Interface behavior and component regression. |
+| `tests/`, `scripts/` | Executable verification/evaluation; results require actual execution evidence. |
 
-|Incident Response Teams|Emergency IR teams<br>responding to active<br>network breaches.|Compresses timeline<br>reconstruction from days to<br>minutes and highlights<br>unchained residual risks for<br>hardening.|
-|---|---|---|
-|Legal & Compliance<br>Teams|In-house legal counsel<br>needing admissible<br>evidence for court.|Provides cryptographically<br>signed, tamper-evident VCT<br>transcripts satisfying<br>Daubert legal admissibility<br>standards.|
-|Academic Researchers|University research groups<br>in AI security and DFIR.|Provides 12 novel features,<br>a novel synthetic code<br>stylometry benchmark, and<br>an open evaluation<br>framework.|
-
-
-
-## **6. Input to the Application** 
-
-### **6.1 Accepted Evidence Input Sources (14 Categories)** 
-
-|**Input Category**|**Specific Technical Sources**|**Consuming Agent(s)**|
-|---|---|---|
-|System Logs|Windows EVTX, Linux auditd<br>syslogs, Sysmon logs|Log Analysis & Evidence<br>Correlation Agents|
-|NTFS Artifacts|$MFT, $USNjrnl,<br>$FILE_NAME &<br>$STANDARD_INFORMATIO<br>N|Memory Forensics &<br>Timestomping Module|
-|Network Logs & PCAPs|Suricata IDS, Zeek<br>connection/DNS/HTTP logs,<br>raw PCAP|Network Forensics Agent|
-|AD & Cloud Audit|Active Directory<br>LDAP/Kerberos, GCP Audit Logs<br>, Azure Logs|Identity & Cloud/Container<br>Agents|
-|EDR & UEBA Telemetry|CrowdStrike Falcon,<br>SentinelOne, Wazuh, Splunk<br>UBA|Memory Forensics &<br>Insider Threat Agents|
-
-
-
-|Malware Samples|YARA-matched binaries, PE<br>headers, CAPE / ANY.RUN<br>JSON|Malware Behavior & Code<br>Stylometry Agents|
-|---|---|---|
-|Email & Messaging|Raw EML/MBOX files, Slack<br>API, Teams Graph API,<br>SharePoint|Evidence Correlation &<br>Insider Threat Agents|
-|Memory Dumps|Volatility 3 outputs,<br>WinPmem/LiME memory<br>images|Memory Forensics Agent|
-|Browser Artifacts|Chrome/Firefox/Edge SQLite<br>databases (History, Cookies)|Evidence Correlation<br>Agent|
-|Threat Intel Feeds|MITRE ATT&CK STIX, MISP<br>IOC feeds, VirusTotal, NVD<br>CVE|Threat Attribution &<br>Malware Behavior Agents|
-|Container / K8s Logs|Kubernetes audit logs, Falco<br>runtime security, Docker logs|Cloud & Container Agent|
-|Vulnerability Scans|OpenVAS / Nessus / Qualys<br>API outputs, software<br>manifests|Dynamic Attack Graph<br>Agent|
-|Cloud Topology|GCP/Azure Cloud<br>Logging SDK, Cartography<br>asset graphs|Cloud & Container Agent|
-|Investigator Query|Natural language query<br>submitted via React<br>dashboard|Supervisor Agent (routes<br>to specialists)|
-
-
-
-### **6.2 Input Capture, Processing, and Validation Workflow** 
-
-- **Capture Channels:** Automated pulling via Filebeat agents and API connectors (boto3, falconpy); manual upload of disk images/malware binaries via dashboard; on-demand natural language query submission. 
-
-- **OCSF Normalization:** All raw evidence is converted to Open Cybersecurity Schema Framework (OCSF) standard JSON via FastMCP gateways before touching agent prompts. 
-
-- **Schema Check:** Pydantic models validate all OCSF events. Violations raise INGESTION_ERROR and quarantine malformed records. 
-
-- **Integrity Verification:** Go SIMD processor computes SHA-256 hash of raw logs upon arrival, committing them to Quickwit append-only store. Any mismatch raises TAMPER_DETECTED. 
-
-- **Security Gate:** All evidence text passes through Unicode NFKC normalization and Rebuff prompt injection detection before agent consumption. 
-
-|**Priority**<br>**Tier**|**Rank**|**Log / Evidence**<br>**Type**|**Primary**<br>**Consuming**<br>**Agent / Module**|**Core Forensic Purpose & Dependency**|
-|---|---|---|---|---|
-|Tier 1:<br>Critical<br>(Core||System Logs<br>(EVTX, Linux<br>syslogs,|Log Analysis &<br>Evidence|Foundational telemetry; feeds initial timeline,<br>entropy distillation, and primary DFKG nodes.|
-|Pillars)||1<br>Sysmon)|Correlation|Google Docs+ 2|
-|||2<br>NTFS Artifacts<br>($MFT,<br>$USNjrnl, SI/FN)|Memory Forensics<br>& Timestomping<br>Module|Crucial for anti-forensic timestomping<br>detection via XGBoost before timeline<br>synthesis. Google Docs+ 1|
-|||3<br>Active Directory<br>& Auth Logs<br>(LDAP,<br>Kerberos, MFA)|Identity & Cloud<br>Agents|Tracks identity context, privileges, and initial<br>compromise vectors across hosts. Google<br>Docs+ 3|
-|||4<br>EDR Telemetry<br>& Memory<br>Dumps<br>(CrowdStrike,<br>Volatility)|Memory Forensics<br>Agent|Deep endpoint process execution tracing,<br>volatile memory analysis, and root cause<br>mapping. DOCX+ 1|
-|Tier 2:<br>High||Network Logs &|||
-|(Network||PCAPs||Maps network-level lateral movement, C2|
-|& Cloud<br>Context)||5<br>(Suricata, Zeek,<br>Raw PCAP)|Network Forensics<br>Agent|channels, and calculates exfiltration volumes.<br>Google Docs+ 2|
-|||6<br>Cloud Audit &<br>Container Logs<br>(CloudTrail, K8s,<br>Falco)|<br>Cloud & Container<br>Agent|Expands investigation into cloud control<br>planes, multi-cloud infrastructure, and<br>container runtime events. DOCX+ 1|
-|||7<br>Malware<br>Samples &<br>Binaries (YARA,<br>PE Headers,<br>CAPE)|Malware Behavior &<br>Code Stylometry|<br>Tiered sandbox execution (YARA<br>→<br>Speakeasy<br>CAPE/DRAKVUF) and LLM<br>→<br>code stylometry analysis. Google Docs+ 3|
-|Tier 3:|||||
-|Medium||UEBA Data &||Mandatory inputs for the LSTM Autoencoder|
-|(Specializ<br>ed Threat||Messaging Logs<br>(DLP, Slack,|Insider Threat|and spaCy NER to score non-signature<br>behavioral anomalies and exfiltration. Google|
-|Intelligen||8<br>Teams, EML)|Agent|Docs+ 1|
-
-
-
-|ce)||||
-|---|---|---|---|
-||9<br>Threat Intel<br>Feeds (MITRE<br>ATT&CK STIX,<br>NVD)|Threat Attribution<br>Agent|Required for Smith-Waterman sequence-<br>aligned threat actor attribution and TTP<br>matching. Google Docs+ 2|
-||10<br>Vulnerability<br>Scans<br>(OpenVAS,<br>Nessus, Qualys)|Dynamic Attack<br>Graph Agent|Feeds EPSS/CVSS scores into Dijkstra's<br>negative log network graph for residual risk<br>mapping. Google Docs+ 3|
-|Tier 4:||||
-|Supportin|Browser|||
-|g|Artifacts|||
-|(Enrichm<br>ent)|11<br>(Chrome/Firefox<br>SQLite)|Evidence<br>Correlation Agent|Provides web activity, download histories, and<br>phishing landing page entry points. DOCX|
-||12<br>Cloud Topology<br>& Asset Data<br>(Cartography)|Cloud & Container<br>Agent|Enriches DFKG host nodes with network<br>mapping and asset sensitivity classifications.<br>Google Docs+ 1|
-
-
-
-### **Ingestion pipeline** 
-
-The pipeline turns 14 heterogeneous evidence sources into OCSF-normalized, tamper-evident, DFKG-ready records before any agent touches them. 
-
-
-
-<!-- Start of picture text -->
-Capture (14 source categories)<br>Filebeat, API connectors, dashboard upload<br>Integrity commit<br>Go/Rust SIMD SHA-256 to Quickwit append-only store<br>OCSF normalization<br>FastMCP gateways convert to OCSF JSON<br>Schema validation<br>Security gate<br>Entropy distillation<br>DFKG load<br><!-- End of picture text -->
-
-parser = OCSF_PARSERS[source_type] # e.g. evtx_parser, zeek_parser, cloudtrail_parser 
-
-return parser.to_ocsf(raw_bytes) 
-
-#### # Stage 4: schema validation 
-
-def validate(event: dict) -> OCSFEvent | None: 
-
-try: 
-
-return OCSFEvent.model_validate(event) # Pydantic except ValidationError: 
-
-quarantine_store.put(event) # raises INGESTION_ERROR downstream 
-
-return None 
-
-#### # Stage 5: security gate 
-
-def security_gate(event: OCSFEvent) -> OCSFEvent: 
-
-event.text_fields = unicodedata.normalize("NFKC", event.text_fields) 
-
-if rebuff.detect_injection(event.text_fields).is_injection: 
-
-- = 
-
-- event.flag "QUARANTINED_INJECTION" 
-
-return event 
-
-# Stage 6: entropy distillation (batched, not per-event) 
-
-def distill_batch(events: list[OCSFEvent]) -> list[OCSFEvent]: = templates drain3.mine(events) 
-
-- = 
-
-- templates simhash_dedupe(templates) # anti template-poisoning clusters = MiniBatchKMeans(n_clusters=k).fit(templates.vectors) return keep_high_entropy(events, clusters) `# low-entropy →` 
-
-- `summarized, anomalies kept whole` 
-
-#### # Stage 7: DFKG load 
-
-def load_to_dfkg(event: OCSFEvent): 
-
-uid = sha256(f"{event.device_id}:{event.path}:{event.db}: 
-
-{event.row}".encode()) 
-
-neo4j_session.run( 
-
-"MERGE (n:Entity {uid: $uid}) SET n += $props", 
-
-uid=uid.hexdigest(), 
-
-props=event.model_dump() ) 
-
- 
-
-→ Kafka → FastMCP Kafka sits between stages 2 and 3 as the durability buffer (Filebeat consumer group), so a normalization crash never loses raw evidence — replay from the Kafka offset, not from source. 
-
-## **8. Agentic Architecture — ReAct Agents, Data Flow, and Feedback Loops** 
-
-Every agent in Specula is a ReAct agent: each runs its own internal Thought → Action → Observation loop, calling tools (DFKG queries, RAG retrieval, sandbox detonation) and revising its reasoning until it reaches a terminal answer or hits a dispatcher-defined dead-end/timeout condition. The architecture is represented as a directed graph, not a hierarchical tree, because agent communication is not purely top-down: agents write to and read from the shared Digital Forensic Knowledge Graph, specialists escalate observations back to the Supervisor, and the debate tier runs an explicit multi-round revision loop. Four loops are explicit and load-bearing: 
-
-- **Debate revision loop:** Judge → Proponent, up to 3 rounds, terminating when the confidence delta between Proponent and Critic falls below 0.05. 
-
-- **Guardrail escalation chain:** Tier 1 (regex/AST, <5ms) → Tier 2 (MiniLM classifier, <50ms) → Tier 3 (LLM semantic check, 1–3s); any tier failing routes directly to the HITL dashboard rather than continuing down the chain. 
-
-- **HITL feedback loop:** an analyst's APPROVE / REJECT / CLARIFY decision returns to the Supervisor, which can re-dispatch to any tier — the only edge that re-enters the top of the graph after initial dispatch. 
-
-- **Specialist dead-end conditional dispatch:** Memory Forensics, Identity & Cloud, Malware & Stylometry, and Insider Threat agents are only invoked when the primary tier's evidence reaches a dead-end, not unconditionally on every case (a direct implementation of the "selective agent pruning" cost-control requirement raised during project brainstorming). 
-
-Solid arrows in the architecture diagrams represent dispatch/control or a primary write into the DFKG; dashed arrows represent reads or bidirectional queries. Every edge is explicitly labeled with the data it carries (e.g. "write timeline edges," not just an unlabeled arrow), so the graph is legible to an implementer without narration. 
-
-## **9. Specula Runtime Harness** 
-
-The runtime harness is the infrastructure every deployed agent depends on to execute safely and predictably — distinct from the Antigravity IDE development harness used to build Specula, which is out of scope here. 
-
-### **9.1 Event & Data Infrastructure** 
-
-- **Message broker (Kafka):** the backbone of the Blackboard architecture. Agents do not pass large JSON payloads directly to each other; they publish findings to topics (e.g. logs.normalized.ocsf, findings.lateral_movement), with a schema registry enforcing 
-
-versioned OCSF contracts on every topic and dead-letter topics catching any message a consumer cannot process. 
-
-- **Neo4j + APOC triggers:** the DFKG is the shared memory layer. Triggers watch for milestone graph-write patterns (e.g. NTFS_TIMESTOMPING_DETECTED) and emit notifications back to the message broker — registered with a 5-second async debounce window so a burst of simultaneous writes (e.g. 200 hosts encrypting at once) does not cause an agent wake-storm. 
-
-- **Cryptographic ledger:** an append-only WORM datastore anchoring Merkle roots for the Forensic Preservation Layer. 
-
-### **9.2 MCP Server Layer** 
-
-- **mcp-dfkg-cypher:** translates an agent's semantic request into deterministic, parameterized Cypher queries, and centralizes the typed supernode check (apoc.node.degree(n, rel_spec), always directional and typed, never an untyped or pattern-comprehension-based degree check). 
-
-- **mcp-vmi-sandbox:** secure bridge to the DRAKVUF/CAPE detonation environment. 
-
-- **mcp-threat-intel:** unified connector across VirusTotal, AlienVault OTX, and MITRE ATT&CK RAG profiles, with circuit breakers and provider fallback owned centrally rather than reimplemented per agent. 
-
-- **mcp-vct-ledger:** exposes Merkle/hash-chain writes and citation lookups through the same tool-call interface pattern as a DFKG query. 
-
-- **mcp-dataset-eval:** exposes CICIDS/CERT/DFIR-Metric ground truth as a runtimequeryable tool, not just an offline benchmark. 
-
-### **9.3 Agent Skills Library** 
-
-Every skill is a versioned unit with a manifest declaring which agent role(s) may invoke it, its MCP dependencies, and its cost/latency class — enforcing least-privilege scoping (the Report Generation agent, for example, has no access to mcp-vmi-sandbox). Skills include OCSF_Normalizer_Skill, Temporal_Drift_Calculator (timestomping detection), Calculate_Blast_Radius, Entropy_Distillation_Skill, Code_AST_Extraction_Skill, Smith_Waterman_Attribution_Skill, and Dijkstra_Attack_Graph_Skill. Deterministic skills (blast radius, Cypher translation) carry checked-in golden-fixture unit tests, since a silently wrong deterministic skill corrupts the shared graph for every downstream agent without anyone noticing until the final report is wrong. 
-
-### **9.4 Operational Rule Engine** 
-
-Rules are scoped per agent role rather than injected as one monolithic file, are hot-reloadable from a rules service rather than baked into container images, and include an explicit degradation policy (what an agent does when a tool times out mid-loop: escalate to HITL rather than hallucinate a plausible answer). 
-
-### **9.5 ReAct Loop Runtime** 
-
-- **Persistent checkpointing:** (Postgres/Redis-backed) so an agent's loop state survives a container restart mid-investigation. 
-
-- **Loop budget enforcement:** maximum iterations and tool calls per agent per task, with graceful timeout returning a partial observation to the Supervisor. 
-
-- **Context-compaction skill:** auto-invoked as an agent's transcript approaches its model's context budget. 
-
-- **Scratchpad/DFKG separation:** in-flight, unconfirmed reasoning lives in Redis working memory; only confirmed findings are promoted to the DFKG, so speculative intermediate thoughts never pollute the shared graph. 
-
-### **9.6 Observability, Model Routing, and Security Hardening** 
-
-A central model router owns provider fallback across the twelve-plus LLM APIs in use; a fallback event on a safety-critical agent (Judge, Guardrail Tier 3) flags that case for HITL review, since the confidence assumptions behind the project's accuracy targets no longer hold under a substituted model. Distributed tracing (case_id/trace_id propagated through Kafka headers and DFKG node properties) makes every finding traceable end-to-end. Skills that parse attackercontrolled input run in sandboxed/restricted containers, and every MCP tool call — not just agent conclusions — is logged into the same VCT Merkle chain, since Daubert admissibility requires showing why an agent examined a piece of evidence, not only what it concluded. 
-
-## **10. Finalized Evidence Ingestion Pipeline** 
-
-The rough single-file sketch shown earlier in this document (Section 6, ingest_source/normalize_to_ocsf/validate/security_gate/distill_batch/load_to_dfkg) was an early draft. It has since gone through five rounds of architectural review and is superseded by a fully specified, review-hardened implementation plan. The corrected pipeline order and its key differences from the original sketch: 
-
-Capture Channels -> Integrity Verification (SHA-256 SIMD -> Quickwit append-only store, VCT atomic hash chain) -> Security Gate, source-type branched: text-native sources: NFKC + zerowidth strip + Rebuff, directly binary sources (EVTX, $MFT/$USNjrnl, PCAP): structural field extraction FIRST, then per-field sanitization -- NFKC/Rebuff cannot run on undifferentiated binary bytes -> OCSF Normalization & dual timestamp preservation (raw_source_timestamp AND utc_timestamp both retained permanently, never overwritten; clock_skew_offset_ms recorded; NTFS timestomping fields preserved for F17) -> Wire Serialization & Schema Registry (Confluent JSONSerializer / JSONDeserializer, symmetric on producer and consumer -- enforcement at the wire level, not just in application code) -> Event Broker: Kafka, partitioned strictly by hash(canonical_host_id) -- never by case_id, so case reassignment never breaks perhost chronological ordering; case_id tagged at produce time via a persistent ActiveCasesCache (a Redis key-value store, NOT PubSub-as-store -- a restarted producer must resolve the correct active case with zero reliance on a missed notification); dead-letter topic for any post-validation processing failure -> Analytical Abstraction: Drain3 template mining + SimHash anti-poisoning + MiniBatchKMeans entropy clustering, collapsing low-entropy events while preserving highentropy anomalies intact; Redis offset checkpointing before manual Kafka commit, with a degraded fallback path (native commit + reconciliation queue) if Redis is unreachable -> Knowledge Graph Ingestion: parameterized Cypher MERGE only (never string-concatenated, even from a hardcoded label list); debounced APOC triggers (5000ms) for milestone pattern detection ONLY -- dead-end detection is a Supervisor-side inactivity heuristic, not something a database trigger can observe; supernode pruning evaluated at query time via apoc.node.degree(n, rel_spec) with an explicit, typed, directional relationship spec, never an untyped or pattern-comprehension-based degree check; historical case-tagging backfill runs once per case-open event over indexed composite (host, timestamp) fields across all relevant labels including NetworkEndpoint -> Vector Indexing: ChromaDB case_evidence_embeddings, kept explicitly separate from the FAISS threat-intel corpus index used by Threat Attribution. 
-
-Cross-source entity resolution (CanonicalEntityResolver) maps heterogeneous identifiers — hostname, IP, cloud device ID — to one canonical UID before hashing, with IP-to-host mappings time-bounded against DHCP lease validity windows so a dynamic IP reassignment does not silently merge two different hosts into one entity. Phase 1 covers five source types in full (System Logs, NTFS Artifacts, Network Logs, AD/Auth Logs, Cloud Audit); the remaining nine of the fourteen input categories are explicitly deferred to Phase 2/3 rather than implemented partially. Compression is verified against serialized byte volume, not event count, since a verbose summary record can pass a count-based reduction test while barely reducing the actual data volume fed to the LLM — the actual quantity the project's 90% compression target is defined against. A complete, unambiguous implementation specification — including exact file paths, function signatures, and a full catalogue of mistakes to explicitly avoid at each pipeline stage — is maintained as a standalone engineering document (specula_ingestion_final_plan.md) alongside a corresponding pytest suite under tests/ingestion/, and is treated as authoritative over this summary. 
-
-## **11. Report Generation Format** 
-
-Specula's court-ready report follows a fixed 17-section structure, with every section traceable to a specific agent or DFKG artifact rather than freely generated: 
-
-|**Report Section**|**Primary Data Source**|
-|---|---|
-|Executive Summary|Judge's final ACH verdict + blast radius score|
-|Incident Overview|DFKG root incident node + earliest confirmed<br>timeline entry|
-|Scope and Objectives|Supervisor's case initialization parameters|
-|Investigation Methodology|Active rule-engine ruleset + skill manifest used|
-|Evidence Inventory|Evidence Collection Agent + Quickwit raw<br>evidence index|
-|Chain of Custody|VCT Merkle chain (atomic, session, and case<br>level)|
-|Acquisition Process|Evidence Collection Agent's capture logs + hash<br>commit records|
-|Hash Values|SIMD SHA-256 outputs at ingestion, per artifact|
-|Timeline of Events|Timeline Reconstruction Agent output — same<br>data feeds the dynamic attack timeline (Section<br>13)|
-|Technical Findings|Log Analysis + Network Forensics + specialist tier<br>observations, DFKG-cited|
-|Indicators of Compromise|Threat Attribution Agent + mcp-threat-intel results|
-|Malware / Artifact Analysis|Malware & Stylometry Agent, tiered sandbox<br>output|
-|Impact Assessment|Calculate_Blast_Radius skill output|
-||Rule engine's jurisdiction-specific legal reference|
-|Applicable Laws|table|
-
-
-
-|Conclusion|Judge Agent's terminal verdict|
-|---|---|
-||Report Generation Agent synthesis from the|
-|Recommendations|Dynamic Attack Graph's residual-risk list|
-||Raw DFKG subgraph export + full VCT audit|
-|Appendices|transcript|
-
-
-
-## **12. Dynamic Attack Timeline** 
-
-Alongside the static PDF report, Specula generates an interactive, graph-type attack timeline — a horizontal, stage-by-stage rendering of the reconstructed attack chain, grounded directly in DFKG node citations. Each stage is expandable to reveal its underlying evidence (source agent, DFKG node UIDs, severity), with a severity filter and export-to-image function for embedding a static snapshot into the PDF's Timeline of Events section. This is deliberately a separate, explorable artifact rather than a diagram baked into the report — it is the view a HITL reviewer or SOC analyst would actually interact with, distinct from the fixed narrative the PDF presents to legal/executive stakeholders. 
-
-## **13. Expected Outcome** 
-
-### **13.1 Primary System Output Deliverables** 
-
-- **Deliverable 1 — Unified Chronological Attack Supertimeline:** Cross-correlated sequence of confirmed attack events exported to Timesketch for interactive review. 
-
-- **Deliverable 2 — Executive Summary Narrative:** Plain-English explanation of attack mechanics generated for non-technical stakeholders, with every claim citing DFKG graph nodes. 
-
-- **Deliverable 3 — MITRE ATT&CK Mapping & Threat Actor Attribution:** SmithWaterman sequence alignment + Jaccard similarity top-3 threat actor candidates with explicit confidence scores. 
-
-- **Deliverable 4 — DFKG Subgraph Visualizations:** Neo4j interactive relationship network rendering full attack chains (User -> Email -> Binary -> C2). 
-
-- **Deliverable 5 — Dynamic Attack Graph & Remediation Priority List:** Exploitation path map isolating unchained vulnerabilities with EPSS > 0.3 as residual risk priorities. 
-
-- **Deliverable 6 — Court-Ready PDF Investigation Report:** ReportLab PDF featuring Executive Summary, ATT&CK Heatmaps, Blast Radius Scores, and Cryptographic Appendix. 
-
-- **Deliverable 7 — Cryptographic VCT Audit Transcript:** Three-tier Merkle proof chain anchored to Hyperledger Fabric for legal admissibility under Daubert standards. 
-
-### **13.2 Quantitative Performance Targets** 
-
-|**Performance Metric**|**Specula Target Target**|**Traditional SIEM / Single-**<br>**LLM Baseline**|
-|---|---|---|
-
-
-
-|Evidence Correlation<br>Accuracy|95%|72%|
-|---|---|---|
-|Attack Timeline<br>Reconstruction Accuracy|96%|68%|
-|Threat Attribution Accuracy|94%|70%|
-|Total Investigation Duration|5 minutes|45 minutes|
-|Investigation Time<br>Reduction|89% reduction|Baseline|
-|AI Hallucination Rate|< 5%|18% (single-LLM baseline)|
-|Information Retention Rate<br>(Compression)|>= 95% entity retention at<br>>=90% compression|N/A (No compression)|
-
-
-
-### **13.3 Real-World Use Cases & Practical Impact** 
-
-- **Use Case 1 — Enterprise Ransomware Incident:** A manufacturing firm detects file encryption across 200 hosts. Specula ingests EVTX, Sysmon, and PCAPs, outputting the initial access vector, lateral movement chain, C2 servers, blast radius (47 affected hosts), and remediation steps in 5 minutes (vs. 6-hour manual response). 
-
-- **Use Case 2 — Insider Threat Data Exfiltration:** A financial institution suspects data theft. The Insider Threat Agent analyzes email bodies, DLP alerts, and USB logs. The LSTM autoencoder detects behavioral deviation 3 weeks prior, outputting a court-ready narrative with signed VCT Merkle proofs. 
-
-- **Use Case 3 — CI/CD Supply Chain Attack:** Cloud & Container Agent analyzes K8s pod logs. Code Stylometry Agent determines injected build script exhibits AI-generated characteristics. Dynamic Attack Graph maps exploitation paths, completing cross-layer investigation in 5 minutes. 
-
-## **14. Known Architectural Gaps, Cross-Document Conflicts, and Recommended Mitigations** 
-
-### **14.1 Cross-document conflict — flag before anything else** 
-
-- The documents _the earlier architecture diagram_ and _specula_runtime_harness.md_ disagree with this Master doc on two load-bearing mechanics; this Master doc (Section 10, "five rounds of architectural review") is authoritative: 
-
-   1. **Specialist DFKG writes.** Older docs suggest specialists write directly to DFKG via harness, bypassing Kafka. Per Section 9.1 of this document, _all_ agents publish findings to Kafka topics with no direct-write path. 
-
-   2. **Dead-end detection mechanism.** Older docs specify an APOC graph trigger. Per Section 10 of this document, dead-end detection is an explicit **Supervisor-side inactivity heuristic** . APOC triggers are scoped only to milestone pattern detection (e.g. NTFS_TIMESTOMPING_DETECTED), because dead-end detection is not something a database trigger can observe. 
-
-- **Recommendation:** Mark the HTML feature map and runtime harness doc as superseded/historical, or revise them to match, so no implementer works from the older mechanic by mistake. 
-
-### **14.2 Issues from earlier review that this Master doc already resolves — document them as resolved, with citation** 
-
-|**Issue**|**Where it was**|**How this doc resolves it**|**Section**|
-|---|---|---|---|
-||**raised**||**citation**|
-|Which logs feed|Review|14-category input table &|6.1, 6.2|
-|each Stage 1 agent||12-row priority-tier table||
-|Retry idempotency /|Review|Deterministic UID hashing +|9.3, 10|
-|duplicate writes||parameterized Cypher<br>MERGE||
-|Prompt injection via<br>evidence content|Review|Mandatory Security Gate<br>(NFKC + Rebuff)|6.2, 10|
-|Critic "winning"<br>auto-accepted|Review|Judge is sole arbiter using<br>ACH matrix|2.4 (feature 4)|
-|Debounced APOC<br>triggers merging<br>dead-ends|Review|APOC triggers no longer<br>handle dead-ends|14.1|
-|Code-parsing|Review|Sandboxed/restricted|9.6|
-|parser-attack-<br>surface risk||containers for skill execution||
-|Debate stage<br>handed full|Review|APOC-bounded BFS<br>retrieval limits|2.4 (feature 4)|
-|subgraph context||||
-|Audit-trail|Review|All writes route through|9.2, 9.6|
-|asymmetry between||mcp-dfkg-cypher to VCT||
-|tiers||ledger||
-
-
-
-### **14.3 Issues raised earlier that remain open — add with proposed solutions** 
-
-|**Open issue**|**Why it's still open**|**Proposed solution**|
-|---|---|---|
-|Debate round-cap with no|No stated outcome for 3|Force-escalate to HITL with|
-|convergence|rounds|final positions|
-|Checkpointer backing store|Postgres/Redis roles|State Postgres as system of|
-|ambiguity|unclear|record, Redis as cache|
-|Rule-engine versioning mid-|No case-level pinning|Write rules_version property|
-
-
-
-|case||on case open|
-|---|---|---|
-|Replay harness|Not addressed|Snapshot RAG|
-|determinism||corpus/responses keyed to<br>trace_id|
-|Fallback-confidence-|Only Judge/Guardrail|Extend to Threat Attribution|
-|flagging scope|covered|and primary-tier findings|
-|Golden-fixture coverage too<br>narrow|Only 2 skills named|Extend to all 5 deterministic<br>skills|
-|Threat-intel provider fallback<br>invisible|Provider fallback<br>transparent|Apply same flagging pattern<br>as model fallback|
-|Report-generation|No "case frozen" signal|Add case-state transition|
-|consistency gate||(frozen) gated on zero lag|
-|Timeline/attribution|No explicit waiting for|Explicitly define dependency|
-|staleness|specialists|or re-run trigger|
-|No bound on HITL re-|No attempt cap|Add attempt counter; force|
-|dispatch||manual override after N|
-|Tracing gap at HITL|Dashboard not in trace|Propagate trace_id into<br>dashboard payload|
-|No feedback loop from<br>overrides|No consumption of<br>agreement rate|Trigger observability review<br>on low agreement|
-
-
-
-### **14.4 New issues found specifically in this Master doc** 
-
-1. **Kafka partitioning by** _hash(canonical_host_id)_ **sacrifices cross-host ordering.** Solution: state explicitly that all cross-host ordering must be resolved downstream from the _utc_timestamp_ property at the DFKG layer, never inferred from Kafka consumption order. 
-
-2. **Redis' blast radius as a single point of failure has grown.** Solution: define an explicit degraded-fallback path for _ActiveCasesCache_ lookups matching the pattern for the offset-checkpoint. 
-
-3. **CanonicalEntityResolver's DHCP-lease-bounded IP resolution doesn't cover Container/K8s/Cloud logs.** Solution: extend _CanonicalEntityResolver_ with a parallel cloud/container-native resolution path using cloud metadata IDs. 
-
-4. **Phase-1 scope isn't reflected in the objectives/deliverables.** Solution: add a Phase 1/2/3 column to the Section 6.1 input-category table. 
-
-5. **Guardrail Tier 3's model size is in tension with its role.** Solution: either justify why a 7B-class model is adequate for containment-gate reasoning, or reconsider the model assignment. 
-
-6. **Supervisor and Judge share a single model with no cross-check.** Solution: document why this asymmetry is acceptable or apply a similar diversity safeguard. 
-
-7. **Compression-target measurement point is underspecified.** Solution: pin the measurement point to raw OCSF payload bytes, excluding wire-format envelope overhead. 
-
-_— End of Proposal Document —_ 
-
+Maintain a coherent specification here. Record chronological changes/transient runs in the tracker rather than appending repeated completion reports. Preserve distinctions between design, source and verification; record a decision before changing architecture.
