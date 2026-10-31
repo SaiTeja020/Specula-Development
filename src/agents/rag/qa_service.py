@@ -2,6 +2,11 @@
 
 Provides evidence-grounded Q&A over case logs and the DFKG knowledge graph.
 Uses skeleton's get_llm() to remain provider-agnostic (stub, ollama, gemini).
+
+Stage 1.5 (ADR-036): The FAISS threat-intel corpus (ATT&CK techniques/groups
+and CVE records) is queried alongside the ChromaDB evidence index so that the
+LLM prompt receives both forensic evidence and relevant threat-intelligence
+context in clearly labelled, separate sections.
 """
 from __future__ import annotations
 
@@ -11,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 from src.agents.config import get_llm
 from src.agents.rag.graph_context_builder import build_graph_context
+from src.agents.rag.faiss_context_builder import build_faiss_threat_context
 from src.agents.rag.forensic_prompt import build_forensic_prompt
 from src.agents.rag.response_validator import validate_response_uids
 from src.agents import investigation_trace
@@ -29,6 +35,7 @@ class ForensicQAService:
         max_hops: int = 2,
         max_nodes: int = 50,
         max_rels: int = 150,
+        threat_intel_server: Any = None,
     ):
         self.neo4j_client = neo4j_client
         self.vector_store = vector_store
@@ -36,6 +43,41 @@ class ForensicQAService:
         self.max_hops = max_hops
         self.max_nodes = max_nodes
         self.max_rels = max_rels
+        # Optional: pre-built FAISS threat-intel MCP server.  When None the
+        # service attempts lazy instantiation; failure is non-fatal.
+        self._threat_intel_server = threat_intel_server
+
+    def _get_threat_intel_server(self) -> Any:
+        """Return the FAISS threat-intel MCP server, lazily instantiating if needed.
+
+        Returns None (non-fatal) when:
+        - SPECULA_FAISS_DISABLED=1 env var is set (test / CI override)
+        - the corpus files have not been built yet
+        - FAISS native binaries are not importable / crash on this platform
+        """
+        if self._threat_intel_server is not None:
+            return self._threat_intel_server
+        import os as _os
+        if _os.getenv("SPECULA_FAISS_DISABLED", "").strip() == "1":
+            logger.debug("SPECULA_FAISS_DISABLED — FAISS threat-intel context skipped.")
+            return None
+        # Guard: skip if the corpus index file is absent to avoid triggering
+        # a FAISS native-DLL import that may crash on some Windows environments.
+        _index_file = _os.path.join("data", "threat_intel", "faiss_index.bin")
+        if not _os.path.isfile(_index_file):
+            logger.debug("FAISS corpus not found at %s — threat-intel context skipped.", _index_file)
+            return None
+        try:
+            from src.mcp.threat_intel_mcp import ThreatIntelMCPServer
+            server = ThreatIntelMCPServer()
+            if server._index.is_ready():
+                self._threat_intel_server = server
+                return server
+            logger.debug("FAISS corpus not yet built — threat-intel context skipped.")
+            return None
+        except BaseException as exc:  # noqa: BLE001 — catch platform-level DLL crashes
+            logger.debug("Could not instantiate ThreatIntelMCPServer: %s", exc)
+            return None
 
     def _get_neo4j(self):
         if self.neo4j_client is not None:
@@ -158,11 +200,26 @@ class ForensicQAService:
             if log_lines:
                 graph_context += "\n\n--- DIRECT LOG EVENTS ---\n" + "\n".join(log_lines)
 
+        # 3.5 FAISS Threat-Intel Context (ADR-036)
+        # Query the pre-built ATT&CK + CVE FAISS corpus and append a clearly
+        # labelled threat-intel section to the RAG prompt.  Failure is non-fatal.
+        threat_intel_context: str = ""
+        try:
+            ti_server = self._get_threat_intel_server()
+            if ti_server is not None:
+                threat_intel_context = build_faiss_threat_context(query, ti_server)
+        except Exception as exc:
+            logger.debug("Threat-intel context skipped: %s", exc)
+
         investigation_trace.record_event("rag", "rag_retrieval", {
             "records": retrieved_uids,
             "dfkg_expansion": {
                 "contexts_count": len(graph_contexts),
                 "nodes_retrieved": sum(len(c.get("nodes", {})) for c in graph_contexts),
+            },
+            "faiss_threat_intel": {
+                "available": bool(threat_intel_context),
+                "chars": len(threat_intel_context),
             },
         })
 
@@ -172,12 +229,18 @@ class ForensicQAService:
                 "query": query,
                 "answer": "DRY RUN — graph context prepared successfully.",
                 "graph_context": graph_context,
+                "threat_intel_context": threat_intel_context,
                 "retrieved_evidence": retrieved_uids,
                 "validation": {"validation_passed": True, "cited_uids": [], "verified_uids": [], "unverified_uids": []},
             }
 
         # 4. Prompt Generation & LLM Invocation
-        prompt = build_forensic_prompt(query, graph_context)
+        # Combine forensic graph context and threat-intel context into one prompt.
+        combined_context = graph_context
+        if threat_intel_context:
+            combined_context = graph_context + "\n\n" + threat_intel_context
+
+        prompt = build_forensic_prompt(query, combined_context)
         llm = get_llm("rag", case_id=case_id or "unknown")
 
         raw_response = llm.invoke(prompt)
@@ -205,6 +268,10 @@ class ForensicQAService:
                 "unverified_uids": validation_report.get("unverified_uids", []),
             },
             "retrieved_evidence": retrieved_uids,
+            "threat_intel_context": {
+                "available": bool(threat_intel_context),
+                "chars": len(threat_intel_context),
+            },
             "graph_context": {
                 "subgraphs_count": len(graph_contexts),
                 "nodes_count": sum(len(c.get("nodes", {})) for c in graph_contexts),

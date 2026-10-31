@@ -10,7 +10,7 @@
   - `TASK-6.7` **active**: bounded Kubernetes captured-RBAC rule matching implemented; effective authorization, complete policy inventory and broader AD/IAM semantics remain unverified; analyst decisions and live follow-up acceptance remain pending; CAPE live acceptance stays deferred
   - `TASK-6.8` **blocked**: formal dual reports implemented; expert validation, production ownership and recovery gates remain open
 - **Active WIP Count:** 2 (occupied WIP = 2 / 2; 1 active, 1 blocked)
-- **Last Updated:** 2026-10-27
+- **Last Updated:** 2026-10-31
 
 ---
 
@@ -34,6 +34,7 @@ Central Architecture Decision Records are maintained in [DECISIONS.md](DECISIONS
 | [ADR-013](DECISIONS.md#adr-013-local-ollama-and-no-billable-gcp-validation) | Local Ollama and No Billable GCP Validation | Accepted | Phase 6 |
 | [ADR-014](DECISIONS.md#adr-014-evidence-collection-grounded-reports-and-local-runtime-protection) | Evidence Collection, Grounded Reports and Local Runtime Protection | Accepted | Phase 6 |
 | [ADR-015](DECISIONS.md#adr-015-offline-attack-workbook-corpus-for-local-validation) | Offline ATT&CK Workbook Corpus for Local Validation | Accepted | Phase 6 |
+| [ADR-036](DECISIONS.md#adr-036-faiss-threat-intel-corpus-integration-into-rag-pipeline) | FAISS Threat-Intel Corpus Integration into RAG Pipeline | Accepted | Phase 6 |
 
 ---
 
@@ -1095,3 +1096,4 @@ Local evidence/report and auth/recovery subsets were implemented and verified un
 | 2026-10-16 | TASK-6.7 | Kubernetes RBAC focused oracle passed: 15 tests, including positive role/binding/rule match and wrong verb/namespace/cluster/failed grant controls. | Document supported matching subset and explicit exclusions; run full regression and tracker/whitespace checks. |
 | 2026-10-27 | Merge Resolution | Merged skeleton branch into local-llm prioritizing skeleton base architecture and get_llm foundation while preserving DFKGRetriever, ForensicRAGSearchTool, and explainability trace components for log Q&A and report grounding. | All 21 merge conflicts resolved; scripts/validate_progress.py passing |
 | 2026-10-27 | RAG Implementation | Built ForensicQAService on top of skeleton's get_llm() with ChromaDB retrieval and Neo4j graph context; mounted POST /api/qa and /api/investigations/{case_id}/qa endpoints; added DFKG explainability blocks with exhibit anchors to examination reports. | 15/15 tests passing (tests/agents/rag/) |
+| 2026-10-31 | TASK-6.7 | Integrated FAISS threat-intel corpus (ATT&CK techniques/groups + CVEs) into ForensicQAService.ask() via FaissContextBuilder and optional threat_intel_server parameter; added unit and integration tests; added conftest fixture disabling lazy native DLL loading on test environments. | 8/8 passed (tests/agents/rag/test_combined_rag.py), 20/20 passed (tests/agents/rag/) |

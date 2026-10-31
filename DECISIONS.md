@@ -37,6 +37,7 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 | [ADR-019](#adr-019-local-case-graph-display-cap) | 2026-10-12 | Local Case Graph Display Cap | Accepted | Phase 6 |
 | [ADR-020](#adr-020-investigation-history-and-result-views) | 2026-10-12 | Investigation History and Result Views | Accepted | Phase 6 |
 | [ADR-021](#adr-021-uploaded-evidence-and-dual-examination-reports) | 2026-10-12 | Uploaded Evidence and Dual Examination Reports | Accepted | Phase 6 |
+| [ADR-036](#adr-036-faiss-threat-intel-corpus-integration-into-rag-pipeline) | 2026-10-31 | FAISS Threat-Intel Corpus Integration into RAG Pipeline | Accepted | Phase 6 |
 
 ---
 
@@ -344,6 +345,14 @@ Central Architectural Decision Record (ADR) repository for the Specula Multi-Age
 - **Acquisition:** Host collector accepts authorized local-case anchors and cycle identifiers, derives fixed audit channels and original-date-clipped windows, records durable single-cycle claims, appends without replacing case ownership/provenance, and permits one bounded evidence reanalysis. No model-supplied command execution.
 - **Dynamic execution:** Requires a separately configured isolated runtime. User has none yet; setup guidance does not constitute a working sandbox connector or completed dynamic analysis.
 - **Verification:** Whole-source suite 736 passed, 33 deferred probes deselected; new-source handoff oracle 74 passed. Native Windows access/read comparisons and container-to-host authorization boundaries passed. Full live acquisition reanalysis and fresh whole-case acceptance remain open.
+
+### ADR-036: FAISS Threat-Intel Corpus Integration into RAG Pipeline
+- **Status:** Accepted
+- **Date:** 2026-10-31
+- **Context:** The FAISS threat-intel corpus (ATT&CK STIX techniques/groups and NVD CVE records built by `TASK-3.5`) was consumed exclusively by the Threat Attribution Agent for deterministic scoring. The forensic RAG Q&A pipeline (`ForensicQAService.ask()`) had no access to this prior-attack knowledge base; queries about TTPs, adversary groups or CVEs received only case-evidence graph context.
+- **Decision:** Add a new Stage 1.5 to `ForensicQAService.ask()` that queries the FAISS corpus (via `ThreatIntelMCPServer`) for semantically related ATT&CK techniques, groups, and CVE records and appends a clearly labelled `THREAT-INTEL CONTEXT` section to the prompt. The section is typographically and semantically distinct from `FORENSIC EVIDENCE` to prevent the model from treating prior-attack knowledge as case-scoped facts. Corpus unavailability (not yet built, index missing) is non-fatal; `ask()` degrades gracefully to the evidence-only path. A new `FaissContextBuilder` module (`src/agents/rag/faiss_context_builder.py`) isolates formatting logic and is independently unit-testable. `ForensicQAService.__init__` accepts an optional `threat_intel_server` parameter for test injection; lazy instantiation handles the production path.
+- **Consequences:** The `ask()` return dict gains `threat_intel_context` key (raw string in `dry_run`, summary dict `{available, chars}` otherwise). No new package, no new service, no new corpus build step required. Existing threat attribution deterministic scoring path is unchanged.
+- **Tracking:** Part of TASK-6.7 operational readiness. Verification oracle: `pytest tests/agents/rag/test_combined_rag.py -k "not test_combined_rag_retrieval" -q`.
 
 ### ADR-035: CAPE v2 execution as a separate laboratory experiment
 - **Status:** Accepted
