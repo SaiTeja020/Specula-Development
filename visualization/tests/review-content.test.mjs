@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { createServer } from 'vite';
 
 test('technical content renders as safe readable code, tables and spaced metadata', async () => {
-  const server = await createServer({ root: new URL('../', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), server: { middlewareMode: true, hmr: false } });
+  const server = await createServer({ root: new URL('../', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), cacheDir: `node_modules/.vite-tests/review-content-${process.pid}`, optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false } });
   const render = (Component, props) => renderToStaticMarkup(React.createElement(Component, props));
   try {
     const { default: CodeBlock } = await server.ssrLoadModule('/src/components/CodeBlock.jsx');

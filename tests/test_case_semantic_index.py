@@ -1,6 +1,44 @@
 import pytest
 import chromadb
-from src.ingestion.indexing.case_evidence import CaseEvidenceIndex
+from src.ingestion.indexing.case_evidence import CaseEvidenceIndex, LocalEmbeddings
+
+
+@pytest.mark.parametrize('setting,expected', [(None, 0), ('-1', -1), ('2', 2)])
+def test_local_embedding_placement_preserves_model_and_vectors(monkeypatch, setting, expected):
+    if setting is None:
+        monkeypatch.delenv('SPECULA_EMBEDDING_NUM_GPU', raising=False)
+    else:
+        monkeypatch.setenv('SPECULA_EMBEDDING_NUM_GPU', setting)
+    monkeypatch.setenv('SPECULA_EMBEDDING_MODEL', 'qwen3-embedding:0.6b')
+    monkeypatch.setenv('SPECULA_OLLAMA_BASE_URL', 'http://127.0.0.1:11434')
+    posts = []
+    class Response:
+        def __init__(self, data): self.data = data
+        def raise_for_status(self): pass
+        def json(self): return self.data
+    class Session:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def get(self, *args, **kwargs):
+            return Response({'models': [{'name': 'qwen3-embedding:0.6b', 'digest': 'fixed-model-digest'}]})
+        def post(self, url, **kwargs):
+            assert not self.trust_env and kwargs['allow_redirects'] is False
+            posts.append(kwargs['json'])
+            return Response({'embeddings': [[0.6, 0.8]]})
+    monkeypatch.setattr('src.ingestion.indexing.case_evidence.requests.Session', Session)
+    embedder = LocalEmbeddings()
+    assert embedder.embed_batch(['source text']) == [[0.6, 0.8]]
+    assert embedder.digest == 'fixed-model-digest'
+    assert posts == [{'model': 'qwen3-embedding:0.6b', 'input': ['source text'], 'truncate': False,
+                      'keep_alive': '15m', 'options': {'num_gpu': expected}}]
+
+
+@pytest.mark.parametrize('setting', ['-2', 'not-an-integer'])
+def test_invalid_embedding_placement_fails_before_network(monkeypatch, setting):
+    monkeypatch.setenv('SPECULA_EMBEDDING_NUM_GPU', setting)
+    def forbidden(): raise AssertionError('Invalid configuration must not reach Ollama')
+    monkeypatch.setattr('src.ingestion.indexing.case_evidence.requests.Session', forbidden)
+    with pytest.raises(ValueError): LocalEmbeddings()
 
 
 class Embeddings:

@@ -378,19 +378,28 @@ Timesketch integration, ATT&CK heatmaps, timeline image export, signed appendice
 | Court/technical PDFs | Distinct tested renderer, saved-case delivery and durable image dependency. | Expert and signed-in browser acceptance. |
 | Cryptographic provenance | Local hashes/Merkle components, receipts/manifests. | Uniform ledger, signatures/certificates, Fabric and fork detection. |
 
-### 13.2 Quantitative research targets
+### 13.2 Research endpoints and evidence requirements
 
-| Metric | Original target | Evidence needed |
+The [research evaluation protocol](research_evaluation.md) defines the ordered
+implementation plan, controls, denominators and remaining experiment gates.
+Undefined headline accuracy percentages and unsourced baseline comparisons are
+withdrawn as evaluation criteria. No research outcome is established here.
+
+| Endpoint | Definition | Evidence needed |
 | --- | --- | --- |
-| Correlation accuracy | 95% | Independent labels and defined precision/recall denominators. |
-| Timeline accuracy | 96% | Ground-truth order, unknown times/skew and completeness scoring. |
-| Attribution accuracy | 94% | Verified actor labels and held-out cases. |
-| Investigation time | Five minutes | Declared hardware, volume/source mix/model; analyst wait separate from compute. |
-| Time reduction | 89% against 45 minutes | Matched baseline/task scope; original numbers are proposal assumptions. |
-| Hallucination rate | Below 5% | Claim-level unsupported/error metric and blinded review. |
-| Compression | At least 90% reduction and at least 95% entity retention | Matched normalized payload bytes excluding wire envelopes, summary overhead and retained-entity/citation evaluation. |
+| Correlation | Entity and edge precision/recall/F1, scored separately | Independent case-local graph labels and matched same-model baselines. |
+| Timeline | Correctly ordered comparable gold pairs / comparable gold pairs; missing events reported separately | Ground-truth ordering, explicit ties, unknown times and clock-skew policy. |
+| Attribution | Top-1/top-3 accuracy; ECE only for calibrated probabilities | Trusted held-out actor labels; current similarity rankings are not calibrated probabilities. |
+| Efficiency | Compute wall time, analyst wait, tokens and recorded cost per case | Declared hardware, evidence volume, pinned models and matched controls. Five minutes remains a workload-dependent engineering aspiration. |
+| Grounding | Case-local citation validity; unique fabricated typed entities / output entities; adjudicated unsupported claims / all atomic claims | Complete output/evidence inventories and blinded independent support labels. UID existence alone does not establish entailment. |
+| Compression | 1 - serialized output UTF-8 bytes / input bytes; planted UID and exact entity retention reported separately | Matched serialization including emitted summary overhead; gold labels excluded from compressor inputs. Evaluate the 90% reduction operating point without claiming retained signal in advance. |
+| Robustness | Attack successes / attacks; blocked benign inputs / benign inputs | Independently labelled injection and template-poisoning sets, per-tier and disabled-component controls. |
 
-These are targets, not achieved results. Original baseline percentages and ransomware/insider/supply-chain stories are illustrative, not measured deployments. Formal measurement protocols require approval before being claimed as acceptance criteria.
+Zero denominators and unavailable labels remain unscored. Synthetic component
+replays, public component benchmarks and full incident experiments must appear in
+separate result tables. Illustrative attack stories are not measured deployments.
+Legal admissibility remains a legal determination; reproducibility and
+tamper-evidence tests can support review without certifying it.
 
 ## 14. Planned-change reconciliation
 

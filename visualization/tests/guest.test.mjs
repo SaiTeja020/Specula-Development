@@ -13,6 +13,8 @@ test('guest enters without Supabase, survives reload, and signs out locally', as
   };
   const server = await createServer({
     root: new URL('../', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'),
+    // SSR checks do not need the client optimizer or its shared dev cache.
+    cacheDir: `node_modules/.vite-tests/guest-${process.pid}`, optimizeDeps: { noDiscovery: true, include: [] },
     server: { middlewareMode: true },
   });
   try {

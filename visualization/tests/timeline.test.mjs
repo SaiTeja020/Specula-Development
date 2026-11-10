@@ -42,7 +42,7 @@ test('timeline joins original fields and sorts UTC times with unknown times last
 });
 
 test('saved timeline renders readable cards, time caveats, filters and escaped source details', async () => {
-  const server = await createServer({ root: new URL('../', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), server: { middlewareMode: true, hmr: false } });
+  const server = await createServer({ root: new URL('../', import.meta.url).pathname.replace(/^\/(\w:)/, '$1'), cacheDir: `node_modules/.vite-tests/timeline-${process.pid}`, optimizeDeps: { noDiscovery: true, include: [] }, server: { middlewareMode: true, hmr: false } });
   try {
     const { default: Timeline } = await server.ssrLoadModule('/src/pages/EvidenceTimeline.jsx');
     const html = renderToString(React.createElement(Timeline, { snapshot }));

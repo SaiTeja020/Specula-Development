@@ -11,6 +11,9 @@ from src.agents.ollama_backend import OllamaLLM
 class LocalEmbeddings:
     def __init__(self):
         self.model = os.getenv("SPECULA_EMBEDDING_MODEL", "qwen3-embedding:0.6b")
+        self.num_gpu = int(os.getenv("SPECULA_EMBEDDING_NUM_GPU", "0"))
+        if self.num_gpu < -1:
+            raise ValueError("SPECULA_EMBEDDING_NUM_GPU must be -1 (auto) or non-negative")
         self.base = OllamaLLM(self.model, os.getenv("SPECULA_OLLAMA_BASE_URL", "http://127.0.0.1:11434")).base_url
         with requests.Session() as s:
             s.trust_env = False
@@ -24,7 +27,8 @@ class LocalEmbeddings:
     def embed_batch(self, texts):
         with requests.Session() as s:
             s.trust_env = False
-            r = s.post(self.base+"/api/embed", json={"model": self.model, "input": texts, "truncate": False},
+            r = s.post(self.base+"/api/embed", json={"model": self.model, "input": texts, "truncate": False,
+                       "keep_alive": "15m", "options": {"num_gpu": self.num_gpu}},
                        timeout=(10, 180), allow_redirects=False)
             r.raise_for_status()
             vectors = r.json().get("embeddings", [])

@@ -3,6 +3,34 @@ from types import SimpleNamespace
 from src.agents.grounding import claim_errors,audit
 
 
+def test_scheduled_backup_association_requires_cited_benign_control():
+    claim = 'The high outbound volume is attributed to a scheduled backup job.'
+    control = {'summary': 'Source-reported scheduled job has matching authorized completion counter-evidence.',
+               'classification': 'benign'}
+    assert not claim_errors(claim, [control])
+    assert claim_errors(claim, [])
+    assert claim_errors(claim, [{**control, 'classification': 'suspicious'}])
+    assert claim_errors(claim, [{'summary': 'Approved deployment script.', 'classification': 'benign'}])
+    assert claim_errors('The incident is attributed to APT29.', [control])
+    assert claim_errors('The volume is attributed to a scheduled backup job, attributed to APT29.', [control])
+    assert claim_errors('The volume is attributed to a scheduled backup job operated by APT29.', [control])
+    assert claim_errors(claim + ' Successful credential extraction occurred.',
+                        [{**control, 'operation_outcome': 'failed'}])
+
+
+def test_password_reset_association_does_not_license_actor_attribution():
+    claim = ('The failed logons followed by a successful logon are attributed to a password reset process, '
+             'with matching MFA records confirming its benign nature.')
+    control = {'summary': 'Matching reset/MFA records are source-reported authorization counter-evidence.',
+               'classification': 'benign'}
+    assert not claim_errors(claim, [control])
+    assert claim_errors(claim, [])
+    assert claim_errors(claim, [{**control, 'classification': 'failed'}])
+    assert claim_errors(claim, [{'summary': 'Scheduled backup transfer completed.', 'classification': 'benign'}])
+    assert claim_errors('The incident is attributed to APT29.', [control])
+    assert claim_errors('The logons are attributed to a password reset process operated by APT29.', [control])
+
+
 def test_source_constraints_distinguish_uncertainty_from_completed_effects():
     failed=[{'summary':'Credential access denied','operation_outcome':'failed'}]
     assert claim_errors('Successful credential extraction occurred.',failed)

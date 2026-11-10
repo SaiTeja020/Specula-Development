@@ -14,6 +14,7 @@ Design documents describe intended capabilities; check source and the tracker fo
 | [Input sources](specula_input_sources.svg) | Evidence-source overview. |
 | [Ingestion pipeline](Specula_Ingestion_Pipeline.md) | Preservation, normalization and ingestion concepts. |
 | [Runtime harness](specula_runtime_harness.md) | Runtime design and coordination rationale. |
+| [Research evaluation](research_evaluation.md) | Ordered evaluation plan, offline replay, claim metrics and independent experiment gates. |
 
 ## Operating and format references
 
