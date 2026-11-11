@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>CFReDS - Data Leakage Case</title>
+		<!--
+		<script type="text/javascript" async="" src="./The CFReDS Project_files/ga.js"></script>
+		<script language="JavaScript" id="_fed_an_js_tag" src="./The CFReDS Project_files/federated-analytics.all.min.js"></script>
+		-->
+		<link rel="stylesheet" type="text/css" href="./style/reset.css" media="screen">
+		<link rel="stylesheet" type="text/css" href="./style/style.css" media="screen">
+	</head>
+	
+	<body>
+		<div id="main_wrapper">
+		<div id="content_container">
+		<div id="main_content">
+			<!-- TITLE -->
+			<h1>Data Leakage Case</h1>
+			<p>The purpose of this work is to learn various types of data leakage, and practice its investigation techniques.</p>
+			<hr><!--horizontal line--><br>	
+	
+			<!-- SECTION -->
+			<h2>Scenario Overview</h2>
+			<fieldset>	
+			<p>‘Iaman Informant’ was working as a manager of the technology development division at a famous international company OOO that developed state-of-the-art technologies and gadgets.</p>
+			<p>One day, at a place which ‘Mr. Informant’ visited on business, he received an offer from ‘Spy Conspirator’ to leak of sensitive information related to the newest technology. Actually, ‘Mr. Conspirator’ was an employee of a rival company, and ‘Mr. Informant’ decided to accept the offer for large amounts of money, and began establishing a detailed leakage plan.</p>
+			<p>‘Mr. Informant’ made a deliberate effort to hide the leakage plan. He discussed it with ‘Mr. Conspirator’ using an e-mail service like a business relationship. He also sent samples of confidential information though personal cloud storage.</p>
+			<p>After receiving the sample data, ‘Mr. Conspirator’ asked for the direct delivery of storage devices that stored the remaining (large amounts of) data. Eventually, ‘Mr. Informant’ tried to take his storage devices away, but he and his devices were detected at the security checkpoint of the company. And he was suspected of leaking the company data.</p>
+			<p>At the security checkpoint, although his devices (a USB memory stick and a CD) were briefly checked (protected with portable write blockers), there was no evidence of any leakage. And then, they were immediately transferred to the digital forensics laboratory for further analysis.</p>
+			<p>The information security policies in the company include the following:</p>
+			
+			<ol>
+				<li><p>Confidential electronic files should be stored and kept in the authorized external storage devices and the secured network drives.</p>
+				</li>
+				<li><p>Confidential paper documents and electronic files can be accessed only within the allowed time range from 10:00 AM to 16:00 PM with the appropriate permissions.</p>
+				</li>
+				<li><p>Non-authorized electronic devices such as laptops, portable storages, and smart devices cannot be carried onto the company.</p>
+				</li>
+				<li><p>All employees are required to pass through the ‘Security Checkpoint’ system.</p>
+				</li>		
+				<li><p>All storage devices such as HDD, SSD, USB memory stick, and CD/DVD are forbidden under the ‘Security Checkpoint’ rules.</p>
+				</li>			
+			</ol>
+
+			<p>In addition, although the company managed separate internal and external networks and used DRM (Digital Rights Management) / DLP (Data Loss Prevention) solutions for their information security, ‘Mr. Informant’ had sufficient authority to bypass them. He was also very interested in IT (Information Technology), and had a slight knowledge of digital forensics.</p>
+			<p>In this scenario, find any evidence of the data leakage, and any data that might have been generated from the suspect’s electronic devices.</p>
+			<p>[<strong>Please note: </strong>If you have any issues clicking on the links to download the files, please &quot;right click&quot; and choose to &quot;save as&quot;.]</p> 
+			</fieldset>
+			<br>
+			
+			<!-- SECTION -->
+			<h2>Target Systems and Devices</h2>
+				<table class="normal">
+					<tr>
+						<th width=160>
+							Target
+						</th>
+						<th colspan=2>
+							Detailed Information
+						</th>
+					</tr>
+					<tr>
+						<td rowspan=7 valign=top>
+							Personal Computer<br>
+							<span style='color:#833C0B'>(PC)</span>
+						</td>
+						<td>Type</td>
+						<td>Virtual System</td>
+					</tr>			
+					<tr>
+						<td>CPU</td>
+						<td>1 Processer (2 Core)</td>
+					</tr>
+					<tr>
+						<td>RAM</td>
+						<td>2,048 MB</td>
+					</tr>
+					<tr>
+						<td>HDD Size</td>
+						<td>20 GB</td>
+					</tr>
+					<tr>
+						<td>File System</td>
+						<td>NTFS</td>
+					</tr>
+					<tr>
+						<td>IP Address</td>
+						<td>10.11.11.129</td>
+					</tr>
+					<tr>
+						<td>Operating System</td>
+						<td>Microsoft Windows 7 Ultimate (SP1)
+						</td>
+					</tr>
+					<tr>
+						<td rowspan=4 valign=top>
+							Removable Media #1<br>
+							<span style='color:#833C0B'>(RM#1)</span>*<!-- footnote -->
+						</td>
+						<td>Type</td>
+						<td>USB removable storage device</td>
+					</tr>
+					<tr>
+						<td>Serial No.</td>
+						<td>4C530012450531101593</td>
+					</tr>
+					<tr>
+						<td>Size</td>
+						<td>4 GB</td>
+					</tr>
+					<tr>
+						<td>File System</td>
+						<td>exFAT</td>
+					</tr>
+					<tr>
+						<td rowspan=4 valign=top>
+							Removable Media #2<br>
+							<span style='color:#833C0B'>(RM#2)</span>
+						</td>
+						<td>Type</td>
+						<td>USB removable storage device</td>
+					</tr>
+					<tr>
+						<td>Serial No.</td>
+						<td>4C530012550531106501</td>
+					</tr>
+					<tr>
+						<td>Size</td>
+						<td>4 GB</td>
+					</tr>
+					<tr>
+						<td>File System</td>
+						<td>FAT32</td>
+					</tr>
+					<tr>
+						<td rowspan=3 valign=top>
+							Removable Media #3<br>
+							<span style='color:#833C0B'>(RM#3)</span>
+						</td>
+						<td>Type</td>
+						<td>CD-R</td>
+					</tr>
+					<tr>
+						<td>Size</td>
+						<td>700 MB</td>
+					</tr>
+					<tr>
+						<td>File System</td>
+						<td>UDF</td>
+					</tr>
+				</table>
+				
+				<span style='font-size:9.0pt;'>
+				* Authorized USB memory stick for managing confidential electronic files of the company. 
+				</span>
+			<br><br><br>
+			
+			<!-- SECTION -->
+			<h2>Acquired Data Information</h2>
+			<h3>Personal Computer (PC) – 'DD' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.7z.001">pc.7z.001</a>, 
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.7z.002">pc.7z.002</a>,
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.7z.003">pc.7z.003</a>
+							(total 5.05 GB compressed by 7zip) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>FTK Imager 3.4.0.1</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>converted from VMDK</td>
+					</tr>
+				</table>
+			<h3>Personal Computer (PC) – 'EnCase' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.E01">pc.E01</a>, 
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.E02">pc.E02</a>,
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.E03">pc.E03</a>,
+							<a href="./images/pc/cfreds_2015_data_leakage_pc.E04">pc.E04</a>
+							(total 7.28 GB compressed by EnCase) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>EnCase Imager 7.10.00.103</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>E01 (Expert Witness Compression Format) converted from VMDK</td>
+					</tr>
+				</table>	
+			<h3>Removable Media #1 (RM#1) – 'EnCase' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/rm%231/cfreds_2015_data_leakage_rm%231.E01">rm#1.E01</a>
+							(total 74.5 MB compressed by EnCase) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>FTK Imager 3.3.0.5 (write-blocked by Tableau USB Bridge T8-R2)</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>E01 (Expert Witness Compression Format)</td>
+					</tr>
+				</table>	
+				<span style='font-size:8.5pt;'>
+				* The RM#1 is not required to 
+				</span><br><br>															
+			<h3>Removable Media #2 (RM#2) – 'DD' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/rm%232/cfreds_2015_data_leakage_rm%232.7z">rm#2.7z</a>
+							(total 219 MB compressed by 7zip) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>FTK Imager 3.3.0.5 (write-blocked by Tableau USB Bridge T8-R2)</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>DD</td>
+					</tr>
+				</table>				
+			<h3>Removable Media #2 (RM#2) – 'EnCase' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/rm%232/cfreds_2015_data_leakage_rm%232.E01">rm#2.E01</a>
+							(total 243 MB compressed by EnCase) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>EnCase Imager 7.09.00.111 (write-blocked by Tableau USB Bridge T8-R2)</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>E01 (Expert Witness Compression Format)</td>
+					</tr>
+				</table>						
+			<h3>Removable Media #3 (RM#3) – 'Raw / CUE' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/rm%233/cfreds_2015_data_leakage_rm%233_type1.7z">rm#3-type1.7z</a>
+							(total 92.8 MB compressed by 7zip) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>FTK Imager 3.3.0.5</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>RAW ISO / CUE (sometimes BIN / CUE)*</td>
+					</tr>
+				</table>	
+				<span style='font-size:8.5pt;'>
+				* The RAW ISO file is a raw sector-by-sector binary copy of tracks in the original disk, and the CUE file is a plain-text file which stores the information of disk and tracks. 
+				</span><br><br>
+			<h3>Removable Media #3 (RM#3) – 'DD' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/rm%233/cfreds_2015_data_leakage_rm%233_type2.7z">rm#3-type2.7z</a>
+							(total 78.6 MB compressed by 7zip) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>FTK Imager 3.3.0.5 + bchunk (http://he.fi/bchunk)</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>DD converted from ‘RAW ISO + CUE’</td>
+					</tr>
+				</table>				
+			<h3>Removable Media #3 (RM#3) – 'EnCase' Image</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./images/rm%233/cfreds_2015_data_leakage_rm%233_type3.E01">rm#3-type3.E01</a>
+							(total 90.2 MB compressed by EnCase) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">Imaging S/W</td>
+						<td>EnCase Imager 7.09.00.111</td>
+					</tr>
+					<tr>
+						<td class="first_column">Image Format</td>
+						<td>E01 (Expert Witness Compression Format)</td>
+					</tr>
+				</table>				
+			<br>
+		
+			<!-- SECTION -->
+			<h2>Additional Data Information</h2>
+			<h3>Seed Files</h3>
+				<table class="normal">
+					<tr>
+						<td class="first_column">Download Links</td>
+						<td><!-- download links -->
+							<a href="./cfreds_2015_data_leakage_seed_files.7z">seed-files.7z</a>
+							(total 150 MB compressed by 7zip) - 
+							<a href="./hash_values.html">hash</a>
+						</td>
+					</tr>
+					<tr>
+						<td class="first_column">File Information</td>
+						<td>
+							- Seed files stored in RM#1 and a shared network drive<br>
+							- Base files for creating seed files were randomly selected from <a href="https://digitalcorpora.org/corpora/files">Govdocs1</a><br> 
+							- The first page of each seed file was manually added<br>
+							- <a href="./seed_file_hash_values.tsv">Seed file list and hash values</a>
+						</td>
+					</tr>
+				</table>
+			<br>					
+			
+			<!-- SECTION -->
+			<h2>Digital Forensic Practice Points</h2>
+			<p>The followings are the summary of detailed practice points related to above images.</p>
+			<table class="normal">
+			<tr>
+				<th width=160>Practice Point</th>
+				<th>Description</th>
+			</tr>
+			<tr>
+				<td>Understanding<br>Types of Data Leakage</td>
+				<td>
+					- Storage devices<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					> HDD (Hard DiskDrive), SSD (Solid State Drive)<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					> USB flash drive, Flash memory cards<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					> CD/DVD (with Optical Disk Drive)<br>
+					- Network Transmission<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					> File sharing, Remote Desktop Connection<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					> E-mail, SNS (Social Network Service)<br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					> Cloud services, Messenger<br>
+				</td>
+			</tr>
+			<tr>
+			<td>Windows Forensics</td>
+			<td>
+				- Windows event logs<br>
+				- Opened files and directories<br>
+				- Application (executable) usage history<br>
+				- CD/DVD burning records<br>
+				- External devices attached to PC<br>
+				- Network drive connection traces<br>
+				- System Caches<br>
+				- Windows Search databases<br>
+				- Volume Shadow Copy
+			</td>
+			</tr>
+			<tr>
+			<td>File System Forensics</td>
+			<td>
+				- FAT, NTFS, UDF<br>
+				- Metadata (NTFS MFT, FAT Directory entry)<br>
+				- Timestamps<br>
+				- Transaction logs (NTFS)
+			</td>
+			</tr>
+			<tr>
+			<td>Web Browser Forensics</td>
+			<td>
+				- History, Cache, Cookie<br>
+				- Internet usage history (URLs, Search Keywords…)
+			</td>
+			</tr>
+			<tr>
+			<td>E-mail Forensics</td>
+			<td>
+				- MS Outlook file examination<br>
+				- E-mails and attachments
+			</td>
+			</tr>
+			<tr>
+			<td>Database Forensics</td>
+			<td>
+				- MS Extensible Storage Engine (ESE) Database<br>
+				- SQLite Database
+			</td>
+			</tr>
+			<tr>
+			<td>Deleted Data Recovery</td>
+			<td>
+				- Metadata based recovery<br>
+				- Signature & Content based recovery (aka Carving)<br>
+				- Recycle Bin of Windows<br>
+				- Unused area examination
+			</td>
+			</tr>
+			<tr>
+			<td>User Behavior Analysis</td>
+			<td>
+				- Constructing a forensic timeline of events<br>
+				- Visualizing the timeline
+			</td>
+			</tr>
+			</table>
+			<br>
+			
+			<!-- SECTION -->
+			<h2>Questions</h2>
+			<ol>
+				<li>
+					What are the hash values (MD5 & SHA-1) of all images?<br>
+					Does the acquisition and verification hash value match?			
+				</li>
+				<li>
+					Identify the partition information of PC image.
+				</li>
+				<li>
+					Explain installed OS information in detail.<br>
+					(OS name, install date, registered owner…)
+				</li>
+				<li>
+					What is the timezone setting?
+				</li>
+				<li>
+					What is the computer name?
+				</li>
+				<li>
+					List all accounts in OS except the system accounts: 
+					<i>Administrator, Guest, systemprofile, LocalService, NetworkService</i>.  
+					(Account name, login count, last logon date…)
+				</li>
+				<li>
+					Who was the last user to logon into PC?
+				</li>
+				<li>
+					When was the last recorded shutdown date/time?
+				</li>
+				<li>
+					Explain the information of network interface(s) with an IP address assigned by DHCP.
+				</li>
+				<li>
+					What applications were installed by the suspect after installing OS?
+				</li>
+				<li>
+					List application execution logs.<br>
+					(Executable path, execution time, execution count...)
+				</li>
+				<li>
+					List all traces about the system on/off and the user logon/logoff.<br>
+					(It should be considered only during a time range between 09:00 and 18:00 in the timezone from Question 4.)
+				</li>
+				<li>
+					What web browsers were used?
+				</li>
+				<li>
+					Identify directory/file paths related to the web browser history.
+				</li>
+				<li>
+					What websites were the suspect accessing? (Timestamp, URL...)
+				</li>
+				<li>
+					List all search keywords using web browsers. (Timestamp, URL, keyword...)
+				</li>
+				<li>
+					List all user keywords at the search bar in Windows Explorer. (Timestamp, Keyword)
+				</li>
+				<li>
+					What application was used for e-mail communication?
+				</li>
+				<li>
+					Where is the e-mail file located?
+				</li>
+				<li>
+					What was the e-mail account used by the suspect?
+				</li>
+				<li>
+					List all e-mails of the suspect. If possible, identify deleted e-mails.<br>
+					(You can identify the following items: <i>Timestamp, From, To, Subject, Body, and Attachment</i>)<br>
+					[Hint: just examine the OST file only.]
+				</li>
+				<li>
+					List external storage devices attached to PC.
+				</li>
+				<li>
+					Identify all traces related to ‘renaming’ of files in Windows Desktop.<br>
+					(It should be considered only during a date range between 2015-03-23 and 2015-03-24.)<br>
+					[Hint: the parent directories of renamed files were deleted and their MFT entries were also overwritten. Therefore, you may not be able to find their full paths.]
+				</li>
+				<li>
+					What is the IP address of company’s shared network drive?
+				</li>
+				<li>
+					List all directories that were traversed in ‘RM#2’.
+				</li>
+				<li>
+					List all files that were opened in 'RM#2’.
+				</li>
+				<li>
+					List all directories that were traversed in the company’s network drive.
+				</li>
+				<li>
+					List all files that were opened in the company’s network drive.
+				</li>
+				<li>
+					Find traces related to cloud services on PC.<br>
+					(Service name, log files...)
+				</li>
+				<li>
+					What files were deleted from Google Drive?<br>
+					Find the filename and modified timestamp of the file.<br>
+					[Hint: Find a transaction log file of Google Drive.]
+				</li>
+				<li>
+					Identify account information for synchronizing Google Drive.
+				</li>
+				<li>
+					What a method (or software) was used for burning CD-R?
+				</li>
+				<li>
+					When did the suspect burn CD-R?<br>
+					[Hint: It may be one or more times.]
+				</li>
+				<li>
+					What files were copied from PC to CD-R?<br>
+					[Hint: Just use PC image only. You can examine transaction logs of the file system for this task.]
+				</li>
+				<li>
+					What files were opened from CD-R?
+				</li>
+				<li>
+					Identify all timestamps related to a resignation file in Windows Desktop.<br>
+					[Hint: the resignation file is a DOCX file in NTFS file system.]
+				</li>
+				<li>
+					How and when did the suspect print a resignation file?
+				</li>
+				<li>
+					Where are ‘Thumbcache’ files located?
+				</li>
+				<li>
+					Identify traces related to confidential files stored in Thumbcache.<br>
+					(Include ‘256’ only)
+				</li>
+				<li>
+					Where are Sticky Note files located?
+				</li>
+				<li>
+					Identify notes stored in the Sticky Note file.
+				</li>
+				<li>
+					Was the ‘Windows Search and Indexing’ function enabled? How can you identify it?<br>
+					If it was enabled, what is a file path of the ‘Windows Search’ index database?
+				</li>
+				<li>
+					What kinds of data were stored in Windows Search database?
+				</li>
+				<li>
+					Find traces of Internet Explorer usage stored in Windows Search database.<br>
+					(It should be considered only during a date range between 2015-03-22 and 2015-03-23.)
+				</li>
+				<li>
+					List the e-mail communication stored in Windows Search database.<br>
+					(It should be considered only during a date range between 2015-03-23 and 2015-03-24.)
+				</li>
+				<li>
+					List files and directories related to Windows Desktop stored in Windows Search database.<br>
+					(Windows Desktop directory: \Users\informant\Desktop\)
+				</li>
+				<li>
+					Where are Volume Shadow Copies stored? When were they created?
+				</li>
+				<li>
+					Find traces related to Google Drive service in Volume Shadow Copy.<br>
+					What are the differences between the current system image (of Question 29 ~ 31) and its VSC?
+				</li>
+				<li>
+					What files were deleted from Google Drive?<br>
+					Find deleted records of <i>cloud_entry</i> table inside <i>snapshot.db</i> from VSC.<br>
+					(Just examine the SQLite database only. Let us suppose that a text based log file was wiped.)<br>
+					[Hint: DDL of <i>cloud_entry</i> table is as follows.]<br><br>
+					<span style='font-size:9.0pt;'>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					CREATE TABLE <i>cloud_entry</i> <br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					(doc_id <b>TEXT</b>, filename <b>TEXT</b>, modified <b>INTEGER</b>, created <b>INTEGER</b>, acl_role <b>INTEGER</b>, <br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					doc_type <b>INTEGER</b>, removed <b>INTEGER</b>, size <b>INTEGER</b>, checksum <b>TEXT</b>, shared <b>INTEGER</b>, <br>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					resource_type <b>TEXT</b>, PRIMARY KEY (doc_id));
+					</span>
+				</li>
+				<li>
+					Why can’t we find Outlook’s e-mail data in Volume Shadow Copy?
+				</li>
+				<li>
+					Examine ‘Recycle Bin’ data in PC.
+				</li>
+				<li>
+					What actions were performed for anti-forensics on PC at the last day '2015-03-25'?
+				</li>
+				<li>
+					Recover deleted files from USB drive ‘RM#2’.
+				</li>
+				<li>
+					What actions were performed for anti-forensics on USB drive ‘RM#2’?<br>
+					[Hint: this can be inferred from the results of Question 53.]
+				</li>
+				<li>
+					What files were copied from PC to USB drive ‘RM#2’?
+				</li>
+				<li>
+					Recover hidden files from the CD-R ‘RM#3’.<br>
+					How to determine proper filenames of the original files prior to renaming tasks?
+				</li>
+				<li>
+					What actions were performed for anti-forensics on CD-R ‘RM#3’?
+				</li>
+				<li>
+					Create a detailed timeline of data leakage processes.
+				</li>
+				<li>
+					List and explain methodologies of data leakage performed by the suspect.
+				</li>
+				<li>
+					Create a visual diagram for a summary of results.
+				</li>
+			</ol>
+			<br>
+			
+			<!-- SECTION -->
+			<h2>Answers</h2>
+			<p>
+				Look at the answers 
+				[<a href="./leakage-answers.pdf">PDF</a>, 
+				 <a href="./leakage-answers.docx">MS-Word</a>]  
+				(document v1.32 - last updated at July 23, 2018)
+			</p>
+			<br>
+			<hr><!--horizontal line--><br>	
+		</div>
+		<!-- end of #main_Content -->
+		</div>
+		<!-- end of #content_container -->
+		</div>
+		<!-- end of #main_wrapper -->
+		
+		<!-- NIST footer -->
+		<div class="footer">
+		<div class="footer_contents_wrapper">
+			<p>The National Institute of Standards and Technology (NIST) is an agency of the U.S. Commerce Department.</p>
+			<p class="links">
+				<a href="http://nist.gov/public_affairs/privacy.cfm">Privacy policy / security notice / accessibility statement</a> / 
+				<a href="http://nist.gov/public_affairs/disclaimer.cfm">Disclaimer</a><br><br>
+				Technical comments: <a href="/cdn-cgi/l/email-protection#462520323206282f353268212930793533242c2325327b050014230215637476112324352f3223"><span class="__cf_email__" data-cfemail="5132372525113f3822257f363e27">[email&#160;protected]</span></a><br>
+				This page was initially updated on June 5, 2015, and last modified on July 23, 2018.<br>
+			</p>
+		</div>
+		</div><!-- end of footer -->
+	<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a58adc6ffae59630',t:'MTc5NDM3NDU2Ng=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a58adc6ffae59630',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"9ef5b487afff42a68917b2d63593a474","spa":2}' crossorigin="anonymous"></script>
+</body>	
+</html>

@@ -1,0 +1,2 @@
+﻿resource_name,priority,official_source,download_url,local_storage_path,commit,branch,status,licence,audit_date
+Existing Specula implementation,unassigned: checklist unavailable,not verified (remote URLs not exported),,C:\Users\DELL\Specula-skeleton,b9b2012edaed8da5062113ddc9982e3c33b27983,skeleton,existing working tree; not cloned or executed,not assessed,2026-11-11T10:45:23.308761+05:30

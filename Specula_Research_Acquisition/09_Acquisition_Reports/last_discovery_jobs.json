@@ -1,0 +1,10 @@
+[
+ {"url":"https://drive.google.com/drive/folders/1TVZYS-jq1PLgYlsdQTuXgc0q-bA6YCKD","relative":"01_Forensic_Datasets/OpTC/documentation/drive_bro_2019-09-23.html"},
+ {"url":"https://api.github.com/repos/francescoTheSantis/CFA-bench","relative":"09_Acquisition_Reports/source_metadata/cfa_repo.json"},
+ {"url":"https://api.github.com/repos/francescoTheSantis/CFA-bench/commits/main","relative":"09_Acquisition_Reports/source_metadata/cfa_commit.json"},
+ {"url":"https://api.github.com/repos/francescoTheSantis/CFA-bench/git/trees/main?recursive=1","relative":"09_Acquisition_Reports/source_metadata/cfa_tree.json"},
+ {"url":"https://api.github.com/repos/stefanofumero/LLM_Agent_Cybersecurity_Forensic","relative":"09_Acquisition_Reports/source_metadata/cybersleuth_repo.json"},
+ {"url":"https://api.github.com/repos/stefanofumero/LLM_Agent_Cybersecurity_Forensic/commits/main","relative":"09_Acquisition_Reports/source_metadata/cybersleuth_commit.json"},
+ {"url":"https://api.github.com/repos/stefanofumero/LLM_Agent_Cybersecurity_Forensic/git/trees/main?recursive=1","relative":"09_Acquisition_Reports/source_metadata/cybersleuth_tree.json"},
+ {"url":"https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=11129512","relative":"03_Research_Papers/CFA-Bench/publisher_fulltext_response.bin"}
+]

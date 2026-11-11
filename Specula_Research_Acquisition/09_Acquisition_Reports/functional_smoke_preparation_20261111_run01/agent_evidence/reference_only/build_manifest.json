@@ -1,0 +1,26 @@
+{
+  "build_timestamp": "2026-10-10T09:40:36Z",
+  "build_duration_secs": 1.6,
+  "total_records": 873,
+  "record_type_counts": {
+    "attack_technique": 697,
+    "attack_group": 176
+  },
+  "source_versions": {
+    "local_attack_xlsx": "ATT&CK-xlsx-v19.2"
+  },
+  "source_artifact_hashes": {
+    "enterprise-attack-v19.2.xlsx": "85a88d07176e67c504366c62e141b5be6e820581162ac5cddba28cf7b3d2bc02"
+  },
+  "faiss_config": {
+    "index_type": "IndexFlatIP",
+    "dimension": 384,
+    "metric": "METRIC_INNER_PRODUCT"
+  },
+  "embedding_model_version": "sha384-byte-repeat-v1",
+  "artifact_hashes": {
+    "faiss_index.bin": "fe21b5953c3d1171d44f45cd0690b4d33b3ddeed70757a1281e30eccbd45cb58",
+    "faiss_id_map.json": "817acc56bbffb1d0b1feaea13bc15bd1a68e59f3c26d62d212fe3a056d553677",
+    "metadata_store.json": "6e0b84935ec5072547c0c3152d2fb9b1d431af4dfc02df3f1f3a4f38820b83eb"
+  }
+}

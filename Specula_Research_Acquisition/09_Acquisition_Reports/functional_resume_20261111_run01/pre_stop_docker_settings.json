@@ -1,0 +1,5 @@
+{
+  "UseResourceSaver": false,
+  "EnableIntegrationWithDefaultWslDistro": false,
+  "KubernetesEnabled": true
+}

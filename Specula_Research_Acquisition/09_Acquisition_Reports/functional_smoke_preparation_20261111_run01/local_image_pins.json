@@ -1,0 +1,155 @@
+[
+  {
+    "tags": [
+      "alpine:3.22"
+    ],
+    "id": "sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8",
+    "digests": [
+      "alpine@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8"
+    ],
+    "user": "",
+    "entrypoint": null,
+    "cmd": [
+      "/bin/sh"
+    ],
+    "volumes": null,
+    "created": "2026-09-17T20:37:44.212246058Z"
+  },
+  {
+    "tags": [
+      "specula-isolation-canary:20261111-01"
+    ],
+    "id": "sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3",
+    "digests": [
+      "specula-isolation-canary@sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3"
+    ],
+    "user": "10001:10001",
+    "entrypoint": [
+      "/usr/local/bin/python",
+      "-B",
+      "-u",
+      "/app/preflight/runner.py"
+    ],
+    "cmd": null,
+    "volumes": null,
+    "created": "2026-11-11T07:28:34.570768933Z"
+  },
+  {
+    "tags": [
+      "ollama/ollama:0.13.3"
+    ],
+    "id": "sha256:6c76395793f40a5e78f120e880ca82c67e39eb908ad90eee8ce755535529d0ec",
+    "digests": [
+      "ollama/ollama@sha256:6c76395793f40a5e78f120e880ca82c67e39eb908ad90eee8ce755535529d0ec"
+    ],
+    "user": "",
+    "entrypoint": [
+      "/bin/ollama"
+    ],
+    "cmd": [
+      "serve"
+    ],
+    "volumes": null,
+    "created": "2025-12-12T00:38:54.061288655Z"
+  },
+  {
+    "tags": [
+      "neo4j:5.26.0"
+    ],
+    "id": "sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5",
+    "digests": [
+      "neo4j@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5"
+    ],
+    "user": "",
+    "entrypoint": [
+      "tini",
+      "-g",
+      "--",
+      "/startup/docker-entrypoint.sh"
+    ],
+    "cmd": [
+      "neo4j"
+    ],
+    "volumes": {
+      "/data": {},
+      "/logs": {}
+    },
+    "created": "2024-12-09T12:11:17Z"
+  },
+  {
+    "tags": [
+      "confluentinc/cp-kafka:7.5.3"
+    ],
+    "id": "sha256:51145a40d23336a11085ca695d02bdeee66fe01b582837c6d223384952226be9",
+    "digests": [
+      "confluentinc/cp-kafka@sha256:51145a40d23336a11085ca695d02bdeee66fe01b582837c6d223384952226be9"
+    ],
+    "user": "appuser",
+    "entrypoint": null,
+    "cmd": [
+      "/etc/confluent/docker/run"
+    ],
+    "volumes": {
+      "/etc/kafka/secrets": {},
+      "/var/lib/kafka/data": {}
+    },
+    "created": "2023-12-20T23:51:45.272884673Z"
+  },
+  {
+    "tags": [
+      "redis:7.2-alpine"
+    ],
+    "id": "sha256:05a97a479bc73de66f087dc05b569010772880f778cc8671fa6b8aadee32e5c6",
+    "digests": [
+      "redis@sha256:05a97a479bc73de66f087dc05b569010772880f778cc8671fa6b8aadee32e5c6"
+    ],
+    "user": "",
+    "entrypoint": [
+      "docker-entrypoint.sh"
+    ],
+    "cmd": [
+      "redis-server"
+    ],
+    "volumes": {
+      "/data": {}
+    },
+    "created": "2026-07-24T17:11:46.305309044Z"
+  },
+  {
+    "tags": [
+      "chromadb/chroma:latest"
+    ],
+    "id": "sha256:1e0b73a187a28757c572acba508c46f48c9e8b0acaf5c20e6d95cdedce1acdf6",
+    "digests": [
+      "chromadb/chroma@sha256:1e0b73a187a28757c572acba508c46f48c9e8b0acaf5c20e6d95cdedce1acdf6"
+    ],
+    "user": "",
+    "entrypoint": [
+      "dumb-init",
+      "--",
+      "chroma"
+    ],
+    "cmd": [
+      "run",
+      "/config.yaml"
+    ],
+    "volumes": null,
+    "created": "2026-05-05T01:49:45.652638163Z"
+  },
+  {
+    "tags": [
+      "quickwit/quickwit:latest"
+    ],
+    "id": "sha256:072a655ded8498283e1073617d3e8d17ddd2be189a82325e30254ebbdf8cb8a6",
+    "digests": [
+      "quickwit/quickwit@sha256:072a655ded8498283e1073617d3e8d17ddd2be189a82325e30254ebbdf8cb8a6"
+    ],
+    "user": "",
+    "entrypoint": [
+      "quickwit"
+    ],
+    "cmd": null,
+    "volumes": null,
+    "created": "2024-09-03T11:50:53.624056616Z"
+  }
+]

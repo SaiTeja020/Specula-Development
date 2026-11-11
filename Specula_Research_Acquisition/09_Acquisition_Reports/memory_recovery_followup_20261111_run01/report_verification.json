@@ -1,0 +1,13 @@
+{
+  "reporting": "PASS",
+  "admission": "BLOCKED",
+  "budget_MiB": 10704,
+  "VM_minimum_MiB": 10182.54296875,
+  "deficit_MiB": 521.45703125,
+  "preferred_deficit_MiB": 1545.45703125,
+  "R1_applied": false,
+  "read_only_source_and_wslconfig_checks": "PASS",
+  "recovery_by_agent": false,
+  "report_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\updated_memory_admission_report.md",
+  "report_sha256": "421424a85a3805a84901963a385292a4a586a405b66992d4c1637d086e94f5f6"
+}

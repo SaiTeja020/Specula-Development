@@ -1,0 +1,118 @@
+[
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.001",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.001",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.002",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.002",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.003",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.003",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.004",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.004",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.005",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.005",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.006",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.006",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.007",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.007",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.008",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.008",
+    "method": "HEAD"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/hacking-dd/SCHARDT.LOG",
+    "relative": "01_Forensic_Datasets/NIST_Hacking_Case/SCHARDT.LOG"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/images/TestAnswers.pdf",
+    "relative": "07_Evaluation_Artifacts/evaluator_only/NIST_Hacking_Case/TestAnswers.pdf"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/FiveDirections/OpTC-data/5b108604f11f767aa11ea79ff827595f3fad15fd/README.md",
+    "relative": "01_Forensic_Datasets/OpTC/documentation/README.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/FiveDirections/OpTC-data/5b108604f11f767aa11ea79ff827595f3fad15fd/ecar.md",
+    "relative": "01_Forensic_Datasets/OpTC/documentation/ecar.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/FiveDirections/OpTC-data/5b108604f11f767aa11ea79ff827595f3fad15fd/errata.md",
+    "relative": "01_Forensic_Datasets/OpTC/documentation/errata.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/FiveDirections/OpTC-data/5b108604f11f767aa11ea79ff827595f3fad15fd/OpTCRedTeamGroundTruth.pdf",
+    "relative": "07_Evaluation_Artifacts/evaluator_only/OpTC/OpTCRedTeamGroundTruth.pdf"
+  },
+  {
+    "url": "https://api.github.com/repos/DFIR-Metric/DFIR-Metric/commits/main",
+    "relative": "09_Acquisition_Reports/source_metadata/dfir_commit.json"
+  },
+  {
+    "url": "https://api.github.com/repos/DFIR-Metric/DFIR-Metric/git/trees/main?recursive=1",
+    "relative": "09_Acquisition_Reports/source_metadata/dfir_tree.json"
+  },
+  {
+    "url": "https://api.github.com/repos/mitre-attack/attack-stix-data/commits/master",
+    "relative": "09_Acquisition_Reports/source_metadata/attack_commit.json"
+  },
+  {
+    "url": "https://api.github.com/repos/mitre-attack/attack-stix-data/git/trees/master?recursive=1",
+    "relative": "09_Acquisition_Reports/source_metadata/attack_tree.json"
+  },
+  {
+    "url": "https://api.github.com/repos/ocsf/ocsf-schema/commits/v1.9.0",
+    "relative": "09_Acquisition_Reports/source_metadata/ocsf_commit.json"
+  },
+  {
+    "url": "https://api.github.com/repos/ocsf/ocsf-schema/git/trees/v1.9.0?recursive=1",
+    "relative": "09_Acquisition_Reports/source_metadata/ocsf_tree.json"
+  },
+  {
+    "url": "https://api.github.com/repos/log2timeline/plaso/commits/main",
+    "relative": "09_Acquisition_Reports/source_metadata/plaso_commit.json"
+  },
+  {
+    "url": "https://api.github.com/repos/log2timeline/plaso/git/trees/main?recursive=1",
+    "relative": "09_Acquisition_Reports/source_metadata/plaso_tree.json"
+  },
+  {
+    "url": "https://api.github.com/repos/google/timesketch/commits/master",
+    "relative": "09_Acquisition_Reports/source_metadata/timesketch_commit.json"
+  },
+  {
+    "url": "https://api.github.com/repos/google/timesketch/git/trees/master?recursive=1",
+    "relative": "09_Acquisition_Reports/source_metadata/timesketch_tree.json"
+  },
+  {
+    "url": "https://arxiv.org/pdf/2505.19973v1",
+    "relative": "03_Research_Papers/DFIR-Metric/2505.19973v1.pdf"
+  },
+  {
+    "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-86.pdf",
+    "relative": "05_Standards_Documentation/NIST_SP_800-86/nistspecialpublication800-86.pdf"
+  },
+  {
+    "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r3.pdf",
+    "relative": "05_Standards_Documentation/NIST_SP_800-61r3/NIST.SP.800-61r3.pdf"
+  }
+]

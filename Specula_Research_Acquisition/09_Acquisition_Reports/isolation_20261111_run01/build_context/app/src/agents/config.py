@@ -1,0 +1,387 @@
+"""Agent-to-model configuration — §6 of implementation plan.
+
+Keys match Master_doc §2.5 role names. Every role points at one cheap model
+for now; swapping to real per-agent matrix later is a config change only.
+
+Environment variables are loaded from a .env file discovered by walking up
+from this file's location to the repository root. No hardcoded user paths.
+"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Portable .env discovery
+# Walks up from this file's directory until it finds a .env file or hits
+# the filesystem root. Silently skips if .env does not exist (safe for CI).
+# ---------------------------------------------------------------------------
+
+def _find_dotenv() -> Path | None:
+    """Return the first .env file found by walking up from this file."""
+    current = Path(__file__).resolve().parent
+    for parent in [current, *current.parents]:
+        candidate = parent / ".env"
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def _load_env() -> None:
+    """Load .env into os.environ. No-op if file is absent or dotenv not installed."""
+    try:
+        from dotenv import load_dotenv  # type: ignore[import-untyped]
+        dotenv_path = _find_dotenv()
+        if dotenv_path:
+            load_dotenv(dotenv_path, override=False)
+    except ImportError:
+        pass  # python-dotenv not installed; rely on shell environment
+
+
+_load_env()
+
+
+# ---------------------------------------------------------------------------
+# Agent config: role -> model + prompt template
+# ---------------------------------------------------------------------------
+
+AGENT_CONFIG: dict[str, dict] = {
+    "supervisor": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Supervisor agent for case {case_id}. "
+            "Evaluate the forensic input and decide if specialist agents are needed. "
+            "Summarise your dispatch decision.\nInput: {raw_input}"
+        ),
+    },
+    "evidence_collection": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Evidence Collection agent for case {case_id}. "
+            "Identify, tag, and correlate digital evidence artifacts.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    # INTERIM SKELETON MODE: LangGraph ReAct-stub dispatcher uses gemini-2.5-flash fallback.
+    # Standalone package (src/agents/log_analysis/config.py) uses Qwen/Qwen2.5-72B-Instruct.
+    # Single-source consolidation (from src.agents.log_analysis.config import MODEL_ID)
+    # is scheduled when the real model endpoint is deployed.
+    "log_analysis": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Log Analysis agent for case {case_id}. "
+            "Detect suspicious activity patterns in the log data.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "network_forensics": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Network Forensics agent for case {case_id}. "
+            "Identify traffic anomalies and potential C2 communication.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "timeline_reconstruction": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Timeline Reconstruction agent for case {case_id}. "
+            "Build a chronological sequence of events from the findings.\n"
+            "Findings summary: {findings_summary}"
+        ),
+    },
+    "threat_attribution": {
+        "model_id": "kimi-k2.6",
+        "provider": "openai_compatible",
+        "system_prompt_template": (
+            "You are the Threat Attribution agent for case {case_id}. "
+            "ATT&CK techniques (FAISS): {retrieved_techniques}. "
+            "Threat groups (FAISS): {retrieved_groups}. "
+            "Case graph entities (Neo4j): {graph_entities}. "
+            "Timeline: {timeline_summary}. "
+            "Map findings to ATT&CK techniques and attribute the threat actor "
+            "using ONLY the data provided above."
+        ),
+    },
+    "memory_forensics": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Memory Forensics specialist for case {case_id}. "
+            "Analyse volatile memory artifacts for injected code and rootkits.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "identity": {
+        "model_id": "Prism-ML-Ternary-Bonsai-27B",   # arch v4 [ID] — F13a
+        "provider": "vllm",
+        "system_prompt_template": (
+            "You are the Identity specialist for case {case_id}. "
+            "Examine AD/Kerberos ticket abuse, cloud-IAM privilege escalation, "
+            "and lateral movement via credential theft.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "cloud_container": {
+        "model_id": "Qwen3-32B",                       # arch v4 [CLOUD_K8S] — F13b
+        "provider": "vllm",
+        "system_prompt_template": (
+            "You are the Cloud & Container specialist for case {case_id}. "
+            "Analyse K8s audit logs, Falco runtime alerts, Docker API abuse, "
+            "and ephemeral pod/NAT IP activity.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "dag": {
+        "model_id": "Qwen2.5-7B-Instruct",            # arch v4 [DAG] — F23
+        "provider": "vllm",
+        "system_prompt_template": (
+            "You are the Dynamic Attack Graph agent for case {case_id}. "
+            "Using confirmed preconditions from the DFKG and EPSS/CVSS scores, "
+            "compute Dijkstra shortest-path attack chains weighted by "
+            "-ln(CVSS * EPSS * gamma + epsilon). "
+            "Output residual-risk scores and the highest-probability exploit path.\n"
+            "Findings so far: {findings_summary}"
+        ),
+    },
+    "malware_stylometry": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Malware & Stylometry specialist for case {case_id}. "
+            "Classify malware samples and perform code authorship analysis.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "insider_threat": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Insider Threat specialist for case {case_id}. "
+            "Detect anomalous user behaviour indicative of insider compromise.\n"
+            "Input: {raw_input}"
+        ),
+    },
+    "proponent": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Proponent in the Evidentiary Adversarial Debate for case {case_id}. "
+            "Present and defend the strongest hypothesis supported by DFKG evidence.\n"
+            "Evidence: {evidence_summary}\n"
+            "Attribution evidence: {attribution_evidence}\n"
+            "Previous critic argument: {critic_argument}"
+        ),
+    },
+    "critic": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Critic in the Evidentiary Adversarial Debate for case {case_id}. "
+            "Challenge the proponent's hypothesis. Identify gaps and alternative explanations.\n"
+            "Proponent argument: {proponent_argument}"
+            "\nAttribution evidence: {attribution_evidence}"
+        ),
+    },
+    "judge": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Judge in the Evidentiary Adversarial Debate for case {case_id}. "
+            "Evaluate both positions. Respond with VERDICT: ACCEPT or VERDICT: REJECT "
+            "and a confidence score between 0.0 and 1.0.\n"
+            "Proponent: {proponent_argument}\n"
+            "Critic: {critic_argument}\n"
+            "Attribution evidence: {attribution_evidence}\n"
+            "Round: {debate_round}"
+        ),
+    },
+    "guardrail_tier3": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are Guardrail Tier 3 — semantic validation agent for case {case_id}. "
+            "Review the consolidated output for factual consistency, logical coherence, "
+            "and absence of hallucinated claims. Respond with RESULT: PASS or RESULT: FAIL "
+            "with a brief justification.\n"
+            "Output to validate: {output_summary}"
+        ),
+    },
+    "report_generation": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Report Generation agent for case {case_id}. "
+            "Produce a structured forensic investigation report.\n"
+            "Findings: {findings_summary}\nTimeline: {timeline_summary}\n"
+            "Attribution: {attribution_summary}\nAttribution evidence: {attribution_evidence}"
+        ),
+    },
+    "timeline_artifact_generation": {
+        "model_id": "gemini-2.5-flash",
+        "provider": "google",
+        "system_prompt_template": (
+            "You are the Timeline Artifact Generation agent for case {case_id}. "
+            "Produce a lightweight timeline visualisation artifact.\n"
+            "Timeline: {timeline_summary}\nAttribution: {attribution_summary}"
+        ),
+    },
+}
+
+
+# ---------------------------------------------------------------------------
+# Stub LLM (deterministic, no API key needed)
+# ---------------------------------------------------------------------------
+
+_STUB_RESPONSES: dict[str, str] = {
+    "supervisor":               "Case assessment complete. Primary analysis tier dispatched. Evidence scope: host logs, network captures, endpoint telemetry.",
+    "evidence_collection":      "3 file artifacts identified (exe, dll, ps1). 2 registry modifications in HKLM\\Software\\Microsoft. Chain-of-custody tags assigned.",
+    "log_analysis":             "Suspicious PowerShell execution at 03:14 UTC. 47 failed logon attempts from 10.0.0.42. Event ID 4625 cluster detected.",
+    "network_forensics":        "Outbound C2 beaconing to 185.220.101.34:443 every 60s. DNS tunnelling via TXT records to exfil.evil.tld. 2.3GB egress anomaly.",
+    "timeline_reconstruction":  "T-0: Initial access via phishing (03:12). T+2m: PowerShell download cradle. T+5m: Lateral movement to DC01. T+12m: Data staging. T+18m: Exfiltration start.",
+    "threat_attribution":       "ATT&CK mapping: T1566.001 (Phishing), T1059.001 (PowerShell), T1021.002 (SMB), T1041 (Exfiltration). Attribution confidence: APT29 (moderate, 0.72).",
+    "memory_forensics":         "Process hollowing detected in svchost.exe (PID 4812). Injected Cobalt Strike beacon shellcode at 0x7FFE0000. YARA match: CobaltStrike_Beacon_v4.",
+    "identity":                 "Kerberoasting of SPN MSSQLSvc/db01 confirmed. TGS-REP for svc-backup@corp.local. Azure AD token refresh anomaly at 03:17 UTC. Lateral movement to DC01 via Pass-the-Ticket.",
+    "cloud_container":          "K8s audit: privileged pod launched in kube-system (image: alpine). Falco alert: unexpected outbound connection from container cid-8f3a. Docker daemon API accessed unauthenticated from 10.0.0.42.",
+    "dag":                      "Highest-probability attack path: CVE-2021-34527 (PrintNightmare, CVSS 8.8, EPSS 0.94) -> DC01 via SMB. Dijkstra weight: 0.062. Residual risk score: 0.91. Secondary path: CVE-2020-1472 (Zerologon, CVSS 10.0, EPSS 0.97) weight: 0.030.",
+    "malware_stylometry":       "PE sample SHA256: a1b2c3... Static analysis: UPX packed, anti-debug via IsDebuggerPresent. Code similarity 87% to APT29 SunBurst loader.",
+    "insider_threat":           "User jsmith: 340% increase in after-hours file access. USB device connected 2x in 72h (policy violation). Sentiment score: -0.4 (baseline: 0.1).",
+    "proponent":                "Primary hypothesis: External APT compromise via spear-phishing with lateral movement to domain controller. DFKG evidence refs: [E-001, E-003, N-002].",
+    "critic":                   "Alternative hypothesis: Insider threat with credential sharing. The lateral movement pattern is consistent with legitimate admin activity. Gap: no C2 confirmation from sandboxed execution.",
+    "judge":                    "VERDICT: ACCEPT. Both positions evaluated. Proponent's C2 beaconing evidence and ATT&CK chain are well-supported. Confidence: 0.85.",
+    "guardrail_tier3":          "RESULT: PASS. Output is factually consistent with DFKG evidence. No hallucinated claims detected. Logical chain from initial access to exfiltration is coherent.",
+    "report_generation":        "=== FORENSIC INVESTIGATION REPORT ===\nCase: {case_id}\nClassification: External APT Compromise\nSeverity: Critical\nFindings: 15 evidence artifacts across 4 domains.\nRecommendation: Immediate containment of affected hosts.",
+    "timeline_artifact_generation": "=== TIMELINE ARTIFACT ===\n03:12 - Phishing email received\n03:14 - Malicious attachment executed\n03:19 - Lateral movement to DC01\n03:26 - Data staging initiated\n03:30 - Exfiltration via DNS tunnel",
+}
+
+
+class _StubResponse:
+    """Minimal response object matching langchain's .content interface."""
+    def __init__(self, content: str):
+        self.content = content
+
+
+class StubLLM:
+    """Deterministic stub for testing without a real LLM provider."""
+
+    def __init__(self, role: str, case_id: str = "unknown"):
+        self.role = role
+        self._case_id = case_id
+
+    def invoke(self, prompt: str | list) -> _StubResponse:
+        text = _STUB_RESPONSES.get(self.role, f"[{self.role}] Analysis complete.")
+        # D4: inject case_id explicitly (no fragile regex extraction from prompt)
+        if "{case_id}" in text:
+            text = text.replace("{case_id}", self._case_id)
+        return _StubResponse(text)
+
+
+# ---------------------------------------------------------------------------
+# LLM factory
+# ---------------------------------------------------------------------------
+
+# D3: resolved once per process — never re-queried on subsequent get_llm() calls
+_RESOLVED_GEMINI_MODEL: str | None = None
+
+
+def _get_gemini_model() -> str:
+    """Resolve the best available Gemini model, cached for the process lifetime.
+
+    D3: Called only once; subsequent calls return the cached result so model
+    name cannot drift mid-investigation and the API is not re-hit per agent.
+    Reads GEMINI_API_KEY from os.environ (already populated by _load_env() at
+    module import — no repeated dotenv calls inside this function).
+    Falls back to gemini-2.5-flash if the key is absent or the API is unreachable.
+    """
+    global _RESOLVED_GEMINI_MODEL
+    if _RESOLVED_GEMINI_MODEL is not None:
+        return _RESOLVED_GEMINI_MODEL
+
+    import json
+    import urllib.request
+
+    # _load_env() already populated os.environ at module import — read directly.
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"  # D3: cache the default too
+        return _RESOLVED_GEMINI_MODEL
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=3.0) as response:
+            data = json.loads(response.read().decode())
+            names = [m.get("name", "") for m in data.get("models", [])]
+            # Prioritise flash-lite models, then normal flash
+            lite_models = [n for n in names if "gemini" in n.lower() and "flash-lite" in n.lower()]
+            if lite_models:
+                chosen = lite_models[-1]
+                _RESOLVED_GEMINI_MODEL = chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
+                return _RESOLVED_GEMINI_MODEL  # D3: cache on every successful resolution
+            flash_models = [n for n in names if "gemini" in n.lower() and "flash" in n.lower()]
+            if flash_models:
+                chosen = flash_models[-1]
+                _RESOLVED_GEMINI_MODEL = chosen.split("models/", 1)[-1] if "models/" in chosen else chosen
+                return _RESOLVED_GEMINI_MODEL
+    except Exception:
+        pass
+
+    _RESOLVED_GEMINI_MODEL = "gemini-2.5-flash"
+    return _RESOLVED_GEMINI_MODEL
+
+
+def get_llm(agent_role: str, case_id: str = "unknown"):
+    """Return an LLM for *agent_role* based on SPECULA_LLM_BACKEND env var.
+
+    Backends:
+      stub   — deterministic, no API key (default)
+      ollama — installed local model, no hosted fallback
+      gemini — langchain_google_genai.ChatGoogleGenerativeAI
+
+    Environment is loaded once at module import via _load_env() — no repeated
+    dotenv calls here. Set SPECULA_LLM_BACKEND and GEMINI_API_KEY in .env.
+    D4: case_id passed through to StubLLM so report stubs can fill {case_id}
+        without regex-extracting it back out of the formatted prompt.
+    """
+    backend = os.environ.get("SPECULA_LLM_BACKEND", "stub")
+
+    if agent_role == "threat_attribution":
+        backend = os.environ.get("SPECULA_THREAT_ATTRIBUTION_BACKEND", backend)
+        if backend == "openai_compatible":
+            from langchain_openai import ChatOpenAI
+            endpoint = os.environ.get("SPECULA_THREAT_ATTRIBUTION_BASE_URL")
+            key = os.environ.get("SPECULA_THREAT_ATTRIBUTION_API_KEY")
+            if not endpoint or not key:
+                raise ValueError("Threat Attribution model requires SPECULA_THREAT_ATTRIBUTION_BASE_URL and SPECULA_THREAT_ATTRIBUTION_API_KEY")
+            return ChatOpenAI(
+                model=os.environ.get("SPECULA_THREAT_ATTRIBUTION_MODEL", AGENT_CONFIG["threat_attribution"]["model_id"]),
+                base_url=endpoint, api_key=key, temperature=0,
+            )
+
+    if backend == "ollama":
+        from .ollama_backend import OllamaLLM
+        return OllamaLLM(model=os.environ.get("SPECULA_OLLAMA_MODEL", "qwen3:8b"),
+                         base_url=os.environ.get("SPECULA_OLLAMA_BASE_URL", "http://127.0.0.1:11434"),
+                         timeout=float(os.environ.get("SPECULA_OLLAMA_TIMEOUT", "120")),
+                         explanation_codes_only=agent_role == "threat_attribution")
+
+    if backend not in {"stub", "gemini"}:
+        raise ValueError(f"Unsupported model backend for {agent_role}: {backend}")
+
+    if backend == "gemini":
+        # Bridge GEMINI_API_KEY -> GOOGLE_API_KEY for langchain_google_genai
+        if not os.environ.get("GOOGLE_API_KEY") and os.environ.get("GEMINI_API_KEY"):
+            os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
+
+        from langchain_google_genai import ChatGoogleGenerativeAI  # type: ignore[import-untyped]
+        model_name = _get_gemini_model()  # D3: cached after first call
+        return ChatGoogleGenerativeAI(model=model_name, temperature=0)
+
+    # D4: case_id forwarded so StubLLM fills {case_id} without prompt regex
+    return StubLLM(agent_role, case_id=case_id)
+

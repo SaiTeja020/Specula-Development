@@ -1,0 +1,10 @@
+{
+  "diagnostic_artifacts": "PASS",
+  "time_utc": "2026-11-11T10:11:22Z",
+  "artifact_hashes_verified": 33,
+  "manifest_sha256": "ec027eed28c7f73b0c930294def33bdc38737f0847dd792866990c347e33ec1b",
+  "runtime_changes": [],
+  "provisioning": "BLOCKED",
+  "revised_budget": "UNAPPROVED / NOT APPLIED",
+  "approval_2": "NOT AUTHORIZED"
+}

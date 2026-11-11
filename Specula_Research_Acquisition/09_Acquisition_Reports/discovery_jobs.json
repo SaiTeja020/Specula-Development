@@ -1,0 +1,13 @@
+[
+ {"url":"https://cfreds-archive.nist.gov/Hacking_Case.html","relative":"01_Forensic_Datasets/NIST_Hacking_Case/Hacking_Case.html"},
+ {"url":"https://api.github.com/repos/FiveDirections/OpTC-data/commits/master","relative":"09_Acquisition_Reports/source_metadata/optc_commit.json"},
+ {"url":"https://api.github.com/repos/FiveDirections/OpTC-data/git/trees/master?recursive=1","relative":"09_Acquisition_Reports/source_metadata/optc_tree.json"},
+ {"url":"https://api.github.com/users/DFIR-Metric/repos","relative":"09_Acquisition_Reports/source_metadata/dfir_repositories.json"},
+ {"url":"https://arxiv.org/abs/2505.19973","relative":"03_Research_Papers/DFIR-Metric/arxiv_metadata.html"},
+ {"url":"https://api.github.com/repos/mitre-attack/attack-stix-data/contents/enterprise-attack","relative":"09_Acquisition_Reports/source_metadata/attack_versions.json"},
+ {"url":"https://api.github.com/repos/ocsf/ocsf-schema/releases/latest","relative":"09_Acquisition_Reports/source_metadata/ocsf_release.json"},
+ {"url":"https://csrc.nist.gov/pubs/sp/800/86/final","relative":"05_Standards_Documentation/NIST_SP_800-86/source.html"},
+ {"url":"https://csrc.nist.gov/pubs/sp/800/61/r3/final","relative":"05_Standards_Documentation/NIST_SP_800-61r3/source.html"},
+ {"url":"https://api.github.com/repos/log2timeline/plaso","relative":"09_Acquisition_Reports/source_metadata/plaso_repo.json"},
+ {"url":"https://api.github.com/repos/google/timesketch","relative":"09_Acquisition_Reports/source_metadata/timesketch_repo.json"}
+]

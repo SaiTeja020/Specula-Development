@@ -1,0 +1,15 @@
+{
+  "image": "registry.k8s.io/kube-proxy:v1.34.1",
+  "id": "sha256:913cc83ca0b5588a81d86ce8eedeb3ed1e9c1326e81852a1ea4f622b74ff749a",
+  "firewall_files": [
+    "usr/lib/x86_64-linux-gnu/libnftables.so.1",
+    "usr/sbin/iptables",
+    "usr/sbin/iptables-nft",
+    "usr/sbin/nft",
+    "usr/sbin/xtables-nft-multi",
+    "usr/share/doc/iptables",
+    "usr/share/iptables",
+    "var/lib/dpkg/status.d/iptables"
+  ],
+  "inspection": "docker image save to memory only; no container created or run"
+}

@@ -1,0 +1,93 @@
+{
+  "original": {
+    "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-001.zip": {
+      "bytes": 2904,
+      "sha256": "8d8d228df7a841e3a30da9a839e9ec4de5aee00fef35c640e534460e7b21ff5d"
+    },
+    "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-001-answer-key.json": {
+      "bytes": 7574,
+      "sha256": "45aaccad30a19e7548c9c6cfe21aae33873f2bc5fd9c635f9ba678d57211c193"
+    }
+  },
+  "derived_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_preparation_20261111_run01\\agent_evidence\\case-input.zip",
+  "derived_sha256": "cbf8263fe0e1c94996412996d88d0e01a85990fca92737d97eee58d55782de14",
+  "derived_bytes": 2750,
+  "records": 8,
+  "files": {
+    "edr/alerts.jsonl": 3,
+    "edr/network.jsonl": 1,
+    "ueba/events.json": 1,
+    "windows/Security.json": 2,
+    "windows/Sysmon.jsonl": 1
+  },
+  "removed_record_metadata": [
+    {
+      "source_file": "edr/alerts.jsonl",
+      "record_id": "CPLX-01215",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "edr/alerts.jsonl",
+      "record_id": "CPLX-01209",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "edr/alerts.jsonl",
+      "record_id": "CPLX-01205",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "edr/network.jsonl",
+      "record_id": "CPLX-01208",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "ueba/events.json",
+      "record_id": "CPLX-01210",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "windows/Security.json",
+      "record_id": "CPLX-01214",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "windows/Security.json",
+      "record_id": "CPLX-01213",
+      "removed_keys": [
+        "synthetic"
+      ]
+    },
+    {
+      "source_file": "windows/Sysmon.jsonl",
+      "record_id": "CPLX-01204",
+      "removed_keys": [
+        "synthetic"
+      ]
+    }
+  ],
+  "original_manifest_removed_fields": [
+    "fixture_id",
+    "synthetic",
+    "description"
+  ],
+  "remaining_source_context": "Preserved byte-equivalent JSON values except synthetic flag; baseline_status/signers/tickets/outcomes are source telemetry, not evaluator annotations.",
+  "no_label_mapping_created": true,
+  "answer_key": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-001-answer-key.json",
+  "truth_status": "developer-authored; independent review pending",
+  "expected_observations": 3,
+  "same_host_time_pairs": 7,
+  "note": "Input uid/trace_id are preserved, but uploaded-context-v2 recomputes event UIDs; never score input UUIDs as normalized graph UIDs without a source_record_id linkage."
+}

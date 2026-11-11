@@ -1,0 +1,4 @@
+[
+ {"url":"https://api.github.com/repos/SmartData-Polito/CFA-bench/commits/main","relative":"09_Acquisition_Reports/source_metadata/cfa_official_commit.json"},
+ {"url":"https://api.github.com/repos/SmartData-Polito/CFA-bench/git/trees/main?recursive=1","relative":"09_Acquisition_Reports/source_metadata/cfa_official_tree.json"}
+]

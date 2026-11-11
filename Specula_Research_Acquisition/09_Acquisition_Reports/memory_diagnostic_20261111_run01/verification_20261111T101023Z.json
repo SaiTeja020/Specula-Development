@@ -1,0 +1,18 @@
+{
+  "diagnostic_artifact_verification": "PASS",
+  "scope": "arithmetic, source observations, unchanged runtime/config and meaningful reports; not provisioning or a load test",
+  "time_utc": "2026-11-11T10:10:23Z",
+  "reports_verified": 4,
+  "windows_process_records": 366,
+  "WSL_PSS_process_records": 57,
+  "unchanged_wslconfig_sha256": "7f5f6e627f11dd2a94db851ab1e75775e77547810751517c8019b06d7ed9f13a",
+  "selected_docker_settings_unchanged": true,
+  "docker_container_ids_and_states_unchanged": true,
+  "kubernetes_pod_names_and_phases_unchanged": true,
+  "parent_head": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+  "parent_tracked_status": "",
+  "recovery_actions_executed": [],
+  "revised_budget_applied": false,
+  "provisioning": "BLOCKED",
+  "approval_2": "NOT AUTHORIZED"
+}

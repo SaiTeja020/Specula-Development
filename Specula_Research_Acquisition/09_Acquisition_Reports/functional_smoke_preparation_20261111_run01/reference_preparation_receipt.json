@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "scope": "static reference package integrity/type/field audit only; not loaded or queried",
+  "files": [
+    {
+      "source": "C:\\Users\\DELL\\Specula-skeleton\\data\\threat_intel\\build_manifest.json",
+      "local_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_preparation_20261111_run01\\agent_evidence\\reference_only\\build_manifest.json",
+      "bytes": 898,
+      "sha256": "14caeb8656d3b8379bb89c0ba1e6b540d25ebdce2cb687a97cb2d010a8c320a0"
+    },
+    {
+      "source": "C:\\Users\\DELL\\Specula-skeleton\\data\\threat_intel\\faiss_id_map.json",
+      "local_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_preparation_20261111_run01\\agent_evidence\\reference_only\\faiss_id_map.json",
+      "bytes": 18380,
+      "sha256": "817acc56bbffb1d0b1feaea13bc15bd1a68e59f3c26d62d212fe3a056d553677"
+    },
+    {
+      "source": "C:\\Users\\DELL\\Specula-skeleton\\data\\threat_intel\\faiss_index.bin",
+      "local_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_preparation_20261111_run01\\agent_evidence\\reference_only\\faiss_index.bin",
+      "bytes": 1340973,
+      "sha256": "fe21b5953c3d1171d44f45cd0690b4d33b3ddeed70757a1281e30eccbd45cb58"
+    },
+    {
+      "source": "C:\\Users\\DELL\\Specula-skeleton\\data\\threat_intel\\metadata_store.json",
+      "local_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_preparation_20261111_run01\\agent_evidence\\reference_only\\metadata_store.json",
+      "bytes": 1831636,
+      "sha256": "6e0b84935ec5072547c0c3152d2fb9b1d431af4dfc02df3f1f3a4f38820b83eb"
+    }
+  ],
+  "reference_records": 873,
+  "record_types": {
+    "attack_technique": 697,
+    "attack_group": 176
+  },
+  "source_versions": {
+    "local_attack_xlsx": "ATT&CK-xlsx-v19.2"
+  },
+  "build_timestamp": "2026-10-10T09:40:36Z",
+  "embedding_model_version": "sha384-byte-repeat-v1",
+  "limitation": "Frozen older reference corpus; no freshness rewrite, no live FAISS execution or independent source-workbook revalidation in this preparation."
+}

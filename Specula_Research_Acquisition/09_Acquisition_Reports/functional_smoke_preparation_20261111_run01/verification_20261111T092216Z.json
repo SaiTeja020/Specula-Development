@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "scope": "preparation artifact/static input and preservation checks ONLY",
+  "time_utc": "2026-11-11T09:22:16Z",
+  "source_records": 8,
+  "source_files": 5,
+  "derivative_sha256": "cbf8263fe0e1c94996412996d88d0e01a85990fca92737d97eee58d55782de14",
+  "original_zip_and_key_unchanged": true,
+  "other_source_values_preserved": true,
+  "model_manifests_verified": 2,
+  "model_blob_entries_verified": 7,
+  "reference_files_verified": 4,
+  "reference_records": 873,
+  "read_root_reparse_free": true,
+  "reports_present": 5,
+  "parent_head": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+  "parent_tracked_status": "",
+  "no_runtime_objects_created_removed_or_reconfigured": true,
+  "runtime_tests": "NOT RUN",
+  "model_inference": "NOT RUN",
+  "functional_investigation": "NOT RUN",
+  "provisioning_recommendation": "GO after explicit approval for isolation-validation provisioning only"
+}

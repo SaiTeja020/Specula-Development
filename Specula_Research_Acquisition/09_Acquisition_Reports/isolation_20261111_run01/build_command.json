@@ -1,0 +1,9 @@
+[
+  "docker",
+  "build",
+  "--pull=false",
+  "--network=none",
+  "--tag",
+  "specula-isolation-canary:20261111-01",
+  "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\build_context"
+]

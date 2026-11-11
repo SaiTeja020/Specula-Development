@@ -1,0 +1,4 @@
+{
+  "coloredlogs.pth": "import os; exec('try: __import__(\"coloredlogs\").auto_install() if os.environ.get(\"COLOREDLOGS_AUTO_INSTALL\") else None\\nexcept ImportError: pass')\n",
+  "distutils-precedence.pth": "import os; var = 'SETUPTOOLS_USE_DISTUTILS'; enabled = os.environ.get(var, 'local') == 'local'; enabled and __import__('_distutils_hack').add_shim(); \n"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "leaks": [],
+  "restricted_markers": 3,
+  "runtime_files_checked": 1,
+  "console_and_docker_logs_checked": true,
+  "fresh_no_persistent_indexes": true,
+  "limitation": "No graph/index ingestion or model calls. Applies only to this network-none canary profile."
+}

@@ -1,0 +1,11 @@
+[
+ {"url":"https://api.crossref.org/works/10.1109/ICWS.2017.13","relative":"03_Research_Papers/Drain2017/crossref_metadata.json"},
+ {"url":"https://pinjiahe.github.io/files/pdf/research/ICWS17.pdf","relative":"03_Research_Papers/Drain2017/ICWS17-author-copy.pdf"},
+ {"url":"https://arxiv.org/pdf/1806.04356v1","relative":"03_Research_Papers/1806.04356/1806.04356v1.pdf"},
+ {"url":"https://arxiv.org/abs/2508.20643","relative":"03_Research_Papers/CyberSleuth/metadata.html"},
+ {"url":"https://arxiv.org/pdf/2508.20643v2","relative":"03_Research_Papers/CyberSleuth/2508.20643v2.pdf"},
+ {"url":"https://api.crossref.org/works/10.1109/EuroSPW67616.2025.00031","relative":"03_Research_Papers/CFA-Bench/crossref_metadata.json"},
+ {"url":"https://doi.org/10.1109/EuroSPW67616.2025.00031","relative":"03_Research_Papers/CFA-Bench/publisher_source.html"},
+ {"url":"https://api.crossref.org/works/10.1007/978-3-540-88875-8_10","relative":"03_Research_Papers/MADIK/candidate_crossref_metadata.json"},
+ {"url":"https://drive.google.com/drive/folders/1mq5IjFRBiRSOMt6WEq3PM-f4Wo4r6vRI","relative":"01_Forensic_Datasets/OpTC/documentation/drive_ecar_23Sep19-red_AIA-1-25.html"}
+]

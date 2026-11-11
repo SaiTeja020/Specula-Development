@@ -1,0 +1,677 @@
+"""All 25 node functions for the Specula orchestration skeleton — §3–4, §7–8.
+
+Node types:
+  18 ReAct-stub LLM agent nodes
+   2 non-LLM real nodes (Guardrail Tier 1, Tier 2)
+   1 real HTTP node (HITL — uses interrupt())
+   4 control-only nodes (joins + terminal)
+"""
+from __future__ import annotations
+
+import re
+import json
+import time
+from datetime import datetime, timezone
+from typing import Literal
+
+from langgraph.types import Command, interrupt
+
+from .config import AGENT_CONFIG, get_llm
+from .guardrails import run_tier1_checks, run_tier2_checks
+from .kafka_utils import ROLE_TOPIC_MAP, publish_finding
+# NOTE: evidence_collection_node is no longer defined here.
+# Import make_evidence_collection_node from evidence_collection_agent and wire
+# it in build_graph() via the closure pattern (B1 fix).
+
+
+# ===================================================================
+# Helper: common single-pass LLM call
+# ===================================================================
+
+def _run_agent(role: str, state: dict, **extra_ctx) -> tuple[dict, dict]:
+    """Execute a single-pass LLM call for *role*. Returns (finding, trace).
+
+    Extra keyword args are merged into the prompt template format dict.
+    D4: passes case_id to get_llm so StubLLM can fill {case_id} in responses
+    without fragile regex extraction from the formatted prompt.
+    """
+    from . import case_analysis as analysis
+    if (analysis.records(state) or state.get("evidence_review_required")) and role in {"proponent", "critic", "judge", "guardrail_tier3"}:
+        from .evidence_review import debate
+        facts = analysis.debate_facts(state)
+        if role=='proponent':
+            incomplete=[t['agent_role'] for t in analysis.current_traces(state) if t.get('review_coverage') and not t['review_coverage']['complete']]
+            if state.get('followup_status') in {'budget_exhausted', 'requires_analyst', 'source_changed_requires_reanalysis'}:
+                incomplete.append('supervisor_followup')
+            if incomplete:
+                trace={'agent_role':role,'action':'required_review_incomplete','model_used':'not_invoked_missing_upstream_review',
+                    'observation':'Required source reviews incomplete: '+', '.join(incomplete),
+                    'model_output_validated':False,'dfkg_refs':[],
+                    'review_coverage':{'submitted':0,'validated':0,'total':len(facts),'complete':False},
+                    'timestamp':datetime.now(timezone.utc).isoformat()}
+                return {'agent_role':role,'summary':trace['observation'],'assessment':None,'review_valid':False,'dfkg_refs':[]},trace
+        if role == "guardrail_tier3":
+            from .grounding import audit
+            trace = audit(state,facts,get_llm(role,case_id=state.get('case_id')))
+            passed = trace['grounding_passed']
+            summary = "RESULT: PASS\nCitations and structured review validated." if passed else "RESULT: FAIL\nCitations or structured review incomplete."
+            assessment = None
+        else:
+            assessment, trace = debate(role, state, facts, get_llm(role, case_id=state.get("case_id")))
+            summary = json.dumps(assessment, indent=2) if assessment else trace["observation"]
+        finding = {"agent_role": role, "summary": summary, "dfkg_refs": trace["dfkg_refs"],
+                   "timestamp": trace["timestamp"], "kafka_offset": None, "finding_type": "model_assessment",
+                   "assessment": assessment, "review_valid": trace["model_output_validated"]}
+        return finding, trace
+    cfg = AGENT_CONFIG.get(role, AGENT_CONFIG["supervisor"])
+    # D4: forward case_id so StubLLM fills report template without prompt regex
+    llm = get_llm(role, case_id=state.get("case_id", "unknown"))
+
+    fmt = {
+        "case_id": state.get("case_id", "unknown"),
+        "raw_input": str(state.get("raw_input", ""))[:500],
+        "findings_summary": _summarise_findings(state),
+        "timeline_summary": str(state.get("timeline", {}).get("summary", ""))[:300],
+        "attribution_summary": str(state.get("attribution", {}).get("summary", ""))[:300],
+        "attribution_evidence": json.dumps({
+            "candidate_actors": [{
+                "actor_id": actor.get("actor_id"),
+                "combined_score": actor.get("combined_score"),
+                "matched_techniques": actor.get("matched_techniques", []),
+            } for actor in state.get("attribution", {}).get("candidate_actors", [])],
+            "dfkg_refs": state.get("attribution", {}).get("dfkg_refs", []),
+            "threat_intel_refs": state.get("attribution", {}).get("threat_intel_refs", []),
+            "confidence_bounds": [state.get("attribution", {}).get("confidence_lower", 0),
+                                  state.get("attribution", {}).get("confidence_upper", 0)],
+        }, default=str),
+        "proponent_argument": str(state.get("proponent_argument", ""))[:300],
+        "critic_argument": str(state.get("critic_argument", ""))[:300],
+        "debate_round": str(state.get("debate_round", 1)),
+        "evidence_summary": _summarise_findings(state)[:300],
+        "output_summary": _summarise_output(state)[:500],
+    }
+    fmt.update(extra_ctx)
+
+    prompt = cfg["system_prompt_template"].format_map(
+        _SafeFormatDict(fmt)
+    )
+
+    start = time.time()
+    response = llm.invoke(prompt)
+    latency_ms = round((time.time() - start) * 1000, 1)
+
+    content = response.content if hasattr(response, "content") else str(response)
+
+    finding = {
+        "agent_role": role,
+        "summary": content,
+        "dfkg_refs": list(state.get("attribution", {}).get("dfkg_refs", [])) if role in {"proponent", "critic", "judge", "report_generation"} else [],
+        "threat_intel_refs": list(state.get("attribution", {}).get("threat_intel_refs", [])) if role in {"proponent", "critic", "judge", "report_generation"} else [],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "kafka_offset": None,
+    }
+
+    trace = {
+        "agent_role": role,
+        "thought": f"Analysing case as {role}",
+        "action": "single_pass_llm_call",
+        "observation": content,
+        "model_used": getattr(llm, "model_name", None) or getattr(llm, "model", None) or llm.__class__.__name__,
+        "latency_ms": latency_ms,
+        "timestamp": finding["timestamp"],
+        "dfkg_refs": finding["dfkg_refs"],
+    }
+
+    # Fire-and-forget Kafka publish
+    topic = ROLE_TOPIC_MAP.get(role)
+    if topic:
+        publish_finding(topic, finding, state.get("trace_id"))
+
+    return finding, trace
+
+
+class _SafeFormatDict(dict):
+    """Returns '' for missing keys instead of raising KeyError."""
+    def __missing__(self, key):
+        return ""
+
+
+def _summarise_findings(state: dict) -> str:
+    findings = state.get("findings", [])
+    if not findings:
+        return "No findings yet."
+    parts = [f"[{f.get('agent_role', '?')}] {f.get('summary', '')[:80]}" for f in findings[-6:]]
+    return "; ".join(parts)
+
+
+def _summarise_output(state: dict) -> str:
+    parts = []
+    for f in state.get("findings", [])[-4:]:
+        parts.append(f.get("summary", "")[:100])
+    if state.get("timeline"):
+        parts.append(str(state["timeline"].get("summary", ""))[:100])
+    if state.get("attribution"):
+        parts.append(str(state["attribution"].get("summary", ""))[:100])
+    return " | ".join(parts) if parts else "No output to validate."
+
+
+# ===================================================================
+# 16 ReAct-stub LLM agent nodes
+# ===================================================================
+
+# --- 1. Supervisor (now a factory) ---
+# --- 2–4. Primary tier (parallel) ---
+# B1: evidence_collection_node is now a factory in evidence_collection_agent.py.
+# Log analysis and Network Forensics are also now factories.
+
+
+
+
+# --- 5. Timeline Reconstruction ---
+def timeline_reconstruction_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.timeline(state)
+    finding, trace = _run_agent("timeline_reconstruction", state)
+    events = []
+    for prior in state.get("findings", []):
+        if not prior.get("dfkg_refs"):
+            continue
+        source_time = prior.get("event_time")
+        if source_time is None and prior.get("agent_role") == "log_analysis":
+            source_time = prior.get("timestamp")  # log_analysis timestamps come from OCSF event.time
+        try:
+            event_time = datetime.fromisoformat(str(source_time).replace("Z", "+00:00"))
+        except (TypeError, ValueError):
+            continue
+        if event_time.tzinfo is None:
+            event_time = event_time.replace(tzinfo=timezone.utc)
+        events.append({
+            "time": event_time.astimezone(timezone.utc).isoformat(),
+            "attacks": list(prior.get("attacks") or []), "dfkg_refs": list(prior["dfkg_refs"]),
+            "summary": prior.get("summary", ""),
+        })
+    events.sort(key=lambda item: item["time"])
+    return {
+        "case_status": "synthesis",
+        "timeline": {"summary": finding["summary"], "dfkg_refs": sorted({
+            uid for event in events for uid in event["dfkg_refs"]
+        }), "events": events, "frozen": True},
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# --- 7. Dynamic Attack Graph (Sequential Synthesis) ---
+def dag_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.activity_graph(state)
+    """Dynamic Attack Graph Agent — Sequential Synthesis (F23).
+
+    Reads confirmed preconditions from DFKG (via mcp-dfkg-cypher) and EPSS
+    daily scores from DuckDB, then computes Dijkstra-weighted exploit paths
+    per ADR-006: W = -ln(CVSS * EPSS * gamma + epsilon).
+    Publishes residual-risk and exploit-path findings to Kafka.
+    """
+    finding, trace = _run_agent("dag", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# --- 8–12. Specialist tier (conditional, parallel-if-multiple) ---
+def memory_forensics_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("memory_forensics", "memory", state)
+    finding, trace = _run_agent("memory_forensics", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+        "specialists_completed": ["memory"],
+    }
+
+
+def identity_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("identity", "identity", state)
+    """Identity Agent — AD/Kerberos/cloud-IAM forensics specialist (F13a)."""
+    finding, trace = _run_agent("identity", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+        "specialists_completed": ["identity"],
+    }
+
+
+def cloud_container_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("cloud_container", "cloud_container", state)
+    """Cloud & Container Agent — K8s/Falco/Docker runtime forensics specialist (F13b)."""
+    finding, trace = _run_agent("cloud_container", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+        "specialists_completed": ["cloud_container"],
+    }
+
+
+def malware_stylometry_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("malware_stylometry", "malware", state)
+    finding, trace = _run_agent("malware_stylometry", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+        "specialists_completed": ["malware"],
+    }
+
+
+def insider_threat_node(state: dict) -> dict:
+    from . import case_analysis as analysis
+    if analysis.records(state):
+        return analysis.specialist("insider_threat", "insider", state)
+    finding, trace = _run_agent("insider_threat", state)
+    return {
+        "findings": [finding],
+        "agent_traces": [trace],
+        "specialists_completed": ["insider"],
+    }
+
+
+# --- 11. Proponent ---
+def proponent_node(state: dict) -> dict:
+    finding, trace = _run_agent("proponent", state)
+    return {
+        "case_status": "debate",
+        "proponent_argument": finding["summary"],
+        "proponent_review": finding.get("assessment"),
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# --- 12. Critic ---
+def critic_node(state: dict) -> dict:
+    finding, trace = _run_agent("critic", state)
+    return {
+        "critic_argument": finding["summary"],
+        "critic_review": finding.get("assessment"),
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# --- 13. Judge (returns Command — §4 debate loop routing) ---
+def judge_node(state: dict) -> Command[Literal[
+    "guardrail_tier1", "proponent", "hitl"
+]]:
+    finding, trace = _run_agent("judge", state)
+    content = finding["summary"]
+    from .case_analysis import records
+    if records(state) or state.get("evidence_review_required"):
+        review = finding.get("assessment") or {}
+        valid = finding.get("review_valid") and bool(state.get("proponent_review")) and bool(state.get("critic_review"))
+        # Incomplete upstream batch reviews are visible and require a human,
+        # even if this judge response is syntactically valid.
+        traces = state.get("agent_traces", [])
+        start = max((i for i,t in enumerate(traces) if t.get("agent_role") == "supervisor"), default=0)
+        coverage_complete = all(t.get("review_coverage", {}).get("complete", True) for t in traces[start:])
+        verdict = review.get("verdict", "incomplete") if valid and coverage_complete else "incomplete"
+        approved = verdict == "accept"
+        update = {"judge_review": review or None, "judge_verdict": verdict,
+            "review_status": "complete" if valid and coverage_complete else "incomplete",
+            "debate_outcome": "converged" if approved else "review_incomplete",
+            "case_status": "guardrail" if approved else "hitl_review", "hitl_required": not approved,
+            "acceptance_status": "incomplete", "confidence_delta": None,
+            "loop_count": state.get("loop_count", 0) + 1,
+            "debate_history": [{"round": state.get("debate_round", 1), "proponent": state.get("proponent_review"),
+                               "critic": state.get("critic_review"), "judge": review, "verdict": verdict, "confidence": None}],
+            "findings": [finding], "agent_traces": [trace]}
+        correction_needed=verdict=='revise' or any(r.get('disposition')=='unsupported' for r in review.get('resolutions',[]))
+        if correction_needed and valid and coverage_complete and state.get('debate_round',1)<2:
+            update.update(debate_round=state.get('debate_round',1)+1,case_status='debate',hitl_required=False,
+                debate_outcome='corrective_review',debate_feedback={'critic':state.get('critic_review'),'judge':review},
+                proponent_review=None,critic_review=None)
+            return Command(update=update,goto='proponent')
+        return Command(update=update, goto="guardrail_tier1" if approved else "hitl")
+    round_num = state.get("debate_round", 1)
+
+    # Parse verdict from LLM output / test overrides
+    raw_input = str(state.get("raw_input", ""))
+
+    # Per-round control: FORCE_JUDGE_REJECT_ROUNDS:N rejects rounds 1..N,
+    # accepts from round N+1 onward. FORCE_JUDGE_REJECT (no :N) rejects all.
+    rounds_match = re.search(r"FORCE_JUDGE_REJECT_ROUNDS:(\d+)", raw_input)
+    if rounds_match:
+        reject_until = int(rounds_match.group(1))
+        verdict = "reject" if round_num <= reject_until else "accept"
+    elif "FORCE_JUDGE_REJECT" in raw_input:
+        verdict = "reject"
+    elif "VERDICT: REJECT" in content.upper():
+        verdict = "reject"
+    elif "VERDICT: ACCEPT" in content.upper():
+        verdict = "accept"
+    else:
+        verdict = "accept"
+
+
+
+    # Parse confidence from output
+    conf_match = re.search(r"Confidence:\s*(\d+(?:\.\d+)?)", content, re.IGNORECASE)
+    current_confidence = float(conf_match.group(1)) if conf_match else 0.85
+
+
+
+    # Compute confidence delta (undefined on round 1 per §2.5)
+    prev_history = state.get("debate_history", [])
+    if round_num >= 2 and prev_history:
+        prev_conf = prev_history[-1].get("confidence", 0.85)
+        confidence_delta = abs(current_confidence - prev_conf)
+    else:
+        confidence_delta = None
+
+    # Build debate history entry
+    history_entry = {
+        "round": round_num,
+        "proponent": state.get("proponent_argument", ""),
+        "critic": state.get("critic_argument", ""),
+        "verdict": verdict,
+        "confidence": current_confidence,
+    }
+
+    base_update = {
+        "judge_verdict": verdict,
+        "confidence_delta": confidence_delta,
+        "debate_history": [history_entry],
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+    # §4 routing logic (evaluated in order):
+    # 1. accept → guardrail_tier1 (converged)
+    if verdict == "accept":
+        base_update["debate_outcome"] = "converged"
+        return Command(update=base_update, goto="guardrail_tier1")
+
+    # 2. round >= 2 AND confidence_delta < 0.05 AND verdict != 'reject' → guardrail_tier1 (early exit)
+    if (verdict != "reject"
+            and round_num >= 2
+            and confidence_delta is not None
+            and confidence_delta < 0.05):
+        base_update["debate_outcome"] = "converged"
+        return Command(update=base_update, goto="guardrail_tier1")
+
+
+    # 3. reject AND round < 3 → loop back to proponent
+    if verdict == "reject" and round_num < 3:
+        base_update["debate_round"] = round_num + 1
+        return Command(update=base_update, goto="proponent")
+
+    # 4. round == 3 exhausted → HITL
+    base_update["debate_outcome"] = "round_cap_exhausted"
+    base_update["hitl_required"] = True
+    base_update["case_status"] = "hitl_review"
+    return Command(update=base_update, goto="hitl")
+
+
+# --- 14. Guardrail Tier 3 (LLM semantic validation, returns Command) ---
+def guardrail_tier3_node(state: dict) -> Command[Literal[
+    "hitl", "report_generation", "timeline_artifact_generation"
+]]:
+    finding, trace = _run_agent("guardrail_tier3", state)
+    content = finding["summary"]
+
+    raw_input = str(state.get("raw_input", ""))
+    if "FORCE_GUARDRAIL3_FAIL" in raw_input:
+        result = "fail"
+    elif "RESULT: FAIL" in content.upper():
+        result = "fail"
+    else:
+        result = "pass"
+
+    update: dict = {
+        "guardrail_tier3_result": result,
+        "case_status": "guardrail",
+        "agent_traces": [trace],
+    }
+
+    if result == "fail":
+        update["guardrail_fail_tier"] = 3
+        update["hitl_required"] = True
+        update["case_status"] = "hitl_review"
+        return Command(update=update, goto="hitl")
+
+    return Command(
+        update=update,
+        goto=["report_generation", "timeline_artifact_generation"],
+    )
+
+
+# --- 15. Report Generation ---
+def report_generation_node(state: dict) -> dict:
+    from .grounded_report import render_report
+    from .examination_reports import render_examination_report
+    content, metadata = render_report(state)
+    court, court_meta = render_examination_report(state, "court")
+    technical, technical_meta = render_examination_report(state, "technical")
+    finding = {"agent_role": "report_generation", "summary": content,
+               "dfkg_refs": metadata["dfkg_refs"], "threat_intel_refs": metadata["threat_intel_refs"],
+               "timestamp": metadata["generated_at"], "kafka_offset": None}
+    trace = {"agent_role": "report_generation", "model_used": "deterministic_evidence_renderer",
+             "action": "render_cited_report", "observation": metadata["status"],
+             "terminal": True, "degraded_flags": metadata["degraded_flags"]}
+    return {
+        "case_status": "report",
+        "report_output": content,
+        "report_metadata": metadata,
+        "court_report_output": court,
+        "technical_report_output": technical,
+        "report_documents": {"court": court_meta, "technical": technical_meta},
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# --- 16. Timeline Artifact Generation ---
+def timeline_artifact_generation_node(state: dict) -> dict:
+    from .grounded_report import render_timeline_artifact
+    content, metadata = render_timeline_artifact(state)
+    finding = {"agent_role": "timeline_artifact_generation", "summary": content,
+               "dfkg_refs": metadata["dfkg_refs"], "threat_intel_refs": metadata["threat_intel_refs"],
+               "timestamp": metadata["generated_at"], "kafka_offset": None}
+    trace = {"agent_role": "timeline_artifact_generation", "model_used": "deterministic_evidence_renderer",
+             "action": "render_cited_timeline", "observation": metadata["status"],
+             "terminal": True, "degraded_flags": metadata["degraded_flags"]}
+    return {
+        "timeline_artifact": content,
+        "timeline_artifact_metadata": metadata,
+        "findings": [finding],
+        "agent_traces": [trace],
+    }
+
+
+# ===================================================================
+# 2 non-LLM real nodes — Guardrail Tier 1 & 2 (return Command)
+# ===================================================================
+
+def guardrail_tier1_node(state: dict) -> Command[Literal[
+    "hitl", "guardrail_tier2"
+]]:
+    """Tier 1: regex/AST checks (§7). Deterministic, no LLM."""
+    # Collect all agent output text AND raw_input for checking
+    from .case_analysis import current_findings
+    text_to_check = " ".join(
+        f.get("summary", "") for f in current_findings(state) if f.get('source')!='validated_case_rule'
+    )
+    raw_input = str(state.get("raw_input", ""))
+    text_to_check = f"{raw_input} {text_to_check}"
+    if "FORCE_GUARDRAIL1_FAIL" in raw_input:
+        result, fired = "fail", ["forced_test_failure"]
+    else:
+        result, fired = run_tier1_checks(text_to_check)
+
+    update: dict = {
+        "guardrail_tier1_result": result,
+        "case_status": "guardrail",
+    }
+    if result == "fail":
+        update["guardrail_fail_tier"] = 1
+        update["hitl_required"] = True
+        update["case_status"] = "hitl_review"
+        return Command(update=update, goto="hitl")
+    return Command(update=update, goto="guardrail_tier2")
+
+
+def guardrail_tier2_node(state: dict) -> Command[Literal[
+    "hitl", "guardrail_tier3"
+]]:
+    """Tier 2: embedding similarity classifier (§7). No LLM."""
+    from .case_analysis import current_findings
+    texts_to_check = [str(state.get("raw_input", ""))] + [
+        f.get("summary", "") for f in current_findings(state) if f.get('source')!='validated_case_rule'
+    ]
+    
+    result = "pass"
+    for text in texts_to_check:
+        if not text.strip(): continue
+        res, sim = run_tier2_checks(text)
+        if res == "fail":
+            result = "fail"
+            break
+
+    raw_input = str(state.get("raw_input", ""))
+    if "FORCE_GUARDRAIL2_FAIL" in raw_input:
+        result = "fail"
+
+    update: dict = {
+        "guardrail_tier2_result": result,
+        "case_status": "guardrail",
+    }
+    if result == "fail":
+        update["guardrail_fail_tier"] = 2
+        update["hitl_required"] = True
+        update["case_status"] = "hitl_review"
+        return Command(update=update, goto="hitl")
+    return Command(update=update, goto="guardrail_tier3")
+
+
+# ===================================================================
+# 1 real HTTP node — HITL (uses interrupt, returns Command)
+# ===================================================================
+
+def hitl_node(state: dict) -> Command[Literal[
+    "report_generation", "timeline_artifact_generation",
+    "guardrail_tier1", "case_closed_rejected", "supervisor"
+]]:
+    """HITL approval gate — §8.
+
+    Dual-entry routing:
+      guardrail failure  → approve routes to report generation
+      debate exhaustion  → approve routes to guardrail tier 1
+      reject (either)    → case_closed_rejected terminal
+      clarify (either)   → supervisor re-entry
+    """
+    # Determine entry reason from state (§4/§8 distinction)
+    entry_reason = (
+        "guardrail_failure"
+        if state.get("guardrail_fail_tier") is not None
+        else "review_incomplete" if state.get("debate_outcome") == "review_incomplete" else "debate_exhaustion"
+    )
+
+    snapshot = {
+        "case_id": state.get("case_id"),
+        "findings_count": len(state.get("findings", [])),
+        "debate_outcome": state.get("debate_outcome"),
+        "guardrail_fail_tier": state.get("guardrail_fail_tier"),
+        "entry_reason": entry_reason,
+        "judge_verdict": state.get("judge_verdict"),
+        "debate_round": state.get("debate_round"),
+        "review_status": state.get("review_status"),
+        "judge_review": state.get("judge_review"),
+    }
+
+    # Note: case_status="hitl_review" is explicitly set by the routing nodes
+    # (guardrail/judge) *before* transitioning to this node. This ensures
+    # the status is correctly visible in the state checkpoint while the graph
+    # is paused here at the interrupt().
+    decision = interrupt(snapshot)
+
+    update: dict = {
+        "hitl_decision": decision,
+        "hitl_case_snapshot": snapshot,
+        "case_status": "hitl_review",
+    }
+
+    if decision == "reject":
+        return Command(update=update, goto="case_closed_rejected")
+
+    if decision == "clarify":
+        return Command(update=update, goto="supervisor")
+
+    # approve
+    if entry_reason == "guardrail_failure":
+        # Guardrail ran and failed — analyst overrides, skip to report
+        return Command(
+            update=update,
+            goto=["report_generation", "timeline_artifact_generation"],
+        )
+    else:
+        # Debate exhausted, guardrail never ran — must run guardrail first
+        return Command(update=update, goto="guardrail_tier1")
+
+
+# ===================================================================
+# 4 control-only nodes (no agent identity, no agent_traces entry)
+# ===================================================================
+
+def make_primary_tier_join_node(redis_client):
+    """D1: Factory that closes over redis_client for the real dead-end heuristic.
+
+    The returned node is called by LangGraph as `node(state)` after all three
+    primary agents have completed their fan-out and their findings are merged
+    into state. This is the correct place to evaluate whether a dead-end exists
+    (findings are available here; they were NOT available at Supervisor entry).
+
+    redis_client=None is safe — detect_dead_end handles it gracefully (returns
+    (False, []) unless test_control is set in state).
+    """
+    from .dead_end_detector import detect_dead_end
+
+    def primary_tier_join_node(state: dict) -> dict:
+        dead_end, categories = detect_dead_end(state, redis_client)
+        return {
+            "dead_end_detected": dead_end,
+            "dead_end_categories": categories,
+            "specialists_dispatched": categories if dead_end else [],
+        }
+
+    return primary_tier_join_node
+
+
+def specialist_join_node(state: dict) -> dict:
+    """Fan-in after specialist tier. Marks specialist stage complete."""
+    return {"case_status": "specialist_tier"}
+
+
+def final_output_join_node(state: dict) -> dict:
+    """Converges report + timeline artifact into final output."""
+    ref = None
+    if state.get("report_output") and state.get("timeline_artifact"):
+        ref = f"case-{state.get('case_id', 'unknown')}-final"
+    return {
+        "final_output_ref": ref,
+        "acceptance_status": "complete" if (state.get("report_metadata") or {}).get("status") == "complete"
+                             and (state.get("timeline_artifact_metadata") or {}).get("status") == "complete" else "incomplete",
+        "case_status": "closed",
+    }
+
+
+def case_closed_rejected_node(state: dict) -> dict:
+    """Terminal state for HITL reject. No report, no timeline artifact."""
+    return {"case_status": "closed"}

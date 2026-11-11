@@ -1,0 +1,23 @@
+PID   PPID  USER     RSS  VSZ  COMMAND
+    1     0 root     2132 3180 init(docker-des
+    5     1 root     1940 3180 init
+    8     1 root      768 3196 SessionLeader
+    9     8 root      960 3204 Relay(10)
+   10     9 root     8484 1.1g vpnkit-bridge
+   11     8 root     1152 3212 Relay(12)
+   12    11 root      18m 1.1g wsl-bootstrap
+   42    12 root      404  860 unshare
+   43    42 root      46m 1.2g initd
+   56    43 root     169m 1.3g initd
+   75    43 root     1540 3940 sh
+   76    75 root     2640 4272 login
+  108    76 root     3420 4204 bash
+  112    56 root     2800 4552 rpc.statd
+  113    56 100      3336  15m rpcbind
+  114    56 root     2168 2848 rpc.idmapd
+  118    56 root      38m 1.9g containerd-star
+  122    56 root      77m 3.0g containerd
+  159    56 root     113m 5.6g dockerd
+44897     1 root      768 3212 SessionLeader
+44898 44897 root      960 3228 Relay(44899)
+44899 44898 root      872 1632 ps

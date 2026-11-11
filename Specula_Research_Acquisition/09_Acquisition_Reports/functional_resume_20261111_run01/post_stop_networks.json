@@ -1,0 +1,68 @@
+[
+  {
+    "CreatedAt": "2026-11-11 06:13:05.543247658 +0000 UTC",
+    "Driver": "bridge",
+    "ID": "17eaf3dba292",
+    "IPv4": "true",
+    "IPv6": "false",
+    "Internal": "false",
+    "Labels": "",
+    "Name": "bridge",
+    "Scope": "local"
+  },
+  {
+    "CreatedAt": "2026-08-18 08:37:27.136347607 +0000 UTC",
+    "Driver": "host",
+    "ID": "44e6d3a05cea",
+    "IPv4": "true",
+    "IPv6": "false",
+    "Internal": "false",
+    "Labels": "",
+    "Name": "host",
+    "Scope": "local"
+  },
+  {
+    "CreatedAt": "2026-08-18 08:37:27.128731124 +0000 UTC",
+    "Driver": "null",
+    "ID": "7b6d5bd2fdab",
+    "IPv4": "true",
+    "IPv6": "false",
+    "Internal": "false",
+    "Labels": "",
+    "Name": "none",
+    "Scope": "local"
+  },
+  {
+    "CreatedAt": "2026-09-19 19:04:07.918293581 +0000 UTC",
+    "Driver": "bridge",
+    "ID": "a63c8a5f1546",
+    "IPv4": "true",
+    "IPv6": "false",
+    "Internal": "false",
+    "Labels": "com.docker.compose.network=default,com.docker.compose.project=sih-2026,com.docker.compose.version=2.40.3,com.docker.compose.config-hash=40b971617d82310479a5fbb1ccc7cbf83c714bfb09264505e04325de7dc55372",
+    "Name": "sih-2026_default",
+    "Scope": "local"
+  },
+  {
+    "CreatedAt": "2026-09-20 12:23:55.887357042 +0000 UTC",
+    "Driver": "bridge",
+    "ID": "5e450378eee9",
+    "IPv4": "true",
+    "IPv6": "false",
+    "Internal": "false",
+    "Labels": "com.docker.compose.config-hash=b1261cf89ae645043ec5e696695cf6883bd64d7e424f3ef85891c3fb358bc18e,com.docker.compose.network=twin-network,com.docker.compose.project=sih-2026,com.docker.compose.version=2.40.3",
+    "Name": "sih-2026_twin-network",
+    "Scope": "local"
+  },
+  {
+    "CreatedAt": "2026-10-27 09:33:54.128278145 +0000 UTC",
+    "Driver": "bridge",
+    "ID": "8dd63ff56c31",
+    "IPv4": "true",
+    "IPv6": "false",
+    "Internal": "false",
+    "Labels": "com.docker.compose.config-hash=2b289367a6be6aaf059dfc8b1dd88d656e09a4f532aedbb840e1d05ec6ca0990,com.docker.compose.network=default,com.docker.compose.project=specula-skeleton,com.docker.compose.version=2.40.3",
+    "Name": "specula-skeleton_default",
+    "Scope": "local"
+  }
+]

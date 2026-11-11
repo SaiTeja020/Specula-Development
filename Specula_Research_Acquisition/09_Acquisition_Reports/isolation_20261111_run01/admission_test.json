@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "approved_evidence_files": [
+    "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\fixtures\\evidence\\permitted.txt"
+  ],
+  "rejected_candidate": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\candidate_reparse",
+  "reason": "Rejected reparse/symlink: C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\candidate_reparse\\escape",
+  "candidate_never_mounted": true
+}

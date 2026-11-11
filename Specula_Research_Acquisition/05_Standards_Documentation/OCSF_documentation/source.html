@@ -1,0 +1,969 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <meta name="description" content="Open Cybersecurity Schema Framework">
+  <title>Open Cybersecurity Schema Framework</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href='/1.9.0/css/bootstrap-4.6.2.min.css'/>
+  <link rel="stylesheet" href='/1.9.0/css/bootstrap.select-1.13.18.min.css'/>
+  <link rel="stylesheet" href='/1.9.0/css/fontawesome-6.4.0.min.css'/>
+  <link rel="stylesheet" href='/1.9.0/css/app.css'/>
+
+  <script type="text/javascript" src='/1.9.0/js/jquery-3.5.1.slim.min.js'></script>
+  <script type="text/javascript" src='/1.9.0/js/app.js'></script>
+  <script type="text/javascript" src='/1.9.0/js/profiles.js'></script>
+
+  <script>
+    document.onreadystatechange = function(e)
+    {
+      if (document.readyState === 'interactive')
+      {
+        let selected_extensions = get_selected_extensions();
+        let selected_profiles = get_selected_profiles();
+
+        $.each(selected_extensions, function(key, value) {
+          $("#" + key).prop('checked', value);
+        });
+
+        // update the links with the selected extensions and profiles
+        const params = build_url_params(selected_extensions, selected_profiles);
+        $(".sidebar-section a").each(function() {
+          this.href = this.href + params;
+        });
+
+        // Also update main navigation links (skip dropdown toggles and hash-only links)
+        $(".top-navbar-nav a.nav-link").each(function() {
+          if (this.getAttribute('href') === '#' || this.classList.contains('dropdown-toggle')) {
+            return;
+          }
+          this.href = this.href + params;
+        });
+
+        // Update content links (class, object, category, profile links in page body)
+        $(".main-page a").each(function() {
+          const href = this.getAttribute('href');
+          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:')) {
+            return;
+          }
+          const schemaPath = href.replace(/^\/[\d.]+(?:-[^\/]+)?(?=\/)/, '');
+          // Only update internal schema navigation links
+          if (schemaPath.match(/^\/(classes|objects|categories|profiles|dictionary|data_types|visualizer)(?:\/|\?|$)/)) {
+            const joiner = href.includes('?') ? '&' : '';
+            this.href = this.href + (joiner ? params.replace('?', '&') : params);
+          }
+        });
+
+        // set the profile checkboxes
+        init_selected_profiles();
+
+        // initialize extension-profile dependencies
+        init_extension_profile_dependencies();
+      }
+    };
+
+    $(document).ready(function () {
+      let selected_extensions = get_selected_extensions();
+      let extensions = $("#extensions-list :checkbox");
+      extensions.on("change", function() {
+        extensions.each(function(){
+          selected_extensions[this.id] = this.checked;
+        });
+        set_selected_extensions(selected_extensions);
+
+        // Get current profiles and build complete URL
+        const selected_profiles = get_selected_profiles();
+        const params = build_url_params(selected_extensions, selected_profiles);
+
+        // Preserve non-filter query params (e.g. class=X, object=X)
+        const currentParams = new URLSearchParams(window.location.search);
+        const newParams = new URLSearchParams(params.replace('?', ''));
+        currentParams.forEach(function(value, key) {
+          if (key !== 'extensions' && key !== 'profiles') {
+            newParams.set(key, value);
+          }
+        });
+        window.location.search = '?' + newParams.toString();
+      });
+
+      // init the attributes dropdown filters
+      init_selected_attributes();
+
+      $("a.nav-link.active").removeClass("active");
+      let path = window.location.pathname.replace(/^\/[\d.]+(?:-[^\/]+)?/, '');
+      switch (path) {
+        case '/':
+          $('#home_id a.nav-link').addClass("active");
+          break;
+        case '/categories':
+          $('#categories_id a.nav-link').addClass("active");
+          break;
+        case '/classes':
+          $('#classes_id a.nav-link').addClass("active");
+          break;
+        case '/dictionary':
+          $('#dictionary_id a.nav-link').addClass("active");
+          break;
+        case '/objects':
+          $('#objects_id a.nav-link').addClass("active");
+          break;
+        case '/profiles':
+          $('#profiles_id a.nav-link').addClass("active");
+          break;
+        case '/objects/observable':
+          $('#observable_id a.nav-link').addClass("active");
+          break;
+        case '/classes/base_event':
+          $('#base_event_id a.nav-link').addClass("active");
+          break;
+        case '/data_types':
+          $('#data_types_id a.nav-link').addClass("active");
+          break;
+      }
+    });
+  </script>
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-light navbar-expand-md">
+  <a class="navbar-brand d-md-none" href="/1.9.0/?extensions=" onclick="reset_home_page()">
+    <img src='/1.9.0/images/ocsf-logo.png' alt="OCSF" height="32" class="d-inline-block align-top">
+  </a>
+
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-chevron-down"></i>
+  </button>
+
+  <nav class="navbar navbar-bg collapse navbar-collapse navbar-expand-md navbar-light fixed-left">
+    <!-- Sidebar Header (Logo and Version) - Static -->
+    <div class="sidebar-header">
+      <div class="ocsf-logo">
+        <a href="/1.9.0/?extensions=" onclick="reset_home_page()">
+          <img src='/1.9.0/images/ocsf-logo.png' alt="OCSF"/>
+        </a>
+      </div>
+      <h6 class="container-fluid version">
+      <form autocomplete="off">
+        <select
+          class="select-version"
+          id="select_version"
+          onchange="selectVersionFun()">
+<option value='/1.10.0-dev'>v1.10.0-dev</option><option value='/1.9.0' selected=true disabled=true>v1.9.0</option><option value='/1.8.0'>v1.8.0</option><option value='/1.7.0'>v1.7.0</option><option value='/1.6.0'>v1.6.0</option><option value='/1.5.0'>v1.5.0</option><option value='/1.4.0'>v1.4.0</option><option value='/1.3.0'>v1.3.0</option><option value='/1.2.0'>v1.2.0</option><option value='/1.1.0'>v1.1.0</option><option value='/1.0.0'>v1.0.0</option><option value='/1.0.0-rc.3'>v1.0.0-rc.3</option><option value='/1.0.0-rc.2'>v1.0.0-rc.2</option>
+        </select>
+        </form>
+      </h6>
+
+      <script>
+      function selectVersionFun() {
+        let x = document.getElementById("select_version").value;
+        reset_home_page();
+        window.open(x, "_self");
+      }
+      </script>
+      <div class="changelog-container">
+        <a class="changelog-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CHANGELOG.md">
+          <i class="fas fa-history"></i>
+          Changelog
+        </a>
+      </div>
+    </div>
+
+    <!-- Sidebar Content - Scrollable -->
+    <div class="sidebar-content">
+      <!-- Extensions Section -->
+      <div class="sidebar-section">
+        <a target="_blank" class="sidebar-section-header" href=https://github.com/ocsf/ocsf-schema/blob/main/extensions.md>
+          <i class="fas fa-layer-group"></i> Extensions
+          <hr class="divider"/>
+        </a>
+        <div class="sidebar-section-content" id="extensions-list">
+          <ul class="sidebar-nav">
+
+
+            <li class="sidebar-nav-item">
+              <label for="linux">
+                <input type="checkbox" id="linux">
+Linux [1]</br>v1.9.0
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item">
+              <label for="win">
+                <input type="checkbox" id="win">
+Windows [2]</br>v1.9.0
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item">
+              <label for="macos">
+                <input type="checkbox" id="macos">
+macOS [3]</br>v1.9.0
+              </label>
+            </li>
+
+          </ul>
+        </div>
+      </div>
+
+
+      <!-- Profiles Section -->
+      <div class="sidebar-section">
+        <a id="profiles-link" class="sidebar-section-header" href='/1.9.0/profiles'>
+          <i class="fas fa-tag"></i> Profiles
+          <hr class="divider"/>
+        </a>
+        <div class="sidebar-section-content" id="profiles-list">
+          <ul class="sidebar-nav">
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="ai_operation">
+              <label>
+                <input type="checkbox" data-profile="ai_operation" id="ai_operation">
+                <span data-toggle="tooltip" title="message_context
+delegation
+ai_model
+ai_agent">AI Operation</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="cloud">
+              <label>
+                <input type="checkbox" data-profile="cloud" id="cloud">
+                <span data-toggle="tooltip" title="cloud
+api">Cloud</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="container">
+              <label>
+                <input type="checkbox" data-profile="container" id="container">
+                <span data-toggle="tooltip" title="namespace_pid
+container">Container</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="data_classification">
+              <label>
+                <input type="checkbox" data-profile="data_classification" id="data_classification">
+                <span data-toggle="tooltip" title="data_classifications
+data_classification">Data Classification</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="datetime">
+              <label>
+                <input type="checkbox" data-profile="datetime" id="datetime">
+                <span data-toggle="tooltip" title="">Date/Time</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="host">
+              <label>
+                <input type="checkbox" data-profile="host" id="host">
+                <span data-toggle="tooltip" title="actor
+device">Host</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="incident">
+              <label>
+                <input type="checkbox" data-profile="incident" id="incident">
+                <span data-toggle="tooltip" title="verdict_id
+verdict
+tickets
+src_url
+priority_id
+is_suspected_breach
+impact_score
+impact_id
+impact
+confidence_id
+confidence
+assignee_group
+assignee
+ticket
+priority">Incident</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="linux/linux_users">
+              <label>
+                <input type="checkbox" data-profile="linux/linux_users" id="linux-linux_users">
+                <span data-toggle="tooltip" title="euid
+egid
+auid
+group">Linux Users</span>
+<sup class='source-indicator-small extension-indicator' data-toggle='tooltip' title='From linux extension'><i class='fas fa-layer-group'></i></sup>
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="load_balancer">
+              <label>
+                <input type="checkbox" data-profile="load_balancer" id="load_balancer">
+                <span data-toggle="tooltip" title="load_balancer">Load Balancer</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="network_proxy">
+              <label>
+                <input type="checkbox" data-profile="network_proxy" id="network_proxy">
+                <span data-toggle="tooltip" title="proxy_traffic
+proxy_tls
+proxy_http_response
+proxy_http_request
+proxy_endpoint
+proxy_connection_info">Network Proxy</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="osint">
+              <label>
+                <input type="checkbox" data-profile="osint" id="osint">
+                <span data-toggle="tooltip" title="osint">OSINT</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="record_integrity">
+              <label>
+                <input type="checkbox" data-profile="record_integrity" id="record_integrity">
+                <span data-toggle="tooltip" title="attestation_list">Record Integrity</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="security_control">
+              <label>
+                <input type="checkbox" data-profile="security_control" id="security_control">
+                <span data-toggle="tooltip" title="risk_score
+risk_level_id
+risk_level
+risk_details
+policy
+malware_scan_info
+malware
+is_alert
+firewall_rule
+disposition_id
+confidence_score
+confidence_id
+confidence
+authorizations
+action_id
+attacks
+disposition
+action">Security Control</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="trace">
+              <label>
+                <input type="checkbox" data-profile="trace" id="trace">
+                <span data-toggle="tooltip" title="trace">Trace</span>
+
+              </label>
+            </li>
+
+
+            <li class="sidebar-nav-item profile-item" data-profile-name="macos/macos_users">
+              <label>
+                <input type="checkbox" data-profile="macos/macos_users" id="macos-macos_users">
+                <span data-toggle="tooltip" title="euid
+egid">macOS Users</span>
+<sup class='source-indicator-small extension-indicator' data-toggle='tooltip' title='From macos extension'><i class='fas fa-layer-group'></i></sup>
+              </label>
+            </li>
+
+          </ul>
+        </div>
+      </div>
+
+      <!-- Display Options Section -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <i class="fas fa-cog"></i> Options
+          <hr class="divider"/>
+        </div>
+        <div class="sidebar-section-content sidebar-options">
+          <div class="pill-group">
+            <span class="pill-label">Dark mode</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="theme-toggle" onclick="toggleTheme(); updateThemePill()">
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+          <div class="pill-group">
+            <span class="pill-label">Compact view</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="compact-view-toggle" onclick="toggleCompactView(this)" checked>
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+          <div class="pill-group">
+            <span class="pill-label">Show deprecated</span>
+            <label class="pill-toggle">
+              <input type="checkbox" id="show-deprecated-global" class="show-deprecated-checkbox" data-toggle="collapse" data-target=".deprecated" onclick="on_click_show_deprecated(this)">
+              <span class="pill-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </nav>
+
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+    <ul class="top-navbar-nav navbar-nav ml-auto">
+      <li id="categories_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/categories'>Categories</a>
+      </li>
+      <li id="classes_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/classes'>Classes</a>
+      </li>
+      <li id="dictionary_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/dictionary'>Dictionary</a>
+      </li>
+      <li id="objects_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/objects'>Objects</a>
+      </li>
+      <li id="profiles_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/profiles'>Profiles</a>
+      </li>
+      <li id="observable_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/objects/observable'>Observable</a>
+      </li>
+      <li id="base_event_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/classes/base_event'>Base Event</a>
+      </li>
+      <li id="data_types_id" class="nav-item">
+        <a class="nav-link" href='/1.9.0/data_types'>Data Types</a>
+      </li>
+
+      <div class="navbar-text">|</div>
+
+      <li id="resources_id" class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="javascript:void(0)" role="button">Resources</a>
+        <div class="dropdown-content">
+          <a class="dropdown-link" target="_blank" href='/1.9.0/doc/index.html'>API Documentation</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/blob/main/overview/understanding-ocsf.md">Understanding OCSF</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-docs/tree/main/faqs">FAQ</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/examples/tree/main">Example Mappings</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-schema">Fork Me on GitHub</a>
+          <a class="dropdown-link" target="_blank" href="https://github.com/ocsf/ocsf-schema/blob/main/CONTRIBUTING.md">Contributing to OCSF</a>
+        </div>
+      </li>
+
+    </ul>
+  </div>
+</nav>
+
+<!-- Sidebar Toggle Button - positioned in top-left corner -->
+<button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar">
+  <i id="sidebar-toggle-icon" class="fas fa-chevron-left"></i>
+</button>
+
+<div class="main-page">
+  <main role="main" class="container-fluid">
+
+<div class="row fade-in">
+  <div class="col-md move-up">
+    <h3>Categories</h3>
+    <div class="text-secondary description-content">
+The OCSF categories organize event classes, each aligned with a specific domain or area of focus.
+    </div>
+  </div>
+  <div class="navbar-nav col-md-auto fixed-right mt-2">
+    <input type="text" id="tableSearch" onkeyup="searchInTable()" class="form-control border-dark" placeholder="Search" autofocus>
+  </div>
+</div>
+
+<div class="mt-3 multi-col">
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/system">System Activity<span class='uid'> [1]</span></a></header>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/file_activity">File System Activity<span class='uid'> [1001]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/kernel_extension_activity">Kernel Extension Activity<span class='uid'> [1002]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/kernel_activity">Kernel Activity<span class='uid'> [1003]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/memory_activity">Memory Activity<span class='uid'> [1004]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/module_activity">Module Activity<span class='uid'> [1005]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/scheduled_job_activity">Scheduled Job Activity<span class='uid'> [1006]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/process_activity">Process Activity<span class='uid'> [1007]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/event_log_actvity">Event Log Activity<span class='uid'> [1008]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/script_activity">Script Activity<span class='uid'> [1009]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/peripheral_activity">Peripheral Activity<span class='uid'> [1010]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/device_power_state_activity">Device Power State Activity<span class='uid'> [1011]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/clipboard_activity">Clipboard Activity<span class='uid'> [1012]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/findings">Findings<span class='uid'> [2]</span></a></header>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/security_finding">Security Finding<span class='uid'> [2001]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/vulnerability_finding">Vulnerability Finding<span class='uid'> [2002]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/compliance_finding">Compliance Finding<span class='uid'> [2003]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/detection_finding">Detection Finding<span class='uid'> [2004]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/incident_finding">Incident Finding<span class='uid'> [2005]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/data_security_finding">Data Security Finding<span class='uid'> [2006]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/application_security_posture_finding">Application Security Posture Finding<span class='uid'> [2007]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,incident,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/iam_analysis_finding">IAM Analysis Finding<span class='uid'> [2008]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/iam">Identity & Access Management<span class='uid'> [3]</span></a></header>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/account_change">Account Change<span class='uid'> [3001]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/authentication">Authentication<span class='uid'> [3002]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/authorize_session">Authorize Session<span class='uid'> [3003]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/entity_management">Entity Management<span class='uid'> [3004]</span></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/user_access">User Access Management<span class='uid'> [3005]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/group_management">Group Management<span class='uid'> [3006]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/user_management">User Management<span class='uid'> [3007]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/role_management">Role Management<span class='uid'> [3008]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/network">Network Activity<span class='uid'> [4]</span></a></header>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/network_activity">Network Activity<span class='uid'> [4001]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control,trace'><a href="/1.9.0/classes/http_activity">HTTP Activity<span class='uid'> [4002]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/dns_activity">DNS Activity<span class='uid'> [4003]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/dhcp_activity">DHCP Activity<span class='uid'> [4004]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/rdp_activity">RDP Activity<span class='uid'> [4005]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/smb_activity">SMB Activity<span class='uid'> [4006]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/ssh_activity">SSH Activity<span class='uid'> [4007]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/ftp_activity">FTP Activity<span class='uid'> [4008]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/email_activity">Email Activity<span class='uid'> [4009]</span></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/network_file_activity">Network File Activity<span class='uid'> [4010]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/email_file_activity">Email File Activity<span class='uid'> [4011]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/email_url_activity">Email URL Activity<span class='uid'> [4012]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/ntp_activity">NTP Activity<span class='uid'> [4013]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,load_balancer,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/tunnel_activity">Tunnel Activity<span class='uid'> [4014]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/discovery">Discovery<span class='uid'> [5]</span></a></header>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/inventory_info">Device Inventory Info<span class='uid'> [5001]</span></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/config_state">Device Config State<span class='uid'> [5002]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/user_inventory">User Inventory Info<span class='uid'> [5003]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/patch_state">Operating System Patch State<span class='uid'> [5004]</span></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/kernel_object_query">Kernel Object Query<span class='uid'> [5006]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/file_query">File Query<span class='uid'> [5007]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/folder_query">Folder Query<span class='uid'> [5008]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/admin_group_query">Admin Group Query<span class='uid'> [5009]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/job_query">Job Query<span class='uid'> [5010]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/module_query">Module Query<span class='uid'> [5011]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/network_connection_query">Network Connection Query<span class='uid'> [5012]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/networks_query">Networks Query<span class='uid'> [5013]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/peripheral_device_query">Peripheral Device Query<span class='uid'> [5014]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/process_query">Process Query<span class='uid'> [5015]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/service_query">Service Query<span class='uid'> [5016]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/session_query">User Session Query<span class='uid'> [5017]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/user_query">User Query<span class='uid'> [5018]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/device_config_state_change">Device Config State Change<span class='uid'> [5019]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/software_info">Software Inventory Info<span class='uid'> [5020]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/osint_inventory_info">OSINT Inventory Info<span class='uid'> [5021]</span></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/startup_item_query">Startup Item Query<span class='uid'> [5022]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/cloud_resources_inventory_info">Cloud Resources Inventory Info<span class='uid'> [5023]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/evidence_info">Live Evidence Info<span class='uid'> [5040]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/application">Application Activity<span class='uid'> [6]</span></a></header>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/web_resources_activity">Web Resources Activity<span class='uid'> [6001]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/application_lifecycle">Application Lifecycle<span class='uid'> [6002]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control,trace'><a href="/1.9.0/classes/api_activity">API Activity<span class='uid'> [6003]</span></a></div>
+
+
+
+    <div class="ocsf-class collapse deprecated" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,network_proxy,osint,record_integrity,security_control'><a href="/1.9.0/classes/web_resource_access_activity">Web Resource Access Activity<span class='uid'> [6004]</span> <sup class="bg-warning" data-toggle="tooltip" title="Deprecated">D</sup></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/datastore_activity">Datastore Activity<span class='uid'> [6005]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/file_hosting">File Hosting Activity<span class='uid'> [6006]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/scan_activity">Scan Activity<span class='uid'> [6007]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='ai_operation,cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/application_error">Application Error<span class='uid'> [6008]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/remediation">Remediation<span class='uid'> [7]</span></a></header>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/remediation_activity">Remediation Activity<span class='uid'> [7001]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/file_remediation_activity">File Remediation Activity<span class='uid'> [7002]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/process_remediation_activity">Process Remediation Activity<span class='uid'> [7003]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/network_remediation_activity">Network Remediation Activity<span class='uid'> [7004]</span></a></div>
+
+  </section>
+
+
+
+  <section class="category">
+    <header><a href="/1.9.0/categories/unmanned_systems">Unmanned Systems<span class='uid'> [8]</span></a></header>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/drone_flights_activity">Drone Flights Activity<span class='uid'> [8001]</span></a></div>
+
+
+
+    <div class="ocsf-class" data-profiles='cloud,container,data_classification,datetime,host,linux/linux_users,macos/macos_users,osint,record_integrity,security_control'><a href="/1.9.0/classes/airborne_broadcast_activity">Airborne Broadcast Activity<span class='uid'> [8002]</span></a></div>
+
+  </section>
+
+</div>
+
+<script>
+  init_class_profiles();
+  init_show_deprecated();
+</script>
+
+  </main>
+</div>
+
+<div class="footer">
+  OCSF Server version 4.5.0.
+  Copyright &copy; OCSF a Series of LF Projects, LLC.
+  For web site terms of use, trademark policy and other project policies please see <a href="https://lfprojects.org">LF Projects, LLC</a>.
+  This content includes the ICD Schema developed by Symantec, a division of Broadcom.
+</div>
+
+<script type="text/javascript" src='/1.9.0/js/popper.min.js'></script>
+<script type="text/javascript" src='/1.9.0/js/bootstrap-4.6.2.bundle.min.js'></script>
+<script type="text/javascript" src='/1.9.0/js/bootstrap.select-1.13.18.min.js'></script>
+<script type="text/javascript" src='/1.9.0/js/sorttable.js'></script>
+
+
+<script>
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip({
+      delay: { "show": 300, "hide": 100 }
+    })
+  });
+
+  // Profile highlighting functionality
+  window.highlightApplicableProfiles = function(applicableProfiles) {
+    // Reset all profile highlighting
+    $('.profile-item').removeClass('profile-applicable profile-not-applicable');
+
+    if (!applicableProfiles || applicableProfiles.length === 0) {
+      return;
+    }
+
+    // Add highlighting classes
+    $('.profile-item').each(function() {
+      const profileName = $(this).data('profile-name');
+      if (applicableProfiles.includes(profileName)) {
+        $(this).addClass('profile-applicable');
+      } else {
+        $(this).addClass('profile-not-applicable');
+      }
+    });
+  };
+
+  // Clear profile highlighting
+  window.clearProfileHighlighting = function() {
+    $('.profile-item').removeClass('profile-applicable profile-not-applicable');
+  };
+
+  // Pill toggle helpers
+  function updateThemePill() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    document.getElementById('theme-toggle').checked = (theme === 'dark');
+  }
+
+  function toggleCompactView(el) {
+    document.body.classList.toggle('full-width-mode', !el.checked);
+    localStorage.setItem('schema_compact_view', el.checked);
+  }
+
+  // Initialize pill states
+  (function() {
+    // Theme pill
+    updateThemePill();
+
+    // Compact view
+    const isCompact = localStorage.getItem('schema_compact_view');
+    const compact = isCompact === null ? true : isCompact === 'true';
+    document.getElementById('compact-view-toggle').checked = compact;
+    if (!compact) document.body.classList.add('full-width-mode');
+  })();
+</script>
+
+</body>
+</html>

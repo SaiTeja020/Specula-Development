@@ -1,0 +1,153 @@
+{
+  "status": "PASS",
+  "scope": "package/static input contract and local hash inspection ONLY",
+  "records": 8,
+  "source_files": 5,
+  "derived_zip_bytes": 2750,
+  "derived_sha256": "cbf8263fe0e1c94996412996d88d0e01a85990fca92737d97eee58d55782de14",
+  "original_validation": {
+    "source": "uploaded_zip",
+    "archive_sha256": "8d8d228df7a841e3a30da9a839e9ec4de5aee00fef35c640e534460e7b21ff5d",
+    "archive_bytes": 2904,
+    "received_at": "2026-11-11T09:03:44.640496+00:00",
+    "files": [
+      {
+        "path": "edr/alerts.jsonl",
+        "source_type": "edr",
+        "bytes": 1236,
+        "sha256": "102bb7e2e57728a45ef9fef75f7695de9f19859285de22a4925d78e3fe02fa89",
+        "records": 3
+      },
+      {
+        "path": "edr/network.jsonl",
+        "source_type": "edr",
+        "bytes": 472,
+        "sha256": "e1d0ac6a2aa510191bb600581c0a53113a6a1daff918b5e6c27dccffa86f7640",
+        "records": 1
+      },
+      {
+        "path": "ueba/events.json",
+        "source_type": "ueba",
+        "bytes": 379,
+        "sha256": "087504c3a232b5d84410796371ff1f987070f02e3351ef0bf8ce1b723b2f9498",
+        "records": 1
+      },
+      {
+        "path": "windows/Security.json",
+        "source_type": "evtx",
+        "bytes": 850,
+        "sha256": "1500ae859df6b9a5022c1b07d0a1a2812fb85cae32c29760742da88f069077d6",
+        "records": 2
+      },
+      {
+        "path": "windows/Sysmon.jsonl",
+        "source_type": "evtx",
+        "bytes": 692,
+        "sha256": "149ed1d3a8bfa0d7c898a14c137b992581ec16ae452b228de4ce59fb9c30293e",
+        "records": 1
+      }
+    ],
+    "declared_metadata": {
+      "description": "Inert synthetic development pilot; no acquired incident evidence.",
+      "files": {
+        "edr/alerts.jsonl": {
+          "sha256": "102bb7e2e57728a45ef9fef75f7695de9f19859285de22a4925d78e3fe02fa89",
+          "size_bytes": 1236
+        },
+        "edr/network.jsonl": {
+          "sha256": "e1d0ac6a2aa510191bb600581c0a53113a6a1daff918b5e6c27dccffa86f7640",
+          "size_bytes": 472
+        },
+        "ueba/events.json": {
+          "sha256": "087504c3a232b5d84410796371ff1f987070f02e3351ef0bf8ce1b723b2f9498",
+          "size_bytes": 379
+        },
+        "windows/Security.json": {
+          "sha256": "1500ae859df6b9a5022c1b07d0a1a2812fb85cae32c29760742da88f069077d6",
+          "size_bytes": 850
+        },
+        "windows/Sysmon.jsonl": {
+          "sha256": "149ed1d3a8bfa0d7c898a14c137b992581ec16ae452b228de4ce59fb9c30293e",
+          "size_bytes": 692
+        }
+      },
+      "fixture_id": "case-001",
+      "synthetic": true
+    },
+    "custody_status": "Receipt recorded; acquisition and prior custody are uploader declarations"
+  },
+  "derived_validation": {
+    "source": "uploaded_zip",
+    "archive_sha256": "cbf8263fe0e1c94996412996d88d0e01a85990fca92737d97eee58d55782de14",
+    "archive_bytes": 2750,
+    "received_at": "2026-11-11T09:03:44.666595+00:00",
+    "files": [
+      {
+        "path": "edr/alerts.jsonl",
+        "source_type": "edr",
+        "bytes": 1179,
+        "sha256": "1099de83b40a2f5b938a970e85f4a55125c01295a1c64ea619015f6809ac3c4a",
+        "records": 3
+      },
+      {
+        "path": "edr/network.jsonl",
+        "source_type": "edr",
+        "bytes": 453,
+        "sha256": "1f8dbe21c3fe689acac2e7186bc26d29c2e3e09acf809af5c61a29a0bc613008",
+        "records": 1
+      },
+      {
+        "path": "ueba/events.json",
+        "source_type": "ueba",
+        "bytes": 356,
+        "sha256": "2fcea50a3a1dee53ef363adca178f35b3468385fcca120511a4d3d4e91b57d5c",
+        "records": 1
+      },
+      {
+        "path": "windows/Security.json",
+        "source_type": "evtx",
+        "bytes": 804,
+        "sha256": "89b956e23d8f4403e5baffca09ca193dbc133f282c3bd0968d2cf3c034db1814",
+        "records": 2
+      },
+      {
+        "path": "windows/Sysmon.jsonl",
+        "source_type": "evtx",
+        "bytes": 673,
+        "sha256": "d41b51ec810c07da36b4cee1dfb2fb8dfd8c3a251b51eae3c2dd5e1e4c7cf9fe",
+        "records": 1
+      }
+    ],
+    "declared_metadata": {
+      "files": {
+        "edr/alerts.jsonl": {
+          "sha256": "1099de83b40a2f5b938a970e85f4a55125c01295a1c64ea619015f6809ac3c4a",
+          "size_bytes": 1179
+        },
+        "edr/network.jsonl": {
+          "sha256": "1f8dbe21c3fe689acac2e7186bc26d29c2e3e09acf809af5c61a29a0bc613008",
+          "size_bytes": 453
+        },
+        "ueba/events.json": {
+          "sha256": "2fcea50a3a1dee53ef363adca178f35b3468385fcca120511a4d3d4e91b57d5c",
+          "size_bytes": 356
+        },
+        "windows/Security.json": {
+          "sha256": "89b956e23d8f4403e5baffca09ca193dbc133f282c3bd0968d2cf3c034db1814",
+          "size_bytes": 804
+        },
+        "windows/Sysmon.jsonl": {
+          "sha256": "d41b51ec810c07da36b4cee1dfb2fb8dfd8c3a251b51eae3c2dd5e1e4c7cf9fe",
+          "size_bytes": 673
+        }
+      }
+    },
+    "custody_status": "Receipt recorded; acquisition and prior custody are uploader declarations"
+  },
+  "image_count": 8,
+  "model_count": 2,
+  "parent_tracked_status": "",
+  "runtime_provisioned": false,
+  "investigation_started": false,
+  "functional_results": null
+}

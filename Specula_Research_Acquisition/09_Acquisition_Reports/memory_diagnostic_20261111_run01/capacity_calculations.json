@@ -1,0 +1,33 @@
+{
+  "budget_MiB": 10704,
+  "VM_MemAvailable_min_MiB": 10186.48828125,
+  "VM_MemTotal_MiB": 11958.6640625,
+  "required_extra_MiB": {
+    "0": 517.51171875,
+    "1024": 1541.51171875,
+    "2048": 2565.51171875
+  },
+  "budget_plus_1GiB_MiB": 11728,
+  "budget_plus_2GiB_MiB": 12752,
+  "VM_room_after_budget_plus_1GiB_MiB": 230.6640625,
+  "VM_deficit_even_if_empty_for_2GiB_MiB": 793.3359375,
+  "kubernetes_processes": 11,
+  "kubernetes_PSS_MiB": 851.94140625,
+  "kubernetes_private_dirty_MiB": 435.8984375,
+  "kubernetes_private_clean_MiB": 368.89453125,
+  "Windows_usable_GiB": 15.692092895507812,
+  "Windows_available_samples_GiB": [
+    4.005016326904297,
+    4.015033721923828,
+    4.127830505371094
+  ],
+  "nonVM_private_resident_GiB": 5.104511260986328,
+  "physical_remainder_for_host_baseline_with_1GiB_headroom_GiB": 4.2389678955078125,
+  "physical_remainder_for_host_baseline_with_2GiB_headroom_GiB": 3.2389678955078125,
+  "proposal_total_MiB": 9680,
+  "proposal_budget_reduction_MiB": 1024,
+  "proposal_current_VM_headroom_MiB": 506.48828125,
+  "proposal_extra_for_1GiB_headroom_MiB": 517.51171875,
+  "provisioning": "BLOCKED",
+  "actions_applied": []
+}

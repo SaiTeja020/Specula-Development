@@ -1,0 +1,49 @@
+{
+  "Id": "sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3",
+  "RepoTags": [
+    "specula-isolation-canary:20261111-01"
+  ],
+  "RepoDigests": [
+    "specula-isolation-canary@sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3"
+  ],
+  "Comment": "buildkit.dockerfile.v0",
+  "Created": "2026-11-11T07:28:34.570768933Z",
+  "Config": {
+    "User": "10001:10001",
+    "Env": [
+      "PATH=/usr/local/bin",
+      "PYTHONPATH=/app",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "PYTHONUNBUFFERED=1",
+      "HOME=/tmp",
+      "TMPDIR=/tmp",
+      "SPECULA_AUTH_POLICY_PATH=/app/preflight/viewer_policy.json"
+    ],
+    "Entrypoint": [
+      "/usr/local/bin/python",
+      "-B",
+      "-u",
+      "/app/preflight/runner.py"
+    ],
+    "WorkingDir": "/app"
+  },
+  "Architecture": "amd64",
+  "Os": "linux",
+  "Size": 351863786,
+  "RootFS": {
+    "Type": "layers",
+    "Layers": [
+      "sha256:4c02c034a7d40975bd6c672e07c9d48caf3d4f71bf8cbebb9ea7962b0bfddccc",
+      "sha256:20b19b18d02792b07ed5b84da1d1520cc1260f02c201cf2f4d3ce8bdecc940bb",
+      "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+    ]
+  },
+  "Metadata": {
+    "LastTagTime": "2026-11-11T07:29:03.345841484Z"
+  },
+  "Descriptor": {
+    "mediaType": "application/vnd.oci.image.index.v1+json",
+    "digest": "sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3",
+    "size": 855
+  }
+}

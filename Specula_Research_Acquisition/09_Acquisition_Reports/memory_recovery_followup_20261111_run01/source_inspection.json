@@ -1,0 +1,18 @@
+[
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\docker-compose.yml",
+    "sha256": "36f048943218d397f4f65a257088f02391ff973105da527637bf2d6f416d5dc4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\docker-compose.local.yml",
+    "sha256": "9fac6dc1f080152688bc963f62e2296fa0a1e2ad4768f75bd8094186029f235e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\kubernetes_audit.py",
+    "sha256": "8e6436a8ebc44949d9541846a5467dc437f48e2832671ce7e6e1fb4ed12fc006"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\normalization\\kubernetes_normalizer.py",
+    "sha256": "29836b94645c46b845a7b7df2e0e15d382d528bd5be9e9b7e3fe4c456c735783"
+  }
+]

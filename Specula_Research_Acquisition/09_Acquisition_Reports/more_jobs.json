@@ -1,0 +1,154 @@
+[
+  {
+    "url": "https://arxiv.org/pdf/2409.02572v4",
+    "relative": "03_Research_Papers/2409.02572/2409.02572v4.pdf"
+  },
+  {
+    "url": "https://arxiv.org/pdf/2005.11401v4",
+    "relative": "03_Research_Papers/2005.11401/2005.11401v4.pdf"
+  },
+  {
+    "url": "https://arxiv.org/pdf/2210.03629v3",
+    "relative": "03_Research_Papers/2210.03629/2210.03629v3.pdf"
+  },
+  {
+    "url": "https://arxiv.org/pdf/2404.16130v2",
+    "relative": "03_Research_Papers/2404.16130/2404.16130v2.pdf"
+  },
+  {
+    "url": "https://ndownloader.figshare.com/files/24860765",
+    "relative": "01_Forensic_Datasets/CERT/SEI_Insider_README.txt"
+  },
+  {
+    "url": "https://ndownloader.figshare.com/files/24857828",
+    "relative": "07_Evaluation_Artifacts/evaluator_only/CERT/answers.tar.bz2"
+  },
+  {
+    "url": "https://ndownloader.figshare.com/files/24857831",
+    "relative": "01_Forensic_Datasets/CERT/CHECKSUMS-sha256.txt"
+  },
+  {
+    "url": "https://ndownloader.figshare.com/files/24857837",
+    "relative": "01_Forensic_Datasets/CERT/CHECKSUMS-sha1.txt"
+  },
+  {
+    "url": "https://drive.google.com/drive/folders/1T1kXs0G9cTxi7p2Jqi60ApWNOfvVqFkp",
+    "relative": "01_Forensic_Datasets/OpTC/documentation/drive_bro.html"
+  },
+  {
+    "url": "https://drive.google.com/drive/folders/1NwaCWRyr_coyPbF2SvScbani5O9MXp7_",
+    "relative": "01_Forensic_Datasets/OpTC/documentation/drive_ecar.html"
+  },
+  {
+    "url": "https://api.crossref.org/works/10.1109/ACCESS.2025.3602681",
+    "relative": "03_Research_Papers/Hmimou/crossref_metadata.json"
+  },
+  {
+    "url": "https://doi.org/10.1109/ACCESS.2025.3602681",
+    "relative": "03_Research_Papers/Hmimou/publisher_source.html"
+  },
+  {
+    "url": "https://api.github.com/repos/Velocidex/velociraptor",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_Velocidex_velociraptor.json"
+  },
+  {
+    "url": "https://api.github.com/repos/zeek/zeek",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_zeek_zeek.json"
+  },
+  {
+    "url": "https://api.github.com/repos/OISF/suricata",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_OISF_suricata.json"
+  },
+  {
+    "url": "https://api.github.com/repos/volatilityfoundation/volatility3",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_volatilityfoundation_volatility3.json"
+  },
+  {
+    "url": "https://api.github.com/repos/logpai/Drain3",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_logpai_Drain3.json"
+  },
+  {
+    "url": "https://api.github.com/repos/langchain-ai/langgraph",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_langchain-ai_langgraph.json"
+  },
+  {
+    "url": "https://api.github.com/repos/neo4j/neo4j",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_neo4j_neo4j.json"
+  },
+  {
+    "url": "https://api.github.com/repos/facebookresearch/faiss",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_facebookresearch_faiss.json"
+  },
+  {
+    "url": "https://api.github.com/repos/chroma-core/chroma",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_chroma-core_chroma.json"
+  },
+  {
+    "url": "https://api.github.com/repos/networkx/networkx",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_networkx_networkx.json"
+  },
+  {
+    "url": "https://api.github.com/repos/scikit-learn/scikit-learn",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_scikit-learn_scikit-learn.json"
+  },
+  {
+    "url": "https://api.github.com/repos/redcanaryco/atomic-red-team",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_redcanaryco_atomic-red-team.json"
+  },
+  {
+    "url": "https://api.github.com/repos/mitre/caldera",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_mitre_caldera.json"
+  },
+  {
+    "url": "https://api.github.com/repos/SigmaHQ/sigma",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_SigmaHQ_sigma.json"
+  },
+  {
+    "url": "https://api.github.com/repos/kevoreilly/CAPEv2",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_kevoreilly_CAPEv2.json"
+  },
+  {
+    "url": "https://api.github.com/repos/VirusTotal/yara-x",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_VirusTotal_yara-x.json"
+  },
+  {
+    "url": "https://api.github.com/repos/giampaolo/psutil",
+    "relative": "09_Acquisition_Reports/source_metadata/repo_giampaolo_psutil.json"
+  },
+  {
+    "url": "https://www.wireshark.org/download.html",
+    "relative": "05_Standards_Documentation/tool_reference_pages/Wireshark.html"
+  },
+  {
+    "url": "https://ericzimmerman.github.io/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/Zimmerman.html"
+  },
+  {
+    "url": "https://docs.pytest.org/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/pytest.html"
+  },
+  {
+    "url": "https://pandas.pydata.org/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/pandas.html"
+  },
+  {
+    "url": "https://scipy.org/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/SciPy.html"
+  },
+  {
+    "url": "https://www.statsmodels.org/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/statsmodels.html"
+  },
+  {
+    "url": "https://mlflow.org/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/MLflow.html"
+  },
+  {
+    "url": "https://dvc.org/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/DVC.html"
+  },
+  {
+    "url": "https://supreme.justia.com/cases/federal/us/509/579/",
+    "relative": "05_Standards_Documentation/tool_reference_pages/Daubert.html"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "time_utc": "2026-11-11T07:31:17Z",
+  "regular_files": 38425,
+  "bytes_scanned": 1190271650,
+  "restricted_marker_matches": [],
+  "forbidden_project_asset_paths": [],
+  "python_path_files": [
+    "usr/local/lib/python3.10/site-packages/coloredlogs.pth",
+    "usr/local/lib/python3.10/site-packages/distutils-precedence.pth"
+  ],
+  "scope": "Full final exported image/container regular files; tmpfs and evidence mount separately tested. No inherited old application layers."
+}

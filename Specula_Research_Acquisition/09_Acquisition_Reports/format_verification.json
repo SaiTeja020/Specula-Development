@@ -1,0 +1,71 @@
+{
+  "checked_at": "2026-11-11T05:40:37.673915+00:00",
+  "stix_objects": 26086,
+  "stix_git_blob_sha1": "8b8a9c8cc9e553f96f963b91265f50ee0854636d",
+  "ocsf_version": "1.9.0",
+  "dfir_question_counts": {
+    "DFIR-Metric-CTF": 150,
+    "DFIR-Metric-MCQ": 713,
+    "DFIR-Metric-NSS": 510
+  },
+  "cfa_evidence_files": 59,
+  "cfa_cases": 20,
+  "pdfs": [
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\NIST_Hacking_Case\\TestAnswers.pdf",
+      "pages": 4
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\OpTC\\OpTCRedTeamGroundTruth.pdf",
+      "pages": 7
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\DFIR-Metric\\2505.19973v1.pdf",
+      "pages": 15
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\05_Standards_Documentation\\NIST_SP_800-86\\nistspecialpublication800-86.pdf",
+      "pages": 121
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\05_Standards_Documentation\\NIST_SP_800-61r3\\NIST.SP.800-61r3.pdf",
+      "pages": 48
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\05_Standards_Documentation\\NIST_AI_600-1\\source.pdf",
+      "pages": 64
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\2409.02572\\2409.02572v4.pdf",
+      "pages": 24
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\2005.11401\\2005.11401v4.pdf",
+      "pages": 19
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\2210.03629\\2210.03629v3.pdf",
+      "pages": 33
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\2404.16130\\2404.16130v2.pdf",
+      "pages": 26
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\Hmimou\\ACCESS.2025.3602681.pdf",
+      "pages": 17
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\Drain2017\\ICWS17-author-copy.pdf",
+      "pages": 8
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\1806.04356\\1806.04356v1.pdf",
+      "pages": 14
+    },
+    {
+      "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\CyberSleuth\\2508.20643v2.pdf",
+      "pages": 21
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[wsl2]
+# Prioritize stability over performance for heavy computer vision tasks
+memory=12GB
+swap=32GB
+pageReporting=false
+localhostForwarding=true
+
+[experimental]
+autoMemoryReclaim=dropcache

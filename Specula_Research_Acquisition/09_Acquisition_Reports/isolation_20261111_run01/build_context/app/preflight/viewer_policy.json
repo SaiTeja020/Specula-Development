@@ -1,0 +1,15 @@
+{
+  "principals": {
+    "canary-viewer": {
+      "role": "viewer",
+      "cases": []
+    }
+  },
+  "local_tokens": [
+    {
+      "subject": "canary-viewer",
+      "token_sha256": "61a9b22742d29c4daddf3bee2af20603bb5b3c78f38842baea2c84972416a528",
+      "expires_at": 1794385547.802904
+    }
+  ]
+}

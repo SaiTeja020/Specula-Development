@@ -1,0 +1,237 @@
+{
+  "status": "DRAFT_REQUIRES_OWNER_APPROVAL_NOT_FROZEN",
+  "observed": {
+    "observed_utc": "2026-11-11T06:52:15.142019+00:00",
+    "source_commit": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+    "inspection_python": "3.13.5",
+    "docker_engine": "29.0.1 (read-only docker version)",
+    "running_evaluation_containers": 0,
+    "existing_image_digest": "sha256:51b60fd7b1eba332efcfbbce0eff039bb12b2e31ddefd171ff67f5eca5e58b69",
+    "existing_image_explicit_user": null,
+    "ollama_live_api": "connection refused; service not started",
+    "ollama_current_server_version": null,
+    "historical_server_version": "0.13.3 in 2026-11-10 residency receipt; not a current observation",
+    "cached_models": [
+      {
+        "tag": "qwen3:8b",
+        "manifest_path": "C:\\Users\\DELL\\.ollama\\models\\manifests\\registry.ollama.ai\\library\\qwen3\\8b",
+        "manifest_sha256": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+        "layers": [
+          {
+            "digest_reference": "sha256:05a61d37b08453e59290add468e3bb2f688e23a01e967fecb0e2fa41218cea76",
+            "expected_bytes": 487,
+            "local_blob_exists": true,
+            "actual_bytes": 487,
+            "full_blob_sha256_checked": false
+          },
+          {
+            "digest_reference": "sha256:a3de86cd1c132c822487ededd47a324c50491393e6565cd14bafa40d0b8e686f",
+            "expected_bytes": 5225374496,
+            "local_blob_exists": true,
+            "actual_bytes": 5225374496,
+            "full_blob_sha256_checked": false
+          },
+          {
+            "digest_reference": "sha256:ae370d884f108d16e7cc8fd5259ebc5773a0afa6e078b11f4ed7e39a27e0dfc4",
+            "expected_bytes": 1723,
+            "local_blob_exists": true,
+            "actual_bytes": 1723,
+            "full_blob_sha256_checked": false
+          },
+          {
+            "digest_reference": "sha256:d18a5cc71b84bc4af394a31116bd3932b42241de70c77d2b76d69a314ec8aa12",
+            "expected_bytes": 11338,
+            "local_blob_exists": true,
+            "actual_bytes": 11338,
+            "full_blob_sha256_checked": false
+          },
+          {
+            "digest_reference": "sha256:cff3f395ef3756ab63e58b0ad1b32bb6f802905cae1472e6a12034e4246fbbdb",
+            "expected_bytes": 120,
+            "local_blob_exists": true,
+            "actual_bytes": 120,
+            "full_blob_sha256_checked": false
+          }
+        ],
+        "live_api_digest": null,
+        "selection_state": "observed cache; candidate only, not approved experiment model"
+      },
+      {
+        "tag": "qwen3-embedding:0.6b",
+        "manifest_path": "C:\\Users\\DELL\\.ollama\\models\\manifests\\registry.ollama.ai\\library\\qwen3-embedding\\0.6b",
+        "manifest_sha256": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "layers": [
+          {
+            "digest_reference": "sha256:9202febed9e2dadac14bca089be90864571336fa9f4375b690a26ed548957fde",
+            "expected_bytes": 266,
+            "local_blob_exists": true,
+            "actual_bytes": 266,
+            "full_blob_sha256_checked": false
+          },
+          {
+            "digest_reference": "sha256:06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+            "expected_bytes": 639150592,
+            "local_blob_exists": true,
+            "actual_bytes": 639150592,
+            "full_blob_sha256_checked": false
+          }
+        ],
+        "live_api_digest": null,
+        "selection_state": "observed cache; candidate only, not approved experiment model"
+      }
+    ],
+    "synthetic_candidates": [
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-001.zip",
+        "sha256": "8d8d228df7a841e3a30da9a839e9ec4de5aee00fef35c640e534460e7b21ff5d",
+        "archive_crc": "PASS",
+        "members": 6,
+        "answer_key_path": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-001-answer-key.json",
+        "answer_key_sha256": "45aaccad30a19e7548c9c6cfe21aae33873f2bc5fd9c635f9ba678d57211c193",
+        "independent_review": "NOT ESTABLISHED; developer-authored fixture",
+        "use": "candidate functional smoke only"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-002.zip",
+        "sha256": "b55626c34c80f328da4d8f40f59f848688cfcb38db37b396f5ccc0eb4694e0ed",
+        "archive_crc": "PASS",
+        "members": 6,
+        "answer_key_path": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-002-answer-key.json",
+        "answer_key_sha256": "543d9faeb30ba403106f6d14410482bcff51583842e59e3de079662dc5ea403a",
+        "independent_review": "NOT ESTABLISHED; developer-authored fixture",
+        "use": "candidate functional smoke only"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-003.zip",
+        "sha256": "c26f18cc824ba5f7a4a1823ebb3fb9346b8501d180dc78fe3beba55cbe9e3ee7",
+        "archive_crc": "PASS",
+        "members": 6,
+        "answer_key_path": "C:\\Users\\DELL\\Specula-skeleton\\output\\evaluation-pilot\\case-003-answer-key.json",
+        "answer_key_sha256": "961fc2f725609428ef5751072d53bd4c5518b4706b1bc854db3cce2db0d8a5af",
+        "independent_review": "NOT ESTABLISHED; developer-authored fixture",
+        "use": "candidate functional smoke only"
+      }
+    ],
+    "source_fingerprints": [
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\ollama_backend.py",
+        "sha256": "6da4732d767c6fdbe3069741a1def89193e320445eb192a367f8acb1fc61149d"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\indexing\\case_evidence.py",
+        "sha256": "a916b56e67dad81e485d6e1e3d915bd9681eab76b23301a030215d3e5f94d554"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\react_engine.py",
+        "sha256": "a09df9fabc5a4c441b38f56ba46c8bbd84555847b1e942c054f42c16e1709533"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\log_analysis\\config.py",
+        "sha256": "ce2db742a6d49fa2efb84d4899cfeb1e563dc67bfac936bba93d084ca0f29e5b"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\config.py",
+        "sha256": "d6ca9a34ff7603829628abe6856bf894e9cd057ffd279c5bf9723d1f0b206e0b"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\graph.py",
+        "sha256": "97a93d25e0366e3e47968f0a32fb931c1b4b61e3a3dda83f5dd43a0eb1518e14"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\scripts\\evaluate_research.py",
+        "sha256": "04fc12825d7a249dd06b38ad201db763bcae05b8f745a2b1dcd0f5a9f9244b07"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\scripts\\evaluate_agent_findings.py",
+        "sha256": "59d1360c1184cf71b33e614b451dcf2003fa20d0bc90456268621e9e9e510dcb"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\scripts\\prepare_evaluation_pilot.py",
+        "sha256": "61766058553781a07a3662958a2b9a0ba0c6f1653006b91845c1fb3134ef1f2d"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\scripts\\run_evaluation_pilot.py",
+        "sha256": "ff3f663b2d5e71aa9ea0306b78db1673daa872727939a74218cb4e13948858f8"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\docs\\research_evaluation.md",
+        "sha256": "359f67e4bf3225d96e10a8c90c054e6097487fd04601d9ba36f97f142f089fb6"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\docs\\evaluation_pilot.md",
+        "sha256": "d9bff5221bcecd5c4c17a20a3539d2d7e65b3865c55db9f3d93d618a6f41ca8a"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\docker-compose.local.yml",
+        "sha256": "9fac6dc1f080152688bc963f62e2296fa0a1e2ad4768f75bd8094186029f235e"
+      },
+      {
+        "path": "C:\\Users\\DELL\\Specula-skeleton\\Dockerfile.hitl",
+        "sha256": "e1f45a569c9e54ac07a29f096a850e0a7a1e16b2fcfb985fb787f52a39026853"
+      }
+    ],
+    "code_defaults": {
+      "generation_context_tokens": 8192,
+      "generation_output_tokens_generic": 1024,
+      "generation_output_tokens_structured": 2048,
+      "temperature": 0,
+      "think": false,
+      "generation_num_thread": 2,
+      "generation_num_batch": 128,
+      "keep_alive": "15m",
+      "model_seed_sent": false,
+      "chat_timeout_seconds": 120,
+      "inference_lock_wait_seconds": 600,
+      "cooldown_seconds_default": 15,
+      "embedding_tag": "qwen3-embedding:0.6b",
+      "embedding_num_gpu_default": 0,
+      "embedding_timeout_seconds": [
+        10,
+        180
+      ],
+      "embedding_batch_records": 32,
+      "document_chunk_characters": 2000,
+      "event_retrieval_top_k_default": 5,
+      "similar_case_retrieval_top_k_default": 3,
+      "retrieval_metric": "cosine",
+      "case_filter_required": true,
+      "react_max_iterations_default": 10,
+      "react_max_tool_calls_default": 15,
+      "react_timeout_seconds_default": 60,
+      "historical_pilot_case_poll_deadline_seconds": 1800
+    },
+    "unresolved": [
+      "Live process/image/model digest equality",
+      "Full weight hash verification",
+      "Actual hardware and resource ceilings",
+      "Global context/tool/token budgets across all nodes",
+      "Equivalent baseline adapters",
+      "Independent case truth and blinded reviewers",
+      "Approved completion boundary and hard cancellation policy",
+      "Current service-specific runtime settings"
+    ]
+  },
+  "proposed_not_approved": {
+    "functional_smoke": "three existing synthetic ZIPs only after isolation/access preflight; stop at existing HITL boundary; no automatic analyst approval",
+    "empirical_subset": "20 CFA-Bench opaque cases as candidates, conditional on independent truth and normalization review",
+    "repetitions": 3,
+    "run_order_seed": 1337,
+    "model_seed": null,
+    "scored_completion_boundary": null,
+    "generation_candidate": "qwen3:8b",
+    "embedding_candidate": "qwen3-embedding:0.6b",
+    "global_token_budget": null,
+    "global_tool_call_limit": null,
+    "case_deadline_seconds": 1800,
+    "baseline_adapters": [
+      "single-agent flat RAG",
+      "multi-agent flat RAG without graph/debate",
+      "complete Specula"
+    ],
+    "baseline_implementation_status": "matched adapters not established by existing preparation script",
+    "primary_uncertainty": "paired case-level bootstrap 95% CI; repeats averaged within case; exact bootstrap settings unresolved",
+    "reviewers": "two independent forensic-literate reviewers, not yet appointed",
+    "approved": false
+  },
+  "result_artifacts": []
+}

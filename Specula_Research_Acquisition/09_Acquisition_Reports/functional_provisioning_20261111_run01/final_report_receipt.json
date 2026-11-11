@@ -1,0 +1,15 @@
+{
+  "report_artifacts": "PASS",
+  "provisioning": "BLOCKED",
+  "approval_2": "NO-GO",
+  "artifact_hashes_verified": 18,
+  "time_utc": "2026-11-11T09:44:07Z",
+  "manifest_sha256": "c64107947d83f6db2dc03870c4049e86e5f3b7b05aaf03fb2a8947f6f4c32e36",
+  "runtime_tests": "NOT RUN",
+  "chat_requests": 0,
+  "embedding_requests": 0,
+  "case_requests": 0,
+  "new_volume_ids": [],
+  "new_container_ids": [],
+  "new_network_ids": []
+}

@@ -1,0 +1,4355 @@
+{
+  "TimeUTC": "2026-11-11T09:59:41.3690863Z",
+  "OS": {
+    "TotalVisibleMemorySize": 16454352,
+    "FreePhysicalMemory": 4314640,
+    "FreeVirtualMemory": 8401928,
+    "TotalVirtualMemorySize": 42668752
+  },
+  "Memory": {
+    "AvailableMBytes": 4175,
+    "CommittedBytes": 35088084992,
+    "CommitLimit": 43692802048,
+    "PagesInputPersec": 0,
+    "PagesOutputPersec": 0,
+    "PageReadsPersec": 0,
+    "PageWritesPersec": 0,
+    "PoolPagedBytes": 1052155904,
+    "PoolNonpagedBytes": 1162493952
+  },
+  "Pagefiles": [
+    {
+      "Name": "C:\\pagefile.sys",
+      "AllocatedBaseSize": 25600,
+      "CurrentUsage": 6002,
+      "PeakUsage": 6228
+    }
+  ],
+  "Processes": [
+    {
+      "Name": "AggregatorHost",
+      "Id": 7972,
+      "WorkingSetBytes": 8355840,
+      "PrivateCommittedBytes": 4476928,
+      "PrivateResidentBytes": 2007040,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AlienFXSubAgent",
+      "Id": 23884,
+      "WorkingSetBytes": 34418688,
+      "PrivateCommittedBytes": 134594560,
+      "PrivateResidentBytes": 10203136,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ApplicationFrameHost",
+      "Id": 22368,
+      "WorkingSetBytes": 9699328,
+      "PrivateCommittedBytes": 58716160,
+      "PrivateResidentBytes": 1437696,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AppVShNotify",
+      "Id": 19504,
+      "WorkingSetBytes": 3497984,
+      "PrivateCommittedBytes": 1982464,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AWCC.SCSubAgent",
+      "Id": 22956,
+      "WorkingSetBytes": 79020032,
+      "PrivateCommittedBytes": 87388160,
+      "PrivateResidentBytes": 58769408,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AWCC.UCSubAgent",
+      "Id": 21020,
+      "WorkingSetBytes": 42979328,
+      "PrivateCommittedBytes": 40701952,
+      "PrivateResidentBytes": 19742720,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AWGameLibrary.SCSubAgent",
+      "Id": 22976,
+      "WorkingSetBytes": 14979072,
+      "PrivateCommittedBytes": 37359616,
+      "PrivateResidentBytes": 3145728,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AWGameLibrary.UCSubAgent",
+      "Id": 23300,
+      "WorkingSetBytes": 16363520,
+      "PrivateCommittedBytes": 59322368,
+      "PrivateResidentBytes": 4943872,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AWPerformance.SCSubAgent",
+      "Id": 22944,
+      "WorkingSetBytes": 398610432,
+      "PrivateCommittedBytes": 626614272,
+      "PrivateResidentBytes": 161816576,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "AWPerformance.UCSubAgent",
+      "Id": 18456,
+      "WorkingSetBytes": 24162304,
+      "PrivateCommittedBytes": 42373120,
+      "PrivateResidentBytes": 7819264,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "backgroundTaskHost",
+      "Id": 33780,
+      "WorkingSetBytes": 17084416,
+      "PrivateCommittedBytes": 28983296,
+      "PrivateResidentBytes": 4149248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 3828,
+      "WorkingSetBytes": 14114816,
+      "PrivateCommittedBytes": 60866560,
+      "PrivateResidentBytes": 2174976,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 8168,
+      "WorkingSetBytes": 6737920,
+      "PrivateCommittedBytes": 9060352,
+      "PrivateResidentBytes": 1376256,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 19920,
+      "WorkingSetBytes": 19877888,
+      "PrivateCommittedBytes": 30945280,
+      "PrivateResidentBytes": 4911104,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 24684,
+      "WorkingSetBytes": 87240704,
+      "PrivateCommittedBytes": 413478912,
+      "PrivateResidentBytes": 48832512,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 28152,
+      "WorkingSetBytes": 55336960,
+      "PrivateCommittedBytes": 63639552,
+      "PrivateResidentBytes": 31289344,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 33556,
+      "WorkingSetBytes": 184492032,
+      "PrivateCommittedBytes": 164216832,
+      "PrivateResidentBytes": 97968128,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 35316,
+      "WorkingSetBytes": 10444800,
+      "PrivateCommittedBytes": 19156992,
+      "PrivateResidentBytes": 1929216,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 36448,
+      "WorkingSetBytes": 508166144,
+      "PrivateCommittedBytes": 806830080,
+      "PrivateResidentBytes": 434253824,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 36680,
+      "WorkingSetBytes": 7442432,
+      "PrivateCommittedBytes": 16678912,
+      "PrivateResidentBytes": 1388544,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 37732,
+      "WorkingSetBytes": 35278848,
+      "PrivateCommittedBytes": 25145344,
+      "PrivateResidentBytes": 12218368,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "brave",
+      "Id": 37740,
+      "WorkingSetBytes": 4247552,
+      "PrivateCommittedBytes": 2895872,
+      "PrivateResidentBytes": 659456,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "BraveCrashHandler",
+      "Id": 17180,
+      "WorkingSetBytes": 1376256,
+      "PrivateCommittedBytes": 1871872,
+      "PrivateResidentBytes": 102400,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "BraveCrashHandler64",
+      "Id": 9844,
+      "WorkingSetBytes": 409600,
+      "PrivateCommittedBytes": 1851392,
+      "PrivateResidentBytes": 57344,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 2272,
+      "WorkingSetBytes": 181334016,
+      "PrivateCommittedBytes": 292638720,
+      "PrivateResidentBytes": 113606656,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 5072,
+      "WorkingSetBytes": 3633152,
+      "PrivateCommittedBytes": 2510848,
+      "PrivateResidentBytes": 135168,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 6264,
+      "WorkingSetBytes": 8540160,
+      "PrivateCommittedBytes": 23953408,
+      "PrivateResidentBytes": 1986560,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 12096,
+      "WorkingSetBytes": 68345856,
+      "PrivateCommittedBytes": 141451264,
+      "PrivateResidentBytes": 41889792,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 12428,
+      "WorkingSetBytes": 6193152,
+      "PrivateCommittedBytes": 9031680,
+      "PrivateResidentBytes": 1335296,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 18752,
+      "WorkingSetBytes": 186097664,
+      "PrivateCommittedBytes": 333991936,
+      "PrivateResidentBytes": 155344896,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 21708,
+      "WorkingSetBytes": 8015872,
+      "PrivateCommittedBytes": 27619328,
+      "PrivateResidentBytes": 1867776,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 23204,
+      "WorkingSetBytes": 47132672,
+      "PrivateCommittedBytes": 237502464,
+      "PrivateResidentBytes": 28610560,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 23560,
+      "WorkingSetBytes": 9146368,
+      "PrivateCommittedBytes": 19300352,
+      "PrivateResidentBytes": 2101248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 27476,
+      "WorkingSetBytes": 9957376,
+      "PrivateCommittedBytes": 20303872,
+      "PrivateResidentBytes": 1433600,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 28576,
+      "WorkingSetBytes": 29159424,
+      "PrivateCommittedBytes": 24473600,
+      "PrivateResidentBytes": 6410240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 32456,
+      "WorkingSetBytes": 233287680,
+      "PrivateCommittedBytes": 348364800,
+      "PrivateResidentBytes": 198000640,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 36672,
+      "WorkingSetBytes": 10788864,
+      "PrivateCommittedBytes": 56451072,
+      "PrivateResidentBytes": 2781184,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ChatGPT",
+      "Id": 37612,
+      "WorkingSetBytes": 16125952,
+      "PrivateCommittedBytes": 110862336,
+      "PrivateResidentBytes": 5586944,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 3544,
+      "WorkingSetBytes": 4321280,
+      "PrivateCommittedBytes": 9863168,
+      "PrivateResidentBytes": 356352,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 16280,
+      "WorkingSetBytes": 61632512,
+      "PrivateCommittedBytes": 141492224,
+      "PrivateResidentBytes": 37244928,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 16712,
+      "WorkingSetBytes": 91930624,
+      "PrivateCommittedBytes": 250642432,
+      "PrivateResidentBytes": 60030976,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 16788,
+      "WorkingSetBytes": 16457728,
+      "PrivateCommittedBytes": 81678336,
+      "PrivateResidentBytes": 3145728,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 19604,
+      "WorkingSetBytes": 316456960,
+      "PrivateCommittedBytes": 551682048,
+      "PrivateResidentBytes": 281804800,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 22292,
+      "WorkingSetBytes": 18653184,
+      "PrivateCommittedBytes": 15671296,
+      "PrivateResidentBytes": 4173824,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 22360,
+      "WorkingSetBytes": 8396800,
+      "PrivateCommittedBytes": 31182848,
+      "PrivateResidentBytes": 1277952,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 26312,
+      "WorkingSetBytes": 24903680,
+      "PrivateCommittedBytes": 77094912,
+      "PrivateResidentBytes": 10002432,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 27636,
+      "WorkingSetBytes": 103313408,
+      "PrivateCommittedBytes": 35848192,
+      "PrivateResidentBytes": 8867840,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 31196,
+      "WorkingSetBytes": 15851520,
+      "PrivateCommittedBytes": 63553536,
+      "PrivateResidentBytes": 1945600,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 33424,
+      "WorkingSetBytes": 362323968,
+      "PrivateCommittedBytes": 528633856,
+      "PrivateResidentBytes": 311111680,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 34736,
+      "WorkingSetBytes": 348069888,
+      "PrivateCommittedBytes": 454029312,
+      "PrivateResidentBytes": 288989184,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 38056,
+      "WorkingSetBytes": 16039936,
+      "PrivateCommittedBytes": 26009600,
+      "PrivateResidentBytes": 2957312,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 38068,
+      "WorkingSetBytes": 143548416,
+      "PrivateCommittedBytes": 185987072,
+      "PrivateResidentBytes": 74440704,
+      "HasWindow": true,
+      "WindowMentionsSpecula": true
+    },
+    {
+      "Name": "Code",
+      "Id": 38400,
+      "WorkingSetBytes": 59125760,
+      "PrivateCommittedBytes": 199487488,
+      "PrivateResidentBytes": 34537472,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Code",
+      "Id": 38744,
+      "WorkingSetBytes": 10117120,
+      "PrivateCommittedBytes": 68538368,
+      "PrivateResidentBytes": 573440,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex",
+      "Id": 7144,
+      "WorkingSetBytes": 177750016,
+      "PrivateCommittedBytes": 180744192,
+      "PrivateResidentBytes": 113483776,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex",
+      "Id": 10540,
+      "WorkingSetBytes": 17281024,
+      "PrivateCommittedBytes": 7311360,
+      "PrivateResidentBytes": 1572864,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex",
+      "Id": 11712,
+      "WorkingSetBytes": 35643392,
+      "PrivateCommittedBytes": 64958464,
+      "PrivateResidentBytes": 13533184,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex",
+      "Id": 35680,
+      "WorkingSetBytes": 1605632,
+      "PrivateCommittedBytes": 6451200,
+      "PrivateResidentBytes": 24576,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex",
+      "Id": 39160,
+      "WorkingSetBytes": 2723840,
+      "PrivateCommittedBytes": 6582272,
+      "PrivateResidentBytes": 466944,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex-code-mode-host",
+      "Id": 19536,
+      "WorkingSetBytes": 21651456,
+      "PrivateCommittedBytes": 20488192,
+      "PrivateResidentBytes": 10924032,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex-command-runner-0.167.0-alpha.3.2",
+      "Id": 21136,
+      "WorkingSetBytes": 2121728,
+      "PrivateCommittedBytes": 1945600,
+      "PrivateResidentBytes": 159744,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex-command-runner-0.167.0-alpha.3.2",
+      "Id": 39128,
+      "WorkingSetBytes": 1351680,
+      "PrivateCommittedBytes": 1970176,
+      "PrivateResidentBytes": 20480,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex-computer-use-swift",
+      "Id": 1276,
+      "WorkingSetBytes": 5808128,
+      "PrivateCommittedBytes": 60964864,
+      "PrivateResidentBytes": 733184,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "codex-windows-sandbox-service",
+      "Id": 21580,
+      "WorkingSetBytes": 4853760,
+      "PrivateCommittedBytes": 3448832,
+      "PrivateResidentBytes": 389120,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "com.docker.backend",
+      "Id": 17228,
+      "WorkingSetBytes": 250634240,
+      "PrivateCommittedBytes": 323252224,
+      "PrivateResidentBytes": 107974656,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "com.docker.backend",
+      "Id": 23620,
+      "WorkingSetBytes": 27099136,
+      "PrivateCommittedBytes": 46776320,
+      "PrivateResidentBytes": 15978496,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "com.docker.build",
+      "Id": 6928,
+      "WorkingSetBytes": 21417984,
+      "PrivateCommittedBytes": 30556160,
+      "PrivateResidentBytes": 10354688,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 3976,
+      "WorkingSetBytes": 2625536,
+      "PrivateCommittedBytes": 1753088,
+      "PrivateResidentBytes": 184320,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 4120,
+      "WorkingSetBytes": 2506752,
+      "PrivateCommittedBytes": 1253376,
+      "PrivateResidentBytes": 53248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 5388,
+      "WorkingSetBytes": 1679360,
+      "PrivateCommittedBytes": 1757184,
+      "PrivateResidentBytes": 163840,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 6384,
+      "WorkingSetBytes": 2125824,
+      "PrivateCommittedBytes": 1740800,
+      "PrivateResidentBytes": 188416,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 7620,
+      "WorkingSetBytes": 991232,
+      "PrivateCommittedBytes": 1187840,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 8152,
+      "WorkingSetBytes": 1519616,
+      "PrivateCommittedBytes": 1687552,
+      "PrivateResidentBytes": 180224,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 9300,
+      "WorkingSetBytes": 4562944,
+      "PrivateCommittedBytes": 1675264,
+      "PrivateResidentBytes": 221184,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 10512,
+      "WorkingSetBytes": 2576384,
+      "PrivateCommittedBytes": 1200128,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 11164,
+      "WorkingSetBytes": 2502656,
+      "PrivateCommittedBytes": 1241088,
+      "PrivateResidentBytes": 20480,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 11768,
+      "WorkingSetBytes": 1163264,
+      "PrivateCommittedBytes": 1433600,
+      "PrivateResidentBytes": 53248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 11904,
+      "WorkingSetBytes": 4440064,
+      "PrivateCommittedBytes": 1806336,
+      "PrivateResidentBytes": 229376,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 13492,
+      "WorkingSetBytes": 2686976,
+      "PrivateCommittedBytes": 1753088,
+      "PrivateResidentBytes": 184320,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 14828,
+      "WorkingSetBytes": 2719744,
+      "PrivateCommittedBytes": 1789952,
+      "PrivateResidentBytes": 188416,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 17516,
+      "WorkingSetBytes": 2580480,
+      "PrivateCommittedBytes": 1757184,
+      "PrivateResidentBytes": 188416,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 17860,
+      "WorkingSetBytes": 1921024,
+      "PrivateCommittedBytes": 1748992,
+      "PrivateResidentBytes": 196608,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 19020,
+      "WorkingSetBytes": 2596864,
+      "PrivateCommittedBytes": 1269760,
+      "PrivateResidentBytes": 57344,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 20616,
+      "WorkingSetBytes": 4104192,
+      "PrivateCommittedBytes": 1253376,
+      "PrivateResidentBytes": 20480,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 24464,
+      "WorkingSetBytes": 2486272,
+      "PrivateCommittedBytes": 1261568,
+      "PrivateResidentBytes": 49152,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 25052,
+      "WorkingSetBytes": 2945024,
+      "PrivateCommittedBytes": 1245184,
+      "PrivateResidentBytes": 57344,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 25184,
+      "WorkingSetBytes": 2822144,
+      "PrivateCommittedBytes": 1757184,
+      "PrivateResidentBytes": 176128,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 27304,
+      "WorkingSetBytes": 4374528,
+      "PrivateCommittedBytes": 1814528,
+      "PrivateResidentBytes": 229376,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 27916,
+      "WorkingSetBytes": 2691072,
+      "PrivateCommittedBytes": 1261568,
+      "PrivateResidentBytes": 53248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 33600,
+      "WorkingSetBytes": 2727936,
+      "PrivateCommittedBytes": 1298432,
+      "PrivateResidentBytes": 49152,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 35484,
+      "WorkingSetBytes": 1425408,
+      "PrivateCommittedBytes": 1265664,
+      "PrivateResidentBytes": 49152,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 36636,
+      "WorkingSetBytes": 4087808,
+      "PrivateCommittedBytes": 1265664,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 38488,
+      "WorkingSetBytes": 2777088,
+      "PrivateCommittedBytes": 1253376,
+      "PrivateResidentBytes": 53248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 40012,
+      "WorkingSetBytes": 8069120,
+      "PrivateCommittedBytes": 1310720,
+      "PrivateResidentBytes": 884736,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "conhost",
+      "Id": 40904,
+      "WorkingSetBytes": 3448832,
+      "PrivateCommittedBytes": 1671168,
+      "PrivateResidentBytes": 229376,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "copilot-runtime",
+      "Id": 9452,
+      "WorkingSetBytes": 47996928,
+      "PrivateCommittedBytes": 201912320,
+      "PrivateResidentBytes": 18239488,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "cowork-svc",
+      "Id": 10952,
+      "WorkingSetBytes": 7483392,
+      "PrivateCommittedBytes": 26521600,
+      "PrivateResidentBytes": 1077248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "crashpad_handler",
+      "Id": 8944,
+      "WorkingSetBytes": 1335296,
+      "PrivateCommittedBytes": 1425408,
+      "PrivateResidentBytes": 176128,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "CrossDeviceResume",
+      "Id": 30468,
+      "WorkingSetBytes": 7798784,
+      "PrivateCommittedBytes": 54620160,
+      "PrivateResidentBytes": 1482752,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "CrossDeviceService",
+      "Id": 20852,
+      "WorkingSetBytes": 15208448,
+      "PrivateCommittedBytes": 27869184,
+      "PrivateResidentBytes": 3063808,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "csrss",
+      "Id": 1472,
+      "WorkingSetBytes": 3051520,
+      "PrivateCommittedBytes": 2609152,
+      "PrivateResidentBytes": 745472,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "csrss",
+      "Id": 12936,
+      "WorkingSetBytes": 3047424,
+      "PrivateCommittedBytes": 3694592,
+      "PrivateResidentBytes": 811008,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ctfmon",
+      "Id": 33612,
+      "WorkingSetBytes": 15220736,
+      "PrivateCommittedBytes": 6733824,
+      "PrivateResidentBytes": 3063808,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "DataExchangeHost",
+      "Id": 7112,
+      "WorkingSetBytes": 22724608,
+      "PrivateCommittedBytes": 17031168,
+      "PrivateResidentBytes": 5787648,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "DAX3API",
+      "Id": 5848,
+      "WorkingSetBytes": 3862528,
+      "PrivateCommittedBytes": 7917568,
+      "PrivateResidentBytes": 741376,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "DefenderAiPlatformHost",
+      "Id": 5768,
+      "WorkingSetBytes": 1204224,
+      "PrivateCommittedBytes": 1298432,
+      "PrivateResidentBytes": 167936,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "DefenderSessionHelper",
+      "Id": 13200,
+      "WorkingSetBytes": 1748992,
+      "PrivateCommittedBytes": 1196032,
+      "PrivateResidentBytes": 147456,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.Connected.Service.Delivery",
+      "Id": 29584,
+      "WorkingSetBytes": 7458816,
+      "PrivateCommittedBytes": 35532800,
+      "PrivateResidentBytes": 1089536,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.Connected.Service.Delivery.SubAgent",
+      "Id": 18624,
+      "WorkingSetBytes": 15155200,
+      "PrivateCommittedBytes": 40022016,
+      "PrivateResidentBytes": 3887104,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.CoreServices.Client",
+      "Id": 1756,
+      "WorkingSetBytes": 39120896,
+      "PrivateCommittedBytes": 115642368,
+      "PrivateResidentBytes": 7929856,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.TechHub",
+      "Id": 26744,
+      "WorkingSetBytes": 12115968,
+      "PrivateCommittedBytes": 55775232,
+      "PrivateResidentBytes": 4780032,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.TechHub.Analytics.SubAgent",
+      "Id": 2016,
+      "WorkingSetBytes": 44580864,
+      "PrivateCommittedBytes": 94425088,
+      "PrivateResidentBytes": 16977920,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.TechHub.DataManager.SubAgent",
+      "Id": 35812,
+      "WorkingSetBytes": 69877760,
+      "PrivateCommittedBytes": 84910080,
+      "PrivateResidentBytes": 36835328,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.TechHub.Diagnostics.SubAgent",
+      "Id": 34960,
+      "WorkingSetBytes": 21131264,
+      "PrivateCommittedBytes": 69877760,
+      "PrivateResidentBytes": 5898240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.TechHub.Instrumentation.SubAgent",
+      "Id": 34864,
+      "WorkingSetBytes": 153640960,
+      "PrivateCommittedBytes": 224219136,
+      "PrivateResidentBytes": 79290368,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.TechHub.Instrumentation.UserProcess",
+      "Id": 15316,
+      "WorkingSetBytes": 40546304,
+      "PrivateCommittedBytes": 49516544,
+      "PrivateResidentBytes": 11468800,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.UCA.Manager",
+      "Id": 5040,
+      "WorkingSetBytes": 18857984,
+      "PrivateCommittedBytes": 36990976,
+      "PrivateResidentBytes": 4751360,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Dell.Update.SubAgent",
+      "Id": 23124,
+      "WorkingSetBytes": 11296768,
+      "PrivateCommittedBytes": 46010368,
+      "PrivateResidentBytes": 4362240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "dllhost",
+      "Id": 13832,
+      "WorkingSetBytes": 2183168,
+      "PrivateCommittedBytes": 2162688,
+      "PrivateResidentBytes": 110592,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "dllhost",
+      "Id": 24468,
+      "WorkingSetBytes": 4476928,
+      "PrivateCommittedBytes": 3260416,
+      "PrivateResidentBytes": 925696,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "dllhost",
+      "Id": 40424,
+      "WorkingSetBytes": 3952640,
+      "PrivateCommittedBytes": 3571712,
+      "PrivateResidentBytes": 110592,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Docker Desktop",
+      "Id": 5316,
+      "WorkingSetBytes": 92782592,
+      "PrivateCommittedBytes": 105811968,
+      "PrivateResidentBytes": 67600384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Docker Desktop",
+      "Id": 18532,
+      "WorkingSetBytes": 5779456,
+      "PrivateCommittedBytes": 13942784,
+      "PrivateResidentBytes": 1089536,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Docker Desktop",
+      "Id": 26088,
+      "WorkingSetBytes": 61595648,
+      "PrivateCommittedBytes": 134303744,
+      "PrivateResidentBytes": 35389440,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Docker Desktop",
+      "Id": 28768,
+      "WorkingSetBytes": 14016512,
+      "PrivateCommittedBytes": 93069312,
+      "PrivateResidentBytes": 3788800,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "dwm",
+      "Id": 38668,
+      "WorkingSetBytes": 50847744,
+      "PrivateCommittedBytes": 271106048,
+      "PrivateResidentBytes": 24305664,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "escsvc64",
+      "Id": 5908,
+      "WorkingSetBytes": 1007616,
+      "PrivateCommittedBytes": 1327104,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "explorer",
+      "Id": 9944,
+      "WorkingSetBytes": 241012736,
+      "PrivateCommittedBytes": 372809728,
+      "PrivateResidentBytes": 83439616,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "fontdrvhost",
+      "Id": 1956,
+      "WorkingSetBytes": 1028096,
+      "PrivateCommittedBytes": 1814528,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "fontdrvhost",
+      "Id": 38716,
+      "WorkingSetBytes": 2314240,
+      "PrivateCommittedBytes": 4173824,
+      "PrivateResidentBytes": 503808,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "FvContainer",
+      "Id": 36516,
+      "WorkingSetBytes": 8810496,
+      "PrivateCommittedBytes": 42065920,
+      "PrivateResidentBytes": 2535424,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "FvContainer.System",
+      "Id": 22028,
+      "WorkingSetBytes": 13840384,
+      "PrivateCommittedBytes": 18251776,
+      "PrivateResidentBytes": 8388608,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "FxDisplayService",
+      "Id": 11632,
+      "WorkingSetBytes": 18952192,
+      "PrivateCommittedBytes": 15421440,
+      "PrivateResidentBytes": 3911680,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "GameEyeApp",
+      "Id": 21088,
+      "WorkingSetBytes": 19738624,
+      "PrivateCommittedBytes": 22319104,
+      "PrivateResidentBytes": 4194304,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "GameInputRedistService",
+      "Id": 5920,
+      "WorkingSetBytes": 3506176,
+      "PrivateCommittedBytes": 7856128,
+      "PrivateResidentBytes": 557056,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "gamingservices",
+      "Id": 23548,
+      "WorkingSetBytes": 19587072,
+      "PrivateCommittedBytes": 11419648,
+      "PrivateResidentBytes": 4579328,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "gamingservicesnet",
+      "Id": 28228,
+      "WorkingSetBytes": 1929216,
+      "PrivateCommittedBytes": 13164544,
+      "PrivateResidentBytes": 282624,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "GooglePlayGamesServices",
+      "Id": 5992,
+      "WorkingSetBytes": 43716608,
+      "PrivateCommittedBytes": 126353408,
+      "PrivateResidentBytes": 25047040,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Idle",
+      "Id": 0,
+      "WorkingSetBytes": 8192,
+      "PrivateCommittedBytes": 61440,
+      "PrivateResidentBytes": null,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IGCC",
+      "Id": 32228,
+      "WorkingSetBytes": 15376384,
+      "PrivateCommittedBytes": 63504384,
+      "PrivateResidentBytes": 3538944,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IGCCTray",
+      "Id": 34148,
+      "WorkingSetBytes": 14073856,
+      "PrivateCommittedBytes": 49553408,
+      "PrivateResidentBytes": 3235840,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IgoAudioService_x64",
+      "Id": 5960,
+      "WorkingSetBytes": 2834432,
+      "PrivateCommittedBytes": 19853312,
+      "PrivateResidentBytes": 372736,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "iGoSwServer",
+      "Id": 8292,
+      "WorkingSetBytes": 1007616,
+      "PrivateCommittedBytes": 1724416,
+      "PrivateResidentBytes": 143360,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "iGoSwServer",
+      "Id": 31792,
+      "WorkingSetBytes": 4558848,
+      "PrivateCommittedBytes": 2080768,
+      "PrivateResidentBytes": 765952,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Intel_PIE_Service",
+      "Id": 11520,
+      "WorkingSetBytes": 2846720,
+      "PrivateCommittedBytes": 2768896,
+      "PrivateResidentBytes": 548864,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IntelAudioService",
+      "Id": 6016,
+      "WorkingSetBytes": 5275648,
+      "PrivateCommittedBytes": 41811968,
+      "PrivateResidentBytes": 1261568,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IntelCpHDCPSvc",
+      "Id": 2704,
+      "WorkingSetBytes": 2453504,
+      "PrivateCommittedBytes": 1671168,
+      "PrivateResidentBytes": 376832,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IntelGraphicsSoftware.Service",
+      "Id": 11000,
+      "WorkingSetBytes": 2646016,
+      "PrivateCommittedBytes": 11259904,
+      "PrivateResidentBytes": 339968,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "IntelGraphicsSoftware.Service.Graphics",
+      "Id": 7636,
+      "WorkingSetBytes": 7643136,
+      "PrivateCommittedBytes": 12926976,
+      "PrivateResidentBytes": 1953792,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ipf_helper",
+      "Id": 8824,
+      "WorkingSetBytes": 3080192,
+      "PrivateCommittedBytes": 1814528,
+      "PrivateResidentBytes": 278528,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ipf_uf",
+      "Id": 6096,
+      "WorkingSetBytes": 4169728,
+      "PrivateCommittedBytes": 2326528,
+      "PrivateResidentBytes": 540672,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ipfsvc",
+      "Id": 6036,
+      "WorkingSetBytes": 3244032,
+      "PrivateCommittedBytes": 2187264,
+      "PrivateResidentBytes": 552960,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "java",
+      "Id": 7516,
+      "WorkingSetBytes": 101834752,
+      "PrivateCommittedBytes": 605814784,
+      "PrivateResidentBytes": 44085248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "jenkins",
+      "Id": 6064,
+      "WorkingSetBytes": 3608576,
+      "PrivateCommittedBytes": 20484096,
+      "PrivateResidentBytes": 1089536,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "jhi_service",
+      "Id": 6008,
+      "WorkingSetBytes": 2125824,
+      "PrivateCommittedBytes": 1531904,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "logi_lamparray_service.AMD64",
+      "Id": 6912,
+      "WorkingSetBytes": 3321856,
+      "PrivateCommittedBytes": 3940352,
+      "PrivateResidentBytes": 409600,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "LsaIso",
+      "Id": 1768,
+      "WorkingSetBytes": 909312,
+      "PrivateCommittedBytes": 1212416,
+      "PrivateResidentBytes": 286720,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "lsass",
+      "Id": 1780,
+      "WorkingSetBytes": 25337856,
+      "PrivateCommittedBytes": 38371328,
+      "PrivateResidentBytes": 7999488,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Memory Compression",
+      "Id": 3400,
+      "WorkingSetBytes": 494620672,
+      "PrivateCommittedBytes": 13524992,
+      "PrivateResidentBytes": 494620672,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "MicrosoftStartFeedProvider",
+      "Id": 25376,
+      "WorkingSetBytes": 24944640,
+      "PrivateCommittedBytes": 11247616,
+      "PrivateResidentBytes": 2678784,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "mongod",
+      "Id": 5648,
+      "WorkingSetBytes": 34893824,
+      "PrivateCommittedBytes": 189190144,
+      "PrivateResidentBytes": 24076288,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "MoNotificationUx",
+      "Id": 19908,
+      "WorkingSetBytes": 3547136,
+      "PrivateCommittedBytes": 2330624,
+      "PrivateResidentBytes": 278528,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "MpDefenderCoreService",
+      "Id": 6080,
+      "WorkingSetBytes": 14602240,
+      "PrivateCommittedBytes": 16601088,
+      "PrivateResidentBytes": 3518464,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 2812,
+      "WorkingSetBytes": 33849344,
+      "PrivateCommittedBytes": 48189440,
+      "PrivateResidentBytes": 12595200,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 3052,
+      "WorkingSetBytes": 68800512,
+      "PrivateCommittedBytes": 294092800,
+      "PrivateResidentBytes": 33787904,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 3872,
+      "WorkingSetBytes": 5926912,
+      "PrivateCommittedBytes": 8765440,
+      "PrivateResidentBytes": 1150976,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 6240,
+      "WorkingSetBytes": 8962048,
+      "PrivateCommittedBytes": 8593408,
+      "PrivateResidentBytes": 1380352,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 11208,
+      "WorkingSetBytes": 10600448,
+      "PrivateCommittedBytes": 14229504,
+      "PrivateResidentBytes": 2711552,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 15312,
+      "WorkingSetBytes": 11264000,
+      "PrivateCommittedBytes": 78139392,
+      "PrivateResidentBytes": 4743168,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 15336,
+      "WorkingSetBytes": 25858048,
+      "PrivateCommittedBytes": 15450112,
+      "PrivateResidentBytes": 4980736,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 22148,
+      "WorkingSetBytes": 7344128,
+      "PrivateCommittedBytes": 8302592,
+      "PrivateResidentBytes": 1175552,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 22276,
+      "WorkingSetBytes": 4259840,
+      "PrivateCommittedBytes": 3190784,
+      "PrivateResidentBytes": 667648,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 24504,
+      "WorkingSetBytes": 108838912,
+      "PrivateCommittedBytes": 80216064,
+      "PrivateResidentBytes": 46858240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 25540,
+      "WorkingSetBytes": 347398144,
+      "PrivateCommittedBytes": 458776576,
+      "PrivateResidentBytes": 283676672,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 31032,
+      "WorkingSetBytes": 9793536,
+      "PrivateCommittedBytes": 83570688,
+      "PrivateResidentBytes": 4100096,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msedgewebview2",
+      "Id": 31220,
+      "WorkingSetBytes": 3448832,
+      "PrivateCommittedBytes": 3244032,
+      "PrivateResidentBytes": 405504,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "MsMpEng",
+      "Id": 5600,
+      "WorkingSetBytes": 395128832,
+      "PrivateCommittedBytes": 653811712,
+      "PrivateResidentBytes": 284889088,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "msrdc",
+      "Id": 23708,
+      "WorkingSetBytes": 9953280,
+      "PrivateCommittedBytes": 124858368,
+      "PrivateResidentBytes": 2228224,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "mysqld",
+      "Id": 6132,
+      "WorkingSetBytes": 3096576,
+      "PrivateCommittedBytes": 35233792,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "mysqld",
+      "Id": 8116,
+      "WorkingSetBytes": 3936256,
+      "PrivateCommittedBytes": 671719424,
+      "PrivateResidentBytes": 983040,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NgcIso",
+      "Id": 8776,
+      "WorkingSetBytes": 2248704,
+      "PrivateCommittedBytes": 2027520,
+      "PrivateResidentBytes": 495616,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NisSrv",
+      "Id": 16040,
+      "WorkingSetBytes": 5988352,
+      "PrivateCommittedBytes": 4673536,
+      "PrivateResidentBytes": 1335296,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "node",
+      "Id": 2664,
+      "WorkingSetBytes": 3121152,
+      "PrivateCommittedBytes": 22126592,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "node",
+      "Id": 16232,
+      "WorkingSetBytes": 11218944,
+      "PrivateCommittedBytes": 105508864,
+      "PrivateResidentBytes": 4378624,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "node",
+      "Id": 18024,
+      "WorkingSetBytes": 2732032,
+      "PrivateCommittedBytes": 65732608,
+      "PrivateResidentBytes": 32768,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "node",
+      "Id": 37672,
+      "WorkingSetBytes": 6959104,
+      "PrivateCommittedBytes": 22003712,
+      "PrivateResidentBytes": 3112960,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "node_repl",
+      "Id": 15616,
+      "WorkingSetBytes": 6291456,
+      "PrivateCommittedBytes": 4177920,
+      "PrivateResidentBytes": 1085440,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "node_repl",
+      "Id": 29172,
+      "WorkingSetBytes": 5136384,
+      "PrivateCommittedBytes": 3981312,
+      "PrivateResidentBytes": 671744,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvcontainer",
+      "Id": 6024,
+      "WorkingSetBytes": 17440768,
+      "PrivateCommittedBytes": 17567744,
+      "PrivateResidentBytes": 4878336,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvcontainer",
+      "Id": 32532,
+      "WorkingSetBytes": 15216640,
+      "PrivateCommittedBytes": 21073920,
+      "PrivateResidentBytes": 4161536,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvcontainer",
+      "Id": 33028,
+      "WorkingSetBytes": 31748096,
+      "PrivateCommittedBytes": 51146752,
+      "PrivateResidentBytes": 17190912,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvcontainer",
+      "Id": 35272,
+      "WorkingSetBytes": 7684096,
+      "PrivateCommittedBytes": 13848576,
+      "PrivateResidentBytes": 1589248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVDisplay.Container",
+      "Id": 1124,
+      "WorkingSetBytes": 15380480,
+      "PrivateCommittedBytes": 145092608,
+      "PrivateResidentBytes": 4489216,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVDisplay.Container",
+      "Id": 3896,
+      "WorkingSetBytes": 20299776,
+      "PrivateCommittedBytes": 30912512,
+      "PrivateResidentBytes": 10227712,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvfvsdksvc_x64",
+      "Id": 28496,
+      "WorkingSetBytes": 3211264,
+      "PrivateCommittedBytes": 2904064,
+      "PrivateResidentBytes": 32768,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVIDIA Overlay",
+      "Id": 4508,
+      "WorkingSetBytes": 6438912,
+      "PrivateCommittedBytes": 9912320,
+      "PrivateResidentBytes": 974848,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVIDIA Overlay",
+      "Id": 9100,
+      "WorkingSetBytes": 17989632,
+      "PrivateCommittedBytes": 12759040,
+      "PrivateResidentBytes": 3567616,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVIDIA Overlay",
+      "Id": 18320,
+      "WorkingSetBytes": 59527168,
+      "PrivateCommittedBytes": 60239872,
+      "PrivateResidentBytes": 36106240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVIDIA Overlay",
+      "Id": 22656,
+      "WorkingSetBytes": 62181376,
+      "PrivateCommittedBytes": 329170944,
+      "PrivateResidentBytes": 29773824,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "NVIDIA Overlay",
+      "Id": 27876,
+      "WorkingSetBytes": 26767360,
+      "PrivateCommittedBytes": 124071936,
+      "PrivateResidentBytes": 11116544,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvrla",
+      "Id": 12644,
+      "WorkingSetBytes": 4075520,
+      "PrivateCommittedBytes": 2162688,
+      "PrivateResidentBytes": 204800,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "nvsphelper64",
+      "Id": 16296,
+      "WorkingSetBytes": 4472832,
+      "PrivateCommittedBytes": 4026368,
+      "PrivateResidentBytes": 180224,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "OfficeClickToRun",
+      "Id": 1036,
+      "WorkingSetBytes": 16494592,
+      "PrivateCommittedBytes": 44797952,
+      "PrivateResidentBytes": 3465216,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "OneDrive.Sync.Service",
+      "Id": 41980,
+      "WorkingSetBytes": 22487040,
+      "PrivateCommittedBytes": 68460544,
+      "PrivateResidentBytes": 13893632,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "PhoneExperienceHost",
+      "Id": 34096,
+      "WorkingSetBytes": 65798144,
+      "PrivateCommittedBytes": 100347904,
+      "PrivateResidentBytes": 5459968,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "powershell",
+      "Id": 5268,
+      "WorkingSetBytes": 90656768,
+      "PrivateCommittedBytes": 70324224,
+      "PrivateResidentBytes": 33853440,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "powershell",
+      "Id": 41612,
+      "WorkingSetBytes": 70967296,
+      "PrivateCommittedBytes": 53760000,
+      "PrivateResidentBytes": 25604096,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "PresentMon_x64",
+      "Id": 22168,
+      "WorkingSetBytes": 9908224,
+      "PrivateCommittedBytes": 12472320,
+      "PrivateResidentBytes": 5513216,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "PresentMonService",
+      "Id": 10824,
+      "WorkingSetBytes": 2441216,
+      "PrivateCommittedBytes": 9687040,
+      "PrivateResidentBytes": 372736,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "python",
+      "Id": 27852,
+      "WorkingSetBytes": 18391040,
+      "PrivateCommittedBytes": 10305536,
+      "PrivateResidentBytes": 8261632,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Registry",
+      "Id": 328,
+      "WorkingSetBytes": 37208064,
+      "PrivateCommittedBytes": 6139904,
+      "PrivateResidentBytes": 1523712,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RtkAudUService64",
+      "Id": 6072,
+      "WorkingSetBytes": 6746112,
+      "PrivateCommittedBytes": 16941056,
+      "PrivateResidentBytes": 1388544,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RtkAudUService64",
+      "Id": 28084,
+      "WorkingSetBytes": 9285632,
+      "PrivateCommittedBytes": 15974400,
+      "PrivateResidentBytes": 876544,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RtkAudUService64",
+      "Id": 34132,
+      "WorkingSetBytes": 6270976,
+      "PrivateCommittedBytes": 15659008,
+      "PrivateResidentBytes": 950272,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RuntimeBroker",
+      "Id": 6788,
+      "WorkingSetBytes": 14823424,
+      "PrivateCommittedBytes": 3260416,
+      "PrivateResidentBytes": 630784,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RuntimeBroker",
+      "Id": 8496,
+      "WorkingSetBytes": 3932160,
+      "PrivateCommittedBytes": 2682880,
+      "PrivateResidentBytes": 520192,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RuntimeBroker",
+      "Id": 14256,
+      "WorkingSetBytes": 5296128,
+      "PrivateCommittedBytes": 2588672,
+      "PrivateResidentBytes": 491520,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RuntimeBroker",
+      "Id": 20732,
+      "WorkingSetBytes": 7221248,
+      "PrivateCommittedBytes": 4968448,
+      "PrivateResidentBytes": 843776,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RuntimeBroker",
+      "Id": 32980,
+      "WorkingSetBytes": 18984960,
+      "PrivateCommittedBytes": 20983808,
+      "PrivateResidentBytes": 4120576,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "RuntimeBroker",
+      "Id": 34068,
+      "WorkingSetBytes": 20660224,
+      "PrivateCommittedBytes": 3751936,
+      "PrivateResidentBytes": 1536000,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SDXHelper",
+      "Id": 23984,
+      "WorkingSetBytes": 10805248,
+      "PrivateCommittedBytes": 19742720,
+      "PrivateResidentBytes": 3563520,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SearchHost",
+      "Id": 38480,
+      "WorkingSetBytes": 23584768,
+      "PrivateCommittedBytes": 93487104,
+      "PrivateResidentBytes": 5951488,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SearchIndexer",
+      "Id": 26620,
+      "WorkingSetBytes": 18915328,
+      "PrivateCommittedBytes": 93335552,
+      "PrivateResidentBytes": 5550080,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Secure System",
+      "Id": 288,
+      "WorkingSetBytes": 69193728,
+      "PrivateCommittedBytes": 180224,
+      "PrivateResidentBytes": 69193728,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SecurityHealthService",
+      "Id": 19808,
+      "WorkingSetBytes": 9310208,
+      "PrivateCommittedBytes": 14315520,
+      "PrivateResidentBytes": 1187840,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SecurityHealthSystray",
+      "Id": 27892,
+      "WorkingSetBytes": 4853760,
+      "PrivateCommittedBytes": 2207744,
+      "PrivateResidentBytes": 135168,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "services",
+      "Id": 1724,
+      "WorkingSetBytes": 9891840,
+      "PrivateCommittedBytes": 8421376,
+      "PrivateResidentBytes": 4714496,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ServiceShell",
+      "Id": 15656,
+      "WorkingSetBytes": 20713472,
+      "PrivateCommittedBytes": 36306944,
+      "PrivateResidentBytes": 10641408,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ShellExperienceHost",
+      "Id": 10716,
+      "WorkingSetBytes": 45219840,
+      "PrivateCommittedBytes": 86175744,
+      "PrivateResidentBytes": 49152,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "ShellHost",
+      "Id": 6444,
+      "WorkingSetBytes": 10174464,
+      "PrivateCommittedBytes": 52862976,
+      "PrivateResidentBytes": 1970176,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "sihost",
+      "Id": 32108,
+      "WorkingSetBytes": 21684224,
+      "PrivateCommittedBytes": 8638464,
+      "PrivateResidentBytes": 4210688,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "smss",
+      "Id": 1016,
+      "WorkingSetBytes": 348160,
+      "PrivateCommittedBytes": 1212416,
+      "PrivateResidentBytes": 106496,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "spoolsv",
+      "Id": 5464,
+      "WorkingSetBytes": 6889472,
+      "PrivateCommittedBytes": 9433088,
+      "PrivateResidentBytes": 1335296,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "sqlwriter",
+      "Id": 5528,
+      "WorkingSetBytes": 3403776,
+      "PrivateCommittedBytes": 4313088,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "StartMenuExperienceHost",
+      "Id": 30820,
+      "WorkingSetBytes": 27004928,
+      "PrivateCommittedBytes": 133894144,
+      "PrivateResidentBytes": 7483392,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SupportAssistAgent",
+      "Id": 21024,
+      "WorkingSetBytes": 78585856,
+      "PrivateCommittedBytes": 160157696,
+      "PrivateResidentBytes": 7426048,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 996,
+      "WorkingSetBytes": 18116608,
+      "PrivateCommittedBytes": 14221312,
+      "PrivateResidentBytes": 11530240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 1136,
+      "WorkingSetBytes": 6004736,
+      "PrivateCommittedBytes": 3956736,
+      "PrivateResidentBytes": 1622016,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 1732,
+      "WorkingSetBytes": 4726784,
+      "PrivateCommittedBytes": 1757184,
+      "PrivateResidentBytes": 638976,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 1776,
+      "WorkingSetBytes": 2809856,
+      "PrivateCommittedBytes": 1187840,
+      "PrivateResidentBytes": 286720,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 1916,
+      "WorkingSetBytes": 29704192,
+      "PrivateCommittedBytes": 17133568,
+      "PrivateResidentBytes": 11116544,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2216,
+      "WorkingSetBytes": 9728000,
+      "PrivateCommittedBytes": 4382720,
+      "PrivateResidentBytes": 1921024,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2312,
+      "WorkingSetBytes": 2457600,
+      "PrivateCommittedBytes": 1904640,
+      "PrivateResidentBytes": 786432,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2320,
+      "WorkingSetBytes": 1789952,
+      "PrivateCommittedBytes": 1474560,
+      "PrivateResidentBytes": 397312,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2340,
+      "WorkingSetBytes": 6885376,
+      "PrivateCommittedBytes": 8773632,
+      "PrivateResidentBytes": 5144576,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2468,
+      "WorkingSetBytes": 3969024,
+      "PrivateCommittedBytes": 3612672,
+      "PrivateResidentBytes": 688128,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2488,
+      "WorkingSetBytes": 6635520,
+      "PrivateCommittedBytes": 2523136,
+      "PrivateResidentBytes": 1204224,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2612,
+      "WorkingSetBytes": 11055104,
+      "PrivateCommittedBytes": 7114752,
+      "PrivateResidentBytes": 4571136,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2620,
+      "WorkingSetBytes": 7643136,
+      "PrivateCommittedBytes": 4952064,
+      "PrivateResidentBytes": 2732032,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2644,
+      "WorkingSetBytes": 13901824,
+      "PrivateCommittedBytes": 8957952,
+      "PrivateResidentBytes": 5005312,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2696,
+      "WorkingSetBytes": 7024640,
+      "PrivateCommittedBytes": 2670592,
+      "PrivateResidentBytes": 892928,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2712,
+      "WorkingSetBytes": 4038656,
+      "PrivateCommittedBytes": 3272704,
+      "PrivateResidentBytes": 1347584,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2732,
+      "WorkingSetBytes": 3526656,
+      "PrivateCommittedBytes": 3371008,
+      "PrivateResidentBytes": 643072,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2780,
+      "WorkingSetBytes": 1671168,
+      "PrivateCommittedBytes": 1810432,
+      "PrivateResidentBytes": 360448,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2968,
+      "WorkingSetBytes": 10506240,
+      "PrivateCommittedBytes": 4214784,
+      "PrivateResidentBytes": 1888256,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 2980,
+      "WorkingSetBytes": 3481600,
+      "PrivateCommittedBytes": 2527232,
+      "PrivateResidentBytes": 798720,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3084,
+      "WorkingSetBytes": 5156864,
+      "PrivateCommittedBytes": 2252800,
+      "PrivateResidentBytes": 1208320,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3292,
+      "WorkingSetBytes": 2871296,
+      "PrivateCommittedBytes": 2166784,
+      "PrivateResidentBytes": 397312,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3392,
+      "WorkingSetBytes": 5754880,
+      "PrivateCommittedBytes": 3764224,
+      "PrivateResidentBytes": 1708032,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3416,
+      "WorkingSetBytes": 2453504,
+      "PrivateCommittedBytes": 2404352,
+      "PrivateResidentBytes": 401408,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3552,
+      "WorkingSetBytes": 5287936,
+      "PrivateCommittedBytes": 4747264,
+      "PrivateResidentBytes": 1064960,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3920,
+      "WorkingSetBytes": 15654912,
+      "PrivateCommittedBytes": 8712192,
+      "PrivateResidentBytes": 3690496,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3960,
+      "WorkingSetBytes": 6467584,
+      "PrivateCommittedBytes": 2215936,
+      "PrivateResidentBytes": 831488,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 3988,
+      "WorkingSetBytes": 17424384,
+      "PrivateCommittedBytes": 21090304,
+      "PrivateResidentBytes": 12423168,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4028,
+      "WorkingSetBytes": 7753728,
+      "PrivateCommittedBytes": 3735552,
+      "PrivateResidentBytes": 1581056,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4036,
+      "WorkingSetBytes": 5464064,
+      "PrivateCommittedBytes": 2269184,
+      "PrivateResidentBytes": 1073152,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4044,
+      "WorkingSetBytes": 2318336,
+      "PrivateCommittedBytes": 1638400,
+      "PrivateResidentBytes": 438272,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4104,
+      "WorkingSetBytes": 3969024,
+      "PrivateCommittedBytes": 2613248,
+      "PrivateResidentBytes": 774144,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4112,
+      "WorkingSetBytes": 3764224,
+      "PrivateCommittedBytes": 2650112,
+      "PrivateResidentBytes": 561152,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4180,
+      "WorkingSetBytes": 2371584,
+      "PrivateCommittedBytes": 1675264,
+      "PrivateResidentBytes": 335872,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4276,
+      "WorkingSetBytes": 11513856,
+      "PrivateCommittedBytes": 4440064,
+      "PrivateResidentBytes": 2404352,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4312,
+      "WorkingSetBytes": 3616768,
+      "PrivateCommittedBytes": 2125824,
+      "PrivateResidentBytes": 507904,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4360,
+      "WorkingSetBytes": 10899456,
+      "PrivateCommittedBytes": 11182080,
+      "PrivateResidentBytes": 5496832,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4372,
+      "WorkingSetBytes": 2781184,
+      "PrivateCommittedBytes": 1961984,
+      "PrivateResidentBytes": 397312,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4480,
+      "WorkingSetBytes": 17530880,
+      "PrivateCommittedBytes": 35213312,
+      "PrivateResidentBytes": 10317824,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 4784,
+      "WorkingSetBytes": 4493312,
+      "PrivateCommittedBytes": 2560000,
+      "PrivateResidentBytes": 917504,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5004,
+      "WorkingSetBytes": 12906496,
+      "PrivateCommittedBytes": 8679424,
+      "PrivateResidentBytes": 3547136,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5060,
+      "WorkingSetBytes": 4440064,
+      "PrivateCommittedBytes": 3776512,
+      "PrivateResidentBytes": 913408,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5168,
+      "WorkingSetBytes": 12554240,
+      "PrivateCommittedBytes": 20455424,
+      "PrivateResidentBytes": 5644288,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5256,
+      "WorkingSetBytes": 64000000,
+      "PrivateCommittedBytes": 60137472,
+      "PrivateResidentBytes": 57364480,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5544,
+      "WorkingSetBytes": 2387968,
+      "PrivateCommittedBytes": 1888256,
+      "PrivateResidentBytes": 249856,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5712,
+      "WorkingSetBytes": 4321280,
+      "PrivateCommittedBytes": 2375680,
+      "PrivateResidentBytes": 966656,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5948,
+      "WorkingSetBytes": 48054272,
+      "PrivateCommittedBytes": 46247936,
+      "PrivateResidentBytes": 15753216,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 5984,
+      "WorkingSetBytes": 36614144,
+      "PrivateCommittedBytes": 37990400,
+      "PrivateResidentBytes": 24035328,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 6052,
+      "WorkingSetBytes": 10199040,
+      "PrivateCommittedBytes": 4911104,
+      "PrivateResidentBytes": 1662976,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 6088,
+      "WorkingSetBytes": 2707456,
+      "PrivateCommittedBytes": 1683456,
+      "PrivateResidentBytes": 258048,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 6192,
+      "WorkingSetBytes": 12537856,
+      "PrivateCommittedBytes": 6172672,
+      "PrivateResidentBytes": 2117632,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 6488,
+      "WorkingSetBytes": 4751360,
+      "PrivateCommittedBytes": 2748416,
+      "PrivateResidentBytes": 856064,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 7012,
+      "WorkingSetBytes": 3141632,
+      "PrivateCommittedBytes": 2809856,
+      "PrivateResidentBytes": 638976,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 7120,
+      "WorkingSetBytes": 2166784,
+      "PrivateCommittedBytes": 2093056,
+      "PrivateResidentBytes": 372736,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 7708,
+      "WorkingSetBytes": 4816896,
+      "PrivateCommittedBytes": 1671168,
+      "PrivateResidentBytes": 552960,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 8180,
+      "WorkingSetBytes": 5996544,
+      "PrivateCommittedBytes": 3289088,
+      "PrivateResidentBytes": 712704,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 9444,
+      "WorkingSetBytes": 2007040,
+      "PrivateCommittedBytes": 1896448,
+      "PrivateResidentBytes": 389120,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 10508,
+      "WorkingSetBytes": 9420800,
+      "PrivateCommittedBytes": 12365824,
+      "PrivateResidentBytes": 2158592,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 10520,
+      "WorkingSetBytes": 19841024,
+      "PrivateCommittedBytes": 18935808,
+      "PrivateResidentBytes": 7483392,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 10884,
+      "WorkingSetBytes": 19390464,
+      "PrivateCommittedBytes": 8429568,
+      "PrivateResidentBytes": 4452352,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 11176,
+      "WorkingSetBytes": 1847296,
+      "PrivateCommittedBytes": 2027520,
+      "PrivateResidentBytes": 466944,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 11228,
+      "WorkingSetBytes": 3334144,
+      "PrivateCommittedBytes": 2039808,
+      "PrivateResidentBytes": 782336,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 11852,
+      "WorkingSetBytes": 9854976,
+      "PrivateCommittedBytes": 3219456,
+      "PrivateResidentBytes": 622592,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 11916,
+      "WorkingSetBytes": 3682304,
+      "PrivateCommittedBytes": 3506176,
+      "PrivateResidentBytes": 1179648,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 12628,
+      "WorkingSetBytes": 10223616,
+      "PrivateCommittedBytes": 1929216,
+      "PrivateResidentBytes": 1216512,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 12640,
+      "WorkingSetBytes": 20594688,
+      "PrivateCommittedBytes": 19632128,
+      "PrivateResidentBytes": 1544192,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 13224,
+      "WorkingSetBytes": 20914176,
+      "PrivateCommittedBytes": 6602752,
+      "PrivateResidentBytes": 4276224,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 13456,
+      "WorkingSetBytes": 19062784,
+      "PrivateCommittedBytes": 4427776,
+      "PrivateResidentBytes": 2850816,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 13760,
+      "WorkingSetBytes": 11321344,
+      "PrivateCommittedBytes": 6799360,
+      "PrivateResidentBytes": 1966080,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 14432,
+      "WorkingSetBytes": 5984256,
+      "PrivateCommittedBytes": 2461696,
+      "PrivateResidentBytes": 552960,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 14988,
+      "WorkingSetBytes": 7061504,
+      "PrivateCommittedBytes": 3543040,
+      "PrivateResidentBytes": 1077248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 16540,
+      "WorkingSetBytes": 5054464,
+      "PrivateCommittedBytes": 1978368,
+      "PrivateResidentBytes": 352256,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 17948,
+      "WorkingSetBytes": 9990144,
+      "PrivateCommittedBytes": 3850240,
+      "PrivateResidentBytes": 1605632,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 19152,
+      "WorkingSetBytes": 1445888,
+      "PrivateCommittedBytes": 1404928,
+      "PrivateResidentBytes": 319488,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 19972,
+      "WorkingSetBytes": 14979072,
+      "PrivateCommittedBytes": 6873088,
+      "PrivateResidentBytes": 3055616,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 21232,
+      "WorkingSetBytes": 3563520,
+      "PrivateCommittedBytes": 2609152,
+      "PrivateResidentBytes": 598016,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 22216,
+      "WorkingSetBytes": 13402112,
+      "PrivateCommittedBytes": 13725696,
+      "PrivateResidentBytes": 8200192,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 23768,
+      "WorkingSetBytes": 22179840,
+      "PrivateCommittedBytes": 10727424,
+      "PrivateResidentBytes": 5636096,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 24052,
+      "WorkingSetBytes": 10584064,
+      "PrivateCommittedBytes": 5632000,
+      "PrivateResidentBytes": 1052672,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 26812,
+      "WorkingSetBytes": 19816448,
+      "PrivateCommittedBytes": 9076736,
+      "PrivateResidentBytes": 3022848,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 28732,
+      "WorkingSetBytes": 4530176,
+      "PrivateCommittedBytes": 4247552,
+      "PrivateResidentBytes": 1007616,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 29048,
+      "WorkingSetBytes": 3223552,
+      "PrivateCommittedBytes": 8024064,
+      "PrivateResidentBytes": 675840,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 29088,
+      "WorkingSetBytes": 18571264,
+      "PrivateCommittedBytes": 15278080,
+      "PrivateResidentBytes": 7434240,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 29120,
+      "WorkingSetBytes": 15527936,
+      "PrivateCommittedBytes": 6344704,
+      "PrivateResidentBytes": 2785280,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 29220,
+      "WorkingSetBytes": 2568192,
+      "PrivateCommittedBytes": 2510848,
+      "PrivateResidentBytes": 507904,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 29648,
+      "WorkingSetBytes": 5992448,
+      "PrivateCommittedBytes": 3784704,
+      "PrivateResidentBytes": 987136,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 29684,
+      "WorkingSetBytes": 15015936,
+      "PrivateCommittedBytes": 12128256,
+      "PrivateResidentBytes": 5349376,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 31192,
+      "WorkingSetBytes": 17760256,
+      "PrivateCommittedBytes": 16031744,
+      "PrivateResidentBytes": 3813376,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 31716,
+      "WorkingSetBytes": 19021824,
+      "PrivateCommittedBytes": 58359808,
+      "PrivateResidentBytes": 9543680,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 32256,
+      "WorkingSetBytes": 2990080,
+      "PrivateCommittedBytes": 2224128,
+      "PrivateResidentBytes": 401408,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 34124,
+      "WorkingSetBytes": 3821568,
+      "PrivateCommittedBytes": 1986560,
+      "PrivateResidentBytes": 827392,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 34196,
+      "WorkingSetBytes": 3031040,
+      "PrivateCommittedBytes": 2285568,
+      "PrivateResidentBytes": 606208,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "svchost",
+      "Id": 36036,
+      "WorkingSetBytes": 4300800,
+      "PrivateCommittedBytes": 2228224,
+      "PrivateResidentBytes": 831488,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "Sysmon64",
+      "Id": 5576,
+      "WorkingSetBytes": 12505088,
+      "PrivateCommittedBytes": 17547264,
+      "PrivateResidentBytes": 7200768,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "System",
+      "Id": 4,
+      "WorkingSetBytes": 6434816,
+      "PrivateCommittedBytes": 65536,
+      "PrivateResidentBytes": 12288,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "SystemSettings",
+      "Id": 18080,
+      "WorkingSetBytes": 3764224,
+      "PrivateCommittedBytes": 165138432,
+      "PrivateResidentBytes": 1818624,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "taskhostw",
+      "Id": 25340,
+      "WorkingSetBytes": 11689984,
+      "PrivateCommittedBytes": 8241152,
+      "PrivateResidentBytes": 1937408,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "TextInputHost",
+      "Id": 23908,
+      "WorkingSetBytes": 31473664,
+      "PrivateCommittedBytes": 140423168,
+      "PrivateResidentBytes": 10121216,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "unsecapp",
+      "Id": 6932,
+      "WorkingSetBytes": 3137536,
+      "PrivateCommittedBytes": 1839104,
+      "PrivateResidentBytes": 577536,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "unsecapp",
+      "Id": 24368,
+      "WorkingSetBytes": 4739072,
+      "PrivateCommittedBytes": 1982464,
+      "PrivateResidentBytes": 581632,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "UserOOBEBroker",
+      "Id": 15680,
+      "WorkingSetBytes": 2416640,
+      "PrivateCommittedBytes": 2117632,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "vmcompute",
+      "Id": 9964,
+      "WorkingSetBytes": 4493312,
+      "PrivateCommittedBytes": 3428352,
+      "PrivateResidentBytes": 1032192,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "vmmemWSL",
+      "Id": 38964,
+      "WorkingSetBytes": 1259917312,
+      "PrivateCommittedBytes": 10942181376,
+      "PrivateResidentBytes": 1259208704,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "vmwp",
+      "Id": 34328,
+      "WorkingSetBytes": 10891264,
+      "PrivateCommittedBytes": 23261184,
+      "PrivateResidentBytes": 3244032,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WhatsApp.Root",
+      "Id": 36164,
+      "WorkingSetBytes": 117149696,
+      "PrivateCommittedBytes": 150614016,
+      "PrivateResidentBytes": 22978560,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WidgetService",
+      "Id": 37800,
+      "WorkingSetBytes": 16973824,
+      "PrivateCommittedBytes": 5689344,
+      "PrivateResidentBytes": 815104,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wininit",
+      "Id": 1604,
+      "WorkingSetBytes": 2039808,
+      "PrivateCommittedBytes": 1863680,
+      "PrivateResidentBytes": 184320,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "winlogbeat",
+      "Id": 29316,
+      "WorkingSetBytes": 41406464,
+      "PrivateCommittedBytes": 92696576,
+      "PrivateResidentBytes": 31182848,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "winlogon",
+      "Id": 22456,
+      "WorkingSetBytes": 3723264,
+      "PrivateCommittedBytes": 2736128,
+      "PrivateResidentBytes": 413696,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wlanext",
+      "Id": 10328,
+      "WorkingSetBytes": 3571712,
+      "PrivateCommittedBytes": 3764224,
+      "PrivateResidentBytes": 761856,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WmiPrvSE",
+      "Id": 4384,
+      "WorkingSetBytes": 18382848,
+      "PrivateCommittedBytes": 9797632,
+      "PrivateResidentBytes": 7335936,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WmiPrvSE",
+      "Id": 5728,
+      "WorkingSetBytes": 57696256,
+      "PrivateCommittedBytes": 63414272,
+      "PrivateResidentBytes": 41123840,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WmiPrvSE",
+      "Id": 10332,
+      "WorkingSetBytes": 49291264,
+      "PrivateCommittedBytes": 53960704,
+      "PrivateResidentBytes": 32206848,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WMIRegistrationService",
+      "Id": 6148,
+      "WorkingSetBytes": 2412544,
+      "PrivateCommittedBytes": 3371008,
+      "PrivateResidentBytes": 69632,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wsl",
+      "Id": 40688,
+      "WorkingSetBytes": 2498560,
+      "PrivateCommittedBytes": 1359872,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wsl",
+      "Id": 40696,
+      "WorkingSetBytes": 2519040,
+      "PrivateCommittedBytes": 1384448,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wsl",
+      "Id": 40736,
+      "WorkingSetBytes": 4231168,
+      "PrivateCommittedBytes": 2322432,
+      "PrivateResidentBytes": 102400,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wsl",
+      "Id": 40788,
+      "WorkingSetBytes": 4325376,
+      "PrivateCommittedBytes": 2232320,
+      "PrivateResidentBytes": 86016,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wslhost",
+      "Id": 31472,
+      "WorkingSetBytes": 3760128,
+      "PrivateCommittedBytes": 1961984,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wslhost",
+      "Id": 37260,
+      "WorkingSetBytes": 3629056,
+      "PrivateCommittedBytes": 1986560,
+      "PrivateResidentBytes": 36864,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wslhost",
+      "Id": 40868,
+      "WorkingSetBytes": 3784704,
+      "PrivateCommittedBytes": 2273280,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wslhost",
+      "Id": 40912,
+      "WorkingSetBytes": 3858432,
+      "PrivateCommittedBytes": 2007040,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wslrelay",
+      "Id": 40648,
+      "WorkingSetBytes": 3428352,
+      "PrivateCommittedBytes": 1835008,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "wslservice",
+      "Id": 6184,
+      "WorkingSetBytes": 10973184,
+      "PrivateCommittedBytes": 7159808,
+      "PrivateResidentBytes": 2170880,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WUDFHost",
+      "Id": 1964,
+      "WorkingSetBytes": 3014656,
+      "PrivateCommittedBytes": 7057408,
+      "PrivateResidentBytes": 671744,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WUDFHost",
+      "Id": 2116,
+      "WorkingSetBytes": 7815168,
+      "PrivateCommittedBytes": 15130624,
+      "PrivateResidentBytes": 2646016,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WUDFHost",
+      "Id": 2952,
+      "WorkingSetBytes": 8175616,
+      "PrivateCommittedBytes": 13049856,
+      "PrivateResidentBytes": 2035712,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "WUDFHost",
+      "Id": 7408,
+      "WorkingSetBytes": 1118208,
+      "PrivateCommittedBytes": 1740800,
+      "PrivateResidentBytes": 16384,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "XboxService",
+      "Id": 6228,
+      "WorkingSetBytes": 3776512,
+      "PrivateCommittedBytes": 3784704,
+      "PrivateResidentBytes": 53248,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    },
+    {
+      "Name": "XtuService",
+      "Id": 7864,
+      "WorkingSetBytes": 10006528,
+      "PrivateCommittedBytes": 71651328,
+      "PrivateResidentBytes": 3268608,
+      "HasWindow": true,
+      "WindowMentionsSpecula": false
+    }
+  ],
+  "Services": [
+    {
+      "Name": "Appinfo",
+      "DisplayName": "Application Information",
+      "ProcessId": 11852,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "AppXSvc",
+      "DisplayName": "AppX Deployment Service (AppXSVC)",
+      "ProcessId": 31716,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "AudioEndpointBuilder",
+      "DisplayName": "Windows Audio Endpoint Builder",
+      "ProcessId": 4104,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "Audiosrv",
+      "DisplayName": "Windows Audio",
+      "ProcessId": 4276,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "BFE",
+      "DisplayName": "Base Filtering Engine",
+      "ProcessId": 5168,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "BITS",
+      "DisplayName": "Background Intelligent Transfer Service",
+      "ProcessId": 31192,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "BrokerInfrastructure",
+      "DisplayName": "Background Tasks Infrastructure Service",
+      "ProcessId": 1916,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "bthserv",
+      "DisplayName": "Bluetooth Support Service",
+      "ProcessId": 29220,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "camsvc",
+      "DisplayName": "Capability Access Manager Service",
+      "ProcessId": 10884,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "CDPSvc",
+      "DisplayName": "Connected Devices Platform Service",
+      "ProcessId": 13760,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "ClickToRunSvc",
+      "DisplayName": "Microsoft Office Click-to-Run Service",
+      "ProcessId": 1036,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "CoreMessagingRegistrar",
+      "DisplayName": "CoreMessaging",
+      "ProcessId": 2312,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "CoworkVMService",
+      "DisplayName": "Claude",
+      "ProcessId": 10952,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "cplspcon",
+      "DisplayName": "Intel(R) Content Protection HDCP Service",
+      "ProcessId": 2704,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "CryptSvc",
+      "DisplayName": "Cryptographic Services",
+      "ProcessId": 3920,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DcomLaunch",
+      "DisplayName": "DCOM Server Process Launcher",
+      "ProcessId": 1916,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DellClientManagementService",
+      "DisplayName": "Dell Client Management Service",
+      "ProcessId": 15656,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DellConnectedServiceDelivery",
+      "DisplayName": "Dell Connected Service Delivery",
+      "ProcessId": 29584,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DellTechHub",
+      "DisplayName": "Dell TechHub",
+      "ProcessId": 26744,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DeviceAssociationService",
+      "DisplayName": "Device Association Service",
+      "ProcessId": 3416,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "DeviceInstall",
+      "DisplayName": "Device Install Service",
+      "ProcessId": 1776,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "DevQueryBroker",
+      "DisplayName": "DevQuery Background Discovery Broker",
+      "ProcessId": 3292,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "Dhcp",
+      "DisplayName": "DHCP Client",
+      "ProcessId": 2712,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DiagTrack",
+      "DisplayName": "Connected User Experiences and Telemetry",
+      "ProcessId": 5948,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DispBrokerDesktopSvc",
+      "DisplayName": "Display Policy Service",
+      "ProcessId": 4372,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DisplayEnhancementService",
+      "DisplayName": "Display Enhancement Service",
+      "ProcessId": 2732,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "Dnscache",
+      "DisplayName": "DNS Client",
+      "ProcessId": 2620,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DolbyDAXAPI",
+      "DisplayName": "Dolby DAX API Service",
+      "ProcessId": 5848,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DoSvc",
+      "DisplayName": "Delivery Optimization",
+      "ProcessId": 29684,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DPS",
+      "DisplayName": "Diagnostic Policy Service",
+      "ProcessId": 5984,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "dptftcs",
+      "DisplayName": "Intel(R) Dynamic Tuning Technology Telemetry Service",
+      "ProcessId": 6036,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DsSvc",
+      "DisplayName": "Data Sharing Service",
+      "ProcessId": 29048,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "DusmSvc",
+      "DisplayName": "Data Usage",
+      "ProcessId": 4784,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "EpsonScanSvc",
+      "DisplayName": "Epson Scanner Service",
+      "ProcessId": 5908,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "EventLog",
+      "DisplayName": "Windows Event Log",
+      "ProcessId": 3988,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "EventSystem",
+      "DisplayName": "COM+ Event System",
+      "ProcessId": 4036,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "FontCache",
+      "DisplayName": "Windows Font Cache Service",
+      "ProcessId": 4112,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "FvSvc",
+      "DisplayName": "NVIDIA FrameView SDK service",
+      "ProcessId": 28496,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "GameInputRedistService",
+      "DisplayName": "GameInput Redist Service",
+      "ProcessId": 5920,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "GooglePlayGamesServices-26.10.318.0",
+      "DisplayName": "Google Play Games Services (26.10.318.0)",
+      "ProcessId": 5992,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "gpsvc",
+      "DisplayName": "Group Policy Client",
+      "ProcessId": 12628,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "hidserv",
+      "DisplayName": "Human Interface Device Service",
+      "ProcessId": 2780,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "hns",
+      "DisplayName": "Host Network Service",
+      "ProcessId": 3552,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "HvHost",
+      "DisplayName": "HV Host Service",
+      "ProcessId": 2320,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "IgoAudioService",
+      "DisplayName": "intelliGo Audio Service",
+      "ProcessId": 5960,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "InstallService",
+      "DisplayName": "Microsoft Store Install Service",
+      "ProcessId": 10520,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "IntelAudioService",
+      "DisplayName": "Intel(R) Audio Service",
+      "ProcessId": 6016,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "IntelGraphicsSoftwareService",
+      "DisplayName": "Intel\u00ae Graphics Software",
+      "ProcessId": 11000,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "InventorySvc",
+      "DisplayName": "Inventory and Compatibility Appraisal service",
+      "ProcessId": 29088,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "ipfsvc",
+      "DisplayName": "Intel(R) Innovation Platform Framework Service",
+      "ProcessId": 6096,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "iphlpsvc",
+      "DisplayName": "IP Helper",
+      "ProcessId": 6052,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "Jenkins",
+      "DisplayName": "Jenkins",
+      "ProcessId": 6064,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "jhi_service",
+      "DisplayName": "Intel(R) Dynamic Application Loader Host Interface Service",
+      "ProcessId": 6008,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "KeyIso",
+      "DisplayName": "CNG Key Isolation",
+      "ProcessId": 1780,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "LanmanServer",
+      "DisplayName": "Server",
+      "ProcessId": 6488,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "LanmanWorkstation",
+      "DisplayName": "Workstation",
+      "ProcessId": 5712,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "lfsvc",
+      "DisplayName": "Geolocation Service",
+      "ProcessId": 19972,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "LicenseManager",
+      "DisplayName": "Windows License Manager Service",
+      "ProcessId": 17948,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "lmhosts",
+      "DisplayName": "TCP/IP NetBIOS Helper",
+      "ProcessId": 19152,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "logi_lamparray_service",
+      "DisplayName": "Logitech LampArray Service",
+      "ProcessId": 6912,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "LSM",
+      "DisplayName": "LSM",
+      "ProcessId": 1136,
+      "State": "Running",
+      "StartMode": "Unknown"
+    },
+    {
+      "Name": "MDCoreSvc",
+      "DisplayName": "Microsoft Defender Core Service",
+      "ProcessId": 6080,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "MongoDB",
+      "DisplayName": "MongoDB Server (MongoDB)",
+      "ProcessId": 5648,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "mpssvc",
+      "DisplayName": "Windows Defender Firewall",
+      "ProcessId": 5168,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "MySQL93",
+      "DisplayName": "MySQL93",
+      "ProcessId": 6132,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "NcbService",
+      "DisplayName": "Network Connection Broker",
+      "ProcessId": 2468,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "netprofm",
+      "DisplayName": "Network List Service",
+      "ProcessId": 2644,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "NetSetupSvc",
+      "DisplayName": "NetSetupSvc",
+      "ProcessId": 1732,
+      "State": "Running",
+      "StartMode": "Unknown"
+    },
+    {
+      "Name": "NgcCtnrSvc",
+      "DisplayName": "Microsoft Passport Container",
+      "ProcessId": 8180,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "NgcSvc",
+      "DisplayName": "Microsoft Passport",
+      "ProcessId": 14432,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "nsi",
+      "DisplayName": "Network Store Interface Service",
+      "ProcessId": 2340,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "nvagent",
+      "DisplayName": "Network Virtualization Service",
+      "ProcessId": 4180,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "NvContainerLocalSystem",
+      "DisplayName": "NVIDIA LocalSystem Container",
+      "ProcessId": 6024,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "NVDisplay.ContainerLocalSystem",
+      "DisplayName": "NVIDIA Display Container LS",
+      "ProcessId": 3896,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "PcaSvc",
+      "DisplayName": "Program Compatibility Assistant Service",
+      "ProcessId": 12640,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "PIEServiceNew",
+      "DisplayName": "Intel\u00ae PROSet/Wireless Service",
+      "ProcessId": 11520,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "PlugPlay",
+      "DisplayName": "Plug and Play",
+      "ProcessId": 1916,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "PolicyAgent",
+      "DisplayName": "IPsec Policy Agent",
+      "ProcessId": 11228,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "Power",
+      "DisplayName": "Power",
+      "ProcessId": 1916,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "ProfSvc",
+      "DisplayName": "User Profile Service",
+      "ProcessId": 2696,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "QWAVE",
+      "DisplayName": "Quality Windows Audio Video Experience",
+      "ProcessId": 21232,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "RasMan",
+      "DisplayName": "Remote Access Connection Manager",
+      "ProcessId": 28732,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "RmSvc",
+      "DisplayName": "Radio Management Service",
+      "ProcessId": 7012,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "RpcEptMapper",
+      "DisplayName": "RPC Endpoint Mapper",
+      "ProcessId": 996,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "RpcSs",
+      "DisplayName": "Remote Procedure Call (RPC)",
+      "ProcessId": 996,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "RtkAudioUniversalService",
+      "DisplayName": "Realtek Audio Universal Service",
+      "ProcessId": 6072,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SamSs",
+      "DisplayName": "Security Accounts Manager",
+      "ProcessId": 1780,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "Schedule",
+      "DisplayName": "Task Scheduler",
+      "ProcessId": 2612,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "seclogon",
+      "DisplayName": "Secondary Logon",
+      "ProcessId": 34124,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "SecurityHealthService",
+      "DisplayName": "Windows Security Service",
+      "ProcessId": 19808,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "SENS",
+      "DisplayName": "System Event Notification Service",
+      "ProcessId": 3960,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SensorService",
+      "DisplayName": "Sensor Service",
+      "ProcessId": 7120,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "SharedAccess",
+      "DisplayName": "Internet Connection Sharing (ICS)",
+      "ProcessId": 5544,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "ShellHWDetection",
+      "DisplayName": "Shell Hardware Detection",
+      "ProcessId": 5060,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "smphost",
+      "DisplayName": "Microsoft Storage Spaces SMP",
+      "ProcessId": 13456,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "Spooler",
+      "DisplayName": "Print Spooler",
+      "ProcessId": 5464,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SQLWriter",
+      "DisplayName": "SQL Server VSS Writer",
+      "ProcessId": 5528,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SSDPSRV",
+      "DisplayName": "SSDP Discovery",
+      "ProcessId": 11916,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "SstpSvc",
+      "DisplayName": "Secure Socket Tunneling Protocol Service",
+      "ProcessId": 9444,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "StateRepository",
+      "DisplayName": "State Repository Service",
+      "ProcessId": 4480,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "StiSvc",
+      "DisplayName": "Windows Image Acquisition (WIA)",
+      "ProcessId": 2980,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "StorSvc",
+      "DisplayName": "Storage Service",
+      "ProcessId": 14988,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SupportAssistAgent",
+      "DisplayName": "Dell SupportAssist PC Analytics",
+      "ProcessId": 21024,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SysMain",
+      "DisplayName": "SysMain",
+      "ProcessId": 4028,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "Sysmon64",
+      "DisplayName": "Sysmon64",
+      "ProcessId": 5576,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "SystemEventsBroker",
+      "DisplayName": "System Events Broker",
+      "ProcessId": 1916,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "TextInputManagementService",
+      "DisplayName": "Text Input Management Service",
+      "ProcessId": 4312,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "Themes",
+      "DisplayName": "Themes",
+      "ProcessId": 4044,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "TimeBrokerSvc",
+      "DisplayName": "Time Broker",
+      "ProcessId": 2488,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "TokenBroker",
+      "DisplayName": "Web Account Manager",
+      "ProcessId": 13224,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "TrkWks",
+      "DisplayName": "Distributed Link Tracking Client",
+      "ProcessId": 6088,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "UserManager",
+      "DisplayName": "User Manager",
+      "ProcessId": 2968,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "UsoSvc",
+      "DisplayName": "Update Orchestrator Service",
+      "ProcessId": 2216,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "VaultSvc",
+      "DisplayName": "Credential Manager",
+      "ProcessId": 1780,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "vmcompute",
+      "DisplayName": "Hyper-V Host Compute Service",
+      "ProcessId": 9964,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "W32Time",
+      "DisplayName": "Windows Time",
+      "ProcessId": 36036,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "Wcmsvc",
+      "DisplayName": "Windows Connection Manager",
+      "ProcessId": 3392,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WdiSystemHost",
+      "DisplayName": "Diagnostic System Host",
+      "ProcessId": 7708,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "WdNisSvc",
+      "DisplayName": "Microsoft Defender Antivirus Network Inspection Service",
+      "ProcessId": 16040,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "WebClient",
+      "DisplayName": "WebClient",
+      "ProcessId": 34196,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "webthreatdefsvc",
+      "DisplayName": "Web Threat Defense Service",
+      "ProcessId": 4360,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "whesvc",
+      "DisplayName": "Windows Health and Optimized Experiences",
+      "ProcessId": 22216,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WinDefend",
+      "DisplayName": "Microsoft Defender Antivirus Service",
+      "ProcessId": 5600,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WinHttpAutoProxySvc",
+      "DisplayName": "WinHTTP Web Proxy Auto-Discovery Service",
+      "ProcessId": 3084,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "winlogbeat",
+      "DisplayName": "winlogbeat",
+      "ProcessId": 29316,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "Winmgmt",
+      "DisplayName": "Windows Management Instrumentation",
+      "ProcessId": 5256,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WlanSvc",
+      "DisplayName": "WLAN AutoConfig",
+      "ProcessId": 5004,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WMIRegistrationService",
+      "DisplayName": "Intel(R) Management Engine WMI Provider Registration",
+      "ProcessId": 6148,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WpnService",
+      "DisplayName": "Windows Push Notifications System Service",
+      "ProcessId": 6192,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WSAIFabricSvc",
+      "DisplayName": "Windows AI Components Host",
+      "ProcessId": 11176,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "wscsvc",
+      "DisplayName": "Security Center",
+      "ProcessId": 29648,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WSearch",
+      "DisplayName": "Windows Search",
+      "ProcessId": 26620,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WSLService",
+      "DisplayName": "WSL Service",
+      "ProcessId": 6184,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "XboxService",
+      "DisplayName": "Xbox Service",
+      "ProcessId": 6228,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "XTU3SERVICE",
+      "DisplayName": "XTUOCDriverService",
+      "ProcessId": 7864,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "GamingServicesNet",
+      "DisplayName": "Gaming Services",
+      "ProcessId": 28228,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "GamingServices",
+      "DisplayName": "Gaming Services",
+      "ProcessId": 23548,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "CodexSandboxService.OpenAI.Codex",
+      "DisplayName": "ChatGPT",
+      "ProcessId": 21580,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "cbdhsvc_267cf928",
+      "DisplayName": "Clipboard User Service_267cf928",
+      "ProcessId": 26812,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "CDPUserSvc_267cf928",
+      "DisplayName": "Connected Devices Platform User Service_267cf928",
+      "ProcessId": 10508,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "DevicesFlowUserSvc_267cf928",
+      "DisplayName": "DevicesFlow_267cf928",
+      "ProcessId": 16540,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "PimIndexMaintenanceSvc_267cf928",
+      "DisplayName": "Contact Data_267cf928",
+      "ProcessId": 29120,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "UdkUserSvc_267cf928",
+      "DisplayName": "Udk User Service_267cf928",
+      "ProcessId": 24052,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "UnistoreSvc_267cf928",
+      "DisplayName": "User Data Storage_267cf928",
+      "ProcessId": 29120,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "UserDataSvc_267cf928",
+      "DisplayName": "User Data Access_267cf928",
+      "ProcessId": 29120,
+      "State": "Running",
+      "StartMode": "Manual"
+    },
+    {
+      "Name": "webthreatdefusersvc_267cf928",
+      "DisplayName": "Web Threat Defense User Service_267cf928",
+      "ProcessId": 32256,
+      "State": "Running",
+      "StartMode": "Auto"
+    },
+    {
+      "Name": "WpnUserService_267cf928",
+      "DisplayName": "Windows Push Notifications User Service_267cf928",
+      "ProcessId": 23768,
+      "State": "Running",
+      "StartMode": "Auto"
+    }
+  ]
+}

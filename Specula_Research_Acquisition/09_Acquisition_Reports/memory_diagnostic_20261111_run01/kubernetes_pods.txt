@@ -1,0 +1,10 @@
+NS            NAME                                     PHASE
+kube-system   coredns-66bc5c9577-qcdvh                 Running
+kube-system   coredns-66bc5c9577-xpsf4                 Running
+kube-system   etcd-docker-desktop                      Running
+kube-system   kube-apiserver-docker-desktop            Running
+kube-system   kube-controller-manager-docker-desktop   Running
+kube-system   kube-proxy-fmrf8                         Running
+kube-system   kube-scheduler-docker-desktop            Running
+kube-system   storage-provisioner                      Running
+kube-system   vpnkit-controller                        Running

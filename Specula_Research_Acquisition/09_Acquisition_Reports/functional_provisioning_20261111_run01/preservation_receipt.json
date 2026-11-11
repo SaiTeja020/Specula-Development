@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "scope": "read-only integrity/preservation only; provisioning remains BLOCKED",
+  "time_utc": "2026-11-11T09:40:58Z",
+  "immutable_resource_hashes_verified": 5096,
+  "mutable_hashes_deferred": 31,
+  "model_manifests_verified": 2,
+  "model_blob_entries_verified": 7,
+  "original_case_and_key_unchanged": true,
+  "reference_files_verified": 4,
+  "evaluator_files_verified": 296,
+  "evaluator_acl_descriptors_checked": 411,
+  "parent_head": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+  "parent_tracked_status": "",
+  "errors": []
+}

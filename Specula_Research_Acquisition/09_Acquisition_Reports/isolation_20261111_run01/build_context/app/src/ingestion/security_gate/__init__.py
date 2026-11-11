@@ -1,0 +1,1 @@
+"""Specula Security Gate."""

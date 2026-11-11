@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "scope": "preparation artifacts only, not runtime/functionality",
+  "time_utc": "2026-11-11T09:26:39Z",
+  "artifact_hashes_verified": 30,
+  "checksum_manifest_sha256": "68a90c3d9370089006e51d46367952cc70ed8ec013f911443cc90e4c5456ac70",
+  "preparation_verification": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_preparation_20261111_run01\\verification_20261111T092507Z.json",
+  "provisioning": "GO recommendation after explicit approval",
+  "functional_execution": "NO-GO / NOT RUN",
+  "runtime_mutations_performed": false
+}
