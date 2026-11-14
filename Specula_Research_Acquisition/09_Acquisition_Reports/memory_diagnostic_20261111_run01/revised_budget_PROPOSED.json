@@ -1,0 +1,42 @@
+{
+  "status": "UNAPPROVED / NOT APPLIED / TRIAL ONLY",
+  "component_caps_MiB": {
+    "ollama": 7168,
+    "worker": 768,
+    "neo4j": 512,
+    "kafka": 512,
+    "chroma": 256,
+    "quickwit": 256,
+    "redis": 64,
+    "gateway": 64,
+    "coordinator": 64,
+    "anchor": 16
+  },
+  "total_MiB": 9680,
+  "preserved": "All mandatory services, identities, network restrictions, image/model pins, Ollama 7168 MiB, context 8192, output limits, CPU placement, model names, retrieval and HITL behavior.",
+  "changes": {
+    "worker": {
+      "approved_MiB": 1024,
+      "proposed_MiB": 768
+    },
+    "neo4j": {
+      "approved_MiB": 768,
+      "proposed_MiB": 512
+    },
+    "kafka": {
+      "approved_MiB": 768,
+      "proposed_MiB": 512
+    },
+    "chroma": {
+      "approved_MiB": 384,
+      "proposed_MiB": 256
+    },
+    "quickwit": {
+      "approved_MiB": 384,
+      "proposed_MiB": 256
+    }
+  },
+  "runtime_settings_to_validate": "Per-service supported heap/cache limits and actual non-root startup at pinned software versions; no existing service change permitted.",
+  "execution_authorized": false,
+  "model_canary_limit": "Unchanged: one benign chat and one benign embedding; no retry or forensic case."
+}

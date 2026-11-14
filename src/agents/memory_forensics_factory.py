@@ -27,8 +27,10 @@ def _load_artifacts(state: dict, neo4j_driver: Any,
         return [artifact for artifact in supplied if isinstance(artifact, dict)]
     if neo4j_driver is None:
         return []
+    if not state.get("case_id"):
+        return []
     query = """
-    MATCH (e {case_id: $case_id})
+    MATCH (:Case {uid: $case_id})-[:HAS_EVENT]->(e:Event)
     WHERE e.source_type = 'memory'
        OR toLower(coalesce(e.plugin, '')) CONTAINS 'scan'
        OR toLower(coalesce(e.plugin, '')) CONTAINS 'malfind'
@@ -36,13 +38,19 @@ def _load_artifacts(state: dict, neo4j_driver: Any,
     RETURN e
     """
     records, _, _ = neo4j_driver.execute_query(query, case_id=state.get("case_id"))
-    return _records_to_artifacts(records)
+    # Membership was verified by the query. First-write tags on shared evidence
+    # need not equal this case; scope copies without modifying stored evidence.
+    return [{**artifact, "case_id": state["case_id"]}
+            for artifact in _records_to_artifacts(records)]
 
 
 def make_memory_forensics_node(neo4j_driver: Any = None, kafka_producer: Any = None,
                                artifact_provider: Callable[[dict], list[dict]] | None = None):
     """Return the single-argument node callable required by LangGraph."""
     def memory_forensics_node(state: dict) -> dict:
+        if (state.get("evidence_collection") or {}).get("records"):
+            from . import case_analysis
+            return case_analysis.specialist("memory_forensics", "memory", state)
         started = time.perf_counter()
         case_id = state.get("case_id", "unknown")
         artifacts = _load_artifacts(state, neo4j_driver, artifact_provider)

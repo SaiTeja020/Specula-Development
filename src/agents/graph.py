@@ -1,6 +1,6 @@
 """LangGraph StateGraph assembly — §4 graph topology & conditional routing.
 
-25 nodes, wired per the implementation plan's control-flow topology.
+27 nodes, including separate primary/specialist network analysis and adaptive follow-up.
 Uses Send for primary-tier and specialist fan-out, Command for debate
 loop routing and guardrail/HITL branching.
 """
@@ -27,7 +27,6 @@ from .nodes import (
     proponent_node,
     report_generation_node,
     specialist_join_node,
-    threat_attribution_node,
     timeline_artifact_generation_node,
     timeline_reconstruction_node,
 )
@@ -35,8 +34,10 @@ from .evidence_collection_agent import make_evidence_collection_node
 from .log_analysis_factory import make_log_analysis_node
 from .network_forensics_factory import make_network_forensics_node
 from .memory_forensics_factory import make_memory_forensics_node
+from .threat_attribution_factory import make_threat_attribution_node
 from .supervisor_factory import make_supervisor_node
 from .state import SpeculaState
+from .network_specialist import network_specialist_node
 
 
 # ===================================================================
@@ -54,6 +55,7 @@ def _supervisor_primary_dispatch(state: dict) -> list[Send]:
 
 
 _SPECIALIST_MAP = {
+    "network":         "network_specialist",
     "memory":          "memory_forensics",
     "identity":        "identity",          # F13a — split from identity_cloud
     "cloud_container": "cloud_container",   # F13b — split from identity_cloud
@@ -68,24 +70,46 @@ def _dead_end_route(state: dict) -> str | list[Send]:
     No dead-end -> skip directly to Timeline Reconstruction.
     Dead-end   -> conditional Send to relevant specialists.
     """
-    if not state.get("dead_end_detected") or not state.get("dead_end_categories"):
-        return "timeline_reconstruction"
+    from .case_analysis import records
+    events = records(state)
+    categories = set(state.get("dead_end_categories") or [])
+    if events:
+        from .investigative_review import plan
+        role_categories = {role: category for category, role in _SPECIALIST_MAP.items()}
+        categories.update(role_categories[role] for role in plan(state)['required_roles'] if role in role_categories)
+        classes = {row.get("class_uid") for row in events}
+        if 3002 in classes or any(row.get("source_event_type") == "credential_access" for row in events):
+            categories.add("identity")
+        if 6003 in classes:
+            categories.add("cloud_container")
+        if any(row.get('source_type')=='container' for row in events):
+            categories.add('cloud_container')
+        if 4001 in classes:
+            categories.add("network")
+        if any(row.get("source_type") == "memory" or (isinstance(row.get("details"), dict) and row["details"].get("plugin")) for row in events):
+            categories.add("memory")
+        if any(row.get("source_type") == "ueba" for row in events):
+            categories.add("insider")
+        if any(row.get('source_type')=='malware' or "unsigned" in str(row.get("source_finding", "")).lower() for row in events):
+            categories.add("malware")
+    if not categories:
+        return "investigation_followup"
 
     s = dict(state)
     sends = [
         Send(_SPECIALIST_MAP[cat], s)
-        for cat in state["dead_end_categories"]
+        for cat in sorted(categories)
         if cat in _SPECIALIST_MAP
     ]
-    return sends if sends else "timeline_reconstruction"
+    return sends if sends else "investigation_followup"
 
 
 # ===================================================================
 # Graph builder
 # ===================================================================
 
-def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafka_producer=None, vector_client=None):
-    """Assemble and compile the full 23-node orchestration graph.
+def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafka_producer=None, vector_client=None, threat_intel=None, attribution_llm_factory=None):
+    """Assemble and compile the checkpointed 27-node orchestration graph.
 
     Args:
         checkpointer: LangGraph checkpointer instance. Required for HITL
@@ -99,15 +123,20 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
     """
     builder = StateGraph(SpeculaState)
 
-    # ---- Add all 23 nodes ----
+    # ---- Add the registered nodes ----
 
-    # 18 ReAct-stub LLM agent nodes
-    builder.add_node("supervisor", make_supervisor_node())
+    # Evidence-bearing agents and explicitly guarded legacy test adapters.
+    builder.add_node("supervisor", make_supervisor_node(neo4j_driver))
     builder.add_node("evidence_collection", make_evidence_collection_node(redis_client, neo4j_driver))
     builder.add_node("log_analysis", make_log_analysis_node(kafka_producer, vector_client, redis_client, neo4j_driver))
     builder.add_node("network_forensics", make_network_forensics_node(neo4j_driver, kafka_producer))
+    builder.add_node("network_specialist", network_specialist_node)
+    from .investigation_followup import make_followup_node
+    builder.add_node("investigation_followup", make_followup_node(neo4j_driver))
     builder.add_node("timeline_reconstruction", timeline_reconstruction_node)
-    builder.add_node("threat_attribution", threat_attribution_node)
+    builder.add_node("threat_attribution", make_threat_attribution_node(
+        neo4j_driver, kafka_producer, threat_intel, attribution_llm_factory,
+    ))
     builder.add_node("dag", dag_node)                           # F23 — Dynamic Attack Graph
     builder.add_node("memory_forensics", make_memory_forensics_node(neo4j_driver, kafka_producer))
     builder.add_node("identity", identity_node)                 # F13a — Identity specialist
@@ -156,8 +185,9 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
         "primary_tier_join",
         _dead_end_route,
         [
-            "timeline_reconstruction",
+            "investigation_followup",
             "memory_forensics",
+            "network_specialist",
             "identity",
             "cloud_container",
             "malware_stylometry",
@@ -167,13 +197,14 @@ def build_graph(*, checkpointer=None, redis_client=None, neo4j_driver=None, kafk
 
     # Specialist agents -> join
     builder.add_edge("memory_forensics", "specialist_join")
+    builder.add_edge("network_specialist", "specialist_join")
     builder.add_edge("identity", "specialist_join")
     builder.add_edge("cloud_container", "specialist_join")
     builder.add_edge("malware_stylometry", "specialist_join")
     builder.add_edge("insider_threat", "specialist_join")
 
     # Specialist join -> Timeline Reconstruction (both paths converge here)
-    builder.add_edge("specialist_join", "timeline_reconstruction")
+    builder.add_edge("specialist_join", "investigation_followup")
 
     # Sequential synthesis
     builder.add_edge("timeline_reconstruction", "threat_attribution")

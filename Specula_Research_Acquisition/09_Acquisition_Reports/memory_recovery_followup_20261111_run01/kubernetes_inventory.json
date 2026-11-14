@@ -1,0 +1,7 @@
+{
+  "pods": "NS            NAME                                     PHASE\nkube-system   coredns-66bc5c9577-qcdvh                 Running\nkube-system   coredns-66bc5c9577-xpsf4                 Running\nkube-system   etcd-docker-desktop                      Running\nkube-system   kube-apiserver-docker-desktop            Running\nkube-system   kube-controller-manager-docker-desktop   Running\nkube-system   kube-proxy-fmrf8                         Running\nkube-system   kube-scheduler-docker-desktop            Running\nkube-system   storage-provisioner                      Running\nkube-system   vpnkit-controller                        Running\n",
+  "workloads": "NAMESPACE     NAME                      READY   UP-TO-DATE   AVAILABLE   AGE\nkube-system   deployment.apps/coredns   2/2     2            2           36d\n\nNAMESPACE     NAME                        DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE\nkube-system   daemonset.apps/kube-proxy   1         1         1       1            1           kubernetes.io/os=linux   36d\n",
+  "PVC_stdout": "",
+  "PV_stdout": "",
+  "limitations": "Read-only resource inventories; no secret/configmap/etcd content inspected. Existing stored cluster state/future clients cannot be ruled out."
+}

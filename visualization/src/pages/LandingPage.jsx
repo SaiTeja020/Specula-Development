@@ -1,43 +1,116 @@
+import { useEffect, useRef, useState, useId } from 'react';
 import { Link } from 'react-router-dom';
-import { Zap, Network, Database, BrainCircuit } from 'lucide-react';
+import { Fingerprint } from 'lucide-react';
+import './landing-page.css';
 
-export default function LandingPage() {
-  return (
-    <div className="landing-hero">
-      <div style={{ marginBottom: '2rem' }}>
-        <img src="/Specula_logo.png" alt="Specula Logo" style={{ height: '100px' }} />
-      </div>
-      <h1 className="landing-title">
-        Specula Multi-Agent DFIR
-      </h1>
-      <p className="landing-subtitle">
-        Asynchronous, event-driven, multi-agent digital forensics platform. 
-        Ingest, process, and analyze telemetry at scale with immutable provenance and cryptographic integrity.
-      </p>
-      
-      <div className="button-group">
-        <Link to="/startup" className="primary-btn" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <Zap size={18} /> Initialize System
-        </Link>
-        <Link to="/investigate" className="secondary-btn" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <BrainCircuit size={18} /> Resume Investigation
-        </Link>
-      </div>
+const inputs = [['OS Logs','Log Analysis'],['NTFS $MFT / $USN','Evidence Collection'],['Network PCAPs','Network Forensics'],['Memory Dumps','Memory Forensics'],['AD / Kerberos','Identity Analysis'],['Cloud Audit','Cloud / Container'],['K8s / Containers','Cloud / Container'],['Malware Samples','Malware Analysis'],['Browser Artifacts','Browser Forensics'],['Email / Messaging','Evidence Collection'],['EDR / UEBA','Insider Threat'],['Threat Intel','Evidence Collection'],['Vulnerability Scans','Evidence Collection'],['Cloud Topology','Cloud / Container']];
+const pillars = [
+  {title:'Distill the noise.',accent:'Preserve the signal.',label:'Semantic compression',text:'Drain3 templates and SimHash group repetitive records. Entropy-aware retention keeps unusual content available for examination, with original evidence preserved.',tags:['DRAIN3','64-BIT SIMHASH','SHANNON ENTROPY'],note:'Compression and indicator retention depend on the dataset; research targets are not measured guarantees.',nodes:['RAW TELEMETRY','SHA-256 SEAL','DRAIN3 + SIMHASH','ENTROPY FILTER','RETAINED EVIDENCE']},
+  {title:'One investigation.',accent:'Thirteen perspectives.',label:'Agent orchestration',text:'A LangGraph supervisor coordinates primary and specialist reviews through shared case evidence. Workers contribute bounded, cited observations rather than a single unchallenged answer.',tags:['LANGGRAPH','NEO4J BLACKBOARD','BOUNDED LOOPS'],note:'Model and worker availability depend on deployment. The local pilot uses Qwen3; this is not live agent status.',nodes:['SUPERVISOR','LOG ANALYSIS','NETWORK FORENSICS','MEMORY / IDENTITY','CLOUD / MALWARE']},
+  {title:'Time can be altered.',accent:'Context leaves traces.',label:'Timestomping analysis',text:'Compare NTFS timestamp fields and journal observations with independent activity. Preserve raw times alongside normalized chronology and expose missing corroboration.',tags:['$STANDARD_INFORMATION','$FILE_NAME','$USN JOURNAL'],note:'Timestamp discrepancies are investigative signals, not proof of malicious intent. Classifier calibration requires independent labels.',nodes:['$STANDARD_INFORMATION','$FILE_NAME','$USN JOURNAL','TIME ANCHORS','REVIEW DISCREPANCY']},
+  {title:'Read the script.',accent:'Question its origin.',label:'Code stylometry',text:'Inspect recovered code structure and compare evidence-bound features. Separate observable syntax from speculative claims about authorship, model origin or actor identity.',tags:['AST FEATURES','SOURCE CONTEXT','UNCERTAINTY'],note:'Human versus LLM attribution is a research objective; no validated authorship accuracy is claimed.',nodes:['RECOVERED SCRIPT','AST EXTRACTION','STRUCTURAL FEATURES','REFERENCE COMPARISON','QUALIFIED FINDING']},
+  {title:'Trace the path.',accent:'Bound the impact.',label:'Attack graph & blast radius',text:'Connect case observations to analyst-reviewed prerequisites and exploitation paths. Keep temporal correlation distinct from verified causation and calibrated risk.',tags:['REVIEWED TOPOLOGY','WEIGHTED PATHS','CITED EVIDENCE'],note:'CVSS severity and EPSS estimates are not exploitation probabilities. Missing calibration stays explicit.',nodes:['ENTRY POINT','HOST CONTEXT','PREREQUISITES','REVIEWED PATH','AFFECTED ASSETS']},
+  {title:'Untrusted input.',accent:'Explicit boundaries.',label:'Zero-trust security gate',text:'Treat attacker-controlled telemetry as evidence, never as instructions. Normalize inputs, constrain tools and check output citations before findings can advance.',tags:['NFKC NORMALIZATION','CITATION CHECKS','HUMAN REVIEW'],note:'Layered guardrails reduce risk; they do not guarantee elimination of prompt injection or unsupported reasoning.',nodes:['UNTRUSTED LOG','NORMALIZE','SANITIZE','CHECK CITATIONS','REVIEW GATE']},
+];
+const graphNodes = [
+  {name:'WKSTN-04',type:'Host',x:110,y:150,cls:'Device context',time:'09:41:02'},
+  {name:'svc_backup',type:'User',x:310,y:65,cls:'Identity context',time:'09:41:00'},
+  {name:'powershell.exe',type:'Process',x:310,y:245,cls:'1007 · Process activity',time:'09:41:02'},
+  {name:'payload.ps1',type:'File',x:535,y:140,cls:'1001 · File activity',time:'09:41:03'},
+  {name:'192.0.2.14',type:'Network endpoint',x:565,y:340,cls:'4001 · Network activity',time:'09:41:05'},
+  {name:'T1059.001',type:'ATT&CK mapping',x:115,y:370,cls:'2004 · Detection finding',time:'09:41:05'},
+];
+const graphEdges = [[0,2,'EXECUTED'],[1,2,'USER CONTEXT'],[2,3,'ACCESSED'],[2,4,'CONNECTED'],[2,5,'MAPPED TO']];
+const debates = [
+  {name:'Proponent',verb:'Build the hypothesis.',text:'PowerShell accessed a script and opened an outbound connection. Investigate whether the sequence represents unauthorized execution.',cite:'CITES · PROCESS / FILE / ENDPOINT',status:'HYPOTHESIS — NOT A VERDICT'},
+  {name:'Critic',verb:'Look for what contradicts it.',text:'The account may perform scheduled maintenance. Check job authorization, command content and destination ownership before inferring compromise.',cite:'REQUESTS · JOB / HOST / DESTINATION CONTROLS',status:'ALTERNATIVE EXPLANATION RETAINED'},
+  {name:'Judge',verb:'Make uncertainty visible.',text:'The sequence supports further examination, not actor attribution. Insufficient context routes the case to examiner review rather than a confident final report.',cite:'CHECKS · CITATIONS / COUNTER-EVIDENCE / COVERAGE',status:'HUMAN REVIEW REQUIRED'},
+];
+const pad = n => String(n + 1).padStart(2,'0');
+function Eyebrow({children}) { return <div className="lp-eyebrow">{children}</div>; }
+function Mark() { return <img src="/Specula_logo.png" alt="" />; }
+function BrandEye() {
+  const pupil = useRef(null);
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce), (pointer: coarse)');
+    let frame;
+    const reset = () => { if (pupil.current) pupil.current.style.transform = 'translate(0px, 0px)'; };
+    const move = (event) => {
+      if (media.matches || event.pointerType === 'touch' || pupil.current?.closest?.('[data-motion="paused"]')) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (!pupil.current) return;
+        const bounds = pupil.current.ownerSVGElement.getBoundingClientRect();
+        const dx = event.clientX - (bounds.left + bounds.width * .56);
+        const dy = event.clientY - (bounds.top + bounds.height * .45);
+        const length = Math.hypot(dx, dy) || 1;
+        const distance = Math.min(length / 10, 22);
+        pupil.current.style.transform = `translate(${dx / length * distance}px, ${dy / length * distance * .65}px)`;
+      });
+    };
+    const leave = () => { cancelAnimationFrame(frame); reset(); };
+    window.addEventListener('pointermove', move, { passive: true });
+    document.documentElement.addEventListener('pointerleave', leave);
+    window.addEventListener('blur', leave);
+    media.addEventListener('change', leave);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('pointermove', move);
+      document.documentElement.removeEventListener('pointerleave', leave);
+      window.removeEventListener('blur', leave);
+      media.removeEventListener('change', leave);
+    };
+  }, []);
+  return <div className="sp-eye-scene" aria-hidden="true">
+    <div className="sp-eye-aura" />
+    <div className="sp-eye-orbit"><i /><i /><i /></div>
+    <div className="sp-eye-axis sp-eye-axis-x" /><div className="sp-eye-axis sp-eye-axis-y" />
+    <span className="sp-eye-index">FIG. 01 — THE OBSERVER</span>
+    <svg className="sp-brand-eye" viewBox="0 0 600 700" fill="none">
+      <defs>
+        <linearGradient id="sp-sculpture" x1="115" y1="50" x2="495" y2="650" gradientUnits="userSpaceOnUse"><stop stopColor="#b9a0db" /><stop offset=".28" stopColor="#7348ad" /><stop offset=".65" stopColor="#42246d" /><stop offset="1" stopColor="#241339" /></linearGradient>
+        <linearGradient id="sp-edge" x1="180" y1="170" x2="420" y2="500"><stop stopColor="#e4d2ff" /><stop offset="1" stopColor="#7e52ae" stopOpacity="0" /></linearGradient>
+        <radialGradient id="sp-iris"><stop stopColor="#241339" /><stop offset=".68" stopColor="#4d2b76" /><stop offset="1" stopColor="#9775ba" /></radialGradient>
+        <clipPath id="sp-eye-clip"><path d="M98 332Q298 110 502 326Q320 526 98 332Z" /></clipPath>
+      </defs>
+      <ellipse cx="305" cy="657" rx="135" ry="12" fill="#4b2867" opacity=".09" />
+      <g className="sp-logo-sculpture">
+        <path d="M148 247Q134 259 143 240L306 39Q325 14 346 36L374 68Q391 91 368 111Z" fill="url(#sp-sculpture)" stroke="url(#sp-edge)" strokeWidth="1.5" />
+        <path d="M98 332Q298 110 502 326Q320 526 98 332Z" fill="url(#sp-sculpture)" stroke="url(#sp-edge)" strokeWidth="2" />
+        <path d="M252 405L215 638Q300 657 386 638L348 407Z" fill="url(#sp-sculpture)" />
+        <path d="M253 430L223 633" stroke="#c4a4e4" strokeOpacity=".4" />
+        <g clipPath="url(#sp-eye-clip)"><g ref={pupil} className="sp-pupil" data-testid="brand-pupil">
+          <circle cx="329" cy="321" r="66" fill="#eee9f2" /><circle cx="329" cy="321" r="53" fill="url(#sp-iris)" />
+          {Array.from({ length: 40 }, (_, i) => <path key={i} d="M329 273V284" stroke="#c8b1e1" strokeOpacity=".45" transform={`rotate(${i * 9} 329 321)`} />)}
+          <circle cx="329" cy="321" r="28" fill="#190f26" /><circle cx="329" cy="321" r="20" stroke="#a180c1" strokeOpacity=".35" />
+          <ellipse cx="346" cy="302" rx="11" ry="6" fill="white" opacity=".85" transform="rotate(-35 346 302)" /><circle cx="314" cy="339" r="4" fill="#e0caff" opacity=".5" />
+        </g></g>
+        <path d="M108 330Q294 127 493 326" stroke="#dcc6f3" strokeOpacity=".5" strokeWidth="1.5" />
+      </g>
+    </svg>
+    <div className="sp-eye-reticle"><span /><span /><span /><span /></div>
+    <div className="sp-eye-label"><span className="sp-status-light" /><span>ATTENTION, BY DESIGN.</span><span className="sp-eye-label-line" /></div>
+    <span className="sp-eye-instruction">Move your cursor. It’s looking back.</span>
+  </div>;
+}
 
-      <div style={{ marginTop: '5rem', display: 'flex', gap: '4rem', color: 'var(--text-secondary)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <Network size={32} />
-          <span style={{ fontWeight: 600 }}>LangGraph Orchestration</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <Database size={32} />
-          <span style={{ fontWeight: 600 }}>Neo4j / Quickwit Core</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <BrainCircuit size={32} />
-          <span style={{ fontWeight: 600 }}>ACH Debate Loop</span>
-        </div>
-      </div>
-    </div>
-  );
+function Lens() {
+ const [input,setInput] = useState(0);
+ return <div className="lp-lens"><div className="lp-lens-caption"><span>FIG. 01 — FORENSIC LENS</span><span>14 SOURCE CATEGORIES</span></div>
+ <BrandEye/>
+ <div className="lp-source-picker" aria-label="Inspect an evidence category">{inputs.map(([name],i)=><button key={name} type="button" aria-pressed={input===i} onClick={()=>setInput(i)} onFocus={()=>setInput(i)} onPointerEnter={()=>setInput(i)}>{name}</button>)}</div><p className="lp-lens-readout" aria-live="polite"><span>{inputs[input][0]}</span><span>→ {inputs[input][1]}</span></p></div>;
+}
+function Graph() {
+ const [selected,setSelected]=useState(2);const node=graphNodes[selected];
+ return <div className="lp-graph-wrap"><div className="lp-figure-label"><span>CASE STUDY / ILLUSTRATIVE DATA</span><span>NEO4J · OCSF</span></div><svg viewBox="0 0 700 455" className="lp-graph" role="group" aria-label="Interactive illustrative forensic knowledge graph"><defs><marker id="lp-arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#8c76ae"/></marker></defs>
+ {graphEdges.map(([a,b,label])=><g key={label}><path className="lp-draw" pathLength="1" d={`M${graphNodes[a].x} ${graphNodes[a].y}L${graphNodes[b].x} ${graphNodes[b].y}`} stroke={a===selected||b===selected?'#6d28d9':'#b9aacb'} markerEnd="url(#lp-arrow)"/><text x={(graphNodes[a].x+graphNodes[b].x)/2} y={(graphNodes[a].y+graphNodes[b].y)/2-12}>{label}</text></g>)}
+ {graphNodes.map((n,i)=><g key={n.name} role="button" tabIndex={0} aria-label={`Inspect ${n.type}: ${n.name}`} aria-pressed={selected===i} onClick={()=>setSelected(i)} onFocus={()=>setSelected(i)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelected(i);}}} className="lp-graph-node"><circle cx={n.x} cy={n.y} r="26" fill={selected===i?'#5b21b6':'#faf9f5'} stroke="#6d28d9"/><text x={n.x} y={n.y+4} style={{fill:selected===i?'#fff':'#5b21b6'}}>{pad(i)}</text><text x={n.x} y={n.y+49} className="lp-node-name">{n.name}</text></g>)}</svg>
+ <div className="lp-node-inspector" aria-live="polite"><span className="lp-eyebrow">SELECTED / {node.type}</span><strong>{node.name}</strong><dl><div><dt>OCSF context</dt><dd>{node.cls}</dd></div><div><dt>Observed UTC</dt><dd>2026-01-14T{node.time}Z</dd></div><div><dt>Source reference</dt><dd>DEMO-EVIDENCE-{pad(selected)} · illustrative</dd></div></dl><small>Production records use deterministic, source-bound UIDs. Example connections do not establish causation.</small></div></div>;
+}
+function Blueprint({index}) {const gridId=useId();const item=pillars[index];return <div className="lp-blueprint" key={index}><div className="lp-figure-label"><span>ENGINEERING PLATE / {pad(index)}</span><span>ILLUSTRATIVE WORKFLOW</span></div><svg viewBox="0 0 580 370" role="img" aria-label={`${item.label} workflow: ${item.nodes.join(', ')}`}><defs><pattern id={gridId} width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="#fff" strokeOpacity=".06"/></pattern></defs><rect width="580" height="370" fill={`url(#${gridId})`}/>{[0,1,2,3].map(i=><path key={i} className="lp-draw" pathLength="1" d={`M${i%2===0?155:425} ${55+i*65}L${i%2===0?425:155} ${120+i*65}`} stroke="#a78bfa" strokeOpacity=".5"/>)}{item.nodes.map((n,i)=><g key={n}><rect x={i%2===0?35:305} y={35+i*65} width="240" height="42" rx="3" fill={i===4?'#5b21b6':'#191424'} stroke="#a78bfa" strokeOpacity=".6"/><text x={i%2===0?155:425} y={60+i*65} textAnchor="middle" fill="#ede8f5">{n}</text></g>)}</svg><div className="lp-blueprint-foot"><span>INPUT → EXAMINATION → REVIEW</span><span>{pad(index)} / 06</span></div></div>;}
+function Pillars(){const [active,setActive]=useState(0);const steps=useRef(null);useEffect(()=>{const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting)setActive(Number(entry.target.dataset.pillar));},{rootMargin:'-30% 0px -45% 0px',threshold:0});steps.current.querySelectorAll('[data-pillar]').forEach(n=>observer.observe(n));return()=>observer.disconnect();},[]);return <section className="lp-pillars lp-dark" id="pillars" aria-labelledby="lp-pillars-title"><div className="lp-section-head"><Eyebrow>[ 02 / SIX CORE ENGINEERING PILLARS ]</Eyebrow><h2 id="lp-pillars-title">Built to follow<br/><em>every thread.</em></h2><p>From noisy telemetry to a finding you can examine. Each layer has a job. Each conclusion has a boundary.</p></div><div className="lp-pillar-layout"><div className="lp-pillar-steps" ref={steps}>{pillars.map((item,i)=><article key={item.label} id={`lp-pillar-${i}`} data-pillar={i} className={active===i?'is-active':''}><Eyebrow>{pad(i)} / {item.label}</Eyebrow><h3>{item.title}<br/><em>{item.accent}</em></h3><p>{item.text}</p><div className="lp-tags">{item.tags.map(tag=><span key={tag}>{tag}</span>)}</div><p className="lp-limit">{item.note}</p><div className="lp-mobile-blueprint"><Blueprint index={i}/></div></article>)}</div><div className="lp-pillar-sticky"><nav aria-label="Engineering pillar selection" className="lp-pillar-nav">{pillars.map((p,i)=><a key={p.label} href={`#lp-pillar-${i}`} aria-label={p.label} aria-current={active===i?'step':undefined} onClick={()=>setActive(i)}>{pad(i)}</a>)}</nav><Blueprint index={active}/><p className="lp-caption">SCROLL TO FOLLOW THE ARCHITECTURE ↓</p></div></div></section>;}
+function Debate(){const [active,setActive]=useState(0);const row=debates[active];const select=(e,i)=>{const next=e.key==='ArrowRight'?(i+1)%3:e.key==='ArrowLeft'?(i+2)%3:e.key==='Home'?0:e.key==='End'?2:null;if(next!==null){e.preventDefault();setActive(next);document.getElementById(`lp-debate-${next}`).focus();}};return <section className="lp-debate lp-dark" id="debate"><div className="lp-debate-copy"><Eyebrow>[ 03 / EVIDENTIARY ADVERSARIAL DEBATE ]</Eyebrow><h2>The evidence.<br/><em>In black and white.</em></h2><p>One hypothesis is a starting point. Independent challenge makes its limits visible. Analysis of Competing Hypotheses keeps counter-evidence in the record.</p><div className="lp-tabs" role="tablist" aria-label="ACH debate roles">{debates.map((d,i)=><button type="button" key={d.name} role="tab" id={`lp-debate-${i}`} aria-selected={i===active} aria-controls="lp-debate-panel" tabIndex={i===active?0:-1} onClick={()=>setActive(i)} onKeyDown={e=>select(e,i)}>{pad(i)} {d.name}</button>)}</div><div id="lp-debate-panel" role="tabpanel" aria-labelledby={`lp-debate-${active}`} tabIndex={0}><h3>{row.verb}</h3><p>{row.text}</p><span className="lp-eyebrow">{row.cite}</span><div className="lp-verdict">{row.status}</div></div></div><div className="lp-documents" id="provenance"><div className="lp-paper lp-paper-back"><Eyebrow>PROVENANCE / SOURCE TO CASE</Eyebrow><h3>Evidence.<br/><em>In context.</em></h3><svg viewBox="0 0 300 130" role="img" aria-label="Illustrative three-level provenance tree"><g fill="none" stroke="#5b21b6"><path className="lp-draw" pathLength="1" d="M150 15L75 65L35 110M75 65L110 110M150 15L225 65L185 110M225 65L265 110"/>{[[150,15],[75,65],[225,65],[35,110],[110,110],[185,110],[265,110]].map(([x,y])=><circle key={`${x}-${y}`} cx={x} cy={y} r="5" fill="#ede8f5"/>)}</g></svg><span>ATOMIC RECORD → SESSION → CASE</span></div><div className="lp-paper lp-paper-front"><div className="lp-report-top"><Mark/><span>SPECULA / EXAMINATION DRAFT</span></div><h3>The complete<br/><em>case record.</em></h3><p>Traceable observations.<br/>Visible methods. Explicit limitations.</p><ol>{['Scope & executive summary','Evidence manifest & custody','Chronology & cited findings','Methods, limitations & review'].map(x=><li key={x}>{x}</li>)}</ol><div className="lp-report-bottom"><span>EXAMINER SIGN-OFF<br/>REQUIRED BEFORE FINALIZATION</span><span className="lp-seal">SOURCE<br/>BOUND<br/>✓</span></div></div><p className="lp-document-note">Illustrative report preview. Cryptographic integrity supports provenance; legal admissibility requires independent review.</p></div><div className="lp-process-strip">{['Ingest & seal','Correlate & distill','Debate & verify','Examiner-reviewed report'].map((x,i)=><span key={x}><b>{pad(i)}</b>{x}<i>↗</i></span>)}</div></section>;}
+function Governance(){const [reviewed,setReviewed]=useState(false);return <section className="lp-human"><div><Eyebrow>[ 04 / HUMAN-IN-THE-LOOP GOVERNANCE ]</Eyebrow><h2>The final word<br/>is <em>always yours.</em></h2><p>Agents accelerate examination. They never replace examiner authority. Incomplete debate, missing evidence and high-risk findings pause for explicit human review.</p><Link className="lp-text-link" to="/history">Explore your case history <span>↗</span></Link></div><div className="lp-radar"><div className="lp-radar-ring lp-ring-one"/><div className="lp-radar-ring lp-ring-two"/><div className="lp-radar-ring lp-ring-three"/><span className="lp-radar-tag lp-tag-a">01 / CHECK CITATIONS</span><span className="lp-radar-tag lp-tag-b">02 / EXAMINE COUNTER-EVIDENCE</span><span className="lp-radar-tag lp-tag-c">03 / RECORD A DECISION</span><button type="button" className="lp-fingerprint" aria-label="Preview examiner review interaction" aria-pressed={reviewed} onClick={()=>setReviewed(!reviewed)}><Fingerprint size={70} strokeWidth={.8}/><span>{reviewed?'REVIEW PREVIEWED':'EXAMINER REVIEW'}</span></button><p aria-live="polite">{reviewed?'Preview only — no case approved or signature created.':'Interactive preview · your judgment stays in control.'}</p></div></section>;}
+export default function LandingPage(){const page=useRef(null);useEffect(()=>{const root=page.current,media=window.matchMedia('(prefers-reduced-motion: reduce)');let frame=0;const draw=()=>{frame=0;root.querySelectorAll('.lp-draw').forEach(path=>{const rect=path.getBoundingClientRect();const progress=media.matches?1:Math.max(0,Math.min(1,(window.innerHeight-rect.top)/(window.innerHeight*.55)));path.style.strokeDashoffset=1-progress;});};const schedule=()=>{if(!frame)frame=requestAnimationFrame(draw);};const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('lp-revealed');observer.unobserve(entry.target);}}),{threshold:.1});root.querySelectorAll('h2, .lp-section-head > p').forEach(el=>{el.classList.add('lp-reveal');observer.observe(el);});window.addEventListener('scroll',schedule,{passive:true,capture:true});window.addEventListener('resize',schedule);media.addEventListener('change',schedule);schedule();return()=>{observer.disconnect();cancelAnimationFrame(frame);window.removeEventListener('scroll',schedule,true);window.removeEventListener('resize',schedule);media.removeEventListener('change',schedule);};},[]);
+return <div className="lp" ref={page}><a className="lp-skip" href="#lp-main">Skip to content</a><header className="lp-nav"><Link to="/" className="lp-brand" aria-label="Specula home"><Mark/>specula.</Link><nav aria-label="Landing sections"><a href="#architecture">01 Architecture</a><a href="#pillars">02 Core pillars</a><a href="#debate">03 ACH debate</a><a href="#provenance">04 Provenance</a></nav><Link className="lp-nav-cta" to="/investigate">Open workspace <span>↗</span></Link></header><main id="lp-main"><section className="lp-hero"><div className="lp-hero-copy"><Eyebrow><span className="lp-dot"/> AUTONOMOUS MULTI-AGENT DFIR FRAMEWORK</Eyebrow><h1>Look closer.<br/>Nothing exists<br/><em>in isolation.</em></h1><p>Raw logs rarely tell the whole story. Specula coordinates specialized forensic agents across a shared Neo4j knowledge graph—connecting evidence, challenging hypotheses and preserving the trail behind every finding.</p><div className="lp-hero-actions"><Link to="/startup" className="lp-primary">Launch investigation <span>↗</span></Link><a href="#architecture" className="lp-text-link">Explore the architecture ↓</a></div></div><Lens/><div className="lp-ledger">{[['14','Input categories','HETEROGENEOUS EVIDENCE'],['13','Agent roles','SUPERVISION · SPECIALISTS · DEBATE'],['OCSF','Shared ontology','SOURCE-BOUND GRAPH CONTEXT'],['SHA-256','Evidence integrity','PROVENANCE · HUMAN REVIEW']].map(([v,t,s])=><div key={v}><strong>{v}</strong><span>{t}</span><small>{s}</small></div>)}</div></section><section className="lp-architecture" id="architecture"><div className="lp-graph-heading"><Eyebrow>[ 01 / DIGITAL FORENSIC KNOWLEDGE GRAPH ]</Eyebrow><h2>One event is a clue.<br/>A connection<br/><em>changes everything.</em></h2><p>Flat search retrieves similar text. An investigation needs relationships: which account, which host, which process—and what actually happened.</p><p>OCSF-aligned evidence and case-scoped graph retrieval keep source context close. Bounded queries connect observations without treating proximity as proof.</p><div className="lp-stack">{['INGESTION','GRAPH + RETRIEVAL','AGENT ANALYSIS','ACH REVIEW','REPORTING'].map(x=><span key={x}>{x}</span>)}</div></div><Graph/></section><Pillars/><Debate/><Governance/></main><footer className="lp-footer"><Link to="/" className="lp-brand">specula.</Link><span>SDC-II Research Project · Multi-Agent DFIR Framework</span><a href="#lp-main">BACK TO TOP ↑</a></footer></div>;
 }

@@ -146,6 +146,7 @@ class OCSFBaseEvent(BaseModel):
         default=None,
         description="Status of the event (e.g. Success, Failure).",
     )
+    unmapped: Optional[dict] = Field(default=None, description="Preserved source fields without an OCSF mapping.")
 
     @field_validator("case_id", mode="before")
     @classmethod

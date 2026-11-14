@@ -1,0 +1,10 @@
+{
+  "package": "@oai/sky",
+  "operation": "sky.list_apps()",
+  "attempts": 3,
+  "session_resets": 1,
+  "target_window_acquired": false,
+  "UI_inputs_issued": 0,
+  "error": "Computer Use native pipe is unavailable: failed to connect native pipe: The system cannot find the file specified. (os error 2)",
+  "scope": "Technical helper availability failure, not an approval rejection; no account/authentication interaction attempted."
+}

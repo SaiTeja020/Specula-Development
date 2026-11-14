@@ -1,0 +1,212 @@
+[
+  {
+    "Name": "brave",
+    "PID": 3828,
+    "WorkingSetBytes": 14376960,
+    "PrivateResidentBytes": 2400256,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 8168,
+    "WorkingSetBytes": 6770688,
+    "PrivateResidentBytes": 1417216,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 19920,
+    "WorkingSetBytes": 20197376,
+    "PrivateResidentBytes": 5226496,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 24684,
+    "WorkingSetBytes": 92061696,
+    "PrivateResidentBytes": 56074240,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 28152,
+    "WorkingSetBytes": 56774656,
+    "PrivateResidentBytes": 36380672,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 33556,
+    "WorkingSetBytes": 151117824,
+    "PrivateResidentBytes": 64630784,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 35316,
+    "WorkingSetBytes": 10764288,
+    "PrivateResidentBytes": 2240512,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 36448,
+    "WorkingSetBytes": 660168704,
+    "PrivateResidentBytes": 588070912,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 36680,
+    "WorkingSetBytes": 7389184,
+    "PrivateResidentBytes": 1335296,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 37732,
+    "WorkingSetBytes": 36093952,
+    "PrivateResidentBytes": 13115392,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "brave",
+    "PID": 37740,
+    "WorkingSetBytes": 4280320,
+    "PrivateResidentBytes": 700416,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 3544,
+    "WorkingSetBytes": 4575232,
+    "PrivateResidentBytes": 622592,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 16280,
+    "WorkingSetBytes": 59936768,
+    "PrivateResidentBytes": 35577856,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 16712,
+    "WorkingSetBytes": 98103296,
+    "PrivateResidentBytes": 66060288,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 16788,
+    "WorkingSetBytes": 17698816,
+    "PrivateResidentBytes": 4395008,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 19604,
+    "WorkingSetBytes": 214228992,
+    "PrivateResidentBytes": 184332288,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 22292,
+    "WorkingSetBytes": 19214336,
+    "PrivateResidentBytes": 4743168,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 22360,
+    "WorkingSetBytes": 8871936,
+    "PrivateResidentBytes": 1753088,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 26312,
+    "WorkingSetBytes": 26234880,
+    "PrivateResidentBytes": 11317248,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 27636,
+    "WorkingSetBytes": 103235584,
+    "PrivateResidentBytes": 8822784,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 31196,
+    "WorkingSetBytes": 15908864,
+    "PrivateResidentBytes": 2023424,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 33424,
+    "WorkingSetBytes": 401477632,
+    "PrivateResidentBytes": 350216192,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 34736,
+    "WorkingSetBytes": 296132608,
+    "PrivateResidentBytes": 237309952,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 38056,
+    "WorkingSetBytes": 16474112,
+    "PrivateResidentBytes": 3411968,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 38068,
+    "WorkingSetBytes": 144650240,
+    "PrivateResidentBytes": 75583488,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 38400,
+    "WorkingSetBytes": 57597952,
+    "PrivateResidentBytes": 32976896,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "Code",
+    "PID": 38744,
+    "WorkingSetBytes": 10510336,
+    "PrivateResidentBytes": 987136,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "codex",
+    "PID": 7144,
+    "WorkingSetBytes": 186499072,
+    "PrivateResidentBytes": 119517184,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "codex",
+    "PID": 35680,
+    "WorkingSetBytes": 2113536,
+    "PrivateResidentBytes": 540672,
+    "WindowMentionsSpecula": false
+  },
+  {
+    "Name": "codex",
+    "PID": 39160,
+    "WorkingSetBytes": 3096576,
+    "PrivateResidentBytes": 856064,
+    "WindowMentionsSpecula": false
+  }
+]

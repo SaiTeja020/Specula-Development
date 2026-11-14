@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "time_utc": "2026-11-11T07:39:08Z",
+  "artifacts_verified": 42,
+  "manifest_sha256": "fb790cecd3712ca223d83c31b3b00568865b3e8e555ef6652d24a3df9c2c6962",
+  "preservation_receipt": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\verification_20261111T073829Z.json",
+  "initial_inventory": "historical snapshot, superseded by final_artifact_checksums.csv",
+  "scope": "synthetic access isolation only; no functional or empirical execution authorized"
+}

@@ -1,0 +1,9 @@
+{
+  "checklist_rows": 136,
+  "file_ledger_entries": 2258,
+  "ledger_bytes": 286557286,
+  "website_reference_count": 4,
+  "workbook_sha256": "be29d522e5dfe983ce14979d602470e756d7b16269b987c0336e126f145a2558",
+  "source_perturbation_and_restoration": "PASS",
+  "model_or_experiment_execution": false
+}

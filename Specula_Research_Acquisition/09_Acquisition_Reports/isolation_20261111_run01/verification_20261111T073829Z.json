@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "actual non-root network-none Specula API/tool synthetic access preflight ONLY",
+  "time_utc": "2026-11-11T07:38:29Z",
+  "resource_hashes_verified": 5096,
+  "mutable_hashes_deferred": 31,
+  "evaluator_files_preserved": 296,
+  "evaluator_acl_descriptors_unchanged": 411,
+  "parent_head": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+  "parent_tracked_status": "",
+  "runtime_tests": 38,
+  "runtime_image": "sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3",
+  "runtime_user": "10001:10001",
+  "image_files_scanned": 38425,
+  "running_containers": [],
+  "errors": [],
+  "functional_or_empirical_readiness": "NOT AUTHORIZED / NOT ESTABLISHED"
+}

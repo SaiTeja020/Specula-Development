@@ -1,0 +1,13 @@
+{
+  "report_artifacts": "PASS",
+  "time_utc": "2026-11-11T10:20:34Z",
+  "artifact_hashes_verified": 17,
+  "manifest_sha256": "9ea6f2eb1488e0583df884801bba88ec71c6f1b06836d02b66ffceeb906de06d",
+  "admission": "BLOCKED",
+  "budget_MiB": 10704,
+  "deficit_MiB": 521.45703125,
+  "R1_applied": false,
+  "actions_implemented": [],
+  "provisioning_executed": false,
+  "approval_2": "NOT AUTHORIZED"
+}

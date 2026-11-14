@@ -1,0 +1,29 @@
+{
+  "audit_date": "2026-11-11T10:45:23.308761+05:30",
+  "project_root": "C:\\Users\\DELL\\Specula-skeleton",
+  "workspace_root": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition",
+  "existing_files": 2489,
+  "total_inventory_bytes": 533518627,
+  "hashed_files": 2458,
+  "hashed_bytes": 269990672,
+  "hash_deferred_or_failed": 31,
+  "duplicate_groups": 93,
+  "duplicate_files": 654,
+  "evaluator_artifacts": 40,
+  "verification_exceptions": 31,
+  "new_external_acquisitions": 0,
+  "disk_free_bytes": 119113121792,
+  "disk_total_bytes": 658846511104,
+  "checklist_status": "unavailable; first ten and P0/P1/P2 unknown",
+  "categories": {
+    "Project documentation / artifact": 298,
+    "Mutable datastore / derived index": 31,
+    "Candidate evidence / derived data (provenance unverified)": 36,
+    "Historical backup (currency unverified)": 1712,
+    "Evaluator-only labels / answer keys": 16,
+    "Project PDF (not verified scholarly paper)": 31,
+    "Verification receipt": 335,
+    "Existing reference corpus": 6,
+    "Evaluation artifact (not independent benchmark)": 24
+  }
+}

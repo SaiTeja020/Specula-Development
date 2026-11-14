@@ -1,0 +1,82 @@
+[
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\scripts\\local_case_pipeline.py",
+    "sha256": "6690d4f2c0cc359e4708884115a7ef2388853a9594d10e494295e8dad769883d"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\graph.py",
+    "sha256": "97a93d25e0366e3e47968f0a32fb931c1b4b61e3a3dda83f5dd43a0eb1518e14"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\nodes.py",
+    "sha256": "4ccc3404fe0b176b8c3cb31abf295ffeca1fb2ccccbd718217fc17cce4289e5f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\investigation_api.py",
+    "sha256": "85926c2f8eb3bea3911247e3a485c8c14d60fc40c5a401e026683a1aa2b1051b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\visualizer_api.py",
+    "sha256": "97679aee5b8c11d57e676a9353db85d4d2615901aaeb3f7b085ef5db875cde04"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\hitl_api.py",
+    "sha256": "40ca436dfda6ccbcba6bad0621901a3c22043c5f4189391c7ae35a173d4e7b07"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\api_auth.py",
+    "sha256": "2a970d2c8c0bafa0847247f3c99d893bc36bdf26ff98cc63a631b5dcc505a203"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\checkpointer.py",
+    "sha256": "8ee63e887ee6c69762b892267935f8b9c5999e702b811d6059b97f64783aa0fc"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\config.py",
+    "sha256": "d6ca9a34ff7603829628abe6856bf894e9cd057ffd279c5bf9723d1f0b206e0b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\ollama_backend.py",
+    "sha256": "6da4732d767c6fdbe3069741a1def89193e320445eb192a367f8acb1fc61149d"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\upload_archive.py",
+    "sha256": "e9cf35ff7fa898c05ca69dff5bef712b795595a01d0205380e8594f8a0cf381b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\export_aliases.py",
+    "sha256": "5c819a558ddd931eee869d8772f393088d37c9909bb38b9574b878332706037d"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\run_pipeline.py",
+    "sha256": "468752e6665d6e68ab29a25b80bc1f5944f27aa6f0fb840042647b5675b0d9cb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\indexing\\case_evidence.py",
+    "sha256": "a916b56e67dad81e485d6e1e3d915bd9681eab76b23301a030215d3e5f94d554"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\ingestion\\broker\\case_stream.py",
+    "sha256": "84034153432520cc6ae73effea45d5ec5af35820e7ad118c0c22058b04f48620"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\timeline_reconstruction.py",
+    "sha256": "c3d6f88e8dd40d9a3a5062d118d5b0e22a2c9ea09c981507536ddca595591cd8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\grounded_report.py",
+    "sha256": "022066697fd4a634ab7358baf5895f502eea747904fb632b95d582ffa702b327"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\examination_reports.py",
+    "sha256": "9acfc83b1134adc8c6402bcf4597db384eb993330241f7d46baa00a2b7746618"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\src\\agents\\report_document.py",
+    "sha256": "f7d036190b017fc529b52c7fb6dca7cc86033886786566b520eeca2b4c5dea57"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\requirements.txt",
+    "sha256": "356d1bcb35d82ace208c7d07a9caf1bb2784b35054754ec09efc152dbeba60cc"
+  }
+]

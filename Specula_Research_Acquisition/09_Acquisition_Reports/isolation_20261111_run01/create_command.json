@@ -1,0 +1,22 @@
+[
+  "docker",
+  "create",
+  "--name",
+  "specula-isolation-canary-20261111-01",
+  "--pull=never",
+  "--user=10001:10001",
+  "--network=none",
+  "--read-only",
+  "--cap-drop=ALL",
+  "--security-opt=no-new-privileges:true",
+  "--pids-limit=128",
+  "--memory=1g",
+  "--cpus=2",
+  "--ipc=none",
+  "--restart=no",
+  "--workdir=/app",
+  "--tmpfs=/tmp:rw,noexec,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=0700",
+  "--tmpfs=/run/specula:rw,noexec,nosuid,nodev,size=16m,uid=10001,gid=10001,mode=0700",
+  "--mount=type=bind,source=C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\fixtures\\evidence,target=/evidence/agent_evidence,readonly",
+  "specula-isolation-canary:20261111-01"
+]

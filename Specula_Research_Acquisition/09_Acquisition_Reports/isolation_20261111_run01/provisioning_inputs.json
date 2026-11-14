@@ -1,0 +1,13 @@
+{
+  "image": "specula-isolation-canary:20261111-01",
+  "container": "specula-isolation-canary-20261111-01",
+  "dependency_export": "specula-isolation-dependency-export-20261111-01",
+  "source_commit": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+  "source_files": 164,
+  "dependency_entries": 42817,
+  "rootfs_tar_sha256": "fffc30996ffd0f8508456e7a3fe24529964385522983d14faae1c6b997c2e25f",
+  "rootfs_tar_bytes": 1230745600,
+  "evidence_source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\fixtures\\evidence",
+  "evidence_target": "/evidence/agent_evidence",
+  "source_manifest_sha256": "1312b48346e798829b59deb8f80078fc5818aaced06d8e4715316b7a2f75b709"
+}

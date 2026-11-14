@@ -1,0 +1,1482 @@
+[
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.DS_Store",
+    "bytes": 6148,
+    "sha256": "441ab4e504100684dde88b945ae70425527e1f422f572cade85dc3f1ed1051e4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\config",
+    "bytes": 232,
+    "sha256": "1189fd25279de4c1939962dd026fd7b796bfdc7b7e66112c360e0bd6da951864"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\description",
+    "bytes": 73,
+    "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\FETCH_HEAD",
+    "bytes": 134,
+    "sha256": "3a95ddc2a6c53c63238e225b1b9f467f76c3d4603f1b5b3443e4f0dde48e6b15"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\HEAD",
+    "bytes": 41,
+    "sha256": "ec76c93fd73d2ec8d6bb28fb34d4fa8f3e416b8ebee6ad426206f4246b2f6f38"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\applypatch-msg.sample",
+    "bytes": 478,
+    "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\commit-msg.sample",
+    "bytes": 896,
+    "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\fsmonitor-watchman.sample",
+    "bytes": 4726,
+    "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\post-update.sample",
+    "bytes": 189,
+    "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\pre-applypatch.sample",
+    "bytes": 424,
+    "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\pre-commit.sample",
+    "bytes": 1649,
+    "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\pre-merge-commit.sample",
+    "bytes": 416,
+    "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\pre-push.sample",
+    "bytes": 1374,
+    "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\pre-rebase.sample",
+    "bytes": 4898,
+    "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\pre-receive.sample",
+    "bytes": 544,
+    "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\prepare-commit-msg.sample",
+    "bytes": 1492,
+    "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\push-to-checkout.sample",
+    "bytes": 2783,
+    "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\sendemail-validate.sample",
+    "bytes": 2308,
+    "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\hooks\\update.sample",
+    "bytes": 3650,
+    "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\index",
+    "bytes": 17424,
+    "sha256": "dcdfb88192828881eef9a55868b3a1c3b02176f70fe853b8d9d0f6a4297d49e4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\info\\exclude",
+    "bytes": 240,
+    "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\logs\\HEAD",
+    "bytes": 206,
+    "sha256": "d76e2a3de58e16399fcf259daabedbb5f33ba88383c5f742a082848f6363b459"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\objects\\pack\\pack-7f5f48c6e4fbbdce8befa0793794aa5a8a44bf3e.idx",
+    "bytes": 6364,
+    "sha256": "8015d7cced7d8b2730cd622ce891013ad4afcc3878365b7e1a5e41a17db087dc"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\objects\\pack\\pack-7f5f48c6e4fbbdce8befa0793794aa5a8a44bf3e.pack",
+    "bytes": 7789840,
+    "sha256": "ddce9b82e3668c3b993f70ef20e79db5b67f0b89d164826ba27acb7ad5912f34"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\objects\\pack\\pack-7f5f48c6e4fbbdce8befa0793794aa5a8a44bf3e.rev",
+    "bytes": 808,
+    "sha256": "7a1a41179a272c2e1818502a9138d3e7ee4c885ba883575001719ec43a474392"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.git\\shallow",
+    "bytes": 41,
+    "sha256": "ec76c93fd73d2ec8d6bb28fb34d4fa8f3e416b8ebee6ad426206f4246b2f6f38"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\.gitignore",
+    "bytes": 94,
+    "sha256": "bdddee3a7424c54fb49a4d67ee08f34718289d769525ce2d9db80fc3c1f806ba"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__init__.py",
+    "bytes": 175,
+    "sha256": "0567459649d161e63080259612270a1bf497d0de1904f5d44e649f2096a06f76"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 394,
+    "sha256": "fe3d48ad7588b592eb18c1be69a0c32e4abe5027be64d5ff1be7167a85a74815"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__pycache__\\autonomous_agent.cpython-310.pyc",
+    "bytes": 3812,
+    "sha256": "2866c22756222dce87365575b4b305dce50f329f6b66f04b99141fcaf7eb5735"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__pycache__\\base_agent.cpython-310.pyc",
+    "bytes": 4767,
+    "sha256": "efaadcbc4ffe23b7dac9a2db90757b61209bf738632a439cb2cc37ef2b324c80"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__pycache__\\react_agent.cpython-310.pyc",
+    "bytes": 3428,
+    "sha256": "67ae316a619fe8c8530bc70f7028b2346b606573dc1d835ecad82923e9748197"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__pycache__\\summarise_react_scratch_agent.cpython-310.pyc",
+    "bytes": 3807,
+    "sha256": "0077cec998f2e3746278ca31fea450bfb5480522485e42aa84ddd078ab16484f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\__pycache__\\summarize_react_agent.cpython-310.pyc",
+    "bytes": 3689,
+    "sha256": "959fae807539b0f28c4d21a6c8e1e9632a0cc4f7896c52c02935b12c55217d4f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\autonomous_agent.py",
+    "bytes": 4547,
+    "sha256": "7ca0edc354112c604d6a68ee96684bfeacd6b79d851cc5c9041faf0c12ae2119"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\base_agent.py",
+    "bytes": 4225,
+    "sha256": "de6e5f56ec82c07ef21412545a52df10713446027202f722ebf8846e6aad4aeb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\react_agent.py",
+    "bytes": 3398,
+    "sha256": "0134f9f41e760d7e61f89b9ab831b55825360bbf872c55e1455781f4081fe46c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\agent\\summarize_react_agent.py",
+    "bytes": 4063,
+    "sha256": "a7e9c2b7aac8905bc15d90661350e23350a98a72f49c173ff130963f6d0886e4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\driver\\__init__.py",
+    "bytes": 36,
+    "sha256": "44ba509d6df1bfc7d8d3f8f339ad59e2fbbb5d7416f016b50f6aebb4e65242a5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\driver\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 229,
+    "sha256": "6900ff887cfc578c00b38e482bb33cd686794304b6b33122f371646d48e82d4a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\driver\\__pycache__\\driver.cpython-310.pyc",
+    "bytes": 2289,
+    "sha256": "70afcd92be1a8afbf963fd469b8236e3fbeda31f63c6929000a4f539dd5e33e4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\driver\\driver.py",
+    "bytes": 3677,
+    "sha256": "4cfb255fc83e42ba15678d6274120c569c49245091d99b01dc8b72e746961c3f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\llm\\__init__.py",
+    "bytes": 28,
+    "sha256": "35753d4c2059e7f65cbfd047d17f045a35a5615ddc03b8e6663397dd4e13f137"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\llm\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 218,
+    "sha256": "dcea0e93a664ee0ac90a2cfd1eee141f5eac41d5662b25111693fd6db29bc8b3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\llm\\__pycache__\\llm.cpython-310.pyc",
+    "bytes": 5439,
+    "sha256": "ec2995df3b3a923635b7c4525dd16fc5d6a01429e53046249e6b4dec640014ad"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\llm\\llm.py",
+    "bytes": 7406,
+    "sha256": "1da3dd4cf1ea5232f86b4d526c13f9a786c14034b4095be95abf0899c0bf61bb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__init__.py",
+    "bytes": 306,
+    "sha256": "94479706319b29875ae88b4b0698607d318666ae82bbd5fda1ecf24d609a2c27"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 548,
+    "sha256": "332f2f98703cc86ed810c6fbc8dbfcbfcaf1d0f4367da9f514db68998310ea28"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\action_procedure.cpython-310.pyc",
+    "bytes": 3739,
+    "sha256": "96fc14f76831c9d5f09ee4d4de18354f99a349cc4dd6478362463f182ae6e941"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\base_procedure.cpython-310.pyc",
+    "bytes": 1988,
+    "sha256": "248c2fe841d12bd62df354dfe85544a23491b254ae352062157c87358c6e6adb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\react_procedure.cpython-310.pyc",
+    "bytes": 1974,
+    "sha256": "c2d5f61131a5a5501192df6b12b21cccd8197c8e2f81b2d3a4aaf935331c8e40"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\summarize_observation_procedure.cpython-310.pyc",
+    "bytes": 2894,
+    "sha256": "9f39bf5880cdf6fae30271d2645e7a197b643979d8ace562cfb88b74b9943e52"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\summarize_procedure.cpython-310.pyc",
+    "bytes": 2894,
+    "sha256": "456d5fa53738496f6fef2ab4c0f17b22897d10407fd8b064e21b631d8a14cb1e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\summarize_scratchpad_procedure.cpython-310.pyc",
+    "bytes": 2905,
+    "sha256": "fbaba3dd74dfe98f963a01e8ebf168459e14da2e658aeddec6e692ef76620610"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\__pycache__\\thought_procedure.cpython-310.pyc",
+    "bytes": 3000,
+    "sha256": "13cf020008a74752d50278b31abf4b7ca4efd81d721b1120987fe16de3fa12c6"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\action_procedure.py",
+    "bytes": 3132,
+    "sha256": "1eee0f9cf3356151275638af254a5a6c467fcc34a55ceeed0d0c11b72e3eda4c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\base_procedure.py",
+    "bytes": 1582,
+    "sha256": "ea5e21c16cf683f0b4eca3750a933671d724e5d7ae30f4ac6356aac5b0820cb4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\react_procedure.py",
+    "bytes": 1282,
+    "sha256": "7f423a0a83635f89fbf5438ca9eea78ae2886f321a1319d8823d51e42163b0be"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\summarize_procedure.py",
+    "bytes": 2327,
+    "sha256": "10a2514c5720b6b130b59ff94178640045c6502afb1ed6c46f285322be3754ba"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\summarize_scratchpad_procedure.py",
+    "bytes": 2238,
+    "sha256": "6defd0573f2c22575691301b2f4dcc0dc70e1a3d70b8bcac27c5a1009546c0b7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\procedures\\thought_procedure.py",
+    "bytes": 2382,
+    "sha256": "0f71c0ed965dc662cd2b2d62d8789d81bd15940c2e52f39215092627cf70d491"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\prompts\\__init__.py",
+    "bytes": 24,
+    "sha256": "03068bc9e8632980df45470a2d933e4a539c935a9b8c114d9d8258f78c8b10e9"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\prompts\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 209,
+    "sha256": "9a5d4165146c577d963a3a2efa589ba1e0f5653dae55f4053ec3b354f47d1984"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\prompts\\__pycache__\\prompts.cpython-310.pyc",
+    "bytes": 2775,
+    "sha256": "b84eca5839b742f72aedeaf95d2fa879ae44551ec72b7e460c52c1ceec605bcb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\prompts\\prompts.py",
+    "bytes": 2850,
+    "sha256": "03c4c7d6a007c14a616b16c43b4cf4c516bc935413b10eefb8673f21b87647e4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\__init__.py",
+    "bytes": 85,
+    "sha256": "111836100aeec9700f6a5938e29e245e13456150547b3794bd2a3080035e261e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 253,
+    "sha256": "e3c928c8dce6f75740f0ff492fa60427c50622fdf49685a0d0ab5cd587cb5667"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\__init__.py",
+    "bytes": 131,
+    "sha256": "181ed4f21e7bdc926e183d70ae9fc82f469463f14fe5625316e70d9557736325"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 345,
+    "sha256": "db42ae038b88a47a12ce117d2dac5210f867457807138b9a8c68657d4d5ea552"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\__pycache__\\cve_descriptor.cpython-310.pyc",
+    "bytes": 1611,
+    "sha256": "97f7344c7c49a6881a4ef6c07e3f794283f50175cfea0bc6a2a4e82e6a242640"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\__pycache__\\cve_list_retrieval.cpython-310.pyc",
+    "bytes": 1389,
+    "sha256": "ed49b4804ada4f8d7237fc2ec855c6b69f2d4edc91c6a870705e4f26940301aa"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\__pycache__\\online_browser.cpython-310.pyc",
+    "bytes": 6008,
+    "sha256": "a71ec72e96f11c39196d946ad296f81d37e5e0869e797e6d4eedd8d634190ece"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\cve_descriptor.py",
+    "bytes": 2406,
+    "sha256": "f1fa169008d3ffdbba7109a25f98df7108b06ecaab427e00e5191070a7025dbf"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\cve_list_retrieval.py",
+    "bytes": 1321,
+    "sha256": "510d714bedba60b51f05e413a52517738142e937bf1628eff907cb2f954ac42a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\cve\\online_browser.py",
+    "bytes": 7879,
+    "sha256": "c13e4b1746d1f439d205b076016ff74fd726a97c576160db9cb58ac0471155b2"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\logs\\__init__.py",
+    "bytes": 36,
+    "sha256": "17b8daab946338af780ba92598938820cbc0601c0f3da991e0760e7849c74dbe"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\logs\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 233,
+    "sha256": "e95d4922ebbbf91b2d444c6241ad5bb4e5cdedf6347f8461a73d0a52d4d6e30f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\logs\\__pycache__\\read_logs.cpython-310.pyc",
+    "bytes": 731,
+    "sha256": "dfc61d44c3f59474a3b8565c5776511dbd46550d69d65927633038b8163b157a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\logs\\read_logs.py",
+    "bytes": 483,
+    "sha256": "210d979b0f6574a8a105242ba671604e98b7f39187402f6a7b3ad44180824d2e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\__init__.py",
+    "bytes": 126,
+    "sha256": "36df2ca205cb249e0e576e412aa4abe9216cba4cf13fa8983b7b1d6a4839d043"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 341,
+    "sha256": "22da8d5620310b2b740e1dde0484eccc90695b040c34f56819b58d4ed3e22513"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\__pycache__\\expand_frame_data.cpython-310.pyc",
+    "bytes": 1034,
+    "sha256": "3ba0f45b39104ca8096ba06bef8811f0321e98690146757e2e87a88d7d464058"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\__pycache__\\extract_frame.cpython-310.pyc",
+    "bytes": 979,
+    "sha256": "c5b73c1d5d57072ba12227a46e56115bd317af01a5010b15479567257f4b788d"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\__pycache__\\list_frames.cpython-310.pyc",
+    "bytes": 877,
+    "sha256": "68e79bfa0d159e1c6486f43ad17b2dfcf42a84444337f0099acadb18423b510e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\__pycache__\\tshark_tools.cpython-310.pyc",
+    "bytes": 1899,
+    "sha256": "369505d979fdd7accb97eeff7a051c1fa82900c6354005be6ff076ffbb68dbcd"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\expand_frame_data.py",
+    "bytes": 714,
+    "sha256": "e5e8f7117b28e65ff6c4681d27920806b9237f095f345284df0afdab4061953d"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\extract_frame.py",
+    "bytes": 1528,
+    "sha256": "ff3ad466e2d9c31472e04ee5967c8b1dd3a9d6974d827c6ee8c93fa1a6c100db"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\pcap\\list_frames.py",
+    "bytes": 348,
+    "sha256": "407a989f0e101a9f7a0adaa45af13d4f380de4340de799086fa0bfc67ccf934c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\report\\__init__.py",
+    "bytes": 52,
+    "sha256": "257d43bb1cae4192515cbeb64b4c1c4586f239d9f1e39e21627c608254ed2587"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\report\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 260,
+    "sha256": "7e7267391a7110fa35b1e0a1d6fce2fbb97e843a0e12375a2970faf7d41e13c3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\report\\__pycache__\\final_report.cpython-310.pyc",
+    "bytes": 1693,
+    "sha256": "9df1b14dcd4f8ae904456fc9f9a4e55e604ddeaae130f020f51c9f57e1be097d"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\tools\\report\\final_report.py",
+    "bytes": 1256,
+    "sha256": "a3beab8ba988283e05ac4ad54e9bb3d091ae89ba6cc4cb39a07ac00b58f64004"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\utils\\__init__.py",
+    "bytes": 22,
+    "sha256": "9f35f6be2c5fd2382f0e70290ce9af01a6d796468948d3e46cc939597d8ee525"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\utils\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 205,
+    "sha256": "a557e255a0993e47ff6559f66dcb8cde024ae561447e6a01d8cfc8587271ba84"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\utils\\__pycache__\\utils.cpython-310.pyc",
+    "bytes": 659,
+    "sha256": "6d1bf0a5181c3752838a0cbf4a94ee40a04f74d5e8647c732d7742244b86e899"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\utils\\utils.py",
+    "bytes": 436,
+    "sha256": "8c3900fa210e1346a9d466d4498172c3004f52551fa9a05a2f13f93ee1e5796e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\working_memory\\__init__.py",
+    "bytes": 72,
+    "sha256": "8dd739e7501d3c4b303d051f43fb1c7e4f5084f14476e41d55e7123b08419ca9"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\working_memory\\__pycache__\\__init__.cpython-310.pyc",
+    "bytes": 282,
+    "sha256": "8bb2a39a2ae5fce0a355a6bee824c3d085523d29aa35cb55fbf39a8c9b3fc165"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\working_memory\\__pycache__\\chain.cpython-310.pyc",
+    "bytes": 4363,
+    "sha256": "ccd107793c1da5b5e8212a0ae350d74d9a5a439bab6a5113c6cf1f4b3e3af20b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\working_memory\\__pycache__\\scratchpad.cpython-310.pyc",
+    "bytes": 3573,
+    "sha256": "9ca479a335b3a7a04c892707f06d3bad13bd46e43f045774d7d0876ae9beee49"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\working_memory\\chain.py",
+    "bytes": 5122,
+    "sha256": "b222cae2c29b94eb7bc5b41715325dbe2733a2e46451cd631299dbe8340ec2c1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\ai4ensic\\working_memory\\scratchpad.py",
+    "bytes": 3069,
+    "sha256": "e9859b00958db20a2027643b519c92609d1e1729ffaccd426abf570fdb848f5a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\.DS_Store",
+    "bytes": 6148,
+    "sha256": "6515f643f1f40c3ee636d8186ac65bb572638457f5d01aeca16fdaebe1a32597"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_0\\CVE-2022-24706.log",
+    "bytes": 79,
+    "sha256": "cb2d4820661e34d80f9c9961b06747a9c6f2d87f9aa5a47e323ca2a23c762d5e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_0\\CVE-2022-24706.pcap",
+    "bytes": 3252,
+    "sha256": "b945d2ecfa0225d5678a8eb59c4523bbd3a4dfc407404f6564e59dc1ba37dcb0"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_1\\CVE-2021-43798.log",
+    "bytes": 48526,
+    "sha256": "4f99de8befe3c02071498a0b5a0dd1b221e5a4438a559e6cb3e3d2288b981668"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_1\\CVE-2021-43798.pcap",
+    "bytes": 743488,
+    "sha256": "7591ad1678b02c620eea15a05985a667167f7b339e2c321d6e42bfc618fa12ff"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail.pcap",
+    "bytes": 37500,
+    "sha256": "c781de72b04f4296aaf622f02f3b5de9451fbd5710040137e799238d7842ea10"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_flower.log",
+    "bytes": 1973,
+    "sha256": "605fd37f769f4f12ddbe8d412e193219dfb2308526e2eb546ec137af06cfc2bc"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_init.log",
+    "bytes": 11007,
+    "sha256": "548415a3cbb26ddc444b996ed551dd360107b287862911ab4b153b9bf75d8541"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_postgres.log",
+    "bytes": 6225,
+    "sha256": "2efc67889a13bf0c62f82b444c9651686678768ca60194dbc07c2e364f305052"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_redis.log",
+    "bytes": 1226,
+    "sha256": "c9edece67ed8e215aeae98510feedbf3523e6a46878c1af9de06c12f47d7cba6"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_scheduler.log",
+    "bytes": 6292,
+    "sha256": "3f5739c22039a4e2f26da31314021713c8b63f0691a53a8e7d2dbfa902025103"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_webserver.log",
+    "bytes": 9582,
+    "sha256": "bdc30aadbd761253c117d8627f196e6b82fd3cbfe35df80e44f21b8bced07a2f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_10\\CVE-2020-11981_fail_worker.log",
+    "bytes": 1715,
+    "sha256": "f4df8ba0e3660702405731de1dcd9cdb7c89e6576216b74950319a5662aee999"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_flower.log",
+    "bytes": 1973,
+    "sha256": "1197425f64ecb5b0123d1472f706e7cd67fc3d4fb53d7cc1f23e7734adfd7fd2"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_init.log",
+    "bytes": 11007,
+    "sha256": "1f0cd8976d3fd56505b45e4bd1d2e23798f034ccb981c227e962493158be7eca"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_postgres.log",
+    "bytes": 5591,
+    "sha256": "839356da3458872ce19353e5f5b89b058bfa858f7558c1cce260f35dca92b87b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_redis.log",
+    "bytes": 1574,
+    "sha256": "24ac96380a07e71d4fbe6c7ed1cae24ddff3e9637d5ee2dcf8b6d2601c846dc6"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_scheduler.log",
+    "bytes": 32326,
+    "sha256": "23972c1a2f18bdc05d9b057e22526abdc1476879229597b1edf426b27feb8358"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_webserver.log",
+    "bytes": 22120,
+    "sha256": "a15b9d24d813201f5723e8ed2e9784eef188732eb1ec44eeaf1a102289cb0a41"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_success_worker.log",
+    "bytes": 2172,
+    "sha256": "404aece13f24e22d1d3d58b19b91c81c46a18877636d5c8aa6d61faa517d9644"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_11\\CVE-2020-11981_sucess.pcap",
+    "bytes": 191022,
+    "sha256": "d621823d7c2d7a8f0d95bf9da8ea975dfe16ebae00fac6f3a7ffed7a5251fd4a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_12\\CVE-2020-11651_fail.log",
+    "bytes": 59,
+    "sha256": "e9ab6ff41705bd11e846dc36d5e67a280df4794f56a88f4fd5e242f71065f8a3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_12\\CVE-2020-11651_fail.pcap",
+    "bytes": 3011,
+    "sha256": "b0b95f6ac09a6139ebbee68ac64122e71dfbdd67dedf458be05f74dc8b591d1e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_13\\CVE-2020-11651_sucess.log",
+    "bytes": 1704,
+    "sha256": "48c6660bcd00ea0e54458d0c377e5dc87f46a7df434ab49f8ad715ba541d4668"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_13\\CVE-2020-11651_sucess.pcap",
+    "bytes": 3208,
+    "sha256": "46b2f15091d36612144b0fa0d3e1a49cab577539d730731029069ae34ed500df"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_14\\cve-2021-45232_fail.pcap",
+    "bytes": 58098,
+    "sha256": "197fa6463aadb1ad2b35316d557155038d4674e9a57f6fc35a606bdc54abc5cc"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_14\\CVE-2021-45232_fail_apisix.log",
+    "bytes": 6827,
+    "sha256": "7aed9b8b3e91969fb44be3d219d1a48bb832fa70d4fffffca8076f62f5249c17"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_14\\CVE-2021-45232_fail_etcd.log",
+    "bytes": 8034,
+    "sha256": "8d701265db595fc8b66000239466a795da28bb7568e848c5829bffd9d492c0b3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_15\\CVE-2021-45232_success.pcap",
+    "bytes": 83834,
+    "sha256": "1f05f3fc151172b2f34d70cc75e66cd2a871596ddfcd2fe3103a307c70d616d8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_15\\CVE-2021-45232_success_apisix.log",
+    "bytes": 7300,
+    "sha256": "1330a40a17654e8722aec5898c19d6c8583755a2167eb5b47ec3cc1c5d55fbed"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_15\\CVE-2021-45232_success_dashboard.log",
+    "bytes": 249,
+    "sha256": "53cda0229a3bc89a2f5100b11c2215cf66c6c1f11189ee67a280f0a3e7937dba"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_15\\CVE-2021-45232_success_etcd.log",
+    "bytes": 8034,
+    "sha256": "aa76dab97a0bfb5487388b7a47c8e3406e7d796800180f3d551feeba5331624c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_16\\CVE-2017-15709_fail.log",
+    "bytes": 4434,
+    "sha256": "888a8764285fed0eca18de8259bd3e698d13c97ea20d0d4a4398cb71b8c69de9"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_16\\cve-2017-15709_fail.pcap",
+    "bytes": 1324,
+    "sha256": "2dffcb8e26b37b6853eeff52c04eec21c91b884d0c2553f8d69126c3846d9625"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_17\\CVE-2017-15709_success.log",
+    "bytes": 3627,
+    "sha256": "ccd5c565de82d4fa6e8aa68dbbd6eaeb605710605de6e645d86fc9f727c08413"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_17\\cve-2017-15709_success.pcap",
+    "bytes": 1887,
+    "sha256": "80c5f6731bdc30cb15b9aa8940233c5295ecdcbecade86e189c1d2f9e5535459"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_18\\cve-2021-22205-postgres_fail.log",
+    "bytes": 4019,
+    "sha256": "08316867b211b04d93a8a50b88ceaa7f09e6a57493fcc3fc82421c5ef352bda2"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_18\\cve-2021-22205-redis_fail.log",
+    "bytes": 4019,
+    "sha256": "08316867b211b04d93a8a50b88ceaa7f09e6a57493fcc3fc82421c5ef352bda2"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_18\\cve-2021-22205_fail.log",
+    "bytes": 4019,
+    "sha256": "08316867b211b04d93a8a50b88ceaa7f09e6a57493fcc3fc82421c5ef352bda2"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_18\\cve-2021-22205_fail.pcap",
+    "bytes": 26901875,
+    "sha256": "70366353deedacb0a15ac70e0b660385871a6f19d9863623ecae53bbba0186ae"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_19\\cve-2021-22205-postgres_success.log",
+    "bytes": 4047,
+    "sha256": "711c4ad77e9e847a20762fb46b6ed96256a8114936487ab9f7f724d58736c69b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_19\\cve-2021-22205-redis_success.log",
+    "bytes": 4047,
+    "sha256": "711c4ad77e9e847a20762fb46b6ed96256a8114936487ab9f7f724d58736c69b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_19\\cve-2021-22205-success.pcap",
+    "bytes": 20123202,
+    "sha256": "979cdd466c34b71499a0324fd7854b621f191fe72a0f8cc0908acd34ef1a3fa8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_19\\cve-2021-22205_success.log",
+    "bytes": 4047,
+    "sha256": "711c4ad77e9e847a20762fb46b6ed96256a8114936487ab9f7f724d58736c69b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_2\\CVE-2021-41773.log",
+    "bytes": 1266,
+    "sha256": "8e5a7cc55515ea8c0366bab0209671568bf2c1abcc90cd0306f2a96e118b5c4c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_2\\CVE-2021-41773.pcap",
+    "bytes": 15451,
+    "sha256": "820df2265943fb6a8094962cc27deaf2120d8bfcbc78a25fe6a80f813f49f96a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_3\\CVE-2021-42013.log",
+    "bytes": 1269,
+    "sha256": "f0effa765bbcac566b3a1a7ddf2776e65b1045c71c6b94c8b8b7cf1be3b60163"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_3\\CVE-2021-42013.pcap",
+    "bytes": 15226,
+    "sha256": "f826987547eac6f6fbae349a973ea1feae4a09abd7975669d0ada1b48653c78e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_4\\CVE-2024-23897.log",
+    "bytes": 128,
+    "sha256": "f75dbaf391f231e3333bff412e376952e8dda996d68345b43419fb54c5c65118"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_4\\CVE-2024-23897.pcap",
+    "bytes": 3105484,
+    "sha256": "6ac7f7b1c1d3ff1137586866c7cc59a22a912dddfe885dbbe1c63482e61ed0c1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_5\\CVE-2023-23752.log",
+    "bytes": 974,
+    "sha256": "69372a87c63f75f1b36f42783483cbde898b5f6e15719a9e74ea7aea990e477a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_5\\CVE-2023-23752.pcap",
+    "bytes": 219572,
+    "sha256": "8fb38480793bc1155ec32cb4e3de78a95fadae45c5cab22110b73cf030a570ef"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_6\\CVE-2021-44228.log",
+    "bytes": 19086,
+    "sha256": "74f09e1dd8c467c48d40e36f675262fb1c2f86ddfc5c05b5299a4aa1b34ef316"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_6\\CVE-2021-44228.pcap",
+    "bytes": 3341,
+    "sha256": "d07732d2812e8c25aaa2bdf6c78e55cf0e2fa4c9080bf94069eea1146884f3a8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_7\\CVE-2016-5734.log",
+    "bytes": 591,
+    "sha256": "83c412fdd8c0d4aeafb78aa56a271a3d116a665145b61d68dfe7b795e4b07d63"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_7\\CVE-2016-5734.pcap",
+    "bytes": 71531,
+    "sha256": "4ab23f5c4fc64c5cde1e7dc28ee198bcc12e63f3addb973dc5f1f0799129dadd"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_8\\CVE-2018-12613.log",
+    "bytes": 642,
+    "sha256": "f24c593eeb27eacaaf65a9941f197d67918ee5c507ebdc56a38511dca602fa11"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_8\\CVE-2018-12613.pcap",
+    "bytes": 88063,
+    "sha256": "0debf6e439a4c8723a11f1bd5f1dddeca824c70b91aac1eabe7dc94b30d4b50f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_9\\CVE-2022-46169.log",
+    "bytes": 1046,
+    "sha256": "f976338ded9c4fe004dfffb5a01565f128b6ec683bb40bd4c2c2ef2cb8fb0c82"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\raw\\eventID_9\\CVE-2022-46169.pcap",
+    "bytes": 296120,
+    "sha256": "7508125edf254673c2818c3309d3e4054fc11daa269484ed8779168b71cb48b8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\data\\tasks\\data.json",
+    "bytes": 3249,
+    "sha256": "71ebe1f803852f8faa82dad899f0d5e8b92812472095caf1102a2238c3e6c621"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\README.md",
+    "bytes": 489,
+    "sha256": "749bcff6fdd43f60976bc770a11540b203a411fee4a0733bafc274fe4387747e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\requirements.txt",
+    "bytes": 235,
+    "sha256": "b47250d67c867580b174ee02f6cbd27c75eb67f6464e23f644d534a7a7d0daa8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\results\\react_gpt-4o_False_0.csv",
+    "bytes": 2834,
+    "sha256": "c166ff5e90b4d35c56caebabdeda6b9b66ea89ca643c6cc54944557af9d9bf32"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA-bench\\run_agent.py",
+    "bytes": 10682,
+    "sha256": "185812900281a98921998739f76365dca79a54ec334c8620cc69cc8b02e60ec4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CFA_evidence_mapping.csv",
+    "bytes": 23866,
+    "sha256": "843ea12d4440081c95341e1f5d11dcb8a1c2d640d8d54aaafd1d856abb865d6e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\config",
+    "bytes": 337,
+    "sha256": "45f46b0076c820481db26cf21b74bad929f7974be915ab075261ef28e4ba7497"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\config.worktree",
+    "bytes": 57,
+    "sha256": "bfefdfeb2bf56f4a5282c172fe3a69b4075e13fe3bf3cd54f6611bafa461c276"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\description",
+    "bytes": 73,
+    "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\FETCH_HEAD",
+    "bytes": 154,
+    "sha256": "b647387154ad67955eb60a0185a79369647cb9f1ed6037e2306003fe5d9e9b61"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\HEAD",
+    "bytes": 41,
+    "sha256": "24de00a1af8cad11f493379111ecee5ca8a02099a67b069087c3794d960c1e86"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\applypatch-msg.sample",
+    "bytes": 478,
+    "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\commit-msg.sample",
+    "bytes": 896,
+    "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\fsmonitor-watchman.sample",
+    "bytes": 4726,
+    "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\post-update.sample",
+    "bytes": 189,
+    "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\pre-applypatch.sample",
+    "bytes": 424,
+    "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\pre-commit.sample",
+    "bytes": 1649,
+    "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\pre-merge-commit.sample",
+    "bytes": 416,
+    "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\pre-push.sample",
+    "bytes": 1374,
+    "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\pre-rebase.sample",
+    "bytes": 4898,
+    "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\pre-receive.sample",
+    "bytes": 544,
+    "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\prepare-commit-msg.sample",
+    "bytes": 1492,
+    "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\push-to-checkout.sample",
+    "bytes": 2783,
+    "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\sendemail-validate.sample",
+    "bytes": 2308,
+    "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\hooks\\update.sample",
+    "bytes": 3650,
+    "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\index",
+    "bytes": 19974,
+    "sha256": "d6c714db5b6f4dc311d675d0d5702103f9e56b43f2418f6db0a9494b2ac78b57"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\info\\exclude",
+    "bytes": 240,
+    "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\info\\sparse-checkout",
+    "bytes": 29,
+    "sha256": "a03d4a5348808f1bdf6c55971aaaf3eddca14920a104586a60a72276cca9263c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\logs\\HEAD",
+    "bytes": 206,
+    "sha256": "896ed02174b88c487ce161b343267c2954745954066b6a1fe3dfa8034f4ee156"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-065895fdd62f505eff5f249869a63fbbb9fbdfb1.idx",
+    "bytes": 2892,
+    "sha256": "2dabd17db2f073073bc9dfc76197aa24ac1b630a23eddd6483e9382b6baa35f4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-065895fdd62f505eff5f249869a63fbbb9fbdfb1.pack",
+    "bytes": 8400,
+    "sha256": "a6a977d2cb7eca5459a0c21c4baf58d4e644495f6f4fd5eae34d4eb5ce6d33f4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-065895fdd62f505eff5f249869a63fbbb9fbdfb1.promisor",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-065895fdd62f505eff5f249869a63fbbb9fbdfb1.rev",
+    "bytes": 312,
+    "sha256": "768887c678cfe763180eb3b3240fc5a5fdba8b7ad8b99ed7d03b0e4c85ea72f7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-8f2cf6b024c07ad542f4b597dc3f421c8048489f.idx",
+    "bytes": 2220,
+    "sha256": "59187e10d767fb4008d8f95abf0b0b023c3986bc3d224bbf68940548d1552fa4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-8f2cf6b024c07ad542f4b597dc3f421c8048489f.pack",
+    "bytes": 72489,
+    "sha256": "eb489977ba620366ad3ea1afe445a597a1f3ec50f61bf4ef22059508420d120e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-8f2cf6b024c07ad542f4b597dc3f421c8048489f.promisor",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\objects\\pack\\pack-8f2cf6b024c07ad542f4b597dc3f421c8048489f.rev",
+    "bytes": 216,
+    "sha256": "6c66ef93cb18620c49964521a1df683a0749bf0bea10a33abc4c2e518a080585"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.git\\shallow",
+    "bytes": 41,
+    "sha256": "24de00a1af8cad11f493379111ecee5ca8a02099a67b069087c3794d960c1e86"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\.gitignore",
+    "bytes": 90,
+    "sha256": "9a37d5bfd113ded904de6254d6b2988e62d1575d19e22b34e61abc102d11fd7b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\architecture\\flow_reporter.png",
+    "bytes": 38806,
+    "sha256": "672075908b043619319107d7db18c90280f2207cc920e5145e25a5c65518d710"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\README.md",
+    "bytes": 9147,
+    "sha256": "dece6380ff2863242eb032907dc4e04f48e120ea6db96418272b10c3ffc818b4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\requirements.txt",
+    "bytes": 1332,
+    "sha256": "beeaf822f5096c4de467861edf7965de0fb04d1f28643df7ff8e30c27951065e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\.env.example",
+    "bytes": 891,
+    "sha256": "9b0120d93fd6ce9647347feae722605df3b72ca57548d3aee5880850d52bcf51"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\browser\\__init__.py",
+    "bytes": 216,
+    "sha256": "7bb07e6d2b2ea0793f0aee8a85642345a443d9e884f325f4d02c1509050c15b0"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\browser\\chunking_utils.py",
+    "bytes": 2350,
+    "sha256": "69195f35c5e818797da8179caa6d8a924fd2b262e57dc0390f985ed1a8d50198"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\browser\\online_browser.py",
+    "bytes": 7155,
+    "sha256": "fd5e017d3f5099fa19b0cc373e7cdfebcecb4d4b618efa09c08d5c8d59388428"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\browser\\prompts.py",
+    "bytes": 2988,
+    "sha256": "c9da386994fd2b25d69c06cfae8b6252602c114e19fe1bd7d1927a3b838a8520"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\browser\\summarization_utils.py",
+    "bytes": 2657,
+    "sha256": "5bee9c283e73390795010ee0444daa786941f4257e58fdfa11be1670604a00eb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\configuration.py",
+    "bytes": 2927,
+    "sha256": "ef1e5874c42ae059e734fcb79dde6157d6af448b5a3242e53793200d28cb18e9"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\__init__.py",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\common\\__init__.py",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\common\\global_state.py",
+    "bytes": 927,
+    "sha256": "54d1205dc1101b5d03ec8cd5660604a5a3524a6f6016dc2b66900cc9331cf93f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\common\\utils.py",
+    "bytes": 5026,
+    "sha256": "b9575ce315f83e34a2bb30bb60245de75eca1f3d9eba284b6da9b71964b972d6"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\log_reporter\\__init__.py",
+    "bytes": 68,
+    "sha256": "38bfc31c00bd9a523b66eb1bda954a5d76bc75137f245ab2d501e0fc4b54f8ec"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\log_reporter\\concatenate_logs.py",
+    "bytes": 833,
+    "sha256": "afddfe50ae78afb108fd6d0c5b12dfc462047394a46fde4e0b29ae07920c4285"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\log_reporter\\log_reporter.py",
+    "bytes": 2576,
+    "sha256": "ddd7a3b2d8d095c56685d395a9d70eb49354a7d59b4eb4b49c34ceed1f316551"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\log_reporter\\prompts.py",
+    "bytes": 1017,
+    "sha256": "fc52ac7e952e1061bf6e117349bf1e7383039a663a53329a003434b5236fb305"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\__init__.py",
+    "bytes": 61,
+    "sha256": "bab525b4cbf2bab66e63721407ad54e641dbb5b829a14230313c7ed1250022d6"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\graph.py",
+    "bytes": 1579,
+    "sha256": "ae3ad9c39b4f059fa72e73fc15637fae0820db177a3c91e28631bec5b65455f4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\nodes\\__init__.py",
+    "bytes": 203,
+    "sha256": "554ee439bd17cf10eceb78f31a30602bc1a07d390892261ad4bfb0631758e11a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\nodes\\main_agent.py",
+    "bytes": 5612,
+    "sha256": "ad71478fb6b5224ed9f7da53fa9bf41d3b7ae9476a8bea216e40852b0beae1ca"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\nodes\\pcap_flows_reporter.py",
+    "bytes": 5997,
+    "sha256": "53749c74381a1ba81a0d7495d64832a0739bda16f9b5a2cc3a3a97be99964e11"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\nodes\\router.py",
+    "bytes": 576,
+    "sha256": "c6546b2daabef7978fbb105289eed1ce9918d4f5ee343ef221d1f5df1357f1d5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\nodes\\tools.py",
+    "bytes": 4175,
+    "sha256": "8e801d428744221ffef7a0bdcf1682f114a6914ae48606606c706ad2a4b93e3c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\prompts.py",
+    "bytes": 1992,
+    "sha256": "35150883e8164928740bd1720c2d89dabf794910ae7741b15a3486c09bbdbf15"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\memory\\__init__.py",
+    "bytes": 115,
+    "sha256": "d473003547d94195ad6c468916cd96e78138d3c9f52c9c2c8a2d4c00eb3e3fe8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\memory\\upsert_memory.py",
+    "bytes": 1963,
+    "sha256": "dcc1d041c8c4f419f5dc844efb942a4d40c53db679d7ea17f3d4084b1e4d367f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\pcap\\__init__.py",
+    "bytes": 155,
+    "sha256": "e77312e6d53cc4ab61edb65c8720dd5b047214bef9d6704a72d70707d102e8bd"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\pcap\\pcap_summary.py",
+    "bytes": 1291,
+    "sha256": "3c0e4f1ccec1b85d00a9531af37ea6771f05c7df4527b78632bdb24dec3fd6f7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\pcap\\tls_streams.py",
+    "bytes": 1003,
+    "sha256": "dcc07ecd54020ce1d61615cf8a9b04d2de31a7f1a6bb242696b344bd740f3906"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\report\\__init__.py",
+    "bytes": 154,
+    "sha256": "775d53d2c06d6f477f030f236ad14adb7e56ca89cafaa0c3a6d8436329081b42"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\report\\final_report.py",
+    "bytes": 1804,
+    "sha256": "b410647ef9379e559c6fde07c6fa24899661f86b6b8b3f0d9c7a2b8c62d79b16"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\tshark_expert_tool\\__init__.py",
+    "bytes": 111,
+    "sha256": "e82aa3ac1beef3c982a404adb46034e059827a51a021d5c3660b448438b6feca"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\main_agent\\tools\\tshark_expert_tool\\tshark_agent.py",
+    "bytes": 4606,
+    "sha256": "fc6c34f22312d5e07ab9240edad28ea537f7f10b5189068da8ca75b8897fec4c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\pcap_flow_analyzer\\__init__.py",
+    "bytes": 86,
+    "sha256": "5443c59970b8518c79c7c884372e7602c994dd409ff69b75529ecca423a6d5e1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\pcap_flow_analyzer\\output_format.py",
+    "bytes": 1611,
+    "sha256": "76a49983db4a902d8c6cc67139e549b1332ac53a4e41d8fd574f355057809cac"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\pcap_flow_analyzer\\pcap_flow_analyzer.py",
+    "bytes": 2928,
+    "sha256": "4b243d05c335a5f027a9b4602f0505de25bd9bfebcefafc8b14570adaa25a31e"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\multi_agent\\pcap_flow_analyzer\\prompts.py",
+    "bytes": 2062,
+    "sha256": "765969b299562a299f88d86d7ed10664e83b25ab353de6560757e882d456a5e5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\run_agent.py",
+    "bytes": 9423,
+    "sha256": "494f35de219588a0553a15dcc5c231240594e15658dc1a138714a473371d91b1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\CyberSleuth\\src\\run_agent_web_events.py",
+    "bytes": 4730,
+    "sha256": "04257c5f8bb82337c0cc82a590b6455873df167d82fd5fa9dd74b8c0c3e45084"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\config",
+    "bytes": 229,
+    "sha256": "c95c88d1944b9ac097341464ba5f9dcaa3182cc9d855093986456959699dabb5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\description",
+    "bytes": 73,
+    "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\FETCH_HEAD",
+    "bytes": 131,
+    "sha256": "d3bdd6c004f7ded4677ae190d2d13571cc9c66e450d78d5baa00d7ef58936131"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\HEAD",
+    "bytes": 41,
+    "sha256": "bc457c711f6dba71e17d436366e549d2059e3fdc76b83c476479eae5150280ba"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\applypatch-msg.sample",
+    "bytes": 478,
+    "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\commit-msg.sample",
+    "bytes": 896,
+    "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\fsmonitor-watchman.sample",
+    "bytes": 4726,
+    "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\post-update.sample",
+    "bytes": 189,
+    "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\pre-applypatch.sample",
+    "bytes": 424,
+    "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\pre-commit.sample",
+    "bytes": 1649,
+    "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\pre-merge-commit.sample",
+    "bytes": 416,
+    "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\pre-push.sample",
+    "bytes": 1374,
+    "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\pre-rebase.sample",
+    "bytes": 4898,
+    "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\pre-receive.sample",
+    "bytes": 544,
+    "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\prepare-commit-msg.sample",
+    "bytes": 1492,
+    "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\push-to-checkout.sample",
+    "bytes": 2783,
+    "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\sendemail-validate.sample",
+    "bytes": 2308,
+    "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\hooks\\update.sample",
+    "bytes": 3650,
+    "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\index",
+    "bytes": 1001,
+    "sha256": "a94403b25acb336888191144f669f3ff2701aa0aaf276c5b3b5ce5024c694b31"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\info\\exclude",
+    "bytes": 240,
+    "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\logs\\HEAD",
+    "bytes": 206,
+    "sha256": "bf1ccf13e8fb9442334700047503710b8f155b17b1e5034da5464e89cb93ae21"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\26\\62afafb7675d44537168bc023ab40923822d76",
+    "bytes": 189,
+    "sha256": "ba1d94f48b024592fa8a8701ed8680cb2cf2fab686fc29ce418fd889f175449c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\4f\\1cc045a9a4b7e72c478f01e5ffa21c6fad6622",
+    "bytes": 278418,
+    "sha256": "c527295bc29bec00b8b78bc44f9ff9fc61c36cdb8a5218ab2c452a2496dbf8bd"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\58\\1510a8dc0633128ad254e6a67e2dbdc7c7cc94",
+    "bytes": 8429,
+    "sha256": "fa26c4959ef999fbdc7fb01e7bb1a091e90a741e00cc77c6f6bf4f4b935aecf9"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\80\\96858cb5b770f57e869c65951952e73b904fc3",
+    "bytes": 717626,
+    "sha256": "7562c79e6049b7e86902776acb47573031fb23fd11cb40911af10bf344a025b6"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\a2\\600f50f90c3847620d81d9f5de3bd0e164ca8e",
+    "bytes": 35398,
+    "sha256": "b8768a6f461248c24dd2980016312326156d623aa6f90c150b9d21d4ee146cd4"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\a6\\6a5cee515f7503d961e2160a5aced5eaf147da",
+    "bytes": 884,
+    "sha256": "3d9761f27f64e9561ccd46f5ac20e7e9311502ac2f20c7d1d6d66b226db423f7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\b3\\8358db4fe10ce87fb5f9313e59d762fd2f2837",
+    "bytes": 101293,
+    "sha256": "d2e3bf5bc018127e5b99dd1f121bbdb93067c0dd3ca4b9b76c2af6730ef12612"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\b7\\371948682b65aec39f9b37d37ac808bd3aa7cf",
+    "bytes": 199174,
+    "sha256": "f5f2c4613621ca72a7f4a37fd2714fca6a27b036b2805973e98d8e9920174acb"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\c0\\89d9acaee991caca9a5476b31ebf6fcbb1adf3",
+    "bytes": 4184,
+    "sha256": "b0574a8f9eda1eb9a696fa72fe8993a29c2fbc06f75e8e0ee45310ff605eff15"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\c4\\fb458f9db0003f8c3163df601511f5af87390b",
+    "bytes": 642754,
+    "sha256": "f23ef54b1b9115dca35b62bd718c8ce5d8ff15c094877f2c9d505c192183f81a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\c5\\e61b37c83130133dfb5a62a8a6747e268809a0",
+    "bytes": 25870,
+    "sha256": "328a42ae6ed382eadbcdb4c0849b541e1931e73973410fcaa617607e57474607"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\e5\\1f08fb4682cddd019c526d3d5d728cfd451497",
+    "bytes": 389490,
+    "sha256": "935cbd4d966ab4b671289111ade7c82f34b1d261176c7a4414e7f4c681e93d68"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\objects\\fd\\b91c4b1efb1aad516114133df029b70dbef8a8",
+    "bytes": 235,
+    "sha256": "0ab4495c27421466a908a896567ccd0730926acdd1ed9521a33a4afcd2dc4b1a"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\.git\\shallow",
+    "bytes": 41,
+    "sha256": "bc457c711f6dba71e17d436366e549d2059e3fdc76b83c476479eae5150280ba"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\assets\\CTF_result.png",
+    "bytes": 394667,
+    "sha256": "20768aace60a9b590e0b7bccef1ea6c65639f8e513b7e9f11305868a8b4fe801"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\assets\\DFIR-Metric-Framework.png",
+    "bytes": 745664,
+    "sha256": "015726db5c904699c29d7f2594699d7cd48c473c2acf5ca959eaad6e3c396c79"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\assets\\DFIR_Metric_CTF_generator.ipynb",
+    "bytes": 173539,
+    "sha256": "f12329c92c0d8421fe2e5cd5c7536af31481b178cf615d2916ed44b03f15b9aa"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\assets\\DFIR_Metric_NSS_generator.ipynb",
+    "bytes": 40731,
+    "sha256": "790b3d7506a039b335028b82e2fafd1e78429a5ed75e1f490c6425cd941d2933"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\assets\\MCQ_result.png",
+    "bytes": 651702,
+    "sha256": "e9379111c9f9781ef4d49040184886f8a6a3d0b9ccf97d614e6fcbc394175080"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\assets\\NSS_result.png",
+    "bytes": 283223,
+    "sha256": "5b76181cc56dacde8799d49ff1372af3e9cfd9e7dd7aac6f2383891b216c10d1"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\DFIR-Metric-CTF.json",
+    "bytes": 984124,
+    "sha256": "44de9349bf2eaec0b8b79289a1076f91d33c42483d193798048b9ccfa668f88b"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\DFIR-Metric-MCQ.json",
+    "bytes": 300984,
+    "sha256": "c212dabbe2d2a011165ab29a7a2f8bcc9573b91a61707fed1667d0cee158221f"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\DFIR-Metric-NSS.json",
+    "bytes": 847093,
+    "sha256": "a287b37a265b3437b41782af6cdc034fb5c4f61e3a4e5f29ac79972f5be15015"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\DFIR-Metric\\README.md",
+    "bytes": 10485,
+    "sha256": "cd744a50e29c5fdfa12a366bab1ceae18152a0d41c28739708222e39a14cba85"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\existing_evaluator_artifacts.csv",
+    "bytes": 24212,
+    "sha256": "bdf8aec615c7a906ccc356123b91ee4142bca64ec78ebf3c8c0b8df8a007af91"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\NIST_Hacking_Case\\TestAnswers.pdf",
+    "bytes": 66916,
+    "sha256": "ee1795a7efe150ae3ecddaea2a1ee4ab2431a2c28ed3df009e759628bfda87f8"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\OpTC\\OpTCRedTeamGroundTruth.pdf",
+    "bytes": 453244,
+    "sha256": "5986d23b81169221a491f7a8302fce140b12638ef4cf9b3a894ed3cb2fad9567"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\receipts\\format_verification.with_previews.json",
+    "bytes": 17775,
+    "sha256": "adcadf64cce893eb0c7b7dfaf588da703d204e296de70e3a6e80158d76d6b3c7"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\templates\\case_ground_truth.csv",
+    "bytes": 118,
+    "sha256": "1913a65e79a94261f20c964b5d54348ac60d01a7ebc116b1d08d96715e88769c"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\templates\\critical_evidence.csv",
+    "bytes": 89,
+    "sha256": "4724be8f5378b45cb8d09ed56f0e156411534b01fb145f931936c9464b38cac5"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\templates\\ground_truth_relationships.csv",
+    "bytes": 93,
+    "sha256": "c94b848f2d36720d64c2ea10946dc4fdd512a46fe73aaa6a570468dcce0b4c53"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\templates\\known_temporal_order.csv",
+    "bytes": 89,
+    "sha256": "f7dddfc530ca398d7f74cab76c7d51f6e339b875966c6bfd757f1e75af4b4444"
+  },
+  {
+    "path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\07_Evaluation_Artifacts\\evaluator_only\\templates\\reviewer_scores.csv",
+    "bytes": 128,
+    "sha256": "f8dc3ef0e62e7d19c017bc8f1318472de70f445e35cc1aea88955db054a6253c"
+  }
+]

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Specula — Implemented Agent Architecture</title>
+<style>
+:root{font-family:"Segoe UI",Arial,sans-serif;color:#231e2b;background:#faf9f6;line-height:1.6;color-scheme:light}
+*{box-sizing:border-box}body{margin:0}header,main,footer{max-width:1600px;margin:auto;padding:30px 4%}header{padding-top:42px;padding-bottom:16px}.eyebrow{font:11px/1.7 Consolas,monospace;letter-spacing:.12em;color:#665079}h1{font-size:clamp(28px,4vw,48px);font-weight:600;letter-spacing:-.045em;line-height:1.1;margin:15px 0}h2{font-size:21px;font-weight:600;margin:0 0 12px;letter-spacing:-.025em}p{margin:10px 0;color:#625a6c;max-width:1000px}a{color:#563096}button,input,select{font:inherit}button,select{cursor:pointer}button,a,input,select,summary{touch-action:manipulation}:focus-visible{outline:3px solid #8656c3;outline-offset:4px}button{padding:10px 16px;border:1px solid #cfc4d9;border-radius:5px;background:#fff;color:#3d2d4e;font-size:12px;min-height:44px}button:hover{background:#f2ecf8}button[aria-pressed=true]{background:#563096;color:#fff;border-color:#563096}.stats{display:flex;flex-wrap:wrap;border-block:1px solid #dcd4e3;margin-top:25px;gap:0}.stats span{padding:16px 30px 16px 0;font-size:12px;color:#625a6c}.stats b{font-size:23px;color:#33263f;margin-right:8px;font-weight:600}.notice{border-left:3px solid #b98627;background:#fff7e3;padding:16px 20px;font-size:13px;margin:0 0 25px}.notice p{color:#6c542d;margin:4px 0}.panel{background:#fff;border:1px solid #ddd4e5;border-radius:8px;margin:0 0 28px;padding:24px}.section-header{display:flex;justify-content:space-between;align-items:start;gap:20px;flex-wrap:wrap}.toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0}.toolbar label{font-size:12px;display:flex;gap:10px;align-items:center}.toolbar input{width:130px}.diagram{overflow:auto;max-height:820px;background:#fff;border:1px solid #e5dfea;border-radius:6px;padding:10px;overscroll-behavior:contain}.diagram svg{display:block;width:100%;min-width:850px;height:auto;max-width:none}.legend{display:flex;flex-wrap:wrap;gap:12px 20px;font-size:11px;margin:20px 0}.legend span{display:flex;align-items:center;gap:7px}.legend i{width:12px;height:12px;border:1px solid #bbb;border-radius:3px}.caption{font-size:12px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;font-size:12px}th,td{text-align:left;vertical-align:top;padding:13px 14px;border-bottom:1px solid #e6dfea}th{background:#f3eff8;font-size:11px;letter-spacing:.04em}td:first-child{min-width:195px}td:nth-child(2){min-width:145px}td:nth-child(3){min-width:180px;max-width:240px}td:last-child{min-width:260px;max-width:600px}code{font:11px/1.7 Consolas,monospace;background:#f3eff8;padding:2px 4px;overflow-wrap:anywhere}details{margin-top:10px}summary{cursor:pointer;color:#563096;font-size:12px;padding:8px 0;min-height:40px}details pre{max-height:420px;overflow:auto;background:#15101f;color:#e5dcf0;padding:18px;border-radius:5px;font:11px/1.7 Consolas,monospace;white-space:pre;tab-size:4}.search{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:18px 0}.search input{border:1px solid #cfc4d9;padding:11px 14px;border-radius:5px;max-width:100%;width:410px;font-size:13px}.search label{font-size:12px}.search output{font-size:12px;color:#625a6c}.route-table{font-size:11px}.route-table td{max-width:400px}.hashes{font:10px/1.9 Consolas,monospace;overflow-wrap:anywhere}.route-list{font:11px/1.9 Consolas,monospace;overflow-wrap:anywhere}.methods{display:grid;grid-template-columns:1fr 1fr;gap:30px}.methods p,.methods li{font-size:13px}.methods ol{padding-left:20px;color:#625a6c}.graph-node:hover rect{stroke:#5b21b6;stroke-width:2}footer{font-size:11px;color:#74677f;border-top:1px solid #ddd4e5;margin-top:10px;padding-bottom:45px}[hidden]{display:none!important}.skip{position:absolute;top:-100px;left:20px;padding:12px;background:#fff;z-index:2}.skip:focus{top:10px}
+@media(max-width:700px){header,main,footer{padding-inline:18px}.panel{padding:16px}.methods{grid-template-columns:1fr;gap:15px}.stats span{padding-right:18px}.stats b{font-size:21px}.diagram{max-height:650px}.toolbar{gap:8px}button{padding-inline:12px}}
+@media print{body{background:#fff}.diagram{max-height:none;overflow:visible}.diagram svg{min-width:0!important;width:100%!important}.toolbar,.search,.skip{display:none}header,main,footer{padding:15px}.panel{break-inside:auto}.methods{display:block}details pre{max-height:none}.table-wrap{overflow:visible}td:last-child{min-width:0}h2{break-after:avoid}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to architecture</a>
+<header>
+  <div class="eyebrow">SPECULA / CODE-DERIVED ARCHITECTURE</div>
+  <h1>Every agent. Every possible route.</h1>
+  <p>A reproducible view of the implemented investigation workflow, based on <code>src/agents/graph.py</code> and its registered functions. Presentation follows <code>architecture_v4.html</code>; topology and source references come from the code.</p>
+  <div class="stats"><span><b>@@NODE_COUNT@@</b>registered workflow nodes</span><span><b>@@EDGE_COUNT@@</b>source-complete routes</span><span><b>@@NATIVE_EDGE_COUNT@@</b>native exported routes</span><span>@@VERSIONS@@</span></div>
+</header>
+<main id="main">
+  <aside class="notice"><strong>Two views, with an explicit visualization gap.</strong><p>The installed LangGraph native exporter omits @@MISSING_COUNT@@ source-declared route pairs after the unannotated <code>investigation_followup</code> Command function. Its inferred <code>investigation_followup → __end__</code> edge is not a declared runtime route. The complete view supplements the drawing from registered edges, branch maps and literal <code>Command.goto</code> destinations. The native export remains untouched.</p><p>This is a possible-route map, not a case execution trace. Conditional fan-out and Command lists can dispatch multiple nodes; arrows do not assert that every branch runs in every investigation.</p></aside>
+  <section class="panel" aria-labelledby="graph-title">
+    <div class="section-header"><div><div class="eyebrow">01 / ORCHESTRATION MAP</div><h2 id="graph-title">Implemented workflow</h2></div><a href="#inventory">Inspect node implementations ↓</a></div>
+    <div class="toolbar" aria-label="Diagram view"><button type="button" id="complete-button" aria-pressed="true" aria-controls="complete-diagram">Source-complete view</button><button type="button" id="native-button" aria-pressed="false" aria-controls="native-diagram">Native LangGraph view</button><label>Zoom <input type="range" id="zoom" min="50" max="250" value="100" step="10"><output id="zoom-label">100%</output></label><button type="button" id="reset-zoom">Reset zoom</button></div>
+    <p id="view-description" class="caption" aria-live="polite">Complete source-declared topology; dashed lines indicate conditional dispatch or Command routing.</p>
+    <div class="legend"><span><i style="background:#cee8fb"></i>Orchestration</span><span><i style="background:#cdefe1"></i>Primary tier</span><span><i style="background:#fde6d8"></i>Specialists</span><span><i style="background:#e4e1f8"></i>Synthesis</span><span><i style="background:#fbe3ec"></i>Debate</span><span><i style="background:#fbefd9"></i>Guardrail / HITL</span><span><i style="background:#ddebdd"></i>Adaptive examination</span><span><i style="background:#f1efe8"></i>Output</span><span><i style="background:#eeeeef"></i>Control</span></div>
+    <div id="complete-diagram" class="diagram" tabindex="0" aria-label="Source-complete diagram, scroll to explore">@@COMPLETE_SVG@@</div>
+    <div id="native-diagram" class="diagram" tabindex="0" aria-label="Native LangGraph diagram, scroll to explore" hidden>@@NATIVE_SVG@@</div>
+    <p class="caption">Both SVGs are laid out locally with the installed Dagre library from their corresponding graph JSON. LangGraph's built-in <code>draw_mermaid()</code> output is preserved below and available to download. Everything on this page works offline.</p>
+    <details><summary>LangGraph native Mermaid — exact built-in output</summary><pre id="native-mermaid"></pre><button type="button" data-download="native">Download native .mmd</button></details>
+    <details><summary>Source-complete Mermaid — separate drawing, same built-in renderer</summary><pre id="complete-mermaid"></pre><button type="button" data-download="complete">Download complete .mmd</button></details>
+    <noscript><p>JavaScript is disabled. The complete diagram and all node implementations remain visible. View switching and filtering require JavaScript.</p></noscript>
+  </section>
+  <section class="panel" id="inventory" aria-labelledby="inventory-title"><div class="eyebrow">02 / REGISTERED NODES</div><h2 id="inventory-title">Agent and control inventory</h2><p class="caption">Every <code>add_node</code> registration is included. Joins, guardrails, human review and deterministic output steps are shown alongside agent roles; registration does not mean that a node always calls an LLM. Open an implementation to inspect its exact exported code.</p><div class="search"><label for="search">Find a node</label><input type="search" id="search" placeholder="Name, tier, destination or source file…"><output id="results" aria-live="polite">@@NODE_COUNT@@ of @@NODE_COUNT@@ nodes</output></div><div class="table-wrap"><table id="node-table"><thead><tr><th scope="col">Registered node</th><th scope="col">Workflow group</th><th scope="col">Possible destinations</th><th scope="col">Implementation</th></tr></thead><tbody>@@ROWS@@</tbody></table></div></section>
+  <section class="panel" aria-labelledby="routes-title"><div class="eyebrow">03 / ROUTE AUDIT</div><h2 id="routes-title">Where every arrow comes from</h2><p class="caption">Static edges come from the actual builder; conditional destinations come from its registered branch maps. Command destinations are parsed from each registered callable. Repeated source locations for a pair are retained. Destination expressions are alternatives or fan-outs; inspect the implementation for complete branch conditions.</p><div class="table-wrap"><table class="route-table"><thead><tr><th scope="col">From → To</th><th scope="col">Mechanism</th><th scope="col">Source location</th><th scope="col">Destination expression / router</th></tr></thead><tbody id="route-rows"></tbody></table></div><details><summary>Compare native and complete edge sets</summary><div id="differences" class="route-list"></div></details></section>
+  <section class="panel methods" aria-label="Generation methodology"><div><div class="eyebrow">04 / REPRODUCE</div><h2>Generated from this checkout</h2><ol><li>Compile <code>build_graph()</code> with no service clients or checkpointer.</li><li>Export <code>get_graph().to_json()</code> and <code>get_graph().draw_mermaid()</code>.</li><li>Inspect registered callables and builder routing; reject unresolved Command targets.</li><li>Render diagrams and source inventory without invoking any workflow node.</li></ol><pre><code>venv\Scripts\python.exe scripts\generate_agent_architecture.py</code></pre><button type="button" data-download="json">Download source manifest + graph JSON</button><p class="caption"><a href="https://docs.langchain.com/oss/python/langgraph/use-graph-api" rel="noreferrer">LangGraph Graph API and visualization documentation ↗</a></p></div><div><h2>Scope and provenance</h2><p>Only the workflow registered by <code>build_graph()</code> is included. Ingestion services, database infrastructure and standalone helper agents are not inserted as fictional workflow nodes. Source code, rather than historical model assignments or feature targets, defines the inventory.</p><p>Node execution can mix deterministic analysis, structured model review and guarded compatibility paths. Model choices are runtime configuration; this export does not assert live model readiness or measured forensic accuracy.</p><details><summary>Source-file SHA-256 fingerprints</summary><div id="hashes" class="hashes"></div></details><details><summary>Registered conditional router source</summary><div id="router-source"></div></details></div></section>
+</main>
+<footer>SPECULA / Static source snapshot · Generated without case execution, model inference or analyst decisions · Reference document retained unchanged.</footer>
+<script type="application/json" id="architecture-data">@@DATA@@</script>
+<script>
+'use strict';
+const architecture = JSON.parse(document.getElementById('architecture-data').textContent);
+const element = id => document.getElementById(id);
+for (const mode of ['native','complete']) element(`${mode}-mermaid`).textContent = architecture[mode].mermaid;
+function setView(mode) {
+  for (const view of ['native','complete']) {
+    element(`${view}-diagram`).hidden = view !== mode;
+    element(`${view}-button`).setAttribute('aria-pressed', String(view === mode));
+  }
+  element('view-description').textContent = mode === 'native' ? 'Untouched native get_graph() topology, including its visualization omissions and inferred terminal edge.' : 'Complete source-declared topology; dashed lines indicate conditional dispatch or Command routing.';
+}
+for (const mode of ['native','complete']) element(`${mode}-button`).addEventListener('click', () => setView(mode));
+function zoom() {
+  const value = Number(element('zoom').value);
+  document.querySelectorAll('.architecture-svg').forEach(svg => {svg.style.width = value + '%';});
+  element('zoom-label').textContent = value + '%';
+}
+element('zoom').addEventListener('input', zoom);
+element('reset-zoom').addEventListener('click', () => {element('zoom').value = '100'; zoom();});
+element('search').addEventListener('input', event => {
+  const query = event.target.value.trim().toLowerCase();
+  const rows = [...document.querySelectorAll('#node-table tbody tr')];
+  for (const row of rows) row.hidden = !row.textContent.toLowerCase().includes(query);
+  element('results').textContent = `${rows.filter(row => !row.hidden).length} of ${rows.length} nodes`;
+});
+for (const route of architecture.routes) {
+  const tr = document.createElement('tr');
+  for (const value of [`${route.source} → ${route.target}`, route.kind, `${route.path}:${route.line}`, route.expression]) {
+    const cell = document.createElement('td'); cell.textContent = value; tr.appendChild(cell);
+  }
+  element('route-rows').appendChild(tr);
+}
+for (const [name,pairs] of [['Present in source, omitted by native export',architecture.omitted_by_native],['Native-only inferred routes',architecture.native_only]]) {
+  const p = document.createElement('p'); p.textContent = name + ': ' + pairs.map(pair => pair.join(' → ')).join('; '); element('differences').appendChild(p);
+}
+const sources = [architecture.graph_source,...architecture.nodes.map(node=>node.source),...architecture.routers.map(router=>router.source)];
+for (const [path,hash] of [...new Map(sources.map(source=>[source.path,source.sha256]))].sort((a,b)=>a[0].localeCompare(b[0]))) {
+  const p = document.createElement('p'); p.textContent = path + ' · ' + hash; element('hashes').appendChild(p);
+}
+for (const router of architecture.routers) {
+  const details = document.createElement('details'), summary = document.createElement('summary'), pre = document.createElement('pre');
+  summary.textContent = `${router.node} / ${router.name}`; pre.textContent = router.source.code; details.append(summary,pre); element('router-source').appendChild(details);
+}
+document.querySelectorAll('[data-download]').forEach(button=>button.addEventListener('click',()=>{
+  const mode = button.dataset.download;
+  const text = mode === 'json' ? JSON.stringify(architecture,null,2) : architecture[mode].mermaid;
+  const blob = new Blob([text],{type:mode === 'json'?'application/json':'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href=url; link.download=mode==='json'?'specula-agent-architecture.json':`specula-${mode}.mmd`;
+  document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}));
+</script>
+</body>
+</html>

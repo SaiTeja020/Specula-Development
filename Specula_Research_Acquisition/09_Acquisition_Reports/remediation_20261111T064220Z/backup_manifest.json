@@ -1,0 +1,122 @@
+[
+  {
+    "relative_path": "PROGRESS.md",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\PROGRESS.md",
+    "sha256": "66c9537cd7c1b8248fdacb7c4c59dd8c338b12d31ebd0987544cb6c81ef5f548",
+    "bytes": 11123
+  },
+  {
+    "relative_path": "README.md",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\README.md",
+    "sha256": "135ca8d3bf040e35830296be250d727bca2c3e62b36d25ca6bfca8e1c99f7c40",
+    "bytes": 1462
+  },
+  {
+    "relative_path": "CHECKLIST.md",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\CHECKLIST.md",
+    "sha256": "4ce0628b64fb33ef54adb107aa594c33cc05c22ec78aaada28e87103b15f1c71",
+    "bytes": 20441
+  },
+  {
+    "relative_path": "00_Master_Inventory/master_acquisition_tracker.xlsx",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\00_Master_Inventory\\master_acquisition_tracker.xlsx",
+    "sha256": "7f713dbb0b8c8edb70ac941fb07113b6a1396860b4fb9c9aedb970e82fa037e3",
+    "bytes": 651832
+  },
+  {
+    "relative_path": "00_Master_Inventory/checklist_status.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\00_Master_Inventory\\checklist_status.csv",
+    "sha256": "acb1233b9672c3a81015686044ed0e0d8853b4752bcf1ef0d5b512f950b0ba2e",
+    "bytes": 86432
+  },
+  {
+    "relative_path": "00_Master_Inventory/missing_resources_report.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\00_Master_Inventory\\missing_resources_report.csv",
+    "sha256": "e38abd1c16b40a8a9b559b395cc6411e72a294bc88ffd47c11a34c6dcba93d83",
+    "bytes": 27838
+  },
+  {
+    "relative_path": "00_Master_Inventory/restricted_resources_report.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\00_Master_Inventory\\restricted_resources_report.csv",
+    "sha256": "e128cbd1e552fce5e4bdc650017df6f552a3edb81af9fe11de6beeaaacefa3eb",
+    "bytes": 3328
+  },
+  {
+    "relative_path": "08_Checksums_And_Manifests/dataset_manifest.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\08_Checksums_And_Manifests\\dataset_manifest.csv",
+    "sha256": "5d19ed19eb1702953833258c034e26444618bd460545984ec371e851c4cc23ba",
+    "bytes": 19212
+  },
+  {
+    "relative_path": "08_Checksums_And_Manifests/repository_manifest.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\08_Checksums_And_Manifests\\repository_manifest.csv",
+    "sha256": "0027710276071107b2c555c74de6b5618a6e3b627b4982f76a0268099954c09c",
+    "bytes": 6178
+  },
+  {
+    "relative_path": "08_Checksums_And_Manifests/research_paper_bibliography.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\08_Checksums_And_Manifests\\research_paper_bibliography.csv",
+    "sha256": "760733fd98a0ba5f85af294bcc2aaa8f87561a91821ea6e8ed08a4291d9971ef",
+    "bytes": 5648
+  },
+  {
+    "relative_path": "08_Checksums_And_Manifests/resource_checksums.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\08_Checksums_And_Manifests\\resource_checksums.csv",
+    "sha256": "405d175db6a2cb24ac32673cd43cc3ae844be6550fa8a7ad0117accbe9e410c2",
+    "bytes": 1995872
+  },
+  {
+    "relative_path": "08_Checksums_And_Manifests/deliverable_checksums.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\08_Checksums_And_Manifests\\deliverable_checksums.csv",
+    "sha256": "6a0a2da7e99d0dc8fdaa5686be56660941c89426f4b8bf7dab9b970178d3ae50",
+    "bytes": 1263
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/campaign_input.json",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\campaign_input.json",
+    "sha256": "aee5bc3c6d307cd8eb506a996cf8a35a19119b13818c50de539450b62b805b4e",
+    "bytes": 5382604
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/campaign_summary.json",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\campaign_summary.json",
+    "sha256": "e663b2f9e095e68c91bfcde080678b45d4aa3f54412daf027b32ab1754fc5417",
+    "bytes": 14741
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/missing_resources_report.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\missing_resources_report.csv",
+    "sha256": "e38abd1c16b40a8a9b559b395cc6411e72a294bc88ffd47c11a34c6dcba93d83",
+    "bytes": 27838
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/restricted_resources_report.csv",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\restricted_resources_report.csv",
+    "sha256": "e128cbd1e552fce5e4bdc650017df6f552a3edb81af9fe11de6beeaaacefa3eb",
+    "bytes": 3328
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/acquisition_summary.pdf",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\acquisition_summary.pdf",
+    "sha256": "1ad6492caf536f3df72933e7caaea8ce893131b2598a2e69cf593664fb1c3e39",
+    "bytes": 8462
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/acquisition_log.md",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\acquisition_log.md",
+    "sha256": "e4fe84c24262c5b3967998faed7a7efda103af20ea20a30d637d7e0865913e3c",
+    "bytes": 1429
+  },
+  {
+    "relative_path": "09_Acquisition_Reports/build_campaign_tracker.mjs",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\09_Acquisition_Reports\\build_campaign_tracker.mjs",
+    "sha256": "cdc58a7856d7dc376ca27f3bc8072a753100cf01ccc449f699ca20e34d082df6",
+    "bytes": 6881
+  },
+  {
+    "relative_path": "00_Master_Inventory/master_acquisition_tracker.xlsx.inspect.ndjson",
+    "backup": "09_Acquisition_Reports\\remediation_20261111T064220Z\\backup\\00_Master_Inventory\\master_acquisition_tracker.xlsx.inspect.ndjson",
+    "sha256": "84255e382774abc15db9a5a8a6455a93471321239c5073dd51fc9f4ebe80d011",
+    "bytes": 23163773
+  }
+]

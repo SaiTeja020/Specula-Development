@@ -18,6 +18,8 @@ Reference: faiss_threat_intel_implementation_plan.md §4
 from __future__ import annotations
 
 import logging
+import hashlib
+import json
 import os
 import time
 from dataclasses import dataclass, field
@@ -26,6 +28,13 @@ from typing import Iterator, List, Optional
 import requests
 
 logger = logging.getLogger(__name__)
+
+_TACTIC_ORDER = (
+    "reconnaissance", "resource-development", "initial-access", "execution",
+    "persistence", "privilege-escalation", "defense-evasion", "credential-access",
+    "discovery", "lateral-movement", "collection", "command-and-control",
+    "exfiltration", "impact",
+)
 
 # ---------------------------------------------------------------------------
 # NVD API configuration
@@ -62,6 +71,12 @@ class ThreatIntelRecord:
     source: str                             # "mitre_attack_stix" | "nvd_cve"
     source_version: str                     # STIX bundle tag or NVD snapshot date
     tags: List[str] = field(default_factory=list)   # Tactic names or CWE IDs
+    technique_ids: List[str] = field(default_factory=list)
+    technique_sequence: List[str] = field(default_factory=list)
+    sequence_basis: Optional[str] = None
+    source_hash: Optional[str] = None
+    retrieved_at: Optional[str] = None
+    feed_provider: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -105,15 +120,56 @@ class AttackStixFetcher:
         intrusion-set (group) in the bundle."""
         objects = bundle.get("objects", [])
         source_version = f"ATT&CK-v{self.version}"
+        source_hash = hashlib.sha256(
+            json.dumps(bundle, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        retrieved_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        technique_by_stix_id = {}
+        tactic_by_technique = {}
+        for obj in objects:
+            if obj.get("type") == "attack-pattern" and not obj.get("revoked") and not obj.get("x_mitre_deprecated"):
+                technique_id = next((ref.get("external_id") for ref in obj.get("external_references", [])
+                                     if ref.get("source_name") == "mitre-attack"), None)
+                if technique_id:
+                    technique_by_stix_id[obj.get("id")] = technique_id
+                    tactic_by_technique[technique_id] = [
+                        phase.get("phase_name") for phase in obj.get("kill_chain_phases", [])
+                    ]
+        group_techniques: dict[str, set[str]] = {}
+        for obj in objects:
+            if obj.get("type") != "relationship" or obj.get("relationship_type") != "uses" or obj.get("revoked"):
+                continue
+            technique_id = technique_by_stix_id.get(obj.get("target_ref"))
+            if technique_id:
+                group_techniques.setdefault(obj.get("source_ref"), set()).add(technique_id)
 
         for obj in objects:
             obj_type = obj.get("type", "")
+            if obj.get("revoked") or obj.get("x_mitre_deprecated"):
+                continue
 
             if obj_type == "attack-pattern":
-                yield from self._parse_technique(obj, source_version)
+                records = self._parse_technique(obj, source_version)
 
             elif obj_type == "intrusion-set":
-                yield from self._parse_group(obj, source_version)
+                records = self._parse_group(obj, source_version)
+            else:
+                continue
+            for record in records:
+                record.source_hash = source_hash
+                record.retrieved_at = retrieved_at
+                record.feed_provider = "mitre_attack_stix"
+                if obj_type == "intrusion-set":
+                    record.technique_ids = sorted(group_techniques.get(obj.get("id"), set()))
+                    # ATT&CK does not record a campaign chronology. This is a
+                    # canonical tactic progression, explicitly labeled as inferred.
+                    record.technique_sequence = sorted(record.technique_ids, key=lambda technique_id: (
+                        min((_TACTIC_ORDER.index(tactic) for tactic in tactic_by_technique.get(technique_id, [])
+                             if tactic in _TACTIC_ORDER), default=len(_TACTIC_ORDER)),
+                        technique_id,
+                    ))
+                    record.sequence_basis = "attack_tactic_order" if record.technique_sequence else None
+                yield record
 
     # ------------------------------------------------------------------
     # Internal parsers

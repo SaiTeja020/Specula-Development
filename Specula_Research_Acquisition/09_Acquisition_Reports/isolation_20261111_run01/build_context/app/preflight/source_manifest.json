@@ -1,0 +1,822 @@
+[
+  {
+    "path": "src/__init__.py",
+    "bytes": 39,
+    "sha256": "d124324cc43c0868332be799b9d35b0e00b6d6fa1e4c1aaf069aacfd7d43df1d"
+  },
+  {
+    "path": "src/agents/__init__.py",
+    "bytes": 50,
+    "sha256": "225f226279efd45ec92fb5527f0c6e7ba9d84f4d0e0a0f23cd4c29f3b3707a8d"
+  },
+  {
+    "path": "src/agents/access_analysis.py",
+    "bytes": 16800,
+    "sha256": "cc444371ea118371de0c4190d150590374c99a69579772ce302cdeb4511b4ff4"
+  },
+  {
+    "path": "src/agents/agent_graph.py",
+    "bytes": 7583,
+    "sha256": "4f183f2b1ca21a60eebec1ee9121c9c386a6278d215054ce8bc914237a1b25f0"
+  },
+  {
+    "path": "src/agents/api_auth.py",
+    "bytes": 10002,
+    "sha256": "0aa5a32403e7135f0f3189364fe269f76dd13597c10d9f7e7a2c6ef7a6747a71"
+  },
+  {
+    "path": "src/agents/behavior_analysis.py",
+    "bytes": 4374,
+    "sha256": "b93b5fe1abd8ab9c6c85a03e3e6b2f7b507d75025b9aea8b26f5f1e8a05f53fd"
+  },
+  {
+    "path": "src/agents/cape_sandbox.py",
+    "bytes": 20182,
+    "sha256": "5d4e49ad49909cd1bf6093b7622e5932eb26b2dbffe3e0054fe7529460ad31f0"
+  },
+  {
+    "path": "src/agents/case_analysis.py",
+    "bytes": 27750,
+    "sha256": "3366c41a13cdd04562b50a4529ad6fb9b18d18c0f3f358c3c744fae82d44c3f8"
+  },
+  {
+    "path": "src/agents/case_analytics.py",
+    "bytes": 5227,
+    "sha256": "8d0242d1761e8cc930a666ffb93ae8df200504f432487018767d8c074277d134"
+  },
+  {
+    "path": "src/agents/case_graph.py",
+    "bytes": 4335,
+    "sha256": "92605eeef3d876a86fde157dbcf9c4c4212d9078b17a367cf570266a93affcc4"
+  },
+  {
+    "path": "src/agents/checkpointer.py",
+    "bytes": 13918,
+    "sha256": "9d49754f3240633b0b74c2cdf60664167464c4c562a7e4f7d61127701603cfdc"
+  },
+  {
+    "path": "src/agents/cloud_lifecycle.py",
+    "bytes": 5657,
+    "sha256": "e26bf352c959d51b2d114b3a3debb8e3ee6601a82289fb79382e8f99e09fd90b"
+  },
+  {
+    "path": "src/agents/config.py",
+    "bytes": 19720,
+    "sha256": "d6ca9a34ff7603829628abe6856bf894e9cd057ffd279c5bf9723d1f0b206e0b"
+  },
+  {
+    "path": "src/agents/dead_end_detector.py",
+    "bytes": 3725,
+    "sha256": "69de4e238e5c12f935bf8806ca1c2de4af638437566ad249708997670d63a0ea"
+  },
+  {
+    "path": "src/agents/evidence_collection/agent.py",
+    "bytes": 2952,
+    "sha256": "888505af84646fbe777b66350d8e001009d3a6c447a3cdde2afca009afa0e011"
+  },
+  {
+    "path": "src/agents/evidence_collection/agent_findings.py",
+    "bytes": 805,
+    "sha256": "4cbcdbbcf33f4985c92404b96e94afaa5f81f4f7b88b9f146f8f349acce055c3"
+  },
+  {
+    "path": "src/agents/evidence_collection/agent_verdict.py",
+    "bytes": 446,
+    "sha256": "56c896fc8dca2f1751d0e008ef889dad61ef4abf8deacca15744d36acc87d194"
+  },
+  {
+    "path": "src/agents/evidence_collection/kafka_publisher.py",
+    "bytes": 1953,
+    "sha256": "6df5e72e86183c8803d65e9928532ac9be9658763a6e8b6c2ffb49dde32b0a31"
+  },
+  {
+    "path": "src/agents/evidence_collection/relevance_filter.py",
+    "bytes": 4930,
+    "sha256": "486856a822e7de97ae0b1c1283f6439dbb5ac925602e605684f40b5738ee026d"
+  },
+  {
+    "path": "src/agents/evidence_collection/state.py",
+    "bytes": 1745,
+    "sha256": "5d9f99301abfb05712333265f9472de18bbf1f1a8bb40365cd77b279fa4a0c74"
+  },
+  {
+    "path": "src/agents/evidence_collection_agent.py",
+    "bytes": 6872,
+    "sha256": "8dec0630bf8740a50e32f27d21b98eb464492e0d6894dc92ad73a4c3725ed233"
+  },
+  {
+    "path": "src/agents/evidence_correlations.py",
+    "bytes": 13426,
+    "sha256": "7a2dbf37bcc2385da80ffa7771783f2c38560dda82c9d8214c20edf991487810"
+  },
+  {
+    "path": "src/agents/evidence_review.py",
+    "bytes": 25636,
+    "sha256": "a02f8f42c139005f63c02a9532f3d484077c2376b083a28cdcd0c6807e94e868"
+  },
+  {
+    "path": "src/agents/examination_reports.py",
+    "bytes": 2116,
+    "sha256": "9acfc83b1134adc8c6402bcf4597db384eb993330241f7d46baa00a2b7746618"
+  },
+  {
+    "path": "src/agents/exploit_paths.py",
+    "bytes": 3964,
+    "sha256": "6ad1c3c6b0f822c6366eedd22682ab846febd831e88560346d213bd176ae2e59"
+  },
+  {
+    "path": "src/agents/forensic_tools.py",
+    "bytes": 17023,
+    "sha256": "20ca5c0af3bf7eff78f4e40ce8024e68645011ae576864a91e29004f924cb9a3"
+  },
+  {
+    "path": "src/agents/graph.py",
+    "bytes": 10602,
+    "sha256": "97a93d25e0366e3e47968f0a32fb931c1b4b61e3a3dda83f5dd43a0eb1518e14"
+  },
+  {
+    "path": "src/agents/grounded_report.py",
+    "bytes": 11519,
+    "sha256": "dee8e48334374124824d8c5884973d8af49584c609c76b1e8110b4c19dd080af"
+  },
+  {
+    "path": "src/agents/grounding.py",
+    "bytes": 9091,
+    "sha256": "65a33eff3fb9e7931a468c708fc028e021006d2e2b2e68491ff93491b75c9510"
+  },
+  {
+    "path": "src/agents/guardrails.py",
+    "bytes": 5604,
+    "sha256": "69ed979a743a7f95686517ba1144e9ebdf860ef3c0dd2b52273ff97f909ebf49"
+  },
+  {
+    "path": "src/agents/hitl_api.py",
+    "bytes": 4482,
+    "sha256": "40ca436dfda6ccbcba6bad0621901a3c22043c5f4189391c7ae35a173d4e7b07"
+  },
+  {
+    "path": "src/agents/identity_sessions.py",
+    "bytes": 7164,
+    "sha256": "8c766670ef2d156b4c2cbcd3d3eb13ad97332c74ab22bba120428f7f87834f32"
+  },
+  {
+    "path": "src/agents/investigation_api.py",
+    "bytes": 22227,
+    "sha256": "68f2e419c9e4e32c94ed187eb14fc7fbedd223315da192654b872b7726f23cf5"
+  },
+  {
+    "path": "src/agents/investigation_followup.py",
+    "bytes": 21988,
+    "sha256": "c166ca1520d78c52539ccb6b72727bcd94e9ccb165de87babed4c67b72007257"
+  },
+  {
+    "path": "src/agents/investigative_review.py",
+    "bytes": 7486,
+    "sha256": "0b3ada061b12be1a743f348bdfb7ed1bb340012f52afb77597ebe63abe0788e6"
+  },
+  {
+    "path": "src/agents/kafka_utils.py",
+    "bytes": 8616,
+    "sha256": "ecc8a0fcf3b71706e9199d1502925c0a177814088c1d625f146313bf0cd6c1d0"
+  },
+  {
+    "path": "src/agents/kubernetes_audit.py",
+    "bytes": 13077,
+    "sha256": "ca1314bd6acd884bec78cd03acecb45409972cde23ef7f03611bfaa25616bad1"
+  },
+  {
+    "path": "src/agents/log_analysis/__init__.py",
+    "bytes": 1300,
+    "sha256": "b6e4805f49a4384f114163e505f70b6fead38cc5403d92985d3c55d57abf0b03"
+  },
+  {
+    "path": "src/agents/log_analysis/agent.py",
+    "bytes": 18308,
+    "sha256": "46b4381fa389dd8c27cc0685b07dcab702760d84483e777303d5ff1fdaff1b18"
+  },
+  {
+    "path": "src/agents/log_analysis/anomaly_detector.py",
+    "bytes": 8088,
+    "sha256": "0f1216067c07fd6ec56a0ff747d2a7e079b64404d9ae6853dc7e433d4d6d2b19"
+  },
+  {
+    "path": "src/agents/log_analysis/config.py",
+    "bytes": 7160,
+    "sha256": "ce2db742a6d49fa2efb84d4899cfeb1e563dc67bfac936bba93d084ca0f29e5b"
+  },
+  {
+    "path": "src/agents/log_analysis/dedup.py",
+    "bytes": 4419,
+    "sha256": "dbdc98099a35e398de7be7cf242e946deff9a0a991ffd005177971b220914b50"
+  },
+  {
+    "path": "src/agents/log_analysis/detection_rules.py",
+    "bytes": 11943,
+    "sha256": "75e9c30a1064af27323b5c47be3d6bb4849b982c47321b90b572aa625828ee2f"
+  },
+  {
+    "path": "src/agents/log_analysis/endpoint_context.py",
+    "bytes": 6684,
+    "sha256": "e73bd6c197635e6783d819d8a5e428bf87fefce4879d26341aa1ad1b5a264cd1"
+  },
+  {
+    "path": "src/agents/log_analysis/finding_builder.py",
+    "bytes": 6254,
+    "sha256": "0ada0b0fc755a8b3285646b4cf5866ab5feb36341608f8a1db78cb343079f676"
+  },
+  {
+    "path": "src/agents/log_analysis/llm_reasoner.py",
+    "bytes": 14871,
+    "sha256": "8f88427952de1a617bd895597e19cbf699e058be8a98225924a715aab4db5646"
+  },
+  {
+    "path": "src/agents/log_analysis/signatures/log_analysis_signatures.yaml",
+    "bytes": 5077,
+    "sha256": "e7900d662f25150681c0d3f113749d4a6da7149b8fe3944125fa6c0b0d84c477"
+  },
+  {
+    "path": "src/agents/log_analysis_factory.py",
+    "bytes": 10295,
+    "sha256": "74063c9ff371db5683738587562ea98fa6ddeb9892a0abb5e57236704718fa28"
+  },
+  {
+    "path": "src/agents/network_forensics/agent.py",
+    "bytes": 2475,
+    "sha256": "93c21374764125b69b1787a12a3701572e6f28368585181c53ad35be06bf1382"
+  },
+  {
+    "path": "src/agents/network_forensics/anomaly_detector.py",
+    "bytes": 7601,
+    "sha256": "bec7f4565bb910a7670e2d7e3055a1a48a8fcf133c005f2fd114221ece114c4d"
+  },
+  {
+    "path": "src/agents/network_forensics/kafka_publisher.py",
+    "bytes": 2492,
+    "sha256": "655259425be7df8cb7732c71409f4a6a9b90d9a9c2a3d6ffdbe4ab931373d201"
+  },
+  {
+    "path": "src/agents/network_forensics/state.py",
+    "bytes": 517,
+    "sha256": "6da08b61ef61bccd2a141241f51390d0015134c09c4d5cd2210958c2b6595a04"
+  },
+  {
+    "path": "src/agents/network_forensics_factory.py",
+    "bytes": 8627,
+    "sha256": "4f0b41054d1686303240e5dd721d752cccc854054876dab08b49b864490b1209"
+  },
+  {
+    "path": "src/agents/network_specialist.py",
+    "bytes": 3449,
+    "sha256": "999b617baa232380ff232145abc0c6d48a0a61fb47bf3717a41c1962dae2c326"
+  },
+  {
+    "path": "src/agents/nodes.py",
+    "bytes": 28884,
+    "sha256": "4ccc3404fe0b176b8c3cb31abf295ffeca1fb2ccccbd718217fc17cce4289e5f"
+  },
+  {
+    "path": "src/agents/ntfs_records.py",
+    "bytes": 12332,
+    "sha256": "f192c9750208ccac2a174bc0fac3546c0aa6dae362acfd2cb4a39c39f3333844"
+  },
+  {
+    "path": "src/agents/ollama_backend.py",
+    "bytes": 4661,
+    "sha256": "ce5aa8162363fbbcc898cbba468d9d4d2f3085b525d439b2ca7438c76b53a4aa"
+  },
+  {
+    "path": "src/agents/packet_forensics.py",
+    "bytes": 21399,
+    "sha256": "1d5899793e9db8b1ea0a8559c4dd8182dfca64fb728067977b6f09bd79f54c49"
+  },
+  {
+    "path": "src/agents/protocol_examination.py",
+    "bytes": 9716,
+    "sha256": "64f84402a260117fad6ebf8ee24003ec88812109dfd1adcef0c66bd019128027"
+  },
+  {
+    "path": "src/agents/react_engine.py",
+    "bytes": 7994,
+    "sha256": "a09df9fabc5a4c441b38f56ba46c8bbd84555847b1e942c054f42c16e1709533"
+  },
+  {
+    "path": "src/agents/react_tools.py",
+    "bytes": 3852,
+    "sha256": "33b6da54cd975a040624c3fc07a8d9a90b107885170c584358485e80a1d4334d"
+  },
+  {
+    "path": "src/agents/redis_keys.py",
+    "bytes": 1653,
+    "sha256": "84584cde944e19f01e3aaf3dd41be9a00c10db7949760badd7f6a115709d4ddd"
+  },
+  {
+    "path": "src/agents/relational_graph.py",
+    "bytes": 3680,
+    "sha256": "e172331777b57a0d4c7beaffb7ed17e4376f25061a8ce6578c249e377a54179c"
+  },
+  {
+    "path": "src/agents/report_document.py",
+    "bytes": 26626,
+    "sha256": "7998155a6ebc02db438b08172159fc2642a0dc1f3c43b1ae0ec3bf7e98a018cf"
+  },
+  {
+    "path": "src/agents/review_context.py",
+    "bytes": 3417,
+    "sha256": "274af13dc10374e3e0cbe9ffc45e114870146c0fb6fe09e909ac53c34ef305bd"
+  },
+  {
+    "path": "src/agents/runtime_readiness.py",
+    "bytes": 2822,
+    "sha256": "4562bf757af894522dacaff478f62ba0ff2b9e3aed9877fd8c78080ebb4f2c90"
+  },
+  {
+    "path": "src/agents/specialist_context.py",
+    "bytes": 3590,
+    "sha256": "40254311821fedb4342b3ff78cd32e68d064120c1bd53711e1432dffc6d0107d"
+  },
+  {
+    "path": "src/agents/state.py",
+    "bytes": 4363,
+    "sha256": "964c6b816b4ebaee159d05c7508b93ea03bb3d43101f021650cbb40c814144e8"
+  },
+  {
+    "path": "src/agents/store_views.py",
+    "bytes": 4113,
+    "sha256": "1e02d05225826f139afdc06eadd503daaecb2712a1c9191ce912660ba5bb66e1"
+  },
+  {
+    "path": "src/agents/supervisor_agent.py",
+    "bytes": 8777,
+    "sha256": "8899c7268ff6112cf07ca7467bc6ffbc7aecb4772f4c2804b1528bd3a46fb047"
+  },
+  {
+    "path": "src/agents/supervisor_factory.py",
+    "bytes": 6021,
+    "sha256": "a75896e090bde81568ee1f0b3906dee95a8da6506719c2993b841826fc52b8d7"
+  },
+  {
+    "path": "src/agents/threat_attribution/__init__.py",
+    "bytes": 71,
+    "sha256": "27d24f45c7963bcc94ca19401d6ea22f529b307c12366ba3e77f7d6e02b9a222"
+  },
+  {
+    "path": "src/agents/threat_attribution/candidate_retriever.py",
+    "bytes": 710,
+    "sha256": "67475df40ba39226f463da19c4ce669150e3d1e03dff8d5751550e648c0dd807"
+  },
+  {
+    "path": "src/agents/threat_attribution/models.py",
+    "bytes": 1986,
+    "sha256": "f86c214142d8e52194829a479b6c76e3a4df944ed1cdedadb76610f9ac9dd50e"
+  },
+  {
+    "path": "src/agents/threat_attribution/scoring.py",
+    "bytes": 3325,
+    "sha256": "84a74c94a246e8579f4391484ba5b1262577f5e87eea5301544bf394b32e2cbc"
+  },
+  {
+    "path": "src/agents/threat_attribution/ttp_extractor.py",
+    "bytes": 3604,
+    "sha256": "d43343c2f95613d0febcaece613bfa6057f585df2d04296a0f64bae4fe77ad58"
+  },
+  {
+    "path": "src/agents/threat_attribution_agent.py",
+    "bytes": 12440,
+    "sha256": "1996ce41d6d61be54f241e363a7260356e84baf2e911a7411d160e328818585a"
+  },
+  {
+    "path": "src/agents/threat_attribution_factory.py",
+    "bytes": 2999,
+    "sha256": "919139b52ce96e6de2a28cd7928233b6d52ff4bb8c11a72ab2a01fbba96d5fd1"
+  },
+  {
+    "path": "src/agents/timeline_reconstruction.py",
+    "bytes": 5810,
+    "sha256": "9ab83a0f7bf3a2463b69a246857ea8d3bebcbe11d92a1e977be6ae9c1f80b41b"
+  },
+  {
+    "path": "src/agents/visualizer_api.py",
+    "bytes": 12119,
+    "sha256": "97679aee5b8c11d57e676a9353db85d4d2615901aaeb3f7b085ef5db875cde04"
+  },
+  {
+    "path": "src/config.py",
+    "bytes": 275,
+    "sha256": "d9cff620192168f8654c358b4fc5b93c4a87ae2b9cc265a5ccaf3d1a36bfed78"
+  },
+  {
+    "path": "src/graph/apoc_triggers.cypher",
+    "bytes": 1250,
+    "sha256": "02b0047a5122ff3f4e11219e226891f7433bafe787f45a205700024a617c72e2"
+  },
+  {
+    "path": "src/graph/cypher_builder.py",
+    "bytes": 25396,
+    "sha256": "22f05a24111de9a24b66d04928b880a8711a29c6e2c0b906f18eb62ab41bcc1d"
+  },
+  {
+    "path": "src/graph/neo4j_client.py",
+    "bytes": 8035,
+    "sha256": "429b585bd1c43dcc30f0dfd83c11c5f0e10cb7a7cedb14235c1d3694024418d5"
+  },
+  {
+    "path": "src/graph/process_lineage.py",
+    "bytes": 4372,
+    "sha256": "f4c807f330120382d44154e28af0dfc4ac709835ce7c0457f06ac6ac521056fe"
+  },
+  {
+    "path": "src/graph/runtime_schema.py",
+    "bytes": 514,
+    "sha256": "5d476b4f68a6df7ac1093c460ba67bfd8532d61835f812b69468965002f7c301"
+  },
+  {
+    "path": "src/graph/schema_constraints.cypher",
+    "bytes": 3091,
+    "sha256": "9dd65387640e1706a4c8fc96f9789073a58bad0ff96f3f66f8502873ed33c08e"
+  },
+  {
+    "path": "src/ingestion/__init__.py",
+    "bytes": 43,
+    "sha256": "81500f6cbcf579886088b3d9aaf260d955a8d1ede7071157565cd11c545cb081"
+  },
+  {
+    "path": "src/ingestion/abstraction/__init__.py",
+    "bytes": 39,
+    "sha256": "c40e72e84d084378acdc3a907153a905f0d93a5b237f9687490154497af12cb8"
+  },
+  {
+    "path": "src/ingestion/abstraction/drain3_parser.py",
+    "bytes": 2121,
+    "sha256": "2052f224c97c597b64c4964aa25a964b00ffb286a85829ea4bb663606a93304f"
+  },
+  {
+    "path": "src/ingestion/abstraction/entropy_clusterer.py",
+    "bytes": 4382,
+    "sha256": "c5cc842143ce0e9623af38d5bc135ef4ad2ac9b026e8f331af59090dce648d7d"
+  },
+  {
+    "path": "src/ingestion/abstraction/simhash_dedup.py",
+    "bytes": 3578,
+    "sha256": "8f4a713b12dadfa702d5547998900c4203b36b51fd3ad2a34bc90e85d8d1f772"
+  },
+  {
+    "path": "src/ingestion/broker/__init__.py",
+    "bytes": 37,
+    "sha256": "3a95f7eca0582802c0aa94b2c814e4220621d1d17be4fd11e1b62753aa09dd03"
+  },
+  {
+    "path": "src/ingestion/broker/active_cases_cache.py",
+    "bytes": 3367,
+    "sha256": "2f3d394297b06b7b7e2fe365c634f9b346247f075d5e2dfd3ba796bc8d0fd31b"
+  },
+  {
+    "path": "src/ingestion/broker/case_open_consumer.py",
+    "bytes": 3756,
+    "sha256": "0e07f267d1887a2e1bb88e92a2754738ea36603263fa6cda7b1c2f5afdbd2d5a"
+  },
+  {
+    "path": "src/ingestion/broker/case_stream.py",
+    "bytes": 2854,
+    "sha256": "631a980a1e4283d0cdc17c1c15b0edee533985a6ee08b4782190a6531c4dc657"
+  },
+  {
+    "path": "src/ingestion/broker/ingestion_consumer.py",
+    "bytes": 1645,
+    "sha256": "cb4be7f01c2c015baa857824b5f6b90f41795f2961b824e996840bead9d8a8fd"
+  },
+  {
+    "path": "src/ingestion/broker/kafka_consumer.py",
+    "bytes": 6499,
+    "sha256": "f107db2b54393bb98a588b6784e443a8756f35ec140caa12f4c1ddc2e60c16f5"
+  },
+  {
+    "path": "src/ingestion/broker/kafka_producer.py",
+    "bytes": 6443,
+    "sha256": "07fb7a727069e214b221a65d937e62f488bc1c1ce69a2d1b7bd470ddff340038"
+  },
+  {
+    "path": "src/ingestion/broker/reconcile_degraded_windows.py",
+    "bytes": 4292,
+    "sha256": "db3d740d774cf7778276fd5b0e88f2cef1d432714fa598150738529dfc952bbb"
+  },
+  {
+    "path": "src/ingestion/broker/winlogbeat_consumer.py",
+    "bytes": 5354,
+    "sha256": "7d49f37658584e67a813abae37d2c9b2490ed670d1828d731821d12b393ad6ca"
+  },
+  {
+    "path": "src/ingestion/distillation/distillation_layer.py",
+    "bytes": 6109,
+    "sha256": "2d683e69bb233171d6a0c4c21c8087e67a7bc4f846528a757c5001f8fae74430"
+  },
+  {
+    "path": "src/ingestion/export_aliases.py",
+    "bytes": 9314,
+    "sha256": "a7b5d664abe93dce0b06f8dd98bc55675ef883f831ac40aa0765bd0c28f5175f"
+  },
+  {
+    "path": "src/ingestion/extractors/gcp_audit_fetcher.py",
+    "bytes": 1716,
+    "sha256": "b1bdd501ec8c9df3bef7004419071d41dbea400bc91c608115941da8f4dc0937"
+  },
+  {
+    "path": "src/ingestion/extractors/usn_extractor.ps1",
+    "bytes": 1682,
+    "sha256": "73975498480363176d8cd6518232351e74e13e43134f563540ffedd30e4922ca"
+  },
+  {
+    "path": "src/ingestion/indexing/__init__.py",
+    "bytes": 32,
+    "sha256": "3e09e43c4bcc5977f9f9fefa6e1c90dde800d1990fc1d558d4dcb21d0ee788af"
+  },
+  {
+    "path": "src/ingestion/indexing/attack_xlsx_source.py",
+    "bytes": 6279,
+    "sha256": "5a80dbec621fecbbe009e436b3cbc3729c5189798a4732848538c62e0b981782"
+  },
+  {
+    "path": "src/ingestion/indexing/case_evidence.py",
+    "bytes": 8236,
+    "sha256": "a916b56e67dad81e485d6e1e3d915bd9681eab76b23301a030215d3e5f94d554"
+  },
+  {
+    "path": "src/ingestion/indexing/threat_intel_index.py",
+    "bytes": 13839,
+    "sha256": "e6f8c70487970f9ded095d351a5eae83774c8f66257c6273b299a45233778e3a"
+  },
+  {
+    "path": "src/ingestion/indexing/threat_intel_sources.py",
+    "bytes": 18823,
+    "sha256": "c55d5ef7c3bbb91baf55b9af6af78434b16bdd27eae6782c97f247887762450d"
+  },
+  {
+    "path": "src/ingestion/indexing/vector_indexer.py",
+    "bytes": 3739,
+    "sha256": "041be3ee7c7648cca64702a3d084ce66f57af36779536a41f0a24b82cc122d1e"
+  },
+  {
+    "path": "src/ingestion/indexing/vector_store.py",
+    "bytes": 9044,
+    "sha256": "8d23e7a6965658db602f2b1fcc4497dc6bcc0f77916ff5fc758dc4c168444d2e"
+  },
+  {
+    "path": "src/ingestion/ingestion_consumer.py",
+    "bytes": 7242,
+    "sha256": "0abf355613eb8ee2cc955fd6346751147d8438df50c74c7ac1fa18e655caeac6"
+  },
+  {
+    "path": "src/ingestion/network_pipeline.py",
+    "bytes": 14659,
+    "sha256": "b64cfcf22b0fb80fe153ec26c5cd991d3b007f0601f85585cba8614798f77c58"
+  },
+  {
+    "path": "src/ingestion/normalization/__init__.py",
+    "bytes": 28,
+    "sha256": "97792618f82b55b9f5a08cdc14f83997ecc8953d5169f26ce9c9921c36d92fee"
+  },
+  {
+    "path": "src/ingestion/normalization/ad_auth_normalizer.py",
+    "bytes": 2539,
+    "sha256": "b13cc19ba59d836a71018fb93d82e672644d017aaef21383c4abafde28493343"
+  },
+  {
+    "path": "src/ingestion/normalization/cloud_normalizer.py",
+    "bytes": 5471,
+    "sha256": "80a0a18b93f2fc5222217726a833a9628c74a1341cb2c4c3d060fc5816088606"
+  },
+  {
+    "path": "src/ingestion/normalization/cloud_topology_normalizer.py",
+    "bytes": 2301,
+    "sha256": "fc0ed3ac105a6404ba43e4698d6af7be91d549b5eee65072caaaa3073152f063"
+  },
+  {
+    "path": "src/ingestion/normalization/container_normalizer.py",
+    "bytes": 4234,
+    "sha256": "86eb41bd91ed2bbaf082680b5de435d1430dd556b8a45515610982e2594d82eb"
+  },
+  {
+    "path": "src/ingestion/normalization/edr_normalizer.py",
+    "bytes": 8176,
+    "sha256": "18838f43b08f298d5128ac57a5f05cdc80d3ef1343dd507afaa596c75f860767"
+  },
+  {
+    "path": "src/ingestion/normalization/email_normalizer.py",
+    "bytes": 3591,
+    "sha256": "58194e863d57b503e3633bf7625251173cc69a3d6fbc8820dbb7bff8e6d50a90"
+  },
+  {
+    "path": "src/ingestion/normalization/entity_resolver.py",
+    "bytes": 2346,
+    "sha256": "acfe2af34fab1a556fe82ce6b55507f864d3f3d162e823458c5c98a4c951c586"
+  },
+  {
+    "path": "src/ingestion/normalization/evtx_normalizer.py",
+    "bytes": 20942,
+    "sha256": "30a7a6c0e6fbc555c65e8ce3fac6c32b8f65abd7623e398560dff474a4fd82af"
+  },
+  {
+    "path": "src/ingestion/normalization/heuristic_normalizer.py",
+    "bytes": 2268,
+    "sha256": "7e22910c5316af9afeb8fd690b3006c731c61dee166e6fd138c1a59b7ef7b42b"
+  },
+  {
+    "path": "src/ingestion/normalization/kubernetes_normalizer.py",
+    "bytes": 2950,
+    "sha256": "3e61a2851ab0427ae8c5fd16735e07b5e8c68979878595c5390c0350a4073540"
+  },
+  {
+    "path": "src/ingestion/normalization/malware_normalizer.py",
+    "bytes": 3505,
+    "sha256": "2940c22a8fed2d39bdb51819a1b8606ca4371b10fa23d2f0bbaa925e4636c6ce"
+  },
+  {
+    "path": "src/ingestion/normalization/memory_dump_normalizer.py",
+    "bytes": 5150,
+    "sha256": "f79e1715f37a522f03aedd41b6aa8fdf21be2e4479e4c0846d1b76a192b5c7bd"
+  },
+  {
+    "path": "src/ingestion/normalization/mft_usn_normalizer.py",
+    "bytes": 3740,
+    "sha256": "5130a401451752812531c834c6adc4e3ef8dda47b39eb5b27952d728b09f654e"
+  },
+  {
+    "path": "src/ingestion/normalization/network_normalizer.py",
+    "bytes": 7237,
+    "sha256": "68cf9b48389d3d282d69f991af98415ee745351d43987c07b24f974653b7a7f5"
+  },
+  {
+    "path": "src/ingestion/normalization/time_normalizer.py",
+    "bytes": 2892,
+    "sha256": "02b74708a2bc405f3b00eac4c8cd70383e868884c54ee59f8f1aa78dc6139ad9"
+  },
+  {
+    "path": "src/ingestion/normalization/ueba_browser_normalizer.py",
+    "bytes": 3475,
+    "sha256": "4b4cf46e710cd866437b7b04861bd09ff3bb3fe9aa2f9c58f5a0001b1629bbda"
+  },
+  {
+    "path": "src/ingestion/normalization/vuln_scan_normalizer.py",
+    "bytes": 2790,
+    "sha256": "34aec4cdb559760330eecc7703b4d3b9e8fe71443ce875dd5869e4a24bbfb495"
+  },
+  {
+    "path": "src/ingestion/preservation/__init__.py",
+    "bytes": 58,
+    "sha256": "0800a2de39f44699058f1be792632611e8dfaa353ae1bd797138456beffa2f16"
+  },
+  {
+    "path": "src/ingestion/preservation/integrity_checker.py",
+    "bytes": 1508,
+    "sha256": "1c9c92d904ed36ec113775f4734ff75094ee290316a4c509ba8236f99c6c96ea"
+  },
+  {
+    "path": "src/ingestion/preservation/quickwit_client.py",
+    "bytes": 8589,
+    "sha256": "1656962fe816b4dd17778bd03bdd417758a77a85b016e634ee7192da4c6efeee"
+  },
+  {
+    "path": "src/ingestion/preservation/sha256_hasher.py",
+    "bytes": 1574,
+    "sha256": "04ac99635c4f17b79a06714a70fb7139452b08aa3f8e83906f35f9cdb32c99ee"
+  },
+  {
+    "path": "src/ingestion/preservation/vct_atomic_chain.py",
+    "bytes": 4387,
+    "sha256": "5fe26a717f35c8bcf2497c14f46f95e98b2dbc76edf27dfe15b626a2e3e41299"
+  },
+  {
+    "path": "src/ingestion/run_pipeline.py",
+    "bytes": 41790,
+    "sha256": "468752e6665d6e68ab29a25b80bc1f5944f27aa6f0fb840042647b5675b0d9cb"
+  },
+  {
+    "path": "src/ingestion/security_gate/__init__.py",
+    "bytes": 30,
+    "sha256": "1f6f435c6a77253775207f69aff6ea6f66f4d3063a79759ab6dd46bec1d23e83"
+  },
+  {
+    "path": "src/ingestion/security_gate/injection_detector.py",
+    "bytes": 3161,
+    "sha256": "f2b51f81aad56cb9f4510bd436fe1b9a9eaf47588d57e4ed65de375eadcfdc97"
+  },
+  {
+    "path": "src/ingestion/security_gate/pipeline.py",
+    "bytes": 4136,
+    "sha256": "a2ddcf87f0153888b9b837c5b9021a7ee5d1b2018e574f3daebf95f5cf005f12"
+  },
+  {
+    "path": "src/ingestion/security_gate/rebuff_gate.py",
+    "bytes": 2816,
+    "sha256": "0bf5301e501f8791dc8a7abee1ccdecca8563c4d5869a26c979b7c5bd059059a"
+  },
+  {
+    "path": "src/ingestion/security_gate/sanitizer.py",
+    "bytes": 2476,
+    "sha256": "d8d6055aef58235a3c4ecfd5d308a08bb74f443dd80ffd77768852ef05926b8b"
+  },
+  {
+    "path": "src/ingestion/upload_archive.py",
+    "bytes": 10282,
+    "sha256": "e12ec3cb1a531a15d84b7825b6cb90078131c7835e1b97daf755f82f776083aa"
+  },
+  {
+    "path": "src/ingestion/validation/__init__.py",
+    "bytes": 27,
+    "sha256": "557e5cc84ae116389b9198fc56598fc836b304105d1d35929f084f9d5716a1c7"
+  },
+  {
+    "path": "src/ingestion/validation/schema_registry_client.py",
+    "bytes": 4416,
+    "sha256": "605e389d22ab2b4da62f96088612578da2c94f49c1a25429341b5b2ba0014aa0"
+  },
+  {
+    "path": "src/ingestion/validation/validator.py",
+    "bytes": 2544,
+    "sha256": "5ce58c4dea767866d6373341d5b7a70405aca01747aa428ace9949d1952749cc"
+  },
+  {
+    "path": "src/mcp/__init__.py",
+    "bytes": 36,
+    "sha256": "ad16dbcb113b6a96c263b18f6b6d6bdefa23bbbe8dff18ea0c8152fc9ef4460d"
+  },
+  {
+    "path": "src/mcp/dfkg_cypher.py",
+    "bytes": 2977,
+    "sha256": "0b44e31b66510a6eba12490fda331d7942988cfd6fbb96adb9ffa97d60ffc0c7"
+  },
+  {
+    "path": "src/mcp/fastmcp_gateway.py",
+    "bytes": 2537,
+    "sha256": "db88c230e6ffd2c4a0784d0a249f66f25f3a0babddeca2f7fea1377ac4d3a68d"
+  },
+  {
+    "path": "src/mcp/threat_intel_mcp.py",
+    "bytes": 9346,
+    "sha256": "4816a3a8e09ca81fac263ef7d5b1db755776b6bab9ee6f6c0eae733ea0deb4b9"
+  },
+  {
+    "path": "src/mcp/vector_retrieval.py",
+    "bytes": 6043,
+    "sha256": "f8ad6058ce5e19f931c0be7204df340381de1ed1cb364993c8971517645544c1"
+  },
+  {
+    "path": "src/orchestration/kafka_consumer.py",
+    "bytes": 5204,
+    "sha256": "37f3f4d43d5abfbd6a5b22dddc95784931b27b7d3c68e783157080ded6b1c261"
+  },
+  {
+    "path": "src/orchestration/supervisor_graph.py",
+    "bytes": 3181,
+    "sha256": "984d972568541f036f6d2e1d4cbfb65172c7c6407a33da64a277496886ce7c67"
+  },
+  {
+    "path": "src/schemas/__init__.py",
+    "bytes": 68,
+    "sha256": "a7f8e6e8a92598f1e6b7ce90c4bdfadd643043c325a2386867e69de6bc7f46ad"
+  },
+  {
+    "path": "src/schemas/access_snapshot.py",
+    "bytes": 1240,
+    "sha256": "ba1adb522c87bf3157fb2703804ac7ff982e71fb7371f5b9cb1279e8522ff278"
+  },
+  {
+    "path": "src/schemas/entity_resolver.py",
+    "bytes": 6968,
+    "sha256": "c9ca7cb2df1a83c9ee5339420b7afb9e710b5555fec8f89979c36691d8b7c046"
+  },
+  {
+    "path": "src/schemas/ocsf_base.py",
+    "bytes": 6535,
+    "sha256": "6235c5c3d2a496602e51723b23032f498a9767d152c87cafdbedff18a2660b25"
+  },
+  {
+    "path": "src/schemas/ocsf_events.py",
+    "bytes": 14527,
+    "sha256": "fba98d78f2b2fd5c903d780461485bf57021e70af04a082c6d10b09f0284fb9f"
+  },
+  {
+    "path": "src/schemas/ocsf_phase2_events.py",
+    "bytes": 10801,
+    "sha256": "92b1364ffda303d989bd39f956da06d6af3256a67a1e84bee298301c584f9a1d"
+  },
+  {
+    "path": "src/schemas/ocsf_phase3_events.py",
+    "bytes": 4350,
+    "sha256": "7d9b877e71301da34504b04783b69e4a717ef549f0323cd2d729244806a88edb"
+  },
+  {
+    "path": "src/schemas/threat_intel_metadata.py",
+    "bytes": 3080,
+    "sha256": "f8ed9a2231e3fc90111be124921285dabb7e08f3660dfa976563c4816dbb46c6"
+  },
+  {
+    "path": "src/schemas/uid_generator.py",
+    "bytes": 3294,
+    "sha256": "629725501a87f891a9b298efb2f29080d3179ec47740f5f6f9fea345e1e06708"
+  },
+  {
+    "path": "src/schemas/vector_metadata.py",
+    "bytes": 2025,
+    "sha256": "9e2db49e99ec22c8a9252225a806916ca9685f816be49fc8a91ee046a5c9a11f"
+  }
+]

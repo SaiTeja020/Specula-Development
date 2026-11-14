@@ -40,7 +40,7 @@ services:
     image: redis:7.2-alpine
     container_name: specula-redis
     ports:
-      - "6380:6379"
+      - "6379:6379"
     command: redis-server --save 60 1 --loglevel warning
 
   # 4. Quickwit (Tier 1 Append-Only Preservation)
@@ -70,12 +70,12 @@ services:
 
   # 6. ChromaDB (Case Evidence Vector Index — Stage 2 §3 Step 7)
   chromadb:
-    image: chromadb/chroma:latest
+    image: chromadb/chroma@sha256:1e0b73a187a28757c572acba508c46f48c9e8b0acaf5c20e6d95cdedce1acdf6
     container_name: specula-chromadb
     ports:
       - "8000:8000"
     volumes:
-      - ./data/chromadb:/chroma/chroma
+      - specula-chroma-data:/data
 
   # 7. Redpanda Console (Kafka & Schema Registry GUI)
   redpanda-console:
@@ -102,12 +102,13 @@ services:
 
   # 9. Specula HITL API (FastAPI/uvicorn — §8)
   hitl-api:
+    image: specula-skeleton-hitl-api
     build:
       context: .
       dockerfile: Dockerfile.hitl
     container_name: specula-hitl-api
     ports:
-      - "8200:8200"
+      - "127.0.0.1:8200:8200"
     depends_on:
       - kafka
       - neo4j
@@ -121,3 +122,6 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
     restart: on-failure
+
+volumes:
+  specula-chroma-data:

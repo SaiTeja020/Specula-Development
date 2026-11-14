@@ -1,0 +1,11 @@
+# UNAPPLIED. New network namespace ONLY. Requires separate provisioning approval.
+# The worker and every helper retain separate PID/mount namespaces and non-root UIDs.
+# No interface except loopback exists in the proposed shared network namespace.
+table inet specula_smoke {
+    chain output {
+        type filter hook output priority 0; policy accept;
+        meta skuid 10001 ct state established,related accept
+        meta skuid 10001 ip daddr 127.0.0.1 tcp dport { 6379, 7687, 8000, 9092, 7280, 11434 } accept
+        meta skuid 10001 reject
+    }
+}

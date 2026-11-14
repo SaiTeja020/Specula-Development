@@ -1,0 +1,14 @@
+{
+  "ground_truth.txt": {
+    "sha256": "1e5847d1254c0d10fdf4ebd90f2cbf41ad4772f0215c8e707e428c42efbd10e2",
+    "bytes": 70
+  },
+  "benchmark_mapping.txt": {
+    "sha256": "a92c7b5a7d44de37607a9b91cbf9d6b1dfc0d15ee4687451da8914a0c2df85ca",
+    "bytes": 70
+  },
+  "evaluation_labels.txt": {
+    "sha256": "ec7c420aed26febe4ee4a37ef28520fac9ae780aebb2dc59ee8f419aebfa558e",
+    "bytes": 70
+  }
+}

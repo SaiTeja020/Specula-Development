@@ -1,0 +1,11 @@
+{
+  "time_utc": "2026-11-11T10:25:49Z",
+  "supported_shutdown_authorized": true,
+  "safety_inventory": "system-only pods, no application workload/PV/PVC observed",
+  "stored_state_caveat": "etcd cluster state/configuration exists; inventory is not a restorable etcd snapshot and does not authorize reset/deletion",
+  "shutdown_executed": false,
+  "reason": "Supported CLI has no stop control; native UI helper unavailable",
+  "budget_MiB": 10704,
+  "R1_applied": false,
+  "new_runtime_objects": []
+}

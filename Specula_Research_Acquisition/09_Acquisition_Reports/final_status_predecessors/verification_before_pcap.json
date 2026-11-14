@@ -1,0 +1,17 @@
+{
+  "checked_at": "2026-11-11T05:52:43.119432+00:00",
+  "result": "PASS",
+  "scope": "Acquisition integrity/coverage only; unresolved resources remain explicitly pending/deferred/restricted",
+  "unique_files_hash_rechecked": 5096,
+  "mutable_hashes_deferred": 31,
+  "checklist_rows": 136,
+  "pilot_verified_scopes": 7,
+  "pilot_partial": 1,
+  "pilot_deferred": 1,
+  "pilot_unavailable": 1,
+  "verified_research_papers": 9,
+  "pinned_clones_checked": 6,
+  "cfa_evidence_files_checked": 59,
+  "workbook_summary_cache_reconciled": true,
+  "original_implementation_unchanged": true
+}

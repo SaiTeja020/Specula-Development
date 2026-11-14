@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 KAFKA_BROKER = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 
 TOPICS = [
+    "findings.specialist.network",
     "findings.evidence_collection",
     "findings.log_analysis",
     "findings.network_forensics",
@@ -36,6 +37,7 @@ TOPICS = [
 
 # Agent role -> Kafka topic
 ROLE_TOPIC_MAP: dict[str, str] = {
+    "network_specialist": "findings.specialist.network",
     "evidence_collection":  "findings.evidence_collection",
     "log_analysis":         "findings.log_analysis",
     "network_forensics":    "findings.network_forensics",
@@ -155,6 +157,7 @@ def run_dfkg_consumer(*, max_messages: int | None = None) -> None:
         "bootstrap.servers": KAFKA_BROKER,
         "group.id": "specula-dfkg-writer",
         "auto.offset.reset": "earliest",
+        "enable.auto.commit": False,
     })
     # Subscribe to all findings topics via regex
     consumer.subscribe(["^findings\\..*"])
@@ -175,24 +178,38 @@ def run_dfkg_consumer(*, max_messages: int | None = None) -> None:
             except (json.JSONDecodeError, UnicodeDecodeError) as exc:
                 log.warning("Bad message on %s: %s", msg.topic(), exc)
                 # ponytail: dead-letter publish deferred, just log
+                consumer.commit(message=msg, asynchronous=False)
                 continue
 
-            # Deterministic UID: hash of (agent_role, case_id, summary prefix)
+            # Preserve a producer-assigned deterministic UID when present.
             uid_seed = f"{finding.get('agent_role', '')}-{finding.get('timestamp', '')}"
-            uid = hashlib.sha256(uid_seed.encode()).hexdigest()[:16]
+            uid = finding.get("uid") or hashlib.sha256(uid_seed.encode()).hexdigest()[:16]
 
             # Parameterized MERGE — no dynamic string interpolation (AGENTS.md rule)
             with driver.session() as session:
-                session.run(
+                result = session.run(
                     "MERGE (e:Entity {uid: $uid}) "
                     "SET e.agent_role = $role, e.summary = $summary, "
-                    "    e.timestamp = $ts, e.topic = $topic",
+                    "    e.timestamp = $ts, e.topic = $topic, "
+                    "    e.case_id = $case_id, e.canonical_host_id = $host, "
+                    "    e.dfkg_refs = $refs, e.bytes_out = $bytes_out, "
+                    "    e.kafka_partition = $partition, e.kafka_offset = $offset",
                     uid=uid,
                     role=finding.get("agent_role", "unknown"),
                     summary=finding.get("summary", "")[:500],
                     ts=finding.get("timestamp", ""),
                     topic=msg.topic(),
+                    case_id=finding.get("case_id"),
+                    host=finding.get("canonical_host_id"),
+                    refs=finding.get("dfkg_refs", []),
+                    bytes_out=finding.get("bytes_out", 0),
+                    partition=msg.partition(),
+                    offset=msg.offset(),
                 )
+                result.consume()
+
+            # A replay after a crash is safe because the finding UID is merged.
+            consumer.commit(message=msg, asynchronous=False)
 
             count += 1
             if max_messages is not None and count >= max_messages:

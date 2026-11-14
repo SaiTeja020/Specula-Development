@@ -52,7 +52,7 @@ def _offset(artifact: dict[str, Any]) -> str:
 def _finding(artifact: dict[str, Any], *, rule_id: str, title: str, severity_id: int,
              confidence: str, summary: str, technique: str | None = None) -> dict[str, Any]:
     artifact_uid = _artifact_uid(artifact)
-    return {
+    finding = {
         "agent_role": "memory_forensics",
         "rule_id": rule_id,
         "rule_version": RULE_VERSION,
@@ -74,6 +74,12 @@ def _finding(artifact: dict[str, Any], *, rule_id: str, title: str, severity_id:
             "virtual_offset": artifact.get("virtual_offset"),
         },
     }
+    finding["uid"] = generate_deterministic_uid("memory_finding", {
+        key: finding[key] for key in (
+            "case_id", "source_image_uid", "process_identity", "offset", "rule_id", "rule_version",
+        )
+    })
+    return finding
 
 
 def detect_hidden_processes(artifacts: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -94,6 +100,8 @@ def detect_injected_memory(artifacts: Iterable[dict[str, Any]]) -> list[dict[str
     findings = []
     for artifact in artifacts:
         plugin = _plugin(artifact)
+        if artifact.get("result_status") == "negative":
+            continue
         protection = _text(artifact.get("protection") or artifact.get("Protection")).upper()
         suspicious_vad = bool(artifact.get("is_executable_private")) or (
             artifact.get("vad_type") == "private" and "EXECUTE" in protection

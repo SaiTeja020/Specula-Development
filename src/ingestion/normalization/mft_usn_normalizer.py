@@ -90,8 +90,8 @@ def normalize_mft_record(
             "file_path": sanitized_file_path,
             "timestamp": utc_time.isoformat()
         }),
-        file_name=sanitized_file_name,
-        file_path=sanitized_file_path,
+        file_name=sanitized_file_name or None,
+        file_path=sanitized_file_path or None,
         # NTFS Timestomping required fields
         si_created=si_dt,
         fn_created=fn_dt,

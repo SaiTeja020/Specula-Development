@@ -1,0 +1,67 @@
+{
+  "time_utc": "2026-11-11T10:17:07Z",
+  "user_recovery": "User explicitly confirmed finished closing unused applications; exact closures not independently attributed.",
+  "budget_MiB": 10704,
+  "reserve_MiB": 1024,
+  "preferred_MiB": 11728,
+  "minimum_VM_available_MiB": 10182.54296875,
+  "admission": "BLOCKED",
+  "admission_deficit_MiB": 521.45703125,
+  "preferred_target": "NOT MET",
+  "preferred_deficit_MiB": 1545.45703125,
+  "KubernetesEnabled": true,
+  "observed_pods": [
+    [
+      "kube-system",
+      "coredns-66bc5c9577-qcdvh",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "coredns-66bc5c9577-xpsf4",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "etcd-docker-desktop",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "kube-apiserver-docker-desktop",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "kube-controller-manager-docker-desktop",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "kube-proxy-fmrf8",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "kube-scheduler-docker-desktop",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "storage-provisioner",
+      "Running"
+    ],
+    [
+      "kube-system",
+      "vpnkit-controller",
+      "Running"
+    ]
+  ],
+  "running_docker_containers": [],
+  "container_IDs_and_states_unchanged": true,
+  "parent_tracked_status": "",
+  "resource_limits_changed": false,
+  "R1_applied": false,
+  "actions_implemented": [],
+  "provisioning_executed": false
+}

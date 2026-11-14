@@ -1,0 +1,239 @@
+{
+  "Id": "14304b75923a756ae9e10c4b32df19c4ad9891a5a1c6f3d25d8fdb58eae44c08",
+  "Created": "2026-11-11T07:29:11.300165534Z",
+  "Path": "/usr/local/bin/python",
+  "Args": [
+    "-B",
+    "-u",
+    "/app/preflight/runner.py"
+  ],
+  "State": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-11T07:29:11.88988875Z",
+    "FinishedAt": "2026-11-11T07:29:13.114719728Z"
+  },
+  "Image": "sha256:bf00809a2e299cac191e08996957da0630b56af6f442296e9a9bc14ce62258e3",
+  "ResolvConfPath": "/var/lib/docker/containers/14304b75923a756ae9e10c4b32df19c4ad9891a5a1c6f3d25d8fdb58eae44c08/resolv.conf",
+  "HostnamePath": "/var/lib/docker/containers/14304b75923a756ae9e10c4b32df19c4ad9891a5a1c6f3d25d8fdb58eae44c08/hostname",
+  "HostsPath": "/var/lib/docker/containers/14304b75923a756ae9e10c4b32df19c4ad9891a5a1c6f3d25d8fdb58eae44c08/hosts",
+  "LogPath": "/var/lib/docker/containers/14304b75923a756ae9e10c4b32df19c4ad9891a5a1c6f3d25d8fdb58eae44c08/14304b75923a756ae9e10c4b32df19c4ad9891a5a1c6f3d25d8fdb58eae44c08-json.log",
+  "Name": "/specula-isolation-canary-20261111-01",
+  "RestartCount": 0,
+  "Driver": "overlayfs",
+  "Platform": "linux",
+  "MountLabel": "",
+  "ProcessLabel": "",
+  "AppArmorProfile": "",
+  "ExecIDs": null,
+  "HostConfig": {
+    "Binds": null,
+    "ContainerIDFile": "",
+    "LogConfig": {
+      "Type": "json-file",
+      "Config": {}
+    },
+    "NetworkMode": "none",
+    "PortBindings": {},
+    "RestartPolicy": {
+      "Name": "no",
+      "MaximumRetryCount": 0
+    },
+    "AutoRemove": false,
+    "VolumeDriver": "",
+    "VolumesFrom": null,
+    "ConsoleSize": [
+      0,
+      0
+    ],
+    "CapAdd": null,
+    "CapDrop": [
+      "ALL"
+    ],
+    "CgroupnsMode": "private",
+    "Dns": null,
+    "DnsOptions": [],
+    "DnsSearch": [],
+    "ExtraHosts": null,
+    "GroupAdd": null,
+    "IpcMode": "none",
+    "Cgroup": "",
+    "Links": null,
+    "OomScoreAdj": 0,
+    "PidMode": "",
+    "Privileged": false,
+    "PublishAllPorts": false,
+    "ReadonlyRootfs": true,
+    "SecurityOpt": [
+      "no-new-privileges:true"
+    ],
+    "Tmpfs": {
+      "/run/specula": "rw,noexec,nosuid,nodev,size=16m,uid=10001,gid=10001,mode=0700",
+      "/tmp": "rw,noexec,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=0700"
+    },
+    "UTSMode": "",
+    "UsernsMode": "",
+    "ShmSize": 67108864,
+    "Runtime": "runc",
+    "Isolation": "",
+    "CpuShares": 0,
+    "Memory": 1073741824,
+    "NanoCpus": 2000000000,
+    "CgroupParent": "",
+    "BlkioWeight": 0,
+    "BlkioWeightDevice": [],
+    "BlkioDeviceReadBps": [],
+    "BlkioDeviceWriteBps": [],
+    "BlkioDeviceReadIOps": [],
+    "BlkioDeviceWriteIOps": [],
+    "CpuPeriod": 0,
+    "CpuQuota": 0,
+    "CpuRealtimePeriod": 0,
+    "CpuRealtimeRuntime": 0,
+    "CpusetCpus": "",
+    "CpusetMems": "",
+    "Devices": [],
+    "DeviceCgroupRules": null,
+    "DeviceRequests": null,
+    "MemoryReservation": 0,
+    "MemorySwap": 2147483648,
+    "MemorySwappiness": null,
+    "OomKillDisable": null,
+    "PidsLimit": 128,
+    "Ulimits": [],
+    "CpuCount": 0,
+    "CpuPercent": 0,
+    "IOMaximumIOps": 0,
+    "IOMaximumBandwidth": 0,
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\fixtures\\evidence",
+        "Target": "/evidence/agent_evidence",
+        "ReadOnly": true
+      }
+    ],
+    "MaskedPaths": [
+      "/proc/acpi",
+      "/proc/asound",
+      "/proc/interrupts",
+      "/proc/kcore",
+      "/proc/keys",
+      "/proc/latency_stats",
+      "/proc/sched_debug",
+      "/proc/scsi",
+      "/proc/timer_list",
+      "/proc/timer_stats",
+      "/sys/devices/virtual/powercap",
+      "/sys/firmware"
+    ],
+    "ReadonlyPaths": [
+      "/proc/bus",
+      "/proc/fs",
+      "/proc/irq",
+      "/proc/sys",
+      "/proc/sysrq-trigger"
+    ]
+  },
+  "GraphDriver": {
+    "Data": null,
+    "Name": ""
+  },
+  "Mounts": [
+    {
+      "Type": "bind",
+      "Source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\isolation_20261111_run01\\fixtures\\evidence",
+      "Destination": "/evidence/agent_evidence",
+      "Mode": "",
+      "RW": false,
+      "Propagation": "rprivate"
+    }
+  ],
+  "Config": {
+    "Hostname": "14304b75923a",
+    "Domainname": "",
+    "User": "10001:10001",
+    "AttachStdin": false,
+    "AttachStdout": true,
+    "AttachStderr": true,
+    "Tty": false,
+    "OpenStdin": false,
+    "StdinOnce": false,
+    "Env": [
+      "PATH=/usr/local/bin",
+      "PYTHONPATH=/app",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "PYTHONUNBUFFERED=1",
+      "HOME=/tmp",
+      "TMPDIR=/tmp",
+      "SPECULA_AUTH_POLICY_PATH=/app/preflight/viewer_policy.json"
+    ],
+    "Cmd": null,
+    "Image": "specula-isolation-canary:20261111-01",
+    "Volumes": null,
+    "WorkingDir": "/app",
+    "Entrypoint": [
+      "/usr/local/bin/python",
+      "-B",
+      "-u",
+      "/app/preflight/runner.py"
+    ],
+    "OnBuild": null,
+    "Labels": {},
+    "StopTimeout": 1
+  },
+  "NetworkSettings": {
+    "Bridge": "",
+    "SandboxID": "",
+    "SandboxKey": "",
+    "Ports": {},
+    "HairpinMode": false,
+    "LinkLocalIPv6Address": "",
+    "LinkLocalIPv6PrefixLen": 0,
+    "SecondaryIPAddresses": null,
+    "SecondaryIPv6Addresses": null,
+    "EndpointID": "",
+    "Gateway": "",
+    "GlobalIPv6Address": "",
+    "GlobalIPv6PrefixLen": 0,
+    "IPAddress": "",
+    "IPPrefixLen": 0,
+    "IPv6Gateway": "",
+    "MacAddress": "",
+    "Networks": {
+      "none": {
+        "IPAMConfig": null,
+        "Links": null,
+        "Aliases": null,
+        "MacAddress": "",
+        "DriverOpts": null,
+        "GwPriority": 0,
+        "NetworkID": "7b6d5bd2fdabdc87c1d910f36d3822949663c58742872dbd0e251397c5d00335",
+        "EndpointID": "",
+        "Gateway": "",
+        "IPAddress": "",
+        "IPPrefixLen": 0,
+        "IPv6Gateway": "",
+        "GlobalIPv6Address": "",
+        "GlobalIPv6PrefixLen": 0,
+        "DNSNames": null
+      }
+    }
+  },
+  "ImageManifestDescriptor": {
+    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+    "digest": "sha256:f5425ad9f41efa3e14329ec4916f5652eac46c851adabf2c1b009141f77778cf",
+    "size": 861,
+    "platform": {
+      "architecture": "amd64",
+      "os": "linux"
+    }
+  }
+}

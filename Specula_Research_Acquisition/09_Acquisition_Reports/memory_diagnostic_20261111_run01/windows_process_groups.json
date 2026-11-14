@@ -1,0 +1,1202 @@
+{
+  "AggregatorHost": {
+    "count": 1,
+    "rss": 8355840,
+    "private_rss": 2007040,
+    "private_commit": 4476928,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AlienFXSubAgent": {
+    "count": 1,
+    "rss": 34418688,
+    "private_rss": 10203136,
+    "private_commit": 134594560,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ApplicationFrameHost": {
+    "count": 1,
+    "rss": 9699328,
+    "private_rss": 1437696,
+    "private_commit": 58716160,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AppVShNotify": {
+    "count": 1,
+    "rss": 3497984,
+    "private_rss": 16384,
+    "private_commit": 1982464,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AWCC.SCSubAgent": {
+    "count": 1,
+    "rss": 79020032,
+    "private_rss": 58769408,
+    "private_commit": 87388160,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AWCC.UCSubAgent": {
+    "count": 1,
+    "rss": 42979328,
+    "private_rss": 19742720,
+    "private_commit": 40701952,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AWGameLibrary.SCSubAgent": {
+    "count": 1,
+    "rss": 14979072,
+    "private_rss": 3145728,
+    "private_commit": 37359616,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AWGameLibrary.UCSubAgent": {
+    "count": 1,
+    "rss": 16363520,
+    "private_rss": 4943872,
+    "private_commit": 59322368,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AWPerformance.SCSubAgent": {
+    "count": 1,
+    "rss": 398610432,
+    "private_rss": 161816576,
+    "private_commit": 626614272,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "AWPerformance.UCSubAgent": {
+    "count": 1,
+    "rss": 24162304,
+    "private_rss": 7819264,
+    "private_commit": 42373120,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "backgroundTaskHost": {
+    "count": 1,
+    "rss": 17084416,
+    "private_rss": 4149248,
+    "private_commit": 28983296,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "brave": {
+    "count": 11,
+    "rss": 933380096,
+    "private_rss": 637001728,
+    "private_commit": 1612914688,
+    "specula_window": false,
+    "private_samples": 11
+  },
+  "BraveCrashHandler": {
+    "count": 1,
+    "rss": 1376256,
+    "private_rss": 102400,
+    "private_commit": 1871872,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "BraveCrashHandler64": {
+    "count": 1,
+    "rss": 409600,
+    "private_rss": 57344,
+    "private_commit": 1851392,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ChatGPT": {
+    "count": 14,
+    "rss": 817758208,
+    "private_rss": 561090560,
+    "private_commit": 1648455680,
+    "specula_window": false,
+    "private_samples": 14
+  },
+  "Code": {
+    "count": 16,
+    "rss": 1601142784,
+    "private_rss": 1121460224,
+    "private_commit": 2721394688,
+    "specula_window": true,
+    "private_samples": 16
+  },
+  "codex": {
+    "count": 5,
+    "rss": 235003904,
+    "private_rss": 129081344,
+    "private_commit": 266047488,
+    "specula_window": false,
+    "private_samples": 5
+  },
+  "codex-code-mode-host": {
+    "count": 1,
+    "rss": 21651456,
+    "private_rss": 10924032,
+    "private_commit": 20488192,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "codex-command-runner-0.167.0-alpha.3.2": {
+    "count": 2,
+    "rss": 3473408,
+    "private_rss": 180224,
+    "private_commit": 3915776,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "codex-computer-use-swift": {
+    "count": 1,
+    "rss": 5808128,
+    "private_rss": 733184,
+    "private_commit": 60964864,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "codex-windows-sandbox-service": {
+    "count": 1,
+    "rss": 4853760,
+    "private_rss": 389120,
+    "private_commit": 3448832,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "com.docker.backend": {
+    "count": 2,
+    "rss": 277733376,
+    "private_rss": 123953152,
+    "private_commit": 370028544,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "com.docker.build": {
+    "count": 1,
+    "rss": 21417984,
+    "private_rss": 10354688,
+    "private_commit": 30556160,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "conhost": {
+    "count": 28,
+    "rss": 81158144,
+    "private_rss": 4009984,
+    "private_commit": 41713664,
+    "specula_window": false,
+    "private_samples": 28
+  },
+  "copilot-runtime": {
+    "count": 1,
+    "rss": 47996928,
+    "private_rss": 18239488,
+    "private_commit": 201912320,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "cowork-svc": {
+    "count": 1,
+    "rss": 7483392,
+    "private_rss": 1077248,
+    "private_commit": 26521600,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "crashpad_handler": {
+    "count": 1,
+    "rss": 1335296,
+    "private_rss": 176128,
+    "private_commit": 1425408,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "CrossDeviceResume": {
+    "count": 1,
+    "rss": 7798784,
+    "private_rss": 1482752,
+    "private_commit": 54620160,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "CrossDeviceService": {
+    "count": 1,
+    "rss": 15208448,
+    "private_rss": 3063808,
+    "private_commit": 27869184,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "csrss": {
+    "count": 2,
+    "rss": 6098944,
+    "private_rss": 1556480,
+    "private_commit": 6303744,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "ctfmon": {
+    "count": 1,
+    "rss": 15220736,
+    "private_rss": 3063808,
+    "private_commit": 6733824,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "DataExchangeHost": {
+    "count": 1,
+    "rss": 22724608,
+    "private_rss": 5787648,
+    "private_commit": 17031168,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "DAX3API": {
+    "count": 1,
+    "rss": 3862528,
+    "private_rss": 741376,
+    "private_commit": 7917568,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "DefenderAiPlatformHost": {
+    "count": 1,
+    "rss": 1204224,
+    "private_rss": 167936,
+    "private_commit": 1298432,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "DefenderSessionHelper": {
+    "count": 1,
+    "rss": 1748992,
+    "private_rss": 147456,
+    "private_commit": 1196032,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.Connected.Service.Delivery": {
+    "count": 1,
+    "rss": 7458816,
+    "private_rss": 1089536,
+    "private_commit": 35532800,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.Connected.Service.Delivery.SubAgent": {
+    "count": 1,
+    "rss": 15155200,
+    "private_rss": 3887104,
+    "private_commit": 40022016,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.CoreServices.Client": {
+    "count": 1,
+    "rss": 39120896,
+    "private_rss": 7929856,
+    "private_commit": 115642368,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.TechHub": {
+    "count": 1,
+    "rss": 12115968,
+    "private_rss": 4780032,
+    "private_commit": 55775232,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.TechHub.Analytics.SubAgent": {
+    "count": 1,
+    "rss": 44580864,
+    "private_rss": 16977920,
+    "private_commit": 94425088,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.TechHub.DataManager.SubAgent": {
+    "count": 1,
+    "rss": 69877760,
+    "private_rss": 36835328,
+    "private_commit": 84910080,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.TechHub.Diagnostics.SubAgent": {
+    "count": 1,
+    "rss": 21131264,
+    "private_rss": 5898240,
+    "private_commit": 69877760,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.TechHub.Instrumentation.SubAgent": {
+    "count": 1,
+    "rss": 153640960,
+    "private_rss": 79290368,
+    "private_commit": 224219136,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.TechHub.Instrumentation.UserProcess": {
+    "count": 1,
+    "rss": 40546304,
+    "private_rss": 11468800,
+    "private_commit": 49516544,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.UCA.Manager": {
+    "count": 1,
+    "rss": 18857984,
+    "private_rss": 4751360,
+    "private_commit": 36990976,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Dell.Update.SubAgent": {
+    "count": 1,
+    "rss": 11296768,
+    "private_rss": 4362240,
+    "private_commit": 46010368,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "dllhost": {
+    "count": 3,
+    "rss": 10612736,
+    "private_rss": 1146880,
+    "private_commit": 8994816,
+    "specula_window": false,
+    "private_samples": 3
+  },
+  "Docker Desktop": {
+    "count": 4,
+    "rss": 174174208,
+    "private_rss": 107868160,
+    "private_commit": 347127808,
+    "specula_window": false,
+    "private_samples": 4
+  },
+  "dwm": {
+    "count": 1,
+    "rss": 50847744,
+    "private_rss": 24305664,
+    "private_commit": 271106048,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "escsvc64": {
+    "count": 1,
+    "rss": 1007616,
+    "private_rss": 16384,
+    "private_commit": 1327104,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "explorer": {
+    "count": 1,
+    "rss": 241012736,
+    "private_rss": 83439616,
+    "private_commit": 372809728,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "fontdrvhost": {
+    "count": 2,
+    "rss": 3342336,
+    "private_rss": 520192,
+    "private_commit": 5988352,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "FvContainer": {
+    "count": 1,
+    "rss": 8810496,
+    "private_rss": 2535424,
+    "private_commit": 42065920,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "FvContainer.System": {
+    "count": 1,
+    "rss": 13840384,
+    "private_rss": 8388608,
+    "private_commit": 18251776,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "FxDisplayService": {
+    "count": 1,
+    "rss": 18952192,
+    "private_rss": 3911680,
+    "private_commit": 15421440,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "GameEyeApp": {
+    "count": 1,
+    "rss": 19738624,
+    "private_rss": 4194304,
+    "private_commit": 22319104,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "GameInputRedistService": {
+    "count": 1,
+    "rss": 3506176,
+    "private_rss": 557056,
+    "private_commit": 7856128,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "gamingservices": {
+    "count": 1,
+    "rss": 19587072,
+    "private_rss": 4579328,
+    "private_commit": 11419648,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "gamingservicesnet": {
+    "count": 1,
+    "rss": 1929216,
+    "private_rss": 282624,
+    "private_commit": 13164544,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "GooglePlayGamesServices": {
+    "count": 1,
+    "rss": 43716608,
+    "private_rss": 25047040,
+    "private_commit": 126353408,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Idle": {
+    "count": 1,
+    "rss": 8192,
+    "private_rss": 0,
+    "private_commit": 61440,
+    "specula_window": false,
+    "private_samples": 0
+  },
+  "IGCC": {
+    "count": 1,
+    "rss": 15376384,
+    "private_rss": 3538944,
+    "private_commit": 63504384,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "IGCCTray": {
+    "count": 1,
+    "rss": 14073856,
+    "private_rss": 3235840,
+    "private_commit": 49553408,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "IgoAudioService_x64": {
+    "count": 1,
+    "rss": 2834432,
+    "private_rss": 372736,
+    "private_commit": 19853312,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "iGoSwServer": {
+    "count": 2,
+    "rss": 5566464,
+    "private_rss": 909312,
+    "private_commit": 3805184,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "Intel_PIE_Service": {
+    "count": 1,
+    "rss": 2846720,
+    "private_rss": 548864,
+    "private_commit": 2768896,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "IntelAudioService": {
+    "count": 1,
+    "rss": 5275648,
+    "private_rss": 1261568,
+    "private_commit": 41811968,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "IntelCpHDCPSvc": {
+    "count": 1,
+    "rss": 2453504,
+    "private_rss": 376832,
+    "private_commit": 1671168,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "IntelGraphicsSoftware.Service": {
+    "count": 1,
+    "rss": 2646016,
+    "private_rss": 339968,
+    "private_commit": 11259904,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "IntelGraphicsSoftware.Service.Graphics": {
+    "count": 1,
+    "rss": 7643136,
+    "private_rss": 1953792,
+    "private_commit": 12926976,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ipf_helper": {
+    "count": 1,
+    "rss": 3080192,
+    "private_rss": 278528,
+    "private_commit": 1814528,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ipf_uf": {
+    "count": 1,
+    "rss": 4169728,
+    "private_rss": 540672,
+    "private_commit": 2326528,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ipfsvc": {
+    "count": 1,
+    "rss": 3244032,
+    "private_rss": 552960,
+    "private_commit": 2187264,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "java": {
+    "count": 1,
+    "rss": 101834752,
+    "private_rss": 44085248,
+    "private_commit": 605814784,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "jenkins": {
+    "count": 1,
+    "rss": 3608576,
+    "private_rss": 1089536,
+    "private_commit": 20484096,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "jhi_service": {
+    "count": 1,
+    "rss": 2125824,
+    "private_rss": 16384,
+    "private_commit": 1531904,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "logi_lamparray_service.AMD64": {
+    "count": 1,
+    "rss": 3321856,
+    "private_rss": 409600,
+    "private_commit": 3940352,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "LsaIso": {
+    "count": 1,
+    "rss": 909312,
+    "private_rss": 286720,
+    "private_commit": 1212416,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "lsass": {
+    "count": 1,
+    "rss": 25337856,
+    "private_rss": 7999488,
+    "private_commit": 38371328,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Memory Compression": {
+    "count": 1,
+    "rss": 494620672,
+    "private_rss": 494620672,
+    "private_commit": 13524992,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "MicrosoftStartFeedProvider": {
+    "count": 1,
+    "rss": 24944640,
+    "private_rss": 2678784,
+    "private_commit": 11247616,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "mongod": {
+    "count": 1,
+    "rss": 34893824,
+    "private_rss": 24076288,
+    "private_commit": 189190144,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "MoNotificationUx": {
+    "count": 1,
+    "rss": 3547136,
+    "private_rss": 278528,
+    "private_commit": 2330624,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "MpDefenderCoreService": {
+    "count": 1,
+    "rss": 14602240,
+    "private_rss": 3518464,
+    "private_commit": 16601088,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "msedgewebview2": {
+    "count": 13,
+    "rss": 646344704,
+    "private_rss": 398233600,
+    "private_commit": 1104760832,
+    "specula_window": false,
+    "private_samples": 13
+  },
+  "MsMpEng": {
+    "count": 1,
+    "rss": 395128832,
+    "private_rss": 284889088,
+    "private_commit": 653811712,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "msrdc": {
+    "count": 1,
+    "rss": 9953280,
+    "private_rss": 2228224,
+    "private_commit": 124858368,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "mysqld": {
+    "count": 2,
+    "rss": 7032832,
+    "private_rss": 999424,
+    "private_commit": 706953216,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "NgcIso": {
+    "count": 1,
+    "rss": 2248704,
+    "private_rss": 495616,
+    "private_commit": 2027520,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "NisSrv": {
+    "count": 1,
+    "rss": 5988352,
+    "private_rss": 1335296,
+    "private_commit": 4673536,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "node": {
+    "count": 4,
+    "rss": 24031232,
+    "private_rss": 7540736,
+    "private_commit": 215371776,
+    "specula_window": false,
+    "private_samples": 4
+  },
+  "node_repl": {
+    "count": 2,
+    "rss": 11427840,
+    "private_rss": 1757184,
+    "private_commit": 8159232,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "nvcontainer": {
+    "count": 4,
+    "rss": 72089600,
+    "private_rss": 27820032,
+    "private_commit": 103636992,
+    "specula_window": false,
+    "private_samples": 4
+  },
+  "NVDisplay.Container": {
+    "count": 2,
+    "rss": 35680256,
+    "private_rss": 14716928,
+    "private_commit": 176005120,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "nvfvsdksvc_x64": {
+    "count": 1,
+    "rss": 3211264,
+    "private_rss": 32768,
+    "private_commit": 2904064,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "NVIDIA Overlay": {
+    "count": 5,
+    "rss": 172904448,
+    "private_rss": 81539072,
+    "private_commit": 536154112,
+    "specula_window": false,
+    "private_samples": 5
+  },
+  "nvrla": {
+    "count": 1,
+    "rss": 4075520,
+    "private_rss": 204800,
+    "private_commit": 2162688,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "nvsphelper64": {
+    "count": 1,
+    "rss": 4472832,
+    "private_rss": 180224,
+    "private_commit": 4026368,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "OfficeClickToRun": {
+    "count": 1,
+    "rss": 16494592,
+    "private_rss": 3465216,
+    "private_commit": 44797952,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "OneDrive.Sync.Service": {
+    "count": 1,
+    "rss": 22487040,
+    "private_rss": 13893632,
+    "private_commit": 68460544,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "PhoneExperienceHost": {
+    "count": 1,
+    "rss": 65798144,
+    "private_rss": 5459968,
+    "private_commit": 100347904,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "powershell": {
+    "count": 2,
+    "rss": 161624064,
+    "private_rss": 59457536,
+    "private_commit": 124084224,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "PresentMon_x64": {
+    "count": 1,
+    "rss": 9908224,
+    "private_rss": 5513216,
+    "private_commit": 12472320,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "PresentMonService": {
+    "count": 1,
+    "rss": 2441216,
+    "private_rss": 372736,
+    "private_commit": 9687040,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "python": {
+    "count": 1,
+    "rss": 18391040,
+    "private_rss": 8261632,
+    "private_commit": 10305536,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Registry": {
+    "count": 1,
+    "rss": 37208064,
+    "private_rss": 1523712,
+    "private_commit": 6139904,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "RtkAudUService64": {
+    "count": 3,
+    "rss": 22302720,
+    "private_rss": 3215360,
+    "private_commit": 48574464,
+    "specula_window": false,
+    "private_samples": 3
+  },
+  "RuntimeBroker": {
+    "count": 6,
+    "rss": 70918144,
+    "private_rss": 8142848,
+    "private_commit": 38236160,
+    "specula_window": false,
+    "private_samples": 6
+  },
+  "SDXHelper": {
+    "count": 1,
+    "rss": 10805248,
+    "private_rss": 3563520,
+    "private_commit": 19742720,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "SearchHost": {
+    "count": 1,
+    "rss": 23584768,
+    "private_rss": 5951488,
+    "private_commit": 93487104,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "SearchIndexer": {
+    "count": 1,
+    "rss": 18915328,
+    "private_rss": 5550080,
+    "private_commit": 93335552,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "Secure System": {
+    "count": 1,
+    "rss": 69193728,
+    "private_rss": 69193728,
+    "private_commit": 180224,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "SecurityHealthService": {
+    "count": 1,
+    "rss": 9310208,
+    "private_rss": 1187840,
+    "private_commit": 14315520,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "SecurityHealthSystray": {
+    "count": 1,
+    "rss": 4853760,
+    "private_rss": 135168,
+    "private_commit": 2207744,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "services": {
+    "count": 1,
+    "rss": 9891840,
+    "private_rss": 4714496,
+    "private_commit": 8421376,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ServiceShell": {
+    "count": 1,
+    "rss": 20713472,
+    "private_rss": 10641408,
+    "private_commit": 36306944,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ShellExperienceHost": {
+    "count": 1,
+    "rss": 45219840,
+    "private_rss": 49152,
+    "private_commit": 86175744,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "ShellHost": {
+    "count": 1,
+    "rss": 10174464,
+    "private_rss": 1970176,
+    "private_commit": 52862976,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "sihost": {
+    "count": 1,
+    "rss": 21684224,
+    "private_rss": 4210688,
+    "private_commit": 8638464,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "smss": {
+    "count": 1,
+    "rss": 348160,
+    "private_rss": 106496,
+    "private_commit": 1212416,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "spoolsv": {
+    "count": 1,
+    "rss": 6889472,
+    "private_rss": 1335296,
+    "private_commit": 9433088,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "sqlwriter": {
+    "count": 1,
+    "rss": 3403776,
+    "private_rss": 16384,
+    "private_commit": 4313088,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "StartMenuExperienceHost": {
+    "count": 1,
+    "rss": 27004928,
+    "private_rss": 7483392,
+    "private_commit": 133894144,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "SupportAssistAgent": {
+    "count": 1,
+    "rss": 78585856,
+    "private_rss": 7426048,
+    "private_commit": 160157696,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "svchost": {
+    "count": 93,
+    "rss": 906731520,
+    "private_rss": 305385472,
+    "private_commit": 715296768,
+    "specula_window": false,
+    "private_samples": 93
+  },
+  "Sysmon64": {
+    "count": 1,
+    "rss": 12505088,
+    "private_rss": 7200768,
+    "private_commit": 17547264,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "System": {
+    "count": 1,
+    "rss": 6434816,
+    "private_rss": 12288,
+    "private_commit": 65536,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "SystemSettings": {
+    "count": 1,
+    "rss": 3764224,
+    "private_rss": 1818624,
+    "private_commit": 165138432,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "taskhostw": {
+    "count": 1,
+    "rss": 11689984,
+    "private_rss": 1937408,
+    "private_commit": 8241152,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "TextInputHost": {
+    "count": 1,
+    "rss": 31473664,
+    "private_rss": 10121216,
+    "private_commit": 140423168,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "unsecapp": {
+    "count": 2,
+    "rss": 7876608,
+    "private_rss": 1159168,
+    "private_commit": 3821568,
+    "specula_window": false,
+    "private_samples": 2
+  },
+  "UserOOBEBroker": {
+    "count": 1,
+    "rss": 2416640,
+    "private_rss": 16384,
+    "private_commit": 2117632,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "vmcompute": {
+    "count": 1,
+    "rss": 4493312,
+    "private_rss": 1032192,
+    "private_commit": 3428352,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "vmmemWSL": {
+    "count": 1,
+    "rss": 1259917312,
+    "private_rss": 1259208704,
+    "private_commit": 10942181376,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "vmwp": {
+    "count": 1,
+    "rss": 10891264,
+    "private_rss": 3244032,
+    "private_commit": 23261184,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "WhatsApp.Root": {
+    "count": 1,
+    "rss": 117149696,
+    "private_rss": 22978560,
+    "private_commit": 150614016,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "WidgetService": {
+    "count": 1,
+    "rss": 16973824,
+    "private_rss": 815104,
+    "private_commit": 5689344,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "wininit": {
+    "count": 1,
+    "rss": 2039808,
+    "private_rss": 184320,
+    "private_commit": 1863680,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "winlogbeat": {
+    "count": 1,
+    "rss": 41406464,
+    "private_rss": 31182848,
+    "private_commit": 92696576,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "winlogon": {
+    "count": 1,
+    "rss": 3723264,
+    "private_rss": 413696,
+    "private_commit": 2736128,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "wlanext": {
+    "count": 1,
+    "rss": 3571712,
+    "private_rss": 761856,
+    "private_commit": 3764224,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "WmiPrvSE": {
+    "count": 3,
+    "rss": 125370368,
+    "private_rss": 80666624,
+    "private_commit": 127172608,
+    "specula_window": false,
+    "private_samples": 3
+  },
+  "WMIRegistrationService": {
+    "count": 1,
+    "rss": 2412544,
+    "private_rss": 69632,
+    "private_commit": 3371008,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "wsl": {
+    "count": 4,
+    "rss": 13574144,
+    "private_rss": 221184,
+    "private_commit": 7299072,
+    "specula_window": false,
+    "private_samples": 4
+  },
+  "wslhost": {
+    "count": 4,
+    "rss": 15032320,
+    "private_rss": 86016,
+    "private_commit": 8228864,
+    "specula_window": false,
+    "private_samples": 4
+  },
+  "wslrelay": {
+    "count": 1,
+    "rss": 3428352,
+    "private_rss": 16384,
+    "private_commit": 1835008,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "wslservice": {
+    "count": 1,
+    "rss": 10973184,
+    "private_rss": 2170880,
+    "private_commit": 7159808,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "WUDFHost": {
+    "count": 4,
+    "rss": 20123648,
+    "private_rss": 5369856,
+    "private_commit": 36978688,
+    "specula_window": false,
+    "private_samples": 4
+  },
+  "XboxService": {
+    "count": 1,
+    "rss": 3776512,
+    "private_rss": 53248,
+    "private_commit": 3784704,
+    "specula_window": false,
+    "private_samples": 1
+  },
+  "XtuService": {
+    "count": 1,
+    "rss": 10006528,
+    "private_rss": 3268608,
+    "private_commit": 71651328,
+    "specula_window": false,
+    "private_samples": 1
+  }
+}

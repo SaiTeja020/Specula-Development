@@ -41,5 +41,5 @@ def run_memory_forensics_analysis(artifacts: Iterable[dict[str, Any]], *, case_i
             raise ValueError("MemoryForensicsAgent received an artifact from another case.")
         if canonical_host_id is not None and artifact_host not in (None, canonical_host_id):
             raise ValueError("MemoryForensicsAgent received an artifact from another host.")
-        scoped.append(artifact)
+        scoped.append({**artifact, "case_id": case_id})
     return deduplicate_findings(analyze_memory_artifacts(scoped))

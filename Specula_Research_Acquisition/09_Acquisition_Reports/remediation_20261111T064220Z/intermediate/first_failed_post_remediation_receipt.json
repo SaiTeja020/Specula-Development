@@ -1,0 +1,69 @@
+{
+  "checked_utc": "2026-11-11T07:04:31.468717+00:00",
+  "non_experiment_integrity_and_metadata": "FAIL",
+  "actual_runtime_isolation": "BLOCKED_PENDING_APPROVAL",
+  "controlled_experiments": "NOT_READY",
+  "new_experiments": 0,
+  "counts": {
+    "backups_verified": 20,
+    "immutable_resource_hashes_verified": 5096,
+    "mutable_datastore_hashes_deferred": 31,
+    "evaluator_files_preserved": 296,
+    "acl_descriptors_unchanged": 411,
+    "checklist_dispositions": 136,
+    "repaired_local_paths": 25,
+    "reconciled_dataset_rows": 23,
+    "dataset_disagreements": 0,
+    "priority_aliases_corrected": 3,
+    "cfa_pcaps": 20,
+    "cfa_logs": 39,
+    "pcap_packets": 23152,
+    "errors": [
+      "Master direct file hash mismatch CL-020"
+    ]
+  },
+  "detached_manifest_entries": 32,
+  "detached_manifest_sha256": "e633d64519d2807ce50439e47e40350d7013a80dc881c6323332208c5ad340dc",
+  "gates": [
+    [
+      "Resource integrity for acquired scope",
+      "FAIL",
+      "5096 resource hashes; 31 mutable hashes remain explicitly deferred"
+    ],
+    [
+      "Updated tracker and metadata",
+      "FAIL",
+      "136 dispositions;25 paths;23 dataset rows agree;3 priority aliases;detached checksums"
+    ],
+    [
+      "Original evidence, labels, clones and parent source preservation",
+      "FAIL",
+      "296 evaluator files and 411 ACL descriptors compared; parent commit unchanged"
+    ],
+    [
+      "Existing host evaluator separation",
+      "FAIL",
+      "DELL/sandbox access and broader descendant grants remain; no security change authorized"
+    ],
+    [
+      "Actual proposed runtime positive/negative access tests",
+      "BLOCKED",
+      "No approved evaluation runtime or identity deployed; no runtime access proof claimed"
+    ],
+    [
+      "Experiment configuration complete and frozen",
+      "BLOCKED",
+      "Draft only; global budgets, runtime pins, completion boundary and approvals unresolved"
+    ],
+    [
+      "Independent truth for every selected empirical case",
+      "BLOCKED",
+      "20 CFA candidates have published tasks but independent review/richer truth not established"
+    ],
+    [
+      "Safe functional smoke execution",
+      "BLOCKED",
+      "Isolation preflight and approval required; model service not running; zero new runs"
+    ]
+  ]
+}

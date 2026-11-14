@@ -1,0 +1,32 @@
+[
+  {
+    "source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\PROGRESS.md",
+    "backup": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_resume_20261111_run01\\backup\\PROGRESS.md",
+    "sha256": "d92bf11cfb636fb7c80a498c095f8a3412c1636d0e9d2370707eb3088918ddb9"
+  },
+  {
+    "source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_runtime_provisioning_report.md",
+    "backup": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_resume_20261111_run01\\backup\\functional_runtime_provisioning_report.md",
+    "sha256": "16605554b9d9ec7314a4ac1d3a23461da1a82a8dcab25d0b2aa2d482b891c76d"
+  },
+  {
+    "source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_isolation_results.md",
+    "backup": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_resume_20261111_run01\\backup\\functional_isolation_results.md",
+    "sha256": "9fd90fb0ee4319a284e30b6d6c89bbf9ed34ce7da9efc8eb15ebf4a3eab42537"
+  },
+  {
+    "source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\model_gateway_validation.md",
+    "backup": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_resume_20261111_run01\\backup\\model_gateway_validation.md",
+    "sha256": "885ab6ac4081b00ee6fca0ace10edbf53dbdde63a8d8ca702abb12797d1a2783"
+  },
+  {
+    "source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\service_compatibility_report.md",
+    "backup": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_resume_20261111_run01\\backup\\service_compatibility_report.md",
+    "sha256": "d75a5b57f6b781f1bf6ce6730d74b6723583ac1d5c40c835e28a0a4d2507a6fc"
+  },
+  {
+    "source": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_smoke_readiness_decision.md",
+    "backup": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\functional_resume_20261111_run01\\backup\\functional_smoke_readiness_decision.md",
+    "sha256": "88bce86a30c5961719adcdaad4ba6331abb12530610ac19f2a8e9c05277384b9"
+  }
+]

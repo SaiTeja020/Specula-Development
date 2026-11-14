@@ -1,0 +1,91 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/a8db2f52eb933c9c99060c123e088b3326d3a607/enterprise-attack/enterprise-attack-19.2.json",
+    "relative": "02_Benchmarks/MITRE_ATTACK/enterprise-attack-19.2.json",
+    "limit": 67108864
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/a8db2f52eb933c9c99060c123e088b3326d3a607/README.md",
+    "relative": "02_Benchmarks/MITRE_ATTACK/README.md"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mitre-attack/attack-stix-data/a8db2f52eb933c9c99060c123e088b3326d3a607/LICENSE.txt",
+    "relative": "02_Benchmarks/MITRE_ATTACK/LICENSE.txt"
+  },
+  {
+    "url": "https://drive.google.com/drive/u/0/folders/1n3kkS3KR31KUegn42yk3-e6JkZvf0Caa",
+    "relative": "01_Forensic_Datasets/OpTC/documentation/public_drive_folder.html"
+  },
+  {
+    "url": "https://cfreds-archive.nist.gov/data_leakage_case/data-leakage-case.html",
+    "relative": "01_Forensic_Datasets/NIST_Data_Leakage/source.html"
+  },
+  {
+    "url": "https://digitalcorpora.org/corpora/scenarios/m57-patents-scenario/",
+    "relative": "01_Forensic_Datasets/M57-Patents/source.html"
+  },
+  {
+    "url": "https://api.figshare.com/v2/articles/12841247/versions/1",
+    "relative": "01_Forensic_Datasets/CERT/source.json"
+  },
+  {
+    "url": "https://www.unb.ca/cic/datasets/ids-2017.html",
+    "relative": "01_Forensic_Datasets/CIC-IDS2017/source.html"
+  },
+  {
+    "url": "https://www.unb.ca/cic/datasets/ids-2018.html",
+    "relative": "01_Forensic_Datasets/CSE-CIC-IDS2018/source.html"
+  },
+  {
+    "url": "https://arxiv.org/abs/2409.02572",
+    "relative": "03_Research_Papers/2409.02572/metadata.html"
+  },
+  {
+    "url": "https://arxiv.org/abs/2005.11401",
+    "relative": "03_Research_Papers/2005.11401/metadata.html"
+  },
+  {
+    "url": "https://arxiv.org/abs/2210.03629",
+    "relative": "03_Research_Papers/2210.03629/metadata.html"
+  },
+  {
+    "url": "https://arxiv.org/abs/2404.16130",
+    "relative": "03_Research_Papers/2404.16130/metadata.html"
+  },
+  {
+    "url": "https://arxiv.org/abs/1806.04356",
+    "relative": "03_Research_Papers/1806.04356/metadata.html"
+  },
+  {
+    "url": "https://www.iso.org/standard/44381.html",
+    "relative": "05_Standards_Documentation/ISO_27037/source.html"
+  },
+  {
+    "url": "https://www.iso.org/standard/44405.html",
+    "relative": "05_Standards_Documentation/ISO_27041/source.html"
+  },
+  {
+    "url": "https://www.iso.org/search.html?q=ISO%2FIEC+27042",
+    "relative": "05_Standards_Documentation/ISO_27042/source.html"
+  },
+  {
+    "url": "https://www.iso.org/search.html?q=ISO%2FIEC+27043",
+    "relative": "05_Standards_Documentation/ISO_27043/source.html"
+  },
+  {
+    "url": "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf",
+    "relative": "05_Standards_Documentation/NIST_AI_600-1/source.pdf"
+  },
+  {
+    "url": "https://attack.mitre.org/",
+    "relative": "05_Standards_Documentation/MITRE_documentation/source.html"
+  },
+  {
+    "url": "https://schema.ocsf.io/",
+    "relative": "05_Standards_Documentation/OCSF_documentation/source.html"
+  },
+  {
+    "url": "https://www.nist.gov/itl/ssd/software-quality-group/computer-forensics-tool-testing-program-cftt",
+    "relative": "05_Standards_Documentation/CFTT/source.html"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "original_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\01_Forensic_Datasets\\OpTC\\network_subset\\communication.00-01.2019-09-23.log.gz",
+    "preserved_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\09_Acquisition_Reports\\rejected_responses\\OpTC_quota_exceeded.html",
+    "sha256": "63993d47d63fffe9d7e1f61c89d4fe1acb0d118bf4d5804398037a469eb592cf",
+    "status": "REJECTED_HTML_NOT_DATASET"
+  },
+  {
+    "original_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\Hmimou\\publisher_fulltext_response.bin",
+    "preserved_path": "C:\\Users\\DELL\\Specula-skeleton\\Specula_Research_Acquisition\\03_Research_Papers\\Hmimou\\ACCESS.2025.3602681.pdf",
+    "sha256": "a935ebc932bad60bdf107919bb44a714be60b2296b362d3951a4d2e25e37688b",
+    "status": "PDF_VERIFIED"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "status": "template_no_experiments",
+  "source_commit": "b9b2012edaed8da5062113ddc9982e3c33b27983",
+  "dataset_hashes": [],
+  "environment_metadata": "../../06_Existing_Project_Resources/installed_package_inventory.json",
+  "run_identifiers": [],
+  "models": [],
+  "pending_experiments": [
+    "NIST Hacking dependent experiments: dataset deferred, not cancelled"
+  ]
+}
